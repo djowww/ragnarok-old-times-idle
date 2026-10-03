@@ -648,14 +648,54 @@ button.full {
   height: 333px;
   overflow: hidden;
   border-bottom: 1px solid #898e6f;
-  background: #95b184;
+  background: #182228;
 }
-.scene canvas {
+.original-map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.original-map iframe {
+  display: block;
   width: 100%;
   height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+.original-map-status {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  color: #f5ecd4;
+  background: #152529d9;
+  border: 1px solid #ced6b477;
+  border-radius: 3px;
+  font-size: 11px;
+  z-index: 2;
+}
+.original-map-status button {
+  color: #fff2ce;
+  background: #53694c;
+  border: 1px solid #adb88a;
+  border-radius: 2px;
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.scene > canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 .scene-location {
   position: absolute;
+  z-index: 2;
   top: 17px;
   left: 18px;
   display: flex;
@@ -675,6 +715,7 @@ button.full {
 }
 .target-card {
   position: absolute;
+  z-index: 2;
   right: 14px;
   top: 17px;
   width: 160px;
@@ -704,6 +745,7 @@ button.full {
 }
 .scene-warning {
   position: absolute;
+  z-index: 3;
   bottom: 8px;
   left: 8px;
   right: 8px;

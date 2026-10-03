@@ -1,79 +1,111 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { bgmForMap } from "./mapBgm";
 
-export default function AudioToggle() {
+export default function AudioToggle({ map }: { map: string }) {
+  const track = bgmForMap(map);
   const audio = useRef<HTMLAudioElement | null>(null);
-  const alive = useRef(true);
+  const wanted = useRef(false);
+  const attempt = useRef(0);
   const timer = useRef<number | undefined>(undefined);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-      window.clearTimeout(timer.current);
-      if (audio.current) {
-        audio.current.pause();
-        audio.current.removeAttribute("src");
-        audio.current.load();
-        audio.current = null;
-      }
-    };
+  const cancel = useCallback(() => {
+    attempt.current += 1;
+    window.clearTimeout(timer.current);
   }, []);
-  const toggle = async () => {
+  const start = useCallback(async (element: HTMLAudioElement) => {
+    window.clearTimeout(timer.current);
+    const id = ++attempt.current;
     setError(false);
-    if (playing) {
-      audio.current?.pause();
+    setLoading(true);
+    const fail = () => {
+      if (id !== attempt.current) return;
+      cancel();
+      element.pause();
+      wanted.current = false;
       setPlaying(false);
+      setLoading(false);
+      setError(true);
+    };
+    timer.current = window.setTimeout(fail, 15000);
+    try {
+      await element.play();
+      if (id !== attempt.current) return;
+      window.clearTimeout(timer.current);
+      setPlaying(true);
+      setLoading(false);
+    } catch {
+      fail();
+    }
+  }, [cancel]);
+  useEffect(() => {
+    const element = new Audio();
+    element.loop = true;
+    element.volume = 0.12;
+    element.preload = "none";
+    const onError = () => {
+      cancel();
+      element.pause();
+      wanted.current = false;
+      setError(true);
+      setPlaying(false);
+      setLoading(false);
+    };
+    element.addEventListener("error", onError);
+    audio.current = element;
+    return () => {
+      cancel();
+      element.removeEventListener("error", onError);
+      element.pause();
+      element.removeAttribute("src");
+      element.load();
+      audio.current = null;
+    };
+  }, [cancel]);
+  // Maps sharing the same filename keep their track playing uninterrupted.
+  useEffect(() => {
+    const element = audio.current;
+    if (!element) return;
+    cancel();
+    element.pause();
+    setPlaying(false);
+    setLoading(false);
+    setError(false);
+    if (!track) {
+      element.removeAttribute("src");
+      element.load();
+      wanted.current = false;
+      setError(true);
       return;
     }
-    if (!audio.current) {
-      const element = new Audio("/assets/BGM/01.mp3");
-      element.loop = true;
-      element.volume = 0.12;
-      element.preload = "none";
-      element.addEventListener("error", () => {
-        if (alive.current) {
-          setError(true);
-          setPlaying(false);
-          setLoading(false);
-        }
-      });
-      audio.current = element;
-    }
+    element.src = `/assets/BGM/${track}`;
+    if (wanted.current) void start(element);
+  }, [track, cancel, start]);
+  const toggle = () => {
     const element = audio.current;
-    if (element.error) element.load();
-    setLoading(true);
-    timer.current = window.setTimeout(() => {
+    if (!element || !track) return;
+    if (wanted.current) {
+      wanted.current = false;
+      cancel();
       element.pause();
-      if (alive.current) {
-        setLoading(false);
-        setError(true);
-      }
-    }, 15000);
-    try {
-      // play() is called directly from the user's gesture. Nothing is played on
-      // mount, restored from preferences, or fetched before the first click.
-      await element.play();
-      if (alive.current) setPlaying(true);
-    } catch {
-      if (alive.current) {
-        setPlaying(false);
-        setError(true);
-      }
-    } finally {
-      window.clearTimeout(timer.current);
-      if (alive.current) setLoading(false);
+      setPlaying(false);
+      setLoading(false);
+      return;
     }
+    wanted.current = true;
+    if (element.error) element.load();
+    // Initial playback is requested directly from the user's gesture.
+    void start(element);
   };
   return (
     <div className="audio-controls">
       <button
         className="audio-toggle"
-        disabled={loading}
-        aria-pressed={playing}
-        onClick={() => void toggle()}
-        title={playing ? "Desligar música" : "Ligar música"}
+        disabled={!track}
+        aria-pressed={playing || loading}
+        onClick={toggle}
+        title={playing || loading ? "Desligar música" : "Ligar música"}
       >
         {loading ? "Carregando…" : playing ? "Música ligada" : "Música"}
       </button>

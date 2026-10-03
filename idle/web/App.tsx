@@ -205,7 +205,9 @@ export default function App() {
                     EXP {catalog.rates.baseExp}× · Job {catalog.rates.jobExp}× ·
                     Drop {catalog.rates.drop}×
                   </span>
-                  <AudioToggle />
+                  <AudioToggle
+                    map={state.status === "town" ? "prontera" : (area?.map ?? "prontera")}
+                  />
                 </div>
               </div>
               <main id="adventure" className="cockpit">

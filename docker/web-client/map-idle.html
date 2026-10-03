@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mapa original · Ragnarok Old Times Idle</title>
+    <style>
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #1c2224; }
+      #map-idle-status {
+        position: fixed; inset: 0; z-index: 10; display: flex; align-items: center;
+        justify-content: center; padding: 1rem; box-sizing: border-box;
+        color: #e8ebdc; background: #1c2224; font: 14px Tahoma, sans-serif;
+        text-align: center;
+      }
+    </style>
+    <script>
+      window.ROConfig = {
+        idleScene: true,
+        remoteClient: 'http://127.0.0.1:8080/',
+        saveFiles: false
+      };
+    </script>
+  </head>
+  <body>
+    <div id="map-idle-status" role="status">Carregando mapa original…</div>
+    <script type="module">
+      import('./MapViewer.js').catch(() => {
+        const status = document.getElementById('map-idle-status');
+        status.textContent = 'O visualizador do mapa original não pôde iniciar.';
+        let parentOrigin;
+        try { parentOrigin = new URL(document.referrer).origin; } catch { return; }
+        if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
+        const map = decodeURIComponent(location.hash.slice(1)).replace(/\.rsw$/i, '').toLowerCase();
+        window.parent.postMessage({ type: 'ragidle-map-error', map }, parentOrigin);
+      });
+    </script>
+  </body>
+</html>

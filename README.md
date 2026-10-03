@@ -1,6 +1,6 @@
 # Ragnarok Old Times Idle — ambiente local
 
-Jogo idle solo no navegador, com conteúdo Pre-Renewal do Hercules e sprites do cliente local. Você prepara a build, escolhe a área e acompanha combate, EXP e loot automáticos. A API controla as recompensas e salva o progresso no MariaDB, inclusive durante até 12 horas sem contato do navegador.
+Jogo idle solo no navegador, com conteúdo Pre-Renewal do Hercules, cenários originais e sprites do cliente local. Você prepara a build, escolhe a área e acompanha combate, EXP e loot automáticos. A API controla as recompensas e salva o progresso no MariaDB, inclusive durante até 12 horas sem contato do navegador.
 
 **Jogar:** [Ragnarok Old Times Idle](http://localhost:3339/). **Modo clássico:** [roBrowserLegacy](http://localhost:3338/applications/pwa/index.html).
 
@@ -11,8 +11,9 @@ Jogo idle solo no navegador, com conteúdo Pre-Renewal do Hercules e sprites do 
 - Volte à **Cidade** para vender loot, comprar armas/poções, inserir cartas ou refinar. Itens equipados, favoritos, refinados ou com cartas ficam protegidos da venda rápida.
 - No Job 10, escolha uma das seis famílias. A segunda classe exige Job 40; renascimento exige Base 99, Job 50 e 50.000 zeny. Depois, avance pelo mesmo ramo até a classe transcendente, com limite 99/70.
 - Dez áreas, missões, bestiário e três desafios acompanham sua evolução. Uma vitória em desafio inicia intervalo de uma hora; a tentativa dura até dez minutos.
+- A cena de cada área mostra seu mapa original do cliente local, com terreno, modelos e texturas pelo visualizador do roBrowserLegacy; a cidade mostra Prontera. Os personagens e monstros animados aparecem sobre esse cenário.
 - Fechar ou ocultar a página mantém o cálculo no servidor. Ao voltar após pelo menos 30 segundos, um resumo apresenta o que já foi salvo. Após 12 horas, use **Retomar caça**.
-- O controle **Música** liga uma faixa do cliente local. O som começa desligado e pode ser interrompido a qualquer momento.
+- O controle **Música** toca a BGM original do mapa atual, conforme `data/mp3nametable.txt`: Prontera usa `08.mp3` e cada área usa sua trilha correspondente. O som começa desligado; ao trocar de mapa, mantém sua escolha de ligado ou desligado. Os MP3 precisam estar em `client-data/BGM/`, servidos localmente por `/assets/BGM/`; músicas não são incluídas no Git nem nas imagens Docker. Se uma faixa falhar, use **Música** para tentar novamente.
 
 O perfil idle `djow` tem progresso próprio nas tabelas `idle_profiles` e `idle_commands`. Combate e economia são adaptações para idle, usando dados exportados do Hercules; não reproduzem integralmente as fórmulas ou scripts do emulador. O perfil clássico de `djow` continua independente.
 
@@ -133,6 +134,7 @@ Esse comando mantém o volume do MariaDB para o próximo início.
 - **Erro de conexão com o Docker:** confirme que o Docker Desktop está em execução. Os seis serviços usam `restart: unless-stopped`; após uma parada manual da stack, execute `docker compose up -d`.
 - **Idle sem conexão:** confira `http://localhost:3339/api/health` e `docker compose logs idle-game`. A página preserva a última apresentação e permite tentar novamente; uma compra sem resposta repete o mesmo identificador para recuperar o resultado.
 - **Sprite ou ícone ausente no idle:** confira o serviço de assets e os GRFs. O jogo usa uma representação de reserva e continua aceitando ações; recarregar a página tenta carregar os recursos novamente.
+- **Mapa original indisponível no idle:** use **Recarregar mapa** na cena e confira `web-client`, `asset-service` e o arquivo `.rsw` do mapa no GRF. O jogo continua processando a caça enquanto o cenário é recuperado.
 - **A página abre, mas faltam telas ou elementos do jogo:** sem os GRFs compatíveis, o cliente não consegue carregar os mapas, sprites, sons e outros recursos.
 
 ## Aceite local

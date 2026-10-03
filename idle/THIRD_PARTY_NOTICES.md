@@ -15,6 +15,12 @@ without warranty. Sources at commit `d88a3cd4acde0582530e3fc1908532a92e9accea`:
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Sprite.js
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Action.js
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/App/MapViewer.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Renderer/MapRenderer.js
+
+The local Docker build compiles the pinned roBrowserLegacy MapViewer with a
+small idle-scene integration patch. Its WebGL renderer uses the original local
+map assets through the asset service; the renderer remains GPL-3.0-or-later.
 
 The BMP reader is an original implementation of the uncompressed Windows bitmap
 format. Tests use generated tiny binary fixtures, with no official client pixels.

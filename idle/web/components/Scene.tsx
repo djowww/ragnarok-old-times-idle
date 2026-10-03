@@ -7,6 +7,7 @@ import {
   type DecodedActor,
 } from "../assets/renderer";
 import { Meter, number, type PanelProps } from "./common";
+import OriginalMap from "./OriginalMap";
 
 function useActor(asset?: SpriteAsset) {
   const [actor, setActor] = useState<DecodedActor | null>(null);
@@ -121,215 +122,7 @@ function actorBounds(actor: DecodedActor) {
 }
 
 type SceneKind = Area["scene"] | "town";
-function landscape(ctx: CanvasRenderingContext2D, scene: SceneKind) {
-  const cave = scene === "cave" || scene === "sewer" || scene === "castle";
-  const desert = scene === "desert";
-  const sea = scene === "sea";
-  const palette = cave
-    ? ["#4b5960", "#637573", "#829087", "#b8b39a"]
-    : desert
-      ? ["#d6c290", "#bca475", "#d8c49b", "#ead8ae"]
-      : sea
-        ? ["#73aeba", "#80b49a", "#a0c39c", "#e1d6b2"]
-        : ["#9fbf9f", "#87a673", "#a4b983", "#d9cfab"];
-  ctx.fillStyle = palette[0];
-  ctx.fillRect(0, 0, 960, 420);
-  // The original scenery is painted in broad, low contrast shapes so the local
-  // client sprites remain the focus; no maps or proprietary images are bundled.
-  ctx.fillStyle = cave ? "#3e4d52" : "#759588";
-  ctx.beginPath();
-  ctx.moveTo(0, 120);
-  ctx.lineTo(0, 35);
-  ctx.lineTo(90, 0);
-  ctx.lineTo(180, 50);
-  ctx.lineTo(265, 22);
-  ctx.lineTo(350, 58);
-  ctx.lineTo(460, 12);
-  ctx.lineTo(560, 60);
-  ctx.lineTo(690, 0);
-  ctx.lineTo(790, 45);
-  ctx.lineTo(960, 10);
-  ctx.lineTo(960, 160);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = palette[1];
-  ctx.beginPath();
-  ctx.moveTo(0, 100);
-  ctx.bezierCurveTo(300, 140, 520, 68, 960, 130);
-  ctx.lineTo(960, 420);
-  ctx.lineTo(0, 420);
-  ctx.fill();
-  ctx.fillStyle = palette[2];
-  ctx.beginPath();
-  ctx.moveTo(0, 235);
-  ctx.bezierCurveTo(280, 190, 550, 240, 960, 160);
-  ctx.lineTo(960, 420);
-  ctx.lineTo(0, 420);
-  ctx.fill();
-  if (sea) {
-    ctx.fillStyle = "#699caa";
-    ctx.fillRect(0, 0, 960, 155);
-    for (let i = 0; i < 40; i++) {
-      ctx.fillStyle = i % 2 ? "#9fc1be" : "#80b0ba";
-      ctx.fillRect((i * 107) % 960, 10 + i * 3.3, 30 + (i % 4) * 13, 2);
-    }
-  }
-  ctx.fillStyle = palette[3];
-  ctx.beginPath();
-  ctx.moveTo(-60, 385);
-  ctx.bezierCurveTo(230, 218, 480, 310, 730, 210);
-  ctx.bezierCurveTo(840, 165, 930, 180, 1030, 190);
-  ctx.lineTo(1030, 236);
-  ctx.bezierCurveTo(790, 210, 650, 370, 340, 335);
-  ctx.bezierCurveTo(175, 320, 120, 435, 0, 450);
-  ctx.closePath();
-  ctx.fill();
-  for (let i = 0; i < 80; i++) {
-    const x = (i * 137 + 61) % 950;
-    const y = (i * 83 + 148) % 420;
-    ctx.fillStyle =
-      i % 3
-        ? cave
-          ? "#687977"
-          : desert
-            ? "#c4b184"
-            : "#7e9d69"
-        : cave
-          ? "#a1a69a"
-          : "#c2cca0";
-    ctx.fillRect(x, y, 3 + (i % 4), 2);
-    if (!cave && !desert && i % 3 === 0) {
-      ctx.fillStyle = "#b8c895";
-      ctx.fillRect(x + 3, y - 4, 2, 4);
-    }
-  }
-  if (scene === "town") {
-    cottage(ctx, 55, 145);
-    cottage(ctx, 745, 135);
-    ctx.fillStyle = "#918f70";
-    ctx.fillRect(255, 87, 8, 82);
-    ctx.fillStyle = "#e4d5ac";
-    ctx.fillRect(230, 100, 60, 27);
-    ctx.fillStyle = "#54666a";
-    ctx.font = "13px Georgia";
-    ctx.fillText("Prontera", 235, 118);
-  } else if (cave) {
-    for (const [x, y, scale] of [
-      [80, 135, 1.8],
-      [210, 120, 1],
-      [770, 100, 2],
-      [900, 210, 1.7],
-    ]) {
-      ctx.fillStyle = "#4b5a5c";
-      ctx.beginPath();
-      ctx.moveTo(x - 25 * scale, y);
-      ctx.lineTo(x - 4 * scale, y - 85 * scale);
-      ctx.lineTo(x + 32 * scale, y);
-      ctx.fill();
-      ctx.fillStyle = "#70817b";
-      ctx.beginPath();
-      ctx.moveTo(x - 4 * scale, y - 85 * scale);
-      ctx.lineTo(x + 12 * scale, y);
-      ctx.lineTo(x + 32 * scale, y);
-      ctx.fill();
-    }
-  } else if (!desert && !sea) {
-    tree(ctx, 45, 230, 1.1);
-    tree(ctx, 200, 126, 0.7);
-    tree(ctx, 797, 182, 1);
-    tree(ctx, 925, 280, 1.3);
-    tree(ctx, 610, 91, 0.65);
-    if (scene === "forest" || scene === "orc") {
-      tree(ctx, 115, 92, 1);
-      tree(ctx, 690, 125, 0.9);
-    }
-  } else {
-    for (const [x, y] of [
-      [100, 185],
-      [780, 325],
-      [850, 190],
-    ]) {
-      ctx.fillStyle = "#a7a48b";
-      ctx.beginPath();
-      ctx.ellipse(x, y, 33, 13, -0.2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#c4bda2";
-      ctx.beginPath();
-      ctx.ellipse(x - 4, y - 7, 25, 10, -0.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.fillStyle = cave ? "#384f4b" : desert ? "#ac9869" : "#688764";
-  for (let i = 0; i < 20; i++) {
-    const x = i * 51;
-    const y = 405 + (i % 3) * 8;
-    ctx.beginPath();
-    ctx.ellipse(x, y, 33, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-function tree(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  scale: number,
-) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  ctx.fillStyle = "#48654e55";
-  ctx.beginPath();
-  ctx.ellipse(5, 8, 57, 14, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#73674d";
-  ctx.fillRect(-8, -95, 16, 98);
-  ctx.fillStyle = "#a0946c";
-  ctx.fillRect(-4, -84, 4, 79);
-  for (const [cx, cy, r, color] of [
-    [0, -120, 57, "#48694e"],
-    [-37, -96, 42, "#587a54"],
-    [34, -93, 44, "#68885c"],
-    [-20, -144, 37, "#739062"],
-    [21, -143, 42, "#829b6b"],
-    [-10, -159, 29, "#90a77b"],
-  ] as Array<[number, number, number, string]>) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.fillStyle = "#a0b58a";
-  ctx.fillRect(-25, -160, 7, 4);
-  ctx.fillRect(12, -143, 10, 4);
-  ctx.restore();
-}
-function cottage(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.fillStyle = "#61654d44";
-  ctx.fillRect(x - 10, y + 10, 180, 22);
-  ctx.fillStyle = "#e0d4af";
-  ctx.fillRect(x, y - 72, 150, 100);
-  ctx.fillStyle = "#958d72";
-  ctx.fillRect(x + 11, y - 65, 7, 90);
-  ctx.fillRect(x + 130, y - 65, 7, 90);
-  ctx.fillStyle = "#6f6451";
-  ctx.fillRect(x + 65, y - 27, 30, 55);
-  ctx.fillStyle = "#789ca1";
-  ctx.fillRect(x + 29, y - 42, 22, 25);
-  ctx.fillRect(x + 109, y - 42, 20, 25);
-  ctx.fillStyle = "#947465";
-  ctx.beginPath();
-  ctx.moveTo(x - 17, y - 69);
-  ctx.lineTo(x + 73, y - 133);
-  ctx.lineTo(x + 166, y - 69);
-  ctx.fill();
-  ctx.fillStyle = "#b18c71";
-  ctx.beginPath();
-  ctx.moveTo(x - 17, y - 69);
-  ctx.lineTo(x + 73, y - 133);
-  ctx.lineTo(x + 80, y - 69);
-  ctx.fill();
-}
-
+type CombatCue = { id: number; start: number; duration: number; action: "attack" | "hurt"; hit: boolean };
 export default function Scene({ catalog, snapshot, busy }: PanelProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const stateRef = useRef(snapshot);
@@ -352,16 +145,145 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
     Array<{ id: number; text: string; enemy: boolean; start: number }>
   >([]);
   const eventCursor = useRef(snapshot.state.events.at(-1)?.id ?? 0);
+  const opponentRequest = useRef(0);
+  const combatCues = useRef<CombatCue[]>([]);
+  const lastOpponent = useRef<{
+    actor: DecodedActor;
+    monsterId: number;
+    areaId: typeof state.areaId;
+  } | null>(null);
+  const defeatedOpponent = useRef<{
+    actor: DecodedActor;
+    monsterId: number;
+    until: number;
+    deadAt?: number;
+  } | null>(null);
   useEffect(() => {
+    const previous = stateRef.current.state;
     stateRef.current = snapshot;
-    const newEvents = state.events.filter(
-      (e) => e.id > eventCursor.current && e.amount && e.target,
-    );
+    const newEvents = state.events.filter((e) => e.id > eventCursor.current);
     eventCursor.current = state.events.at(-1)?.id ?? eventCursor.current;
     const now = performance.now();
+    combatCues.current = combatCues.current.filter(
+      (cue) => cue.start + cue.duration > now,
+    );
+    const attackAction = actorsRef.current.hero?.body?.action.actions[40];
+    const attackDuration = attackAction?.frames.length
+      ? attackAction.frames.length * Math.max(25, attackAction.delayMs)
+      : 500;
+    let nextCueStart = Math.max(
+      now,
+      ...combatCues.current.map((cue) => cue.start + cue.duration),
+    );
+    const effectStarts = new Map<number, number>();
+    for (const event of newEvents.filter((entry) => entry.at >= snapshot.serverTime - 4000)
+      .sort((a, b) => a.at - b.at || a.id - b.id)) {
+      // The engine's player miss currently has no target field.
+      if (
+        (event.kind === "damage" && event.target === "enemy") ||
+        (event.kind === "miss" && event.target !== "player")
+      ) {
+        effectStarts.set(event.id, nextCueStart);
+        combatCues.current.push({
+          id: event.id,
+          start: nextCueStart,
+          duration: attackDuration,
+          action: "attack",
+          hit: event.kind === "damage",
+        });
+        nextCueStart += attackDuration;
+      }
+      if (event.kind === "damage" && event.target === "player") {
+        effectStarts.set(event.id, nextCueStart);
+        combatCues.current.push({
+          id: event.id,
+          start: nextCueStart,
+          duration: 350,
+          action: "hurt",
+          hit: true,
+        });
+        nextCueStart += 350;
+      }
+    }
+    const finalCue = combatCues.current.at(-1);
+    const kill = [...newEvents].reverse().find((event) => event.kind === "kill");
+    const finishingAttack = kill
+      ? [...combatCues.current].reverse().find((cue) => cue.action === "attack" && cue.hit && cue.id < kill.id)
+      : undefined;
+    const deadAt = finishingAttack
+      ? finishingAttack.start + finishingAttack.duration
+      : undefined;
+    const suspendedIds = new Set<number>();
+    let suspendedEffects: typeof effects.current = [];
+    if (previous.areaId !== state.areaId || state.battle || kill)
+      opponentRequest.current++;
+    if (
+      previous.battle && !state.battle &&
+      previous.areaId === state.areaId &&
+      newEvents.some((event) => event.kind === "kill" || event.kind === "death") &&
+      lastOpponent.current?.monsterId === previous.battle.monsterId &&
+      lastOpponent.current.areaId === state.areaId && finalCue
+    ) {
+      defeatedOpponent.current = {
+        ...lastOpponent.current,
+        until: Math.max(finalCue.start + finalCue.duration, (deadAt ?? 0) + 200),
+        deadAt,
+      };
+    }
+    // A short encounter can start and end between snapshots, leaving no battle
+    // to identify its sprite. The kill text is authored by the local engine.
+    if (!previous.battle && !state.battle && kill && finishingAttack && finalCue &&
+      previous.areaId === state.areaId) {
+      const opponent = Object.values(catalog.monsters).find(
+        (entry) => kill.text === `${entry.name} derrotado.`,
+      );
+      if (opponent) {
+        const request = opponentRequest.current;
+        const areaId = state.areaId;
+        const encounter = [...newEvents].reverse().find(
+          (event) => event.kind === "encounter" && event.id < kill.id,
+        );
+        const pending = combatCues.current.filter(
+          (cue) => cue.id <= kill.id && (!encounter || cue.id > encounter.id),
+        );
+        for (const cue of pending) suspendedIds.add(cue.id);
+        // Hold this exchange out of the active queue until its target loads.
+        combatCues.current = combatCues.current.filter((cue) => !suspendedIds.has(cue.id));
+        void loadActor(opponent.sprite).then((actor) => {
+          if (opponentRequest.current !== request ||
+            stateRef.current.state.areaId !== areaId || stateRef.current.state.battle)
+            return;
+          // Begin the queued exchange once its target is available, so an
+          // uncached sprite cannot consume the finishing animation offscreen.
+          const readyStart = Math.max(
+            performance.now(),
+            ...combatCues.current.map((cue) => cue.start + cue.duration),
+          );
+          const delay = Math.max(0, readyStart - pending[0].start);
+          for (const cue of pending) cue.start += delay;
+          combatCues.current = [
+            ...combatCues.current,
+            ...pending,
+          ].sort((a, b) => a.start - b.start || a.id - b.id);
+          for (const effect of suspendedEffects) effect.start += delay;
+          effects.current = [...effects.current, ...suspendedEffects].slice(-8);
+          // Retain the opponent through all pending cues and the death pose.
+          defeatedOpponent.current = {
+            actor,
+            monsterId: opponent.id,
+            until: Math.max(finalCue.start + finalCue.duration, (deadAt ?? 0) + delay + 200),
+            deadAt: deadAt === undefined ? undefined : deadAt + delay,
+          };
+        }).catch(() => { /* loadActor normally returns its local fallback. */ });
+      }
+    }
+    if (previous.areaId !== state.areaId) {
+      defeatedOpponent.current = null;
+      combatCues.current = [];
+    }
     effects.current = [
       ...effects.current.filter((e) => now - e.start < 1200),
-      ...newEvents.map((e) => ({
+      ...newEvents.filter((e) => e.amount && e.target).map((e) => ({
         id: e.id,
         text:
           e.text.toLowerCase().includes("cura") ||
@@ -369,13 +291,22 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
             ? `+${e.amount}`
             : `${e.amount}`,
         enemy: e.target === "enemy",
-        start: now,
+        start: effectStarts.get(e.id) ?? now,
       })),
     ].slice(-8);
-  }, [snapshot, state.events]);
+    suspendedEffects = effects.current.filter((effect) => suspendedIds.has(effect.id));
+    effects.current = effects.current.filter((effect) => !suspendedIds.has(effect.id));
+  }, [snapshot, state.events, catalog]);
+  useEffect(() => () => { opponentRequest.current++; }, []);
   useEffect(() => {
     actorsRef.current = { hero: hero.actor, enemy: enemy.actor };
-  }, [hero.actor, enemy.actor]);
+    if (enemy.actor && state.battle)
+      lastOpponent.current = {
+        actor: enemy.actor,
+        monsterId: state.battle.monsterId,
+        areaId: state.areaId,
+      };
+  }, [hero.actor, enemy.actor, state.battle, state.areaId]);
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
@@ -386,10 +317,6 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
     let width = 640;
     let height = 350;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const background = document.createElement("canvas");
-    background.width = 960;
-    background.height = 420;
-    landscape(background.getContext("2d")!, scene);
     const resize = new ResizeObserver((entries) => {
       const rect = entries[0].contentRect;
       width = rect.width;
@@ -406,11 +333,11 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
         return;
       previous = time;
       ctx.clearRect(0, 0, width, height);
-      ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(background, 0, 0, width, height);
       ctx.imageSmoothingEnabled = false;
       const current = stateRef.current.state;
-      const fighting = !!current.battle;
+      const defeated = defeatedOpponent.current;
+      const lingering = defeated && time < defeated.until ? defeated : null;
+      const fighting = !!current.battle || !!lingering;
       const heroX = width * (fighting ? 0.4 : 0.48);
       const enemyX = width * 0.7;
       const ground = height * 0.76;
@@ -421,13 +348,19 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
         ctx.ellipse(x, ground + 1, 22, 5, 0, 0, Math.PI * 2);
         ctx.fill();
       }
-      const recent = effects.current.filter((e) => time - e.start < 1000);
-      const heroHurt = recent.some((e) => !e.enemy && !e.text.startsWith("+"));
-      const enemyHurt = recent.some((e) => e.enemy);
+      const recent = effects.current.filter((e) => time >= e.start && time - e.start < 1000);
+      const cue = combatCues.current.find(
+        (cue) => time >= cue.start && time < cue.start + cue.duration,
+      );
+      const attack = cue?.action === "attack" ? cue : undefined;
+      const hurt = cue?.action === "hurt" ? cue : undefined;
+      const heroHurt = !!hurt;
+      const enemyHurt = !!attack?.hit;
       const paint = (
         actor: DecodedActor,
         action: "idle" | "attack" | "hurt" | "dead",
         x: number,
+        elapsed = time,
       ) => {
         const bounds = actorBounds(actor);
         const scale = Math.min(
@@ -438,7 +371,7 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
           ctx,
           actor,
           action,
-          motion.matches ? 0 : time,
+          motion.matches ? 0 : elapsed,
           x,
           ground - bounds.bottom * scale,
           scale,
@@ -447,20 +380,22 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
       if (actorsRef.current.hero)
         paint(
           actorsRef.current.hero,
-          current.hp <= 0
-            ? "dead"
-            : heroHurt
-              ? "hurt"
-              : fighting && enemyHurt
-                ? "attack"
+          cue
+            ? cue.action
+            : current.hp <= 0
+              ? "dead"
                 : "idle",
           heroX,
+          attack ? time - attack.start : heroHurt ? time - hurt!.start : time,
         );
-      if (fighting && actorsRef.current.enemy)
+      const opponentActor = current.battle ? actorsRef.current.enemy : lingering?.actor;
+      if (fighting && opponentActor)
         paint(
-          actorsRef.current.enemy,
-          enemyHurt ? "hurt" : heroHurt ? "attack" : "idle",
+          opponentActor,
+          lingering?.deadAt !== undefined && time >= lingering.deadAt
+            ? "dead" : enemyHurt ? "hurt" : heroHurt ? "attack" : "idle",
           enemyX,
+          enemyHurt ? time - attack!.start : heroHurt ? time - hurt!.start : time,
         );
       ctx.font = "bold 12px Tahoma";
       ctx.textAlign = "center";
@@ -470,7 +405,7 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
       ctx.strokeText(current.name, heroX, ground + 28);
       ctx.fillText(current.name, heroX, ground + 28);
       if (fighting) {
-        const name = catalog.monsters[current.battle!.monsterId].name;
+        const name = catalog.monsters[current.battle?.monsterId ?? lingering!.monsterId].name;
         ctx.strokeText(name, enemyX, ground + 28);
         ctx.fillText(name, enemyX, ground + 28);
       }
@@ -498,6 +433,7 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
   }, [scene, catalog]);
   return (
     <div className={`scene scene-${scene}`}>
+      <OriginalMap map={scene === "town" ? "prontera" : (area?.map ?? "prontera")} />
       <canvas
         ref={canvas}
         aria-label={
