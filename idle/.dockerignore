@@ -1,0 +1,7 @@
+node_modules
+dist
+public-build
+.staging
+coverage
+*.log
+.env
