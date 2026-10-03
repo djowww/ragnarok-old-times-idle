@@ -1,6 +1,6 @@
 # Ragnarok Old Times Idle — especificação da primeira versão jogável
 
-Data: 2026-10-03. Estado: proposta preparada para revisão.
+Data: 2026-10-03. Estado: aprovada pelo usuário, com execução autônoma do plano autorizada sem novas confirmações de processo.
 
 ## Objetivo e entendimento do pedido
 
