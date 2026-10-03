@@ -9,6 +9,7 @@ export interface ActorPart {
     action: DecodedACT;
 }
 export interface DecodedActor {
+    kind: 'character' | 'monster';
     fallback: boolean;
     error?: string;
     body?: ActorPart;
@@ -22,6 +23,7 @@ async function binary(path: string) { const response = await fetch(assetUrl(path
     throw new Error(`Recurso indisponível (${response.status}): ${path}`); return response.arrayBuffer(); }
 async function loadPart(spr: string, act: string): Promise<ActorPart> { const [s, a] = await Promise.all([binary(spr), binary(act)]); return { sprite: decodeSPR(s), action: decodeACT(a) }; }
 export function loadActor(asset: SpriteAsset): Promise<DecodedActor> {
+    const kind: DecodedActor['kind'] = asset.headSpr || asset.headAct || asset.spr.replace(/\\/g, '/').includes('인간족/몸통/') ? 'character' : 'monster';
     const key = JSON.stringify(asset);
     const cached = actorCache.get(key);
     if (cached)
@@ -38,10 +40,10 @@ export function loadActor(asset: SpriteAsset): Promise<DecodedActor> {
                     error = e instanceof Error ? e.message : String(e);
                 }
             }
-            return { fallback: false, body, head, error };
+            return { kind, fallback: false, body, head, error };
         }
         catch (e) {
-            return { fallback: true, error: e instanceof Error ? e.message : String(e) };
+            return { kind, fallback: true, error: e instanceof Error ? e.message : String(e) };
         }
     })();
     actorCache.set(key, promise);
@@ -52,7 +54,12 @@ function frameAt(part: ActorPart, action: number, elapsed: number): ActionFrame 
 export function getActorPose(actor: DecodedActor, action: number | 'idle' | 'attack' | 'hurt' | 'dead', elapsed: number): PosedLayer[] {
     if (!actor.body || actor.fallback)
         return [];
-    const index = typeof action === 'number' ? action : ({ idle: 0, attack: 16, hurt: 24, dead: 32 }[action]);
+    // Entity/EntityAction.js at pinned roBrowserLegacy: PC groups5/6/8 vs MOB2/3/4.
+    // ACT groups contain eight directions; PC and monster combat groups differ.
+    const actions = actor.kind === 'character'
+        ? { idle: 0, attack: 40, hurt: 48, dead: 64 }
+        : { idle: 0, attack: 16, hurt: 24, dead: 32 };
+    const index = typeof action === 'number' ? action : actions[action];
     const bodyFrame = frameAt(actor.body, index, elapsed);
     if (!bodyFrame)
         return [];
@@ -128,3 +135,5 @@ export function drawActor(ctx: CanvasRenderingContext2D, actor: DecodedActor, ac
         }
     ctx.restore();
 }
+
+

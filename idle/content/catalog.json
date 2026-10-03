@@ -12,7 +12,7 @@
       "db/pre-re/attr_fix.conf",
       "db/pre-re/size_fix.txt"
     ],
-    "hash": "2c929dd191b748db4614a28b2328c2590bd852bb9ea627fb35c486fcc12d25b4"
+    "hash": "f66c74629df6b9acf81c6e233d28a8d93ebe44ffc07daaf0659574084618840f"
   },
   "rates": {
     "baseExp": 4,
@@ -7620,8 +7620,6 @@
       "slots": 1,
       "minLevel": 1,
       "allowedClasses": [
-        "novice",
-        "high_novice",
         "swordsman",
         "high_swordsman",
         "mage",

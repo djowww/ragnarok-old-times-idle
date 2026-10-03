@@ -37,7 +37,7 @@ describe('actor composition', () => {
         const layer = { x: 3, y: 4, index: 0, mirror: false, color: [255, 255, 255, 255], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 };
         const body: any = { sprite: { version: 2.1, indexedCount: 1, frames: [image, { ...image, type: 1 }] }, action: { version: 2.4, sounds: [], actions: [{ delayMs: 100, frames: [{ layers: [{ ...layer, type: 1 }], anchors: [{ x: 0, y: -20 }], sound: -1 }] }] } };
         const head = { sprite: body.sprite, action: { ...body.action, actions: [{ delayMs: 100, frames: [{ layers: [layer], anchors: [{ x: 1, y: 2 }], sound: -1 }] }] } };
-        const pose = getActorPose({ fallback: false, body, head }, 'idle', 0);
+        const pose = getActorPose({ kind: 'character', fallback: false, body, head }, 'idle', 0);
         expect(pose[0].image.type).toBe(1);
         expect(pose[1]).toMatchObject({ x: 2, y: -18 });
     });
@@ -79,3 +79,33 @@ describe('additional sprite representations',()=>{
         expect([...decodeSPR(spr).frames[0].rgba]).toEqual([40,50,60,255,10,20,30,128]);
     });
 });
+
+describe('actor action families', () => {
+    it('selects character combat actions separately from monster combat actions', async () => {
+        const { getActorPose } = await import('../web/assets/renderer');
+        const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };
+        const layer = {x:0,y:0,index:0,mirror:false,color:[255,255,255,255] as [number,number,number,number],scaleX:1,scaleY:1,rotation:0,type:0,width:0,height:0};
+        const body = {sprite:{version:2.1,indexedCount:1,frames:[image]},action:{version:2.5,sounds:[],actions:Array.from({length:72},(_,index)=>({delayMs:100,frames:[{layers:[{...layer,x:index}],anchors:[],sound:-1}]}))}};
+        const character:any = {kind:'character',fallback:false,body,head:body};
+        const monster:any = {kind:'monster',fallback:false,body};
+        expect(['idle','attack','hurt','dead'].map(action=>getActorPose(character,action as any,0)[0].x)).toEqual([0,40,48,64]);
+        expect(['idle','attack','hurt','dead'].map(action=>getActorPose(monster,action as any,0)[0].x)).toEqual([0,16,24,32]);
+        expect(getActorPose(character,'attack',0)[1].x).toBe(40);
+        // Numeric callers still select an explicit ACT action rather than a family mapping.
+        expect(getActorPose(character,16,0)[0].x).toBe(16);
+    });
+});
+
+describe('actor classification during loading failure',()=>{
+    it('keeps the player discriminator when body-only or head-bearing assets fail',async()=>{
+        const {loadActor,getActorPose}=await import('../web/assets/renderer');
+        const bodyOnly=await loadActor({spr:'data/sprite/인간족/몸통/남/missing.spr',act:'missing.act'});
+        const headed=await loadActor({spr:'missing-body.spr',act:'missing-body.act',headSpr:'missing-head.spr',headAct:'missing-head.act'});
+        const monster=await loadActor({spr:'data/sprite/몬스터/missing.spr',act:'missing-monster.act'});
+        expect(bodyOnly).toMatchObject({kind:'character',fallback:true});
+        expect(headed).toMatchObject({kind:'character',fallback:true});
+        expect(monster).toMatchObject({kind:'monster',fallback:true});
+        expect(getActorPose(bodyOnly,'attack',0)).toEqual([]);
+    });
+});
+

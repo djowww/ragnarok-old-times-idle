@@ -94,7 +94,7 @@ function includeItem(raw, shop = false) {
     }
     else if ([984, 985, 990, 717, 7136].includes(i.Id))
         type = 'material';
-    const allowedClasses = Object.values(catalog.classes).filter(j => { const rule = rules.classes.find(r => r.id === j.id); const origin = rule.rebirthOf ? rules.classes.find(r => r.id === rule.rebirthOf)?.source : rule.source; const sourceJob = origin === 'Dancer' ? 'Bard' : origin; return (!i.Job || i.Job.All || i.Job[sourceJob]) && (!weaponType || j.weapons.includes(weaponType)); }).map(j => j.id);
+    const allowedClasses = Object.values(catalog.classes).filter(j => { const rule = rules.classes.find(r => r.id === j.id); const origin = rule.rebirthOf ? rules.classes.find(r => r.id === rule.rebirthOf)?.source : rule.source; const sourceJob = origin === 'Dancer' ? 'Bard' : origin; return (!i.Job || (i.Job[sourceJob] ?? i.Job.All ?? false)) && (!weaponType || j.weapons.includes(weaponType)); }).map(j => j.id);
     const resource = resources[i.Id];
     if (!resource)
         throw new Error('No client icon resource for item ' + i.Id);
@@ -165,4 +165,5 @@ await mkdir(dirname(output), { recursive: true });
 await writeFile(output, text);
 await writeFile(resolve(dirname(output), 'source-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 console.log(`Exported ${Object.keys(catalog.monsters).length} monsters, ${Object.keys(catalog.items).length} items, ${Object.keys(catalog.classes).length} classes, ${Object.keys(catalog.skills).length} skills. SHA256 ${manifest.catalogSha256}`);
+
 

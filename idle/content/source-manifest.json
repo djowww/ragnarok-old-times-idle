@@ -1419,6 +1419,6 @@
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
   },
-  "catalogSha256": "1e839535d3a7ff9da6dfc748220cf4c8eb68773c2ea5f34d6a8273b619661503",
+  "catalogSha256": "6d82608e931395155f5cccad63d6481ba0542541d9990b7a3927f4bb10b5d3ea",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

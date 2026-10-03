@@ -65,3 +65,13 @@ describe('source effect translation', () => {
         expect(data.classes.high_novice.sp[0]).toBe(13);
     });
 });
+
+describe('source job exclusions',()=>{
+    it('honors an explicit Novice exclusion even when the equipment enables All jobs',()=>{
+        const data=catalog as unknown as Catalog;
+        expect(data.items[2320].allowedClasses).not.toContain('novice');
+        expect(data.items[2320].allowedClasses).not.toContain('high_novice');
+        expect(data.items[2320].allowedClasses).toContain('mage');
+        expect(data.items[2320].allowedClasses).toContain('high_mage');
+    });
+});
