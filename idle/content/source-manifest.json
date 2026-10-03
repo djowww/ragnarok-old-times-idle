@@ -1,0 +1,1424 @@
+{
+  "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+  "license": "GPL-3.0-or-later",
+  "sources": [
+    {
+      "path": "db/pre-re/mob_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_db.conf",
+      "sha256": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43"
+    },
+    {
+      "path": "db/pre-re/item_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf",
+      "sha256": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30"
+    },
+    {
+      "path": "db/pre-re/job_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/job_db.conf",
+      "sha256": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc"
+    },
+    {
+      "path": "db/pre-re/exp_group_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/exp_group_db.conf",
+      "sha256": "6e959dcfdebc489d1c7d4714fe2bbf88d437b44ec7bd215fe2bb104aae5a7ced"
+    },
+    {
+      "path": "db/pre-re/skill_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_db.conf",
+      "sha256": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11"
+    },
+    {
+      "path": "db/pre-re/skill_tree.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_tree.conf",
+      "sha256": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37"
+    },
+    {
+      "path": "db/pre-re/attr_fix.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/attr_fix.conf",
+      "sha256": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c"
+    },
+    {
+      "path": "db/pre-re/size_fix.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/size_fix.txt",
+      "sha256": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+    }
+  ],
+  "adaptations": [
+    "Deterministic healing uses midpoints of source ranges.",
+    "Skill damage, cooldowns, effects, simplified buffs, rotation and encounters are explicit idle adaptations.",
+    "No scripts execute. Ammo requirements are waived; zeny and declared reagents remain real costs.",
+    "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
+    "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
+    "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists."
+  ],
+  "excludedDrops": [
+    {
+      "monsterId": 1002,
+      "aegisName": "Unripe_Apple",
+      "chance": 20,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1063,
+      "aegisName": "Rainbow_Carrot",
+      "chance": 20,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1113,
+      "aegisName": "Rod_",
+      "chance": 80,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1113,
+      "aegisName": "Orange_Juice",
+      "chance": 20,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1175,
+      "aegisName": "Monsters_Feed",
+      "chance": 1000,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1052,
+      "aegisName": "Guitar_Of_Vast_Land",
+      "chance": 10,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1018,
+      "aegisName": "Silk_Robe_",
+      "chance": 10,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1018,
+      "aegisName": "Wing_Of_Butterfly",
+      "chance": 100,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1018,
+      "aegisName": "Fancy_Flower",
+      "chance": 2,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1018,
+      "aegisName": "Wind_Scroll_1_3",
+      "chance": 100,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1018,
+      "aegisName": "Creamy_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1031,
+      "aegisName": "Green_Herb",
+      "chance": 500,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1031,
+      "aegisName": "Poporing_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1056,
+      "aegisName": "Smokie_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1057,
+      "aegisName": "Strawberry",
+      "chance": 1000,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1076,
+      "aegisName": "Skeleton_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1015,
+      "aegisName": "Zombie_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1070,
+      "aegisName": "Monsters_Feed",
+      "chance": 500,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1070,
+      "aegisName": "Earthworm_The_Dude",
+      "chance": 20,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1070,
+      "aegisName": "Kukre_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1066,
+      "aegisName": "Vadon_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1141,
+      "aegisName": "Deadly_Noxious_Herb",
+      "chance": 20,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1141,
+      "aegisName": "Marina_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1023,
+      "aegisName": "Cigar",
+      "chance": 3,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1023,
+      "aegisName": "Orc_Warrior_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1273,
+      "aegisName": "Earring",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1273,
+      "aegisName": "Wedding_Veil",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1273,
+      "aegisName": "High_end_Cooking_Kits",
+      "chance": 10,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1273,
+      "aegisName": "Wedding_Dress",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1273,
+      "aegisName": "Orc_Lady_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1028,
+      "aegisName": "Soldier_Skeleton_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1016,
+      "aegisName": "Apple_Of_Archer",
+      "chance": 3,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1016,
+      "aegisName": "Archer_Skeleton_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1041,
+      "aegisName": "Glove",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1041,
+      "aegisName": "Panacea",
+      "chance": 250,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1041,
+      "aegisName": "Mummy_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1109,
+      "aegisName": "Deviruchi_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1061,
+      "aegisName": "Rosary",
+      "chance": 2,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1061,
+      "aegisName": "Old_Blue_Box",
+      "chance": 30,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1061,
+      "aegisName": "Infiltrator",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1061,
+      "aegisName": "Nightmare_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1132,
+      "aegisName": "Bone_Helm",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1132,
+      "aegisName": "Mirror_Shield_",
+      "chance": 2,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1132,
+      "aegisName": "Khalitzburg_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1219,
+      "aegisName": "Clothes_Of_The_Lord",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1219,
+      "aegisName": "Battle_Hook",
+      "chance": 25,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1219,
+      "aegisName": "Broad_Sword_",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1219,
+      "aegisName": "Knight_Of_Abyss_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1090,
+      "aegisName": "Unripe_Apple",
+      "chance": 50,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1090,
+      "aegisName": "Angels_Safeguard",
+      "chance": 1000,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1090,
+      "aegisName": "Apple_Juice",
+      "chance": 4000,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1090,
+      "aegisName": "Mastering_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1096,
+      "aegisName": "Angelic_Chain",
+      "chance": 100,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1096,
+      "aegisName": "Leaf_Of_Yggdrasil",
+      "chance": 500,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1096,
+      "aegisName": "Spirit_Chain",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1096,
+      "aegisName": "Angeling_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1086,
+      "aegisName": "Golden_Mace",
+      "chance": 150,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1086,
+      "aegisName": "Golden_Gear",
+      "chance": 250,
+      "reason": "No supported idle effect/type"
+    },
+    {
+      "monsterId": 1086,
+      "aegisName": "Golden_Bug_Card",
+      "chance": 1,
+      "reason": "No supported idle effect/type"
+    }
+  ],
+  "skillSources": {
+    "first_aid": {
+      "id": 142,
+      "name": "NV_FIRSTAID",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 3
+      },
+      "unsupportedRequirements": []
+    },
+    "bash": {
+      "id": 5,
+      "name": "SM_BASH",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 8,
+          "Lv2": 8,
+          "Lv3": 8,
+          "Lv4": 8,
+          "Lv5": 8,
+          "Lv6": 15,
+          "Lv7": 15,
+          "Lv8": 15,
+          "Lv9": 15,
+          "Lv10": 15
+        },
+        "WeaponTypes": {
+          "NoWeapon": true,
+          "Daggers": true,
+          "1HSwords": true,
+          "2HSwords": true,
+          "1HSpears": true,
+          "2HSpears": true,
+          "1HAxes": true,
+          "2HAxes": true,
+          "Maces": true,
+          "2HMaces": true,
+          "Staves": true,
+          "Knuckles": true,
+          "Instruments": true,
+          "Whips": true,
+          "Books": true,
+          "Katars": true,
+          "Revolvers": true,
+          "Rifles": true,
+          "GatlingGuns": true,
+          "Shotguns": true,
+          "GrenadeLaunchers": true,
+          "FuumaShurikens": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "magnum_break": {
+      "id": 7,
+      "name": "SM_MAGNUM",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "HPCost": {
+          "Lv1": 20,
+          "Lv2": 20,
+          "Lv3": 19,
+          "Lv4": 19,
+          "Lv5": 18,
+          "Lv6": 18,
+          "Lv7": 17,
+          "Lv8": 17,
+          "Lv9": 16,
+          "Lv10": 16
+        },
+        "SPCost": 30
+      },
+      "unsupportedRequirements": [
+        "HPCost"
+      ]
+    },
+    "hp_recovery": {
+      "id": 4,
+      "name": "SM_RECOVERY",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "fire_bolt": {
+      "id": 19,
+      "name": "MG_FIREBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "cold_bolt": {
+      "id": 14,
+      "name": "MG_COLDBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "lightning_bolt": {
+      "id": 20,
+      "name": "MG_LIGHTNINGBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "double_strafe": {
+      "id": 46,
+      "name": "AC_DOUBLE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "WeaponTypes": {
+          "Bows": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "arrow_shower": {
+      "id": 47,
+      "name": "AC_SHOWER",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 15,
+        "WeaponTypes": {
+          "Bows": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "owl_eye": {
+      "id": 43,
+      "name": "AC_OWL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "heal": {
+      "id": 28,
+      "name": "AL_HEAL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 13,
+          "Lv2": 16,
+          "Lv3": 19,
+          "Lv4": 22,
+          "Lv5": 25,
+          "Lv6": 28,
+          "Lv7": 31,
+          "Lv8": 34,
+          "Lv9": 37,
+          "Lv10": 40
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "blessing": {
+      "id": 34,
+      "name": "AL_BLESSING",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 28,
+          "Lv2": 32,
+          "Lv3": 36,
+          "Lv4": 40,
+          "Lv5": 44,
+          "Lv6": 48,
+          "Lv7": 52,
+          "Lv8": 56,
+          "Lv9": 60,
+          "Lv10": 64
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "holy_light": {
+      "id": 156,
+      "name": "AL_HOLYLIGHT",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 15
+      },
+      "unsupportedRequirements": []
+    },
+    "mammonite": {
+      "id": 42,
+      "name": "MC_MAMMONITE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 5,
+        "ZenyCost": {
+          "Lv1": 100,
+          "Lv2": 200,
+          "Lv3": 300,
+          "Lv4": 400,
+          "Lv5": 500,
+          "Lv6": 600,
+          "Lv7": 700,
+          "Lv8": 800,
+          "Lv9": 900,
+          "Lv10": 1000
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "crazy_uproar": {
+      "id": 155,
+      "name": "MC_LOUD",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 8
+      },
+      "unsupportedRequirements": []
+    },
+    "cart_revolution": {
+      "id": 153,
+      "name": "MC_CARTREVOLUTION",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "State": "Cart"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "double_attack": {
+      "id": 48,
+      "name": "TF_DOUBLE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "envenom": {
+      "id": 52,
+      "name": "TF_POISON",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12
+      },
+      "unsupportedRequirements": []
+    },
+    "improve_dodge": {
+      "id": 49,
+      "name": "TF_MISS",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "pierce": {
+      "id": 56,
+      "name": "KN_PIERCE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 7,
+        "WeaponTypes": {
+          "1HSpears": true,
+          "2HSpears": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "brandish_spear": {
+      "id": 57,
+      "name": "KN_BRANDISHSPEAR",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "WeaponTypes": {
+          "1HSpears": true,
+          "2HSpears": true
+        },
+        "State": "Riding"
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "State"
+      ]
+    },
+    "holy_cross": {
+      "id": 253,
+      "name": "CR_HOLYCROSS",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 11,
+          "Lv2": 12,
+          "Lv3": 13,
+          "Lv4": 14,
+          "Lv5": 15,
+          "Lv6": 16,
+          "Lv7": 17,
+          "Lv8": 18,
+          "Lv9": 19,
+          "Lv10": 20
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "shield_boomerang": {
+      "id": 251,
+      "name": "CR_SHIELDBOOMERANG",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "State": "Shield"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "jupitel_thunder": {
+      "id": 84,
+      "name": "WZ_JUPITEL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 23,
+          "Lv3": 26,
+          "Lv4": 29,
+          "Lv5": 32,
+          "Lv6": 35,
+          "Lv7": 38,
+          "Lv8": 41,
+          "Lv9": 44,
+          "Lv10": 47
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "storm_gust": {
+      "id": 89,
+      "name": "WZ_STORMGUST",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 78
+      },
+      "unsupportedRequirements": []
+    },
+    "hindsight": {
+      "id": 279,
+      "name": "SA_AUTOSPELL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 35
+      },
+      "unsupportedRequirements": []
+    },
+    "flame_enchant": {
+      "id": 280,
+      "name": "SA_FLAMELAUNCHER",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 40,
+        "Items": {
+          "Boody_Red": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "blitz_beat": {
+      "id": 129,
+      "name": "HT_BLITZBEAT",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 10,
+          "Lv2": 13,
+          "Lv3": 16,
+          "Lv4": 19,
+          "Lv5": 22,
+          "Lv6": 25,
+          "Lv7": 28,
+          "Lv8": 31,
+          "Lv9": 34,
+          "Lv10": 37
+        },
+        "State": "Falcon"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "beast_bane": {
+      "id": 126,
+      "name": "HT_BEASTBANE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "melody_strike": {
+      "id": 316,
+      "name": "BA_MUSICALSTRIKE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 1,
+          "Lv2": 3,
+          "Lv3": 5,
+          "Lv4": 7,
+          "Lv5": 9,
+          "Lv6": 11,
+          "Lv7": 13,
+          "Lv8": 15,
+          "Lv9": 17,
+          "Lv10": 19
+        },
+        "WeaponTypes": {
+          "Instruments": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "poem_of_bragi": {
+      "id": 321,
+      "name": "BA_POEMBRAGI",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 40,
+          "Lv2": 45,
+          "Lv3": 50,
+          "Lv4": 55,
+          "Lv5": 60,
+          "Lv6": 65,
+          "Lv7": 70,
+          "Lv8": 75,
+          "Lv9": 80,
+          "Lv10": 85
+        },
+        "WeaponTypes": {
+          "Instruments": true,
+          "Whips": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "slinging_arrow": {
+      "id": 324,
+      "name": "DC_THROWARROW",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 1,
+          "Lv2": 3,
+          "Lv3": 5,
+          "Lv4": 7,
+          "Lv5": 9,
+          "Lv6": 11,
+          "Lv7": 13,
+          "Lv8": 15,
+          "Lv9": 17,
+          "Lv10": 19
+        },
+        "WeaponTypes": {
+          "Whips": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "service_for_you": {
+      "id": 330,
+      "name": "DC_SERVICEFORYOU",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 40,
+          "Lv2": 45,
+          "Lv3": 50,
+          "Lv4": 55,
+          "Lv5": 60,
+          "Lv6": 65,
+          "Lv7": 70,
+          "Lv8": 75,
+          "Lv9": 80,
+          "Lv10": 85
+        },
+        "WeaponTypes": {
+          "Instruments": true,
+          "Whips": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "kyrie": {
+      "id": 73,
+      "name": "PR_KYRIE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 20,
+          "Lv3": 20,
+          "Lv4": 25,
+          "Lv5": 25,
+          "Lv6": 25,
+          "Lv7": 30,
+          "Lv8": 30,
+          "Lv9": 30,
+          "Lv10": 35
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "sanctuary": {
+      "id": 70,
+      "name": "PR_SANCTUARY",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 15,
+          "Lv2": 18,
+          "Lv3": 21,
+          "Lv4": 24,
+          "Lv5": 27,
+          "Lv6": 30,
+          "Lv7": 33,
+          "Lv8": 36,
+          "Lv9": 39,
+          "Lv10": 42
+        },
+        "Items": {
+          "Blue_Gemstone": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "triple_attack": {
+      "id": 263,
+      "name": "MO_TRIPLEATTACK",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "investigate": {
+      "id": 266,
+      "name": "MO_INVESTIGATE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 10,
+          "Lv2": 14,
+          "Lv3": 17,
+          "Lv4": 19,
+          "Lv5": 20,
+          "Lv6": 20,
+          "Lv7": 20,
+          "Lv8": 20,
+          "Lv9": 20,
+          "Lv10": 20
+        },
+        "SpiritSphereCost": 1
+      },
+      "unsupportedRequirements": [
+        "SpiritSphereCost"
+      ]
+    },
+    "adrenaline": {
+      "id": 111,
+      "name": "BS_ADRENALINE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 23,
+          "Lv3": 26,
+          "Lv4": 29,
+          "Lv5": 32,
+          "Lv6": 35,
+          "Lv7": 38,
+          "Lv8": 41,
+          "Lv9": 44,
+          "Lv10": 47
+        },
+        "WeaponTypes": {
+          "1HAxes": true,
+          "2HAxes": true,
+          "Maces": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "weapon_perfection": {
+      "id": 112,
+      "name": "BS_WEAPONPERFECT",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 18,
+          "Lv2": 16,
+          "Lv3": 14,
+          "Lv4": 12,
+          "Lv5": 10,
+          "Lv6": 8,
+          "Lv7": 6,
+          "Lv8": 4,
+          "Lv9": 2,
+          "Lv10": 1
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "acid_terror": {
+      "id": 230,
+      "name": "AM_ACIDTERROR",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 15,
+        "Items": {
+          "Acid_Bottle": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "potion_pitcher": {
+      "id": 231,
+      "name": "AM_POTIONPITCHER",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 1,
+        "Items": {
+          "Red_Potion": {
+            "Lv1": 1
+          },
+          "Orange_Potion": {
+            "Lv2": 1
+          },
+          "Yellow_Potion": {
+            "Lv3": 1
+          },
+          "White_Potion": {
+            "Lv4": 1
+          },
+          "Blue_Potion": {
+            "Lv5": 1
+          }
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "sonic_blow": {
+      "id": 136,
+      "name": "AS_SONICBLOW",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 16,
+          "Lv2": 18,
+          "Lv3": 20,
+          "Lv4": 22,
+          "Lv5": 24,
+          "Lv6": 26,
+          "Lv7": 28,
+          "Lv8": 30,
+          "Lv9": 32,
+          "Lv10": 34
+        },
+        "WeaponTypes": {
+          "Katars": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "enchant_poison": {
+      "id": 138,
+      "name": "AS_ENCHANTPOISON",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 20
+      },
+      "unsupportedRequirements": []
+    },
+    "raid": {
+      "id": 214,
+      "name": "RG_RAID",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 20,
+        "State": "Hiding"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "snatcher": {
+      "id": 211,
+      "name": "RG_STEALCOIN",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 15
+      },
+      "unsupportedRequirements": []
+    }
+  },
+  "classSources": {
+    "novice": {
+      "job": "Novice",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "Novice"
+    },
+    "high_novice": {
+      "job": "Novice_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "HighNovice"
+    },
+    "swordsman": {
+      "job": "Swordsman",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_swordsman": {
+      "job": "Swordsman_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "mage": {
+      "job": "Magician",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_mage": {
+      "job": "Magician_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "archer": {
+      "job": "Archer",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_archer": {
+      "job": "Archer_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "acolyte": {
+      "job": "Acolyte",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_acolyte": {
+      "job": "Acolyte_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "merchant": {
+      "job": "Merchant",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_merchant": {
+      "job": "Merchant_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "thief": {
+      "job": "Thief",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_thief": {
+      "job": "Thief_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "knight": {
+      "job": "Knight",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "lord_knight": {
+      "job": "Lord_Knight",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "crusader": {
+      "job": "Crusader",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "paladin": {
+      "job": "Paladin",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "wizard": {
+      "job": "Wizard",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "high_wizard": {
+      "job": "High_Wizard",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "sage": {
+      "job": "Sage",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "professor": {
+      "job": "Professor",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "hunter": {
+      "job": "Hunter",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "sniper": {
+      "job": "Sniper",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "bard": {
+      "job": "Bard",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "clown": {
+      "job": "Clown",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "dancer": {
+      "job": "Dancer",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "gypsy": {
+      "job": "Gypsy",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "priest": {
+      "job": "Priest",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "high_priest": {
+      "job": "High_Priest",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "monk": {
+      "job": "Monk",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "champion": {
+      "job": "Champion",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "blacksmith": {
+      "job": "Blacksmith",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "whitesmith": {
+      "job": "Whitesmith",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "alchemist": {
+      "job": "Alchemist",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "creator": {
+      "job": "Creator",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "assassin": {
+      "job": "Assassin",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "assassin_cross": {
+      "job": "Assassin_Cross",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "rogue": {
+      "job": "Rogue",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "stalker": {
+      "job": "Stalker",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    }
+  },
+  "itemResources": {
+    "path": "data/idnum2itemresnametable.txt",
+    "encoding": "CP949 (WHATWG euc-kr)",
+    "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
+    "redistributed": false
+  },
+  "hpSpModifierSource": {
+    "path": "src/map/status.c",
+    "url": "https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/status.c",
+    "functions": [
+      "status_get_base_maxhp",
+      "status_get_base_maxsp"
+    ],
+    "modifier": "JOBL_UPPER: floor(base * 1.25)",
+    "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
+  },
+  "rulesSha256": "0d4205d7db0443fa551515afb1c420fe6510609fcda0095e69a8c96fb9543ed5",
+  "spriteMappingSource": {
+    "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
+    "license": "GPL-3.0-or-later",
+    "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
+  },
+  "catalogSha256": "1e839535d3a7ff9da6dfc748220cf4c8eb68773c2ea5f34d6a8273b619661503",
+  "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
+}
