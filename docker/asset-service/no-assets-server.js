@@ -5,7 +5,19 @@ const diagnostic =
 	'Assets do cliente ausentes. Coloque um DATA.INI legível e todos os GRFs que ele referencia em client-data/ e reinicie o asset-service. Este projeto não baixa arquivos do cliente.';
 
 function createNoAssetsServer() {
-	return http.createServer((_request, response) => {
+	const clientPublicUrl = process.env.CLIENT_PUBLIC_URL || 'http://localhost:3338';
+	return http.createServer((request, response) => {
+		response.setHeader('Access-Control-Allow-Origin', clientPublicUrl);
+		response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
+		response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+		response.setHeader('Vary', 'Origin');
+
+		if (request.method === 'OPTIONS') {
+			response.writeHead(204);
+			response.end();
+			return;
+		}
+
 		response.writeHead(503, { 'Content-Type': 'text/plain; charset=utf-8' });
 		response.end(`${diagnostic}\n`);
 	});

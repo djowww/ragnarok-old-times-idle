@@ -42,4 +42,20 @@ then
 	start_diagnostic_server 'verifique o DATA.INI e confirme que todos os GRFs referenciados estão presentes e legíveis em client-data/.'
 fi
 
+set_optional_asset_dir() {
+	local_name="$1"
+	local_dir="$resources_dir/$2"
+	if [ -e "$local_dir" ]; then
+		if [ ! -d "$local_dir" ] || [ ! -r "$local_dir" ]; then
+			start_diagnostic_server "confirme que $2/ é um diretório legível em client-data/."
+		fi
+		export "$local_name=$local_dir"
+	fi
+}
+
+set_optional_asset_dir DATA_OVERRIDE_PATH data
+set_optional_asset_dir SYSTEM_PATH System
+set_optional_asset_dir BGM_PATH BGM
+set_optional_asset_dir AI_PATH AI
+
 exec node /app/index.js

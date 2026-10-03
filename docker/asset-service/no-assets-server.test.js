@@ -21,6 +21,12 @@ test('missing client data returns a clear HTTP diagnostic', async (t) => {
 
 	assert.equal(response.status, 503);
 	assert.match(response.headers.get('content-type'), /^text\/plain/);
+	assert.equal(response.headers.get('access-control-allow-origin'), 'http://localhost:3338');
 	assert.match(body, /DATA\.INI/);
 	assert.match(body, /client-data\//);
+
+	const preflight = await fetch(`http://127.0.0.1:${port}/batch`, { method: 'OPTIONS' });
+	assert.equal(preflight.status, 204);
+	assert.equal(preflight.headers.get('access-control-allow-origin'), 'http://localhost:3338');
+	assert.match(preflight.headers.get('access-control-allow-methods'), /POST/);
 });
