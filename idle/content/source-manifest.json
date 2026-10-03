@@ -52,362 +52,305 @@
     "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists."
   ],
-  "excludedDrops": [
+  "excludedDrops": [],
+  "inertDropItems": [
     {
-      "monsterId": 1002,
+      "itemId": 619,
       "aegisName": "Unripe_Apple",
-      "chance": 20,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1063,
+      "itemId": 622,
       "aegisName": "Rainbow_Carrot",
-      "chance": 20,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1113,
+      "itemId": 1602,
       "aegisName": "Rod_",
-      "chance": 80,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1113,
+      "itemId": 620,
       "aegisName": "Orange_Juice",
-      "chance": 20,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1175,
+      "itemId": 528,
       "aegisName": "Monsters_Feed",
-      "chance": 1000,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_HEALING"
     },
     {
-      "monsterId": 1052,
+      "itemId": 1916,
       "aegisName": "Guitar_Of_Vast_Land",
-      "chance": 10,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1018,
+      "itemId": 2322,
       "aegisName": "Silk_Robe_",
-      "chance": 10,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1018,
+      "itemId": 602,
       "aegisName": "Wing_Of_Butterfly",
-      "chance": 100,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1018,
+      "itemId": 2207,
       "aegisName": "Fancy_Flower",
-      "chance": 2,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1018,
+      "itemId": 692,
       "aegisName": "Wind_Scroll_1_3",
-      "chance": 100,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1018,
+      "itemId": 4040,
       "aegisName": "Creamy_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1031,
+      "itemId": 511,
       "aegisName": "Green_Herb",
-      "chance": 500,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_HEALING"
     },
     {
-      "monsterId": 1031,
+      "itemId": 4033,
       "aegisName": "Poporing_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1056,
+      "itemId": 4044,
       "aegisName": "Smokie_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1057,
+      "itemId": 578,
       "aegisName": "Strawberry",
-      "chance": 1000,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_HEALING"
     },
     {
-      "monsterId": 1076,
+      "itemId": 4025,
       "aegisName": "Skeleton_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1015,
+      "itemId": 4038,
       "aegisName": "Zombie_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1070,
-      "aegisName": "Monsters_Feed",
-      "chance": 500,
-      "reason": "No supported idle effect/type"
-    },
-    {
-      "monsterId": 1070,
+      "itemId": 623,
       "aegisName": "Earthworm_The_Dude",
-      "chance": 20,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1070,
+      "itemId": 4027,
       "aegisName": "Kukre_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1066,
+      "itemId": 4049,
       "aegisName": "Vadon_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1141,
+      "itemId": 631,
       "aegisName": "Deadly_Noxious_Herb",
-      "chance": 20,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1141,
+      "itemId": 4055,
       "aegisName": "Marina_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1023,
+      "itemId": 2267,
       "aegisName": "Cigar",
-      "chance": 3,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1023,
+      "itemId": 4066,
       "aegisName": "Orc_Warrior_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1273,
+      "itemId": 2602,
       "aegisName": "Earring",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1273,
+      "itemId": 2206,
       "aegisName": "Wedding_Veil",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1273,
+      "itemId": 12127,
       "aegisName": "High_end_Cooking_Kits",
-      "chance": 10,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1273,
+      "itemId": 2338,
       "aegisName": "Wedding_Dress",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1273,
+      "itemId": 4255,
       "aegisName": "Orc_Lady_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1028,
+      "itemId": 4086,
       "aegisName": "Soldier_Skeleton_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1016,
+      "itemId": 2285,
       "aegisName": "Apple_Of_Archer",
-      "chance": 3,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1016,
+      "itemId": 1752,
+      "aegisName": "Fire_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 4094,
       "aegisName": "Archer_Skeleton_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1041,
+      "itemId": 2604,
       "aegisName": "Glove",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1041,
+      "itemId": 525,
       "aegisName": "Panacea",
-      "chance": 250,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_HEALING"
     },
     {
-      "monsterId": 1041,
+      "itemId": 4106,
       "aegisName": "Mummy_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1109,
+      "itemId": 4122,
       "aegisName": "Deviruchi_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1061,
+      "itemId": 2608,
       "aegisName": "Rosary",
-      "chance": 2,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1061,
+      "itemId": 603,
       "aegisName": "Old_Blue_Box",
-      "chance": 30,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1061,
+      "itemId": 1261,
       "aegisName": "Infiltrator",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1061,
+      "itemId": 4127,
       "aegisName": "Nightmare_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1132,
+      "itemId": 5017,
       "aegisName": "Bone_Helm",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1132,
+      "itemId": 2108,
       "aegisName": "Mirror_Shield_",
-      "chance": 2,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1132,
+      "itemId": 4136,
       "aegisName": "Khalitzburg_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1219,
+      "itemId": 2318,
       "aegisName": "Clothes_Of_The_Lord",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1219,
+      "itemId": 1421,
       "aegisName": "Battle_Hook",
-      "chance": 25,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1219,
+      "itemId": 1162,
       "aegisName": "Broad_Sword_",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1219,
+      "itemId": 4140,
       "aegisName": "Knight_Of_Abyss_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1090,
-      "aegisName": "Unripe_Apple",
-      "chance": 50,
-      "reason": "No supported idle effect/type"
-    },
-    {
-      "monsterId": 1090,
+      "itemId": 2116,
       "aegisName": "Angels_Safeguard",
-      "chance": 1000,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1090,
+      "itemId": 531,
       "aegisName": "Apple_Juice",
-      "chance": 4000,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_HEALING"
     },
     {
-      "monsterId": 1090,
+      "itemId": 4197,
       "aegisName": "Mastering_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1096,
+      "itemId": 2254,
       "aegisName": "Angelic_Chain",
-      "chance": 100,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1096,
+      "itemId": 610,
       "aegisName": "Leaf_Of_Yggdrasil",
-      "chance": 500,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_USABLE"
     },
     {
-      "monsterId": 1096,
+      "itemId": 2282,
       "aegisName": "Spirit_Chain",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1096,
+      "itemId": 4054,
       "aegisName": "Angeling_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     },
     {
-      "monsterId": 1086,
+      "itemId": 1524,
       "aegisName": "Golden_Mace",
-      "chance": 150,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_WEAPON"
     },
     {
-      "monsterId": 1086,
+      "itemId": 2246,
       "aegisName": "Golden_Gear",
-      "chance": 250,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_ARMOR"
     },
     {
-      "monsterId": 1086,
+      "itemId": 10016,
+      "aegisName": "Golden_Bell",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 4128,
       "aegisName": "Golden_Bug_Card",
-      "chance": 1,
-      "reason": "No supported idle effect/type"
+      "sourceType": "IT_CARD"
     }
   ],
+  "missingItemResources": [],
   "skillSources": {
     "first_aid": {
       "id": 142,
@@ -1419,6 +1362,6 @@
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
   },
-  "catalogSha256": "a9e9c6cdf6e17fd5924645075d671db6d421ebe212e5dd13d371495c35690549",
+  "catalogSha256": "9927051b2b4a70f4313bdca35c01f4a1cbb0becc3bcfed464f0ab801e9b61273",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

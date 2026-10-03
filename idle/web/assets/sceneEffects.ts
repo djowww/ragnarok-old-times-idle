@@ -8,6 +8,13 @@ import { drawActor, loadActor, type DecodedActor } from './renderer';
 export const DAMAGE_POPUP_MS = 1500;
 export const EMOTE_MS = 1500;
 export const SKILL_EFFECT_MS = 1200;
+/** Scene cues use a 1100 ms magical action: release at 420 ms, first impact at 700 ms. */
+export const SKILL_CAST_MS = 420;
+export const SKILL_IMPACT_MS = 700;
+const BOLT_FALL_MS = SKILL_IMPACT_MS - SKILL_CAST_MS;
+const BOLT_STAGGER_MS = 60;
+const BOLT_IMPACT_GLOW_MS = 160;
+const MAX_VISIBLE_BOLTS = 5;
 export const EMOTE_ACTIONS = [0, 1, 2, 3, 18, 21, 33] as const;
 
 type Tint = 'enemy' | 'player' | 'heal' | 'critical';
@@ -51,6 +58,13 @@ export interface SkillFlash {
   name: string;
   kind?: Skill['kind'];
   element?: string;
+  /** Skill level at the event, used only for the number of visible bolts. */
+  level?: number;
+  /** Duration of the stationary cast phase. Defaults to SKILL_CAST_MS. */
+  castMs?: number;
+  /** Caster's feet on the canvas; target x/y continue to locate the impact. */
+  casterX?: number;
+  casterY?: number;
   x: number;
   y: number;
   elapsedMs: number;
@@ -321,18 +335,104 @@ function drawJupitelEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects, 
   return drewFrame;
 }
 
+function drawCastSigil(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash, fire: boolean): void {
+  const castMs = Number.isFinite(cue.castMs) ? Math.max(0, cue.castMs!) : SKILL_CAST_MS;
+  if (cue.elapsedMs >= castMs) return;
+  const x = cue.casterX ?? cue.x;
+  const y = cue.casterY ?? cue.y + 50;
+  const phase = castMs > 0 ? cue.elapsedMs / castMs : 1;
+  ctx.save();
+  ctx.globalAlpha *= 0.36 + phase * 0.4;
+  ctx.globalCompositeOperation = 'lighter';
+  if (assets?.healRing) {
+    const ring = assets.healRing;
+    ctx.drawImage(ring, x - 34, y - 12, 68, 24);
+  }
+  ctx.strokeStyle = fire ? '#ffcb76' : '#a9e8ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 30, 11, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  if (!cue.reducedMotion) {
+    const orbit = phase * Math.PI * 1.5;
+    for (let i = 0; i < 4; i++) {
+      const angle = orbit + i * Math.PI / 2;
+      ctx.beginPath();
+      ctx.arc(x + Math.cos(angle) * 28, y + Math.sin(angle) * 10, 2, 0, Math.PI * 2);
+      ctx.fillStyle = fire ? '#fff0b4' : '#e6f8ff';
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawBoltEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash, fire: boolean): void {
+  const castMs = Number.isFinite(cue.castMs) ? Math.max(0, cue.castMs!) : SKILL_CAST_MS;
+  drawCastSigil(ctx, assets, cue, fire);
+  const count = cue.reducedMotion ? 1 : Math.min(MAX_VISIBLE_BOLTS,
+    Number.isFinite(cue.level) ? Math.max(1, Math.floor(cue.level!)) : 1);
+  const frames = fire ? assets?.fireBolt ?? [] : assets?.coldBolt ? [assets.coldBolt] : [];
+  const color = fire ? '#ffad52' : '#b9ecff';
+  const offsets = [0, -12, 12, -22, 22];
+  for (let i = 0; i < count; i++) {
+    const offset = offsets[i];
+    const releasedAt = castMs + (cue.reducedMotion ? 0 : i * BOLT_STAGGER_MS);
+    const local = cue.elapsedMs - releasedAt;
+    if (local < 0) continue;
+    const fall = Math.min(1, local / BOLT_FALL_MS);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    if (local <= BOLT_FALL_MS && frames.length) {
+      const frame = frames[cue.reducedMotion ? 0 : Math.min(frames.length - 1,
+        Math.floor(fall * frames.length))];
+      // The client's TGA is a horizontal 3D-effect texture. Rotate its long
+      // axis into a narrow descending bolt, with the small RO isometric lean.
+      const centerX = cue.x + offset + (cue.reducedMotion ? 0 : (1 - fall) * 16);
+      const centerY = cue.y - 20 - (cue.reducedMotion ? 0 : (1 - fall) * 145);
+      ctx.translate(centerX, centerY);
+      ctx.rotate(Math.PI / 2 + 0.12);
+      ctx.globalAlpha *= cue.reducedMotion ? 0.72 : Math.min(1, local / 45, (BOLT_FALL_MS - local) / 35);
+      ctx.drawImage(frame, -52, -13, 104, 26);
+    } else if (local <= BOLT_FALL_MS && !frames.length) {
+      const centerX = cue.x + offset + (cue.reducedMotion ? 0 : (1 - fall) * 16);
+      const centerY = cue.y - 20 - (cue.reducedMotion ? 0 : (1 - fall) * 145);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(centerX + 5, centerY - 46);
+      ctx.lineTo(centerX - 5, centerY + 46);
+      ctx.stroke();
+    }
+    const impactTime = local - BOLT_FALL_MS;
+    if (impactTime >= 0 && impactTime < BOLT_IMPACT_GLOW_MS) {
+      const phase = cue.reducedMotion ? 0.45 : impactTime / BOLT_IMPACT_GLOW_MS;
+      ctx.globalAlpha *= cue.reducedMotion ? 0.55 : 0.75 * (1 - phase);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(cue.x + offset, cue.y + 22, 9 + phase * 12, 4 + phase * 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
 /** Draws original 2D art where supported. Heal and Jupitel reuse original
  * textures in a flat approximation; STR/3D choreography is not reproduced. */
 export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash): void {
   const { skillId, name, x, y, elapsedMs, reducedMotion = false } = cue;
   if (!visible(elapsedMs, SKILL_EFFECT_MS)) return;
   const progress = elapsedMs / SKILL_EFFECT_MS;
-  const alpha = reducedMotion ? 0.9 : 1 - progress;
+  const bolt = skillId === 'fire_bolt' || skillId === 'cold_bolt';
+  const alpha = bolt ? 1 : reducedMotion ? 0.9 : 1 - progress;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
   let original = false;
-  if (skillId === 'first_aid' && assets?.firstAid) {
+  if (bolt) {
+    drawBoltEffect(ctx, assets, cue, skillId === 'fire_bolt');
+    original = true;
+  } else if (skillId === 'first_aid' && assets?.firstAid) {
     const frame = assets.firstAid;
     const size = Math.min(100, Math.max(frame.width, frame.height));
     // The client's BMP uses a dark ground and RO blends it as light.
@@ -345,22 +445,16 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   } else if (skillId === 'blessing' && assets?.blessing) {
     drawActor(ctx, assets.blessing, 0, reducedMotion ? 0 : elapsedMs, x, y, 1.8);
     original = true;
-  } else if (skillId === 'fire_bolt' && assets?.fireBolt.length) {
-    const frame = assets.fireBolt[reducedMotion ? 0 : Math.min(assets.fireBolt.length - 1, Math.floor(progress * assets.fireBolt.length))];
-    const fall = reducedMotion ? 0 : (1 - progress) * 68;
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.drawImage(frame, x - 64, y - 48 - fall, 128, 64);
-    original = true;
-  } else if (skillId === 'cold_bolt' && assets?.coldBolt) {
-    const frame = assets.coldBolt;
-    const fall = reducedMotion ? 0 : (1 - progress) * 75;
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.drawImage(frame, x - 48, y - 58 - fall, 96, 96);
-    original = true;
   } else if (skillId === 'heal' && assets) {
     original = drawHealEffect(ctx, assets, cue);
   } else if (skillId === 'jupitel_thunder' && assets) {
-    original = drawJupitelEffect(ctx, assets, cue);
+    const releaseAt = SKILL_IMPACT_MS - 180;
+    if (elapsedMs < (cue.castMs ?? SKILL_CAST_MS)) {
+      drawCastSigil(ctx, assets, cue, false);
+      original = true;
+    } else if (elapsedMs >= releaseAt) {
+      original = drawJupitelEffect(ctx, assets, { ...cue, elapsedMs: elapsedMs - releaseAt });
+    }
   }
   if (!original) {
     const color = elementColors[cue.element?.toLowerCase() ?? ''] ??
@@ -378,7 +472,11 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   ctx.lineWidth = 3;
   ctx.strokeStyle = '#1c2730';
   ctx.fillStyle = '#fff4ca';
-  ctx.strokeText(name, x, y - 70);
-  ctx.fillText(name, x, y - 70);
+  if (!bolt || elapsedMs < (cue.castMs ?? SKILL_CAST_MS)) {
+    const nameX = bolt ? cue.casterX ?? x : x;
+    const nameY = bolt ? (cue.casterY ?? y + 50) - 70 : y - 70;
+    ctx.strokeText(name, nameX, nameY);
+    ctx.fillText(name, nameX, nameY);
+  }
   ctx.restore();
 }

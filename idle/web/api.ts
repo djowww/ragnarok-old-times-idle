@@ -177,7 +177,7 @@ export function useGame() {
     const poll = async () => {
       if (disposed) return;
       if (!document.hidden) await refresh();
-      if (!disposed) timer = window.setTimeout(poll, 1500);
+      if (!disposed) timer = window.setTimeout(poll, 850);
     };
     void poll();
     const focus = () => {

@@ -68,26 +68,47 @@ export function getAttackAction(actor: DecodedActor): number {
     return actor.body?.action.actions[candidate]?.frames.length ? candidate : actor.kind === 'character' ? 40 : 16;
 }
 
-function actionFrames(part: ActorPart, action: number, fallback = true): ActionFrame[] | undefined {
-    const selected = part.action.actions[action] ?? (fallback ? part.action.actions[0] : undefined);
-    return selected?.frames.length ? selected.frames : undefined;
+function actionFrames(part: ActorPart, action: number): ActionFrame[] | undefined {
+    const frames = part.action.actions[action]?.frames;
+    return frames?.length ? frames : undefined;
 }
 
-export function getActorPose(actor: DecodedActor, action: number | 'idle' | 'attack' | 'hurt' | 'dead', elapsed: number): PosedLayer[] {
+function facingFrames(part: ActorPart, preferred: number): { index: number; frames: ActionFrame[] } | undefined {
+    const direction = preferred % 8;
+    // If this optional part lacks the current combat action, its idle pose in
+    // the same direction is safer than borrowing the cast/attack from front.
+    const sameFacing = Array.from({ length: Math.ceil(part.action.actions.length / 8) }, (_, group) => group * 8 + direction);
+    const candidates = [...new Set([preferred, direction, ...sameFacing, preferred - direction, 0])];
+    for (const index of candidates) {
+        const frames = actionFrames(part, index);
+        if (frames) return { index, frames };
+    }
+    return undefined;
+}
+
+export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'hurt' | 'dead';
+
+export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: number, direction = 0): PosedLayer[] {
     if (!actor.body || actor.fallback)
         return [];
-    // EntityAction.js at pinned roBrowserLegacy: PC ATTACK1/2/3 groups 5/10/11.
-    // ACT groups contain eight directions; PC and monster combat groups differ.
+    // EntityAction.js: each ACT group has eight directions. SKILL is group 12
+    // (96..103) for PCs. Monsters do not share the PC skill action layout.
     const actions = actor.kind === 'character'
-        ? { idle: 0, attack: getAttackAction(actor), hurt: 48, dead: 64 }
-        : { idle: 0, attack: 16, hurt: 24, dead: 32 };
-    const index = typeof action === 'number' ? action : actions[action];
+        ? { idle: 0, attack: getAttackAction(actor), cast: 96, hurt: 48, dead: 64 }
+        : { idle: 0, attack: 16, cast: 0, hurt: 24, dead: 32 };
+    const base = typeof action === 'number' ? action : actions[action];
+    const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
+    // Keep the requested body direction whenever its ACT provides it. Optional
+    // head and weapon layers independently choose a same-facing fallback.
+    const candidates = [...new Set([base + dir, base, dir, 0])];
+    const index = candidates.find((candidate) => actionFrames(actor.body!, candidate));
+    if (index === undefined) return [];
     const bodyFrames = actionFrames(actor.body, index);
     if (!bodyFrames)
         return [];
     // PC idle's three ACT frames are head-direction/doridori variants. The
     // original renderer holds the first direction until a head turn is asked for.
-    const staticIdle = actor.kind === 'character' && index === 0;
+    const staticIdle = actor.kind === 'character' && index < 8;
     const delay = actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150;
     const frameIndex = staticIdle ? 0 : Math.floor(Math.max(0, elapsed) / Math.max(25, delay)) % bodyFrames.length;
     const bodyFrame = bodyFrames[frameIndex];
@@ -103,18 +124,17 @@ export function getActorPose(actor: DecodedActor, action: number | 'idle' | 'att
     } };
     append(actor.body, bodyFrame);
     if (actor.head) {
-        const frames = actionFrames(actor.head, index);
-        const headFrame = frames?.[Math.min(frameIndex, frames.length - 1)];
+        const selected = facingFrames(actor.head, index);
+        const headFrame = selected?.frames[selected.index < 8 ? 0 : Math.min(frameIndex, selected.frames.length - 1)];
         if (headFrame) {
             const b = bodyFrame.anchors[0] ?? { x: 0, y: 0 }, h = headFrame.anchors[0] ?? { x: 0, y: 0 };
             append(actor.head, headFrame, b.x - h.x, b.y - h.y);
         }
     }
     if (actor.weapon) {
-        // Weapon ACT coordinates are already relative to the body origin. Its
-        // matching action/frame is drawn after the head, as in EntityRender.js.
-        const frames = actionFrames(actor.weapon, index, false);
-        const weaponFrame = frames?.[Math.min(frameIndex, frames.length - 1)];
+        // Weapon ACT coordinates are already relative to the body origin.
+        const selected = facingFrames(actor.weapon, index);
+        const weaponFrame = selected?.frames[selected.index < 8 ? 0 : Math.min(frameIndex, selected.frames.length - 1)];
         if (weaponFrame) append(actor.weapon, weaponFrame);
     }
     return result;
@@ -143,12 +163,12 @@ function imageCanvas(image: SpriteFrame, color: ActionLayer['color']): HTMLCanva
     variants.set(key, canvas);
     return canvas;
 }
-export function drawActor(ctx: CanvasRenderingContext2D, actor: DecodedActor, action: number | 'idle' | 'attack' | 'hurt' | 'dead', elapsed: number, x: number, y: number, scale = 1): void {
+export function drawActor(ctx: CanvasRenderingContext2D, actor: DecodedActor, action: ActorAction, elapsed: number, x: number, y: number, scale = 1, direction = 0): void {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
     ctx.imageSmoothingEnabled = false;
-    const pose = getActorPose(actor, action, elapsed);
+    const pose = getActorPose(actor, action, elapsed, direction);
     if (!pose.length) {
         ctx.fillStyle = '#d9caab';
         ctx.strokeStyle = '#746648';

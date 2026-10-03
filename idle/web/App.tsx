@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import type { Slot } from "../shared/types";
+import { useEffect, useRef, useState } from "react";
+import type { GameEvent, Slot } from "../shared/types";
 import { useGame } from "./api";
-import Scene, { ActorPreview } from "./components/Scene";
+import Scene from "./components/Scene";
+import { assetUrl, FALLBACK_ICON, getBitmapUrl } from "./assets/items";
 import Offline from "./components/Offline";
 import AudioToggle from "./components/AudioToggle";
 import {
@@ -33,12 +34,76 @@ const tabs = [
   ["challenges", "Desafios"],
 ] as const;
 type Tab = (typeof tabs)[number][0];
+const classicMenu: ReadonlyArray<{ tab: Tab; label: string; file: string; fallback: string }> = [
+  { tab: "build", label: "Status", file: "btn_status_off.bmp", fallback: "St" },
+  { tab: "inventory", label: "Equipamento", file: "btn_equip_off.bmp", fallback: "Eq" },
+  { tab: "inventory", label: "Mochila", file: "btn_items_off.bmp", fallback: "It" },
+  { tab: "world", label: "Mapa", file: "btn_map_off.bmp", fallback: "Mp" },
+  { tab: "build", label: "Habilidades", file: "btn_skill_off.bmp", fallback: "Sk" },
+];
+const classicTexture = (file: string) =>
+  assetUrl(`data/texture/유저인터페이스/basic_interface/${file}`);
+function ClassicMinimap({ mapName, mapLabel }: { mapName: string; mapLabel: string }) {
+  const [image, setImage] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    setImage(null);
+    void getBitmapUrl(`data/texture/유저인터페이스/map/${mapName}.bmp`).then((value) => {
+      if (active && value !== FALLBACK_ICON) setImage(value);
+    });
+    return () => { active = false; };
+  }, [mapName]);
+  return (
+    <div className="classic-minimap" role="img" aria-label={`Minimapa de ${mapLabel}`}>
+      <div className="classic-minimap-title">{mapLabel}</div>
+      <div className="classic-minimap-image">
+        {image && <img src={image} alt="" />}
+        <span className="classic-minimap-marker" aria-hidden="true" />
+      </div>
+    </div>
+  );
+}
+function CombatJournal({ events, open }: { events: GameEvent[]; open: boolean }) {
+  return (
+    <Panel
+      title="Diário de combate"
+      aside={<span className="tiny-label">Recentes</span>}
+      className={`journal-panel ${open ? "mobile-open" : ""}`}
+    >
+      <div className="event-list" role="log" aria-live="off">
+        {[...events].reverse().slice(0, 30).map((event) => (
+          <div className={`event event-${event.kind}`} key={event.id}>
+            <time>
+              {new Date(event.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </time>
+            <span>
+              {event.text}
+              {event.amount !== undefined && <b className="event-amount"> · {number(event.amount)}</b>}
+            </span>
+          </div>
+        ))}
+        {events.length === 0 && (
+          <p className="journal-empty">
+            Seu diário aguarda a primeira aventura. Escolha uma área e comece a caçar.
+          </p>
+        )}
+      </div>
+    </Panel>
+  );
+}
 export default function App() {
   const game = useGame();
   const [tab, setTab] = useState<Tab>("inventory");
   const [areaId, setAreaId] = useState("");
   const [potionEditor, setPotionEditor] = useState(false);
-  const [journalOpen, setJournalOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(
+    () => !window.matchMedia("(max-width: 640px)").matches,
+  );
+  const [lootPulse, setLootPulse] = useState(false);
+  const lastLootId = useRef<number | null | undefined>(undefined);
+  const newestLootId = [...(game.snapshot?.state.events ?? [])]
+    .reverse()
+    .find((event) => event.kind === "loot")?.id ?? null;
   const [hpThreshold, setHpThreshold] = useState(50);
   const [spThreshold, setSpThreshold] = useState(25);
   useEffect(() => {
@@ -57,6 +122,17 @@ export default function App() {
   useEffect(() => {
     if (game.snapshot?.state.areaId) setAreaId(game.snapshot.state.areaId);
   }, [game.snapshot?.state.areaId]);
+  useEffect(() => {
+    if (lastLootId.current === undefined) {
+      lastLootId.current = newestLootId;
+      return;
+    }
+    if (newestLootId === null || newestLootId === lastLootId.current) return;
+    lastLootId.current = newestLootId;
+    setLootPulse(true);
+    const timeout = window.setTimeout(() => setLootPulse(false), 1500);
+    return () => window.clearTimeout(timeout);
+  }, [newestLootId]);
   const { catalog, snapshot } = game;
   const panels = {
     inventory: Inventory,
@@ -77,6 +153,12 @@ export default function App() {
           .querySelector(".game-panels")
           ?.scrollIntoView({ block: "start", behavior: "auto" }),
       );
+  };
+  const openClassicTab = (next: Tab) => {
+    changeTab(next);
+    requestAnimationFrame(() =>
+      document.querySelector(".game-panels")?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
   };
   return (
     <div className="game-shell">
@@ -180,13 +262,17 @@ export default function App() {
             command: game.command,
           };
           const currentClass = catalog.classes[state.job];
-          const equippedWeapon = state.inventory.find(
-            (entry) => entry.uid === state.equipment.weapon,
-          );
-          const weaponType = equippedWeapon
-            ? catalog.items[equippedWeapon.itemId]?.weaponType
-            : undefined;
           const area = catalog.areas.find((a) => a.id === state.areaId);
+          const mapName = state.status === "town" ? "prontera" : (area?.map ?? "prontera");
+          const mapLabel = state.status === "town" ? "Prontera" : (area?.name ?? "Prontera");
+          const carriedWeight = state.inventory.reduce(
+            (total, entry) => total + (catalog.items[entry.itemId]?.weight ?? 0) * entry.quantity,
+            0,
+          );
+          const hotbarSkills = currentClass.skills
+            .map((id) => catalog.skills[id])
+            .filter((skill) => skill && skill.kind !== "passive" && (state.learnedSkills[skill.id] ?? 0) > 0)
+            .slice(0, 7);
           const selectedArea =
             catalog.areas.find((a) => a.id === areaId) ?? catalog.areas[0];
           const active =
@@ -219,31 +305,12 @@ export default function App() {
               <main id="adventure" className="cockpit">
                 <aside className="hero-column">
                   <Panel
-                    title="Personagem"
-                    aside={
-                      <span className="tiny-label">
-                        {state.reborn ? "Transcendente" : "Aventureiro"}
-                      </span>
-                    }
+                    title="Informações básicas"
                     className="hero-panel"
                   >
                     <div className="hero-identity">
-                      <ActorPreview
-                        asset={currentClass.sprite[state.gender]}
-                        name={`${state.name}, ${currentClass.name}`}
-                        weapon={
-                          weaponType
-                            ? { type: weaponType, gender: state.gender, job: state.job }
-                            : undefined
-                        }
-                      />
-                      <div>
-                        <h1>{state.name}</h1>
-                        <p>{currentClass.name}</p>
-                        <span>
-                          Base {state.baseLevel} · Job {state.jobLevel}
-                        </span>
-                      </div>
+                      <h1>{state.name}</h1>
+                      <span>{currentClass.name}{state.reborn ? " · Transcendente" : ""}</span>
                     </div>
                     <div className="hero-vitals">
                       <Meter label="HP" value={state.hp} max={stats.maxHp} />
@@ -254,7 +321,7 @@ export default function App() {
                         kind="sp"
                       />
                       <Meter
-                        label="Base"
+                        label={`Base ${state.baseLevel}`}
                         value={state.baseExp}
                         max={baseGoal}
                         kind="exp"
@@ -265,7 +332,7 @@ export default function App() {
                         }
                       />
                       <Meter
-                        label="Job"
+                        label={`Job ${state.jobLevel}`}
                         value={state.jobExp}
                         max={jobGoal}
                         kind="job"
@@ -276,23 +343,42 @@ export default function App() {
                         }
                       />
                     </div>
-                    <div className="hero-quick-stats">
-                      <span>
-                        ATQ <b>{stats.attack}</b>
-                      </span>
-                      <span>
-                        DEF <b>{stats.def}</b>
-                      </span>
-                      <span>
-                        ESQ <b>{stats.flee}</b>
-                      </span>
+                    <div className="classic-basic-resources">
+                      <span>Peso <b>{number(carriedWeight)}</b></span>
+                      <span>Zeny <b>{number(state.zeny)}</b></span>
                     </div>
+                    <nav className="classic-basic-menu" aria-label="Janelas clássicas">
+                      {classicMenu.map(({ tab: destination, label, file, fallback }, index) => (
+                        <button
+                          type="button"
+                          key={`${label}-${index}`}
+                          className={label === "Mochila" && lootPulse ? "loot-pulse" : undefined}
+                          data-loot-destination={label === "Mochila" ? "inventory" : undefined}
+                          aria-label={`Abrir ${label}`}
+                          title={label}
+                          onClick={() => openClassicTab(destination)}
+                        >
+                          <img src={classicTexture(file)} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+                          <span aria-hidden="true">{fallback}</span>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        aria-label="Abrir diário de combate"
+                        title="Diário de combate"
+                        onClick={() => setJournalOpen(!journalOpen)}
+                      >
+                        <img src={classicTexture("btn_dialog_off.bmp")} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+                        <span aria-hidden="true">Ch</span>
+                      </button>
+                    </nav>
                     {currentClass.tier === 0 && !state.reborn && (
                       <div className="avatar-choice">
-                        <span>Avatar</span>
+                        <span>Aprendiz</span>
                         <button
                           disabled={game.busy}
                           aria-pressed={state.gender === "male"}
+                          aria-label="Avatar masculino"
                           onClick={() =>
                             void game.command({
                               type: "setGender",
@@ -300,11 +386,12 @@ export default function App() {
                             })
                           }
                         >
-                          Masculino
+                          ♂
                         </button>
                         <button
                           disabled={game.busy}
                           aria-pressed={state.gender === "female"}
+                          aria-label="Avatar feminino"
                           onClick={() =>
                             void game.command({
                               type: "setGender",
@@ -312,7 +399,7 @@ export default function App() {
                             })
                           }
                         >
-                          Feminino
+                          ♀
                         </button>
                       </div>
                     )}
@@ -336,7 +423,47 @@ export default function App() {
                     }
                     className="scene-panel"
                   >
-                    <Scene {...props} />
+                    <div className="classic-map-stage">
+                      <Scene {...props} />
+                      <ClassicMinimap mapName={mapName} mapLabel={mapLabel} />
+                      <CombatJournal events={state.events} open={journalOpen} />
+                      <div className="classic-shortcuts" role="group" aria-label="Atalhos de habilidades automáticas">
+                        {Array.from({ length: 7 }, (_, index) => {
+                          const skill = hotbarSkills[index];
+                          return skill ? (
+                            <button
+                              type="button"
+                              className="classic-shortcut"
+                              key={index}
+                              title={`${skill.name} Nv. ${state.learnedSkills[skill.id]} · uso automático`}
+                              aria-label={`Ver ${skill.name}, nível ${state.learnedSkills[skill.id]}`}
+                              onClick={() => openClassicTab("build")}
+                            >
+                              <small>F{index + 1}</small>
+                              <b aria-hidden="true">{skill.name.slice(0, 2)}</b>
+                            </button>
+                          ) : (
+                            <span className="classic-shortcut empty" key={index} aria-hidden="true">
+                              <small>F{index + 1}</small>
+                            </span>
+                          );
+                        })}
+                        <button type="button" className={`classic-shortcut ${lootPulse ? "loot-pulse" : ""}`} data-loot-destination="shortcut" title="Abrir mochila" aria-label="Abrir mochila" onClick={() => openClassicTab("inventory")}>
+                          <small>F8</small><b aria-hidden="true">It</b>
+                        </button>
+                        <button type="button" className="classic-shortcut" title="Abrir habilidades" aria-label="Abrir habilidades" onClick={() => openClassicTab("build")}>
+                          <small>F9</small><b aria-hidden="true">Sk</b>
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        className="classic-chat-toggle"
+                        aria-expanded={journalOpen}
+                        onClick={() => setJournalOpen(!journalOpen)}
+                      >
+                        {journalOpen ? "Recolher chat" : "Diário de combate"}
+                      </button>
+                    </div>
                     <div className="hunt-controls">
                       <label className="area-selector">
                         Área de caça
@@ -611,52 +738,6 @@ export default function App() {
                         );
                       })()}
                     </button>
-                    <button
-                      className="mobile-journal-toggle"
-                      aria-expanded={journalOpen}
-                      onClick={() => setJournalOpen(!journalOpen)}
-                    >
-                      {journalOpen ? "Recolher diário" : "Diário de combate"}
-                    </button>
-                  </Panel>
-                  <Panel
-                    title="Diário de combate"
-                    aside={<span className="tiny-label">Recentes</span>}
-                    className={`journal-panel ${journalOpen ? "mobile-open" : ""}`}
-                  >
-                    <div className="event-list" role="log" aria-live="off">
-                      {[...state.events]
-                        .reverse()
-                        .slice(0, 30)
-                        .map((event) => (
-                          <div
-                            className={`event event-${event.kind}`}
-                            key={event.id}
-                          >
-                            <time>
-                              {new Date(event.at).toLocaleTimeString("pt-BR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </time>
-                            <span>
-                              {event.text}
-                              {event.amount !== undefined && (
-                                <b className="event-amount">
-                                  {" "}
-                                  · {number(event.amount)}
-                                </b>
-                              )}
-                            </span>
-                          </div>
-                        ))}
-                      {state.events.length === 0 && (
-                        <p className="journal-empty">
-                          Seu diário aguarda a primeira aventura. Escolha uma
-                          área e comece a caçar.
-                        </p>
-                      )}
-                    </div>
                   </Panel>
                 </aside>
               </main>

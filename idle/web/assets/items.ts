@@ -61,16 +61,14 @@ export function decodeBMP(data: ArrayBuffer): DecodedBitmap {
 export function assetUrl(path: string): string { return '/assets/' + path.replace(/^\/+/, '').split('/').map(encodeURIComponent).join('/'); }
 export const FALLBACK_ICON = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect x="3" y="3" width="26" height="26" rx="4" fill="#e8dec1" stroke="#8e7956"/><text x="16" y="22" text-anchor="middle" font-size="20" fill="#725b3d">?</text></svg>');
 const iconCache = new Map<string, Promise<string>>();
-export function getItemIcon(item: Item): Promise<string> {
-    if (!item.resource)
-        return Promise.resolve(FALLBACK_ICON);
-    const existing = iconCache.get(item.resource);
+export function getBitmapUrl(path: string): Promise<string> {
+    const existing = iconCache.get(path);
     if (existing)
         return existing;
     const promise = (async () => { try {
-        const response = await fetch(assetUrl(item.resource), { signal: AbortSignal.timeout(10000) });
+        const response = await fetch(assetUrl(path), { signal: AbortSignal.timeout(10000) });
         if (!response.ok)
-            throw new Error('Item icon HTTP ' + response.status);
+            throw new Error('Bitmap HTTP ' + response.status);
         const decoded = decodeBMP(await response.arrayBuffer());
         const canvas = document.createElement('canvas');
         canvas.width = decoded.width;
@@ -86,6 +84,9 @@ export function getItemIcon(item: Item): Promise<string> {
     catch {
         return FALLBACK_ICON;
     } })();
-    iconCache.set(item.resource, promise);
+    iconCache.set(path, promise);
     return promise;
+}
+export function getItemIcon(item: Item): Promise<string> {
+    return item.resource ? getBitmapUrl(item.resource) : Promise.resolve(FALLBACK_ICON);
 }

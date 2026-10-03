@@ -14,7 +14,7 @@ const source = arg('--source');
 const files = ['mob_db.conf', 'item_db.conf', 'job_db.conf', 'exp_group_db.conf', 'skill_db.conf', 'skill_tree.conf', 'attr_fix.conf', 'size_fix.txt'];
 const buffers = {};
 const parsed = {};
-const manifest = { commit: rules.commit, license: 'GPL-3.0-or-later', sources: [], adaptations: rules.adaptations, excludedDrops: [], skillSources: {}, classSources: {} };
+const manifest = { commit: rules.commit, license: 'GPL-3.0-or-later', sources: [], adaptations: rules.adaptations, excludedDrops: [], inertDropItems: [], missingItemResources: [], skillSources: {}, classSources: {} };
 for (const file of files) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/db/pre-re/${file}`;
     const buffer = source ? await readFile(resolve(source, 'db/pre-re', file)) : Buffer.from(await (await fetch(url)).arrayBuffer());
@@ -67,42 +67,51 @@ for (const rule of rules.skills) {
 const slotFromLoc = loc => { if (Array.isArray(loc))
     loc = loc.join('|'); return /EQP_ARMS|EQP_WEAPON/.test(loc ?? '') ? 'weapon' : /EQP_ARMOR/.test(loc ?? '') ? 'armor' : /EQP_SHIELD/.test(loc ?? '') ? 'shield' : /EQP_HEAD/.test(loc ?? '') ? 'head' : /EQP_GARMENT/.test(loc ?? '') ? 'garment' : /EQP_SHOES/.test(loc ?? '') ? 'shoes' : /EQP_ACC/.test(loc ?? '') ? 'accessory' : undefined; };
 const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
-function includeItem(raw, shop = false) {
+function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);
     if (catalog.items[i.Id]) {
         if (shop)
             catalog.items[i.Id].shop = true;
         return true;
     }
-    let type = 'loot', slot = slotFromLoc(i.Loc), weaponType = weaponTypes[i.Subtype];
+    let type = 'loot', slot = slotFromLoc(i.Loc), weaponType = weaponTypes[i.Subtype], unsupportedEffect = false;
     if (i.Type === 'IT_CARD') {
-        if (!rules.cards[i.Id])
-            return false;
         type = 'card';
+        if (!rules.cards[i.Id]) {
+            if (!drop) return false;
+            unsupportedEffect = true;
+        }
     }
     else if (i.Type === 'IT_HEALING' || i.Type === 'IT_USABLE' || i.Type === 'IT_DELAYCONSUME') {
-        if (!rules.heal[i.Id])
-            return false;
-        type = 'consumable';
+        if (rules.heal[i.Id]) type = 'consumable';
+        else {
+            if (!drop) return false;
+            unsupportedEffect = true;
+        }
     }
     else if (i.Type === 'IT_WEAPON' || i.Type === 'IT_ARMOR') {
-        if (!slot || i.Type === 'IT_WEAPON' && !weaponType)
-            return false;
-        if (i.Script && !rules.itemEffects[i.Id])
-            return false;
-        type = 'equipment';
+        if (slot && (i.Type !== 'IT_WEAPON' || weaponType) && (!i.Script || rules.itemEffects[i.Id])) type = 'equipment';
+        else {
+            if (!drop) return false;
+            unsupportedEffect = true;
+        }
     }
     else if ([984, 985, 990, 717, 7136].includes(i.Id))
         type = 'material';
+    else if (drop && i.Type && i.Type !== 'IT_ETC')
+        unsupportedEffect = true;
     const allowedClasses = Object.values(catalog.classes).filter(j => { const rule = rules.classes.find(r => r.id === j.id); const origin = rule.rebirthOf ? rules.classes.find(r => r.id === rule.rebirthOf)?.source : rule.source; const sourceJob = origin === 'Dancer' ? 'Bard' : origin; return (!i.Job || (i.Job[sourceJob] ?? i.Job.All ?? false)) && (!weaponType || j.weapons.includes(weaponType)); }).map(j => j.id);
     const resource = resources[i.Id];
-    if (!resource)
-        throw new Error('No client icon resource for item ' + i.Id);
+    if (!resource) {
+        if (!drop) throw new Error('No client icon resource for item ' + i.Id);
+        manifest.missingItemResources.push({ itemId: i.Id, aegisName: i.AegisName });
+    }
     const buyPrice = i.Buy ?? (i.Sell ?? 0) * 2;
     const sellPrice = i.Sell ?? Math.floor(buyPrice / 2);
-    catalog.items[i.Id] = { id: i.Id, name: i.Name, aegisName: i.AegisName, type, ...type === 'equipment' && { slot, weaponType, twoHanded: i.Loc === 'EQP_ARMS', refinable: slot !== 'accessory' && i.Refine !== false }, attack: i.Atk ?? 0, def: i.Def ?? 0, slots: i.Slots ?? 0, minLevel: typeof i.EquipLv === 'number' ? i.EquipLv : 1, allowedClasses, buyPrice, sellPrice, weight: (i.Weight ?? 0) / 10, resource: 'data/texture/유저인터페이스/item/' + resource + '.bmp', effects: rules.cards[i.Id] ?? rules.itemEffects[i.Id] ?? {}, ...type === 'card' && { cardSlots: [slot] }, ...rules.heal[i.Id] && { healHP: rules.heal[i.Id][0], healSP: rules.heal[i.Id][1] }, shop };
+    catalog.items[i.Id] = { id: i.Id, name: i.Name, aegisName: i.AegisName, type, ...type === 'equipment' && { slot, weaponType, twoHanded: i.Loc === 'EQP_ARMS', refinable: slot !== 'accessory' && i.Refine !== false }, attack: i.Atk ?? 0, def: i.Def ?? 0, slots: i.Slots ?? 0, minLevel: typeof i.EquipLv === 'number' ? i.EquipLv : 1, allowedClasses, buyPrice, sellPrice, weight: (i.Weight ?? 0) / 10, resource: resource ? 'data/texture/유저인터페이스/item/' + resource + '.bmp' : '', effects: unsupportedEffect ? {} : rules.cards[i.Id] ?? rules.itemEffects[i.Id] ?? {}, ...type === 'card' && !unsupportedEffect && slot && { cardSlots: [slot] }, ...type === 'consumable' && rules.heal[i.Id] && { healHP: rules.heal[i.Id][0], healSP: rules.heal[i.Id][1] }, ...unsupportedEffect && { unsupportedEffect: true }, shop };
     if (type === 'equipment')
         catalog.items[i.Id].refinable = slot !== 'accessory' && i.Refine !== false;
+    if (unsupportedEffect) manifest.inertDropItems.push({ itemId: i.Id, aegisName: i.AegisName, sourceType: i.Type });
     return true;
 }
 for (const id of rules.shop) {
@@ -112,27 +121,35 @@ for (const id of rules.shop) {
 for (const id of Object.keys(rules.cards))
     includeItem(itemById[id]);
 const monsterIds = [...new Set([...rules.areas.flatMap(a => a.monsters), ...rules.bosses.map(b => b.monsterId)])];
+function sourceDropRates(rate) {
+    if (typeof rate === 'number') return [rate];
+    if (Array.isArray(rate) && rate.length === 2 && typeof rate[0] === 'number' && typeof rate[1] === 'string') return [rate[0]];
+    if (Array.isArray(rate)) return rate.flatMap(sourceDropRates);
+    throw new Error('Unsupported Hercules drop rate: ' + JSON.stringify(rate));
+}
+function exportDrops(entries, monsterId) {
+    const drops = [];
+    for (const [name, rate] of Object.entries(entries ?? {})) {
+        const item = itemByName[name];
+        if (!item) throw new Error(`Missing Hercules item ${name} dropped by monster ${monsterId}`);
+        includeItem(item, false, true);
+        for (const chance of sourceDropRates(rate)) {
+            if (!Number.isSafeInteger(chance) || chance < 0 || chance > 10000)
+                throw new Error(`Invalid Hercules drop chance ${chance} for ${name}`);
+            drops.push({ itemId: item.Id, chance });
+        }
+    }
+    return drops;
+}
 for (const id of monsterIds) {
     const m = parsed['mob_db.conf'].mob_db.find(m => m.Id === id);
     if (!m)
         throw new Error('Missing monster ' + id);
     const spriteName = rules.monsterAliases[id] ?? m.SpriteName.toLowerCase();
     const path = 'data/sprite/몬스터/' + spriteName;
-    const drops = [];
-    for (const [name, rate] of Object.entries(m.Drops ?? {})) {
-        const item = itemByName[name];
-        if (!item || !includeItem(item)) {
-            manifest.excludedDrops.push({ monsterId: id, aegisName: name, chance: rate, reason: 'No supported idle effect/type' });
-            continue;
-        }
-        const rates = Array.isArray(rate) ? rate : [rate];
-        for (const chance of rates) {
-            if (typeof chance !== 'number')
-                throw new Error('Unsupported random drop group');
-            drops.push({ itemId: item.Id, chance });
-        }
-    }
-    catalog.monsters[id] = { id, name: m.Name, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act: path + '.act' }, level: m.Lv ?? 1, hp: m.Hp ?? 1, attack: m.Attack ?? [0, 0], def: m.Def ?? 0, mdef: m.Mdef ?? 0, stats: Object.fromEntries(['Str', 'Agi', 'Vit', 'Int', 'Dex', 'Luk'].map(s => [s.toLowerCase(), m.Stats?.[s] ?? 0])), baseExp: m.Exp ?? 0, jobExp: m.JExp ?? 0, attackDelay: m.AttackDelay ?? 4000, element: (m.Element?.[0] ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, size: (m.Size ?? 'Size_Small').replace('Size_', '').toLowerCase(), race: (m.Race ?? 'RC_Formless').replace('RC_', '').toLowerCase(), drops };
+    const drops = exportDrops(m.Drops, id);
+    const mvpDrops = exportDrops(m.MvpDrops, id);
+    catalog.monsters[id] = { id, name: m.Name, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act: path + '.act' }, level: m.Lv ?? 1, hp: m.Hp ?? 1, attack: m.Attack ?? [0, 0], def: m.Def ?? 0, mdef: m.Mdef ?? 0, stats: Object.fromEntries(['Str', 'Agi', 'Vit', 'Int', 'Dex', 'Luk'].map(s => [s.toLowerCase(), m.Stats?.[s] ?? 0])), baseExp: m.Exp ?? 0, jobExp: m.JExp ?? 0, attackDelay: m.AttackDelay ?? 4000, element: (m.Element?.[0] ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, size: (m.Size ?? 'Size_Small').replace('Size_', '').toLowerCase(), race: (m.Race ?? 'RC_Formless').replace('RC_', '').toLowerCase(), drops, ...(mvpDrops.length ? { mvpDrops } : {}) };
 }
 const exp = parsed['exp_group_db.conf'];
 catalog.exp.base = [0, ...exp.base_exp_group_db.FirstClasses.Exp, 0];

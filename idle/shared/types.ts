@@ -11,6 +11,7 @@ export interface Monster {
   level: number; hp: number; attack: [number, number]; def: number; mdef: number;
   stats: Stats; baseExp: number; jobExp: number; attackDelay: number;
   element: string; elementLevel: number; size: string; race: string; drops: Drop[];
+  mvpDrops?: Drop[];
 }
 export interface Item {
   id: number; name: string; aegisName: string; type: 'loot' | 'consumable' | 'equipment' | 'card' | 'material';
@@ -19,6 +20,8 @@ export interface Item {
   weight: number; resource: string; healHP?: number; healSP?: number;
   effects: Effects; cardSlots?: Slot[]; shop: boolean;
   twoHanded?: boolean; refinable?: boolean;
+  /** Hercules item mechanics omitted from the idle rules are inert. */
+  unsupportedEffect?: boolean;
 }
 export interface JobClass {
   id: string; name: string; family: string; tier: 0 | 1 | 2; trans: boolean;
@@ -76,6 +79,7 @@ export interface GameEvent {
   amount?: number; target?: 'player' | 'enemy';
   /** Optional presentation metadata. Older persisted events remain valid. */
   skillId?: string; critical?: boolean;
+  itemId?: number; quantity?: number; skillLevel?: number;
 }
 export interface GameState {
   schemaVersion: 1; id: string; revision: number; name: string; gender: 'male' | 'female';

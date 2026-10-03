@@ -44,7 +44,7 @@ function useSkill(s: GameState, c: Catalog, at: number): Skill | undefined {
     if (skill.kind === 'heal') { const before = s.hp; s.hp = Math.min(d.maxHp, s.hp + power); healed = s.hp - before; }
     if (skill.kind === 'buff') s.buffs[id] = { expiresAt: at + (skill.durationMs ?? 30000), effects: Object.fromEntries(Object.entries(skill.effects ?? {}).map(([k, v]) => [k, v * level])) };
     if (skill.kind === 'steal') { const amount = Math.max(1, Math.floor(power)); s.zeny += amount; s.totals.zeny += amount; }
-    event(s, at, 'skill', skill.name, healed, skill.kind === 'heal' || skill.kind === 'buff' ? 'player' : 'enemy', { skillId: skill.id }); return skill;
+    event(s, at, 'skill', skill.name, healed, skill.kind === 'heal' || skill.kind === 'buff' ? 'player' : 'enemy', { skillId: skill.id, skillLevel: level }); return skill;
   }
   return undefined;
 }
@@ -54,8 +54,12 @@ function victory(s: GameState, c: Catalog, at: number) {
   if (b.attemptId) s.rewardedAttempts.push(b.attemptId);
   s.bestiary[monster.id] = (s.bestiary[monster.id] ?? 0) + 1; s.totals.kills++;
   gainExp(s, c, monster.baseExp * c.rates.baseExp, monster.jobExp * c.rates.jobExp, at);
-  for (const drop of monster.drops) if (random(s) * 10000 < Math.min(10000, drop.chance * c.rates.drop)) { addItem(s, c, drop.itemId, 1, true); event(s, at, 'loot', c.items[drop.itemId].name); }
   event(s, at, 'kill', `${monster.name} derrotado.`);
+  for (const drop of [...monster.drops, ...(monster.mvpDrops ?? [])])
+    if (random(s) * 10000 < Math.min(10000, drop.chance * c.rates.drop)) {
+      addItem(s, c, drop.itemId, 1, true);
+      event(s, at, 'loot', c.items[drop.itemId].name, undefined, undefined, { itemId: drop.itemId, quantity: 1 });
+    }
   if (b.challengeId) {
     const ch = c.challenges.find(ch => ch.id === b.challengeId)!; const previous = s.challengeWins[ch.id] ?? 0;
     s.challengeWins[ch.id] = previous + 1; s.challengeCooldowns[ch.id] = at + ch.cooldownMs;
@@ -98,8 +102,8 @@ export function tick(s: GameState, c: Catalog, at: number) {
         const mitigated = Math.max(0, raw * (1 - Math.min(80, defense) / 100) - softDefense / 2);
         // Idle rule: zero/negative source coefficients are immunity; they neither damage nor heal.
         const damage = element <= 0 ? 0 : Math.max(1, Math.floor(mitigated * power * (crit ? 1.4 : 1) * size * element * (1 + (stats.effects.damagePct ?? 0) / 100)));
-        b.hp = Math.max(0, b.hp - damage); event(s, at, 'damage', magical ? 'Dano mágico' : 'Ataque', damage, 'enemy', { skillId: skill?.id, critical: crit });
-      } else event(s, at, 'miss', 'Ataque errou.', undefined, 'enemy', { skillId: skill?.id });
+        b.hp = Math.max(0, b.hp - damage); event(s, at, 'damage', magical ? 'Dano mágico' : 'Ataque', damage, 'enemy', { skillId: skill?.id, skillLevel: skill ? s.learnedSkills[skill.id] : undefined, critical: crit });
+      } else event(s, at, 'miss', 'Ataque errou.', undefined, 'enemy', { skillId: skill?.id, skillLevel: skill ? s.learnedSkills[skill.id] : undefined });
     }
     // Advance the scheduled deadline so integer-second ticks keep the subsecond remainder.
     b.playerNextAttackAt += stats.attackIntervalMs;

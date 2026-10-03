@@ -188,6 +188,11 @@ export default function Inventory({
               </div>
             </div>
             <ItemFacts item={item} catalog={catalog} />
+            {item.unsupportedEffect && (
+              <p className="note" role="note">
+                O efeito original deste item ainda não é aplicado no modo idle. Ele pode ser guardado ou vendido.
+              </p>
+            )}
             {!!entry.cards.length && (
               <p className="socketed">
                 Cartas:{" "}
