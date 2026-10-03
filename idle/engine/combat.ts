@@ -15,7 +15,8 @@ function autoPotion(s: GameState, c: Catalog, at: number) {
   if (at < s.potionReadyAt || s.hp <= 0) return; const d = derivedStats(s, c);
   const hpNeeded = s.autoPotion.hpThreshold > 0 && s.hp < d.maxHp && s.hp * 100 <= d.maxHp * s.autoPotion.hpThreshold;
   const spNeeded = s.autoPotion.spThreshold > 0 && s.sp < d.maxSp && s.sp * 100 <= d.maxSp * s.autoPotion.spThreshold;
-  const entry = s.inventory.find(e => { const i = c.items[e.itemId]; return i.type === 'consumable' && (hpNeeded ? (i.healHP ?? 0) > 0 : spNeeded && (i.healSP ?? 0) > 0); });
+  const hpPotion = hpNeeded ? s.inventory.find(e => c.items[e.itemId].type === 'consumable' && (c.items[e.itemId].healHP ?? 0) > 0) : undefined;
+  const entry = hpPotion ?? (spNeeded ? s.inventory.find(e => c.items[e.itemId].type === 'consumable' && (c.items[e.itemId].healSP ?? 0) > 0) : undefined);
   if (!entry) return; const item = c.items[entry.itemId]; consume(s, entry, 1);
   s.hp = Math.min(d.maxHp, s.hp + (item.healHP ?? 0)); s.sp = Math.min(d.maxSp, s.sp + (item.healSP ?? 0));
   s.potionReadyAt = at + 2000; s.totals.potions++; event(s, at, 'potion', item.name);
@@ -93,11 +94,14 @@ export function tick(s: GameState, c: Catalog, at: number) {
         const defense = magical ? monster.mdef : monster.def; const softDefense = magical ? monster.stats.int : monster.stats.vit;
         const size = magical ? 1 : (weaponType ? (c.sizeModifiers?.[weaponType]?.[monster.size.toLowerCase()] ?? c.sizeModifiers?.[weaponType]?.[monster.size] ?? 100) / 100 : 1);
         const element = elementMultiplier(c, skill?.element ?? 'Neutral', monster);
-        const damage = Math.max(1, Math.floor((raw * (1 - Math.min(80, defense) / 100) - softDefense / 2) * power * (crit ? 1.4 : 1) * size * element * (1 + (stats.effects.damagePct ?? 0) / 100)));
+        const mitigated = Math.max(0, raw * (1 - Math.min(80, defense) / 100) - softDefense / 2);
+        // Idle rule: zero/negative source coefficients are immunity; they neither damage nor heal.
+        const damage = element <= 0 ? 0 : Math.max(1, Math.floor(mitigated * power * (crit ? 1.4 : 1) * size * element * (1 + (stats.effects.damagePct ?? 0) / 100)));
         b.hp = Math.max(0, b.hp - damage); event(s, at, 'damage', magical ? 'Dano mágico' : 'Ataque', damage, 'enemy');
       } else event(s, at, 'miss', 'Ataque errou.');
     }
-    b.playerNextAttackAt = at + stats.attackIntervalMs;
+    // Advance the scheduled deadline so integer-second ticks keep the subsecond remainder.
+    b.playerNextAttackAt += stats.attackIntervalMs;
     if (b.hp <= 0) { victory(s, c, at); return; }
   }
   if (at >= b.enemyNextAttackAt) {
