@@ -2,6 +2,12 @@
 
 Esta stack liga o emulador Hercules ao cliente roBrowserLegacy no navegador, usando Docker Compose. Ela roda localmente; o banco e as portas do jogo ficam na rede privada do Compose.
 
+## Perfil Gold Times
+
+O servidor usa as regras **Pre-Renewal** do Hercules e o cliente browser desliga o modo Renewal. Base EXP, Job EXP, EXP de missão e de MVP ficam em `4x`; as taxas de drop mantêm o padrão `1x`. As tabelas Pre-Renewal limitam classes de primeira mudança a base/job `99/50` e transcendentais a `99/70`. A conta do personagem `djow` usa o grupo Admin 99 do Hercules, que habilita todos os comandos e registra seu uso.
+
+`PACKETVER=20141022` permanece igual no cliente e no Hercules. Esse número identifica o protocolo de pacotes, enquanto Pre-Renewal seleciona as regras de jogo e as tabelas; o GRF compatível continua montado em `client-data/`.
+
 ## Iniciar
 
 Pré-requisitos: Docker Desktop **em execução**, com Docker Compose habilitado. No Windows, abra o Docker Desktop ou execute `docker desktop start` antes de iniciar a stack.
@@ -25,6 +31,8 @@ O primeiro build compila o Hercules e o cliente browser, então pode levar algun
 **http://localhost:3338/applications/pwa/index.html**
 
 Na tela de login, crie uma conta digitando um nome terminado em `_M` ou `_F` — por exemplo `jogador_M` — e uma senha. Depois de entrar, escolha o servidor local, crie um personagem e selecione-o para continuar.
+
+Para entrar numa conta já criada, use o nome cadastrado sem `_M` ou `_F`; esses sufixos iniciam a criação de outra conta.
 
 ## Arquivos do cliente e GRFs
 
@@ -120,3 +128,5 @@ Em 2026-10-02, com os recursos acima e `PACKETVER=20141022`, foram conferidos:
 - Login, criação/seleção de personagem, entrada em `iz_int` e `int_land` e resposta do servidor ao movimento no browser.
 
 O personagem `djow` ficou jogável na sessão local. Alguns nomes de missões do tutorial podem aparecer como `Unknown Quest`; isso não bloqueou entrada, movimento ou evolução. Esse aceite cobre o fluxo inicial, sem afirmar que todo o conteúdo do emulador foi percorrido.
+
+Após aplicar o perfil Gold Times, o Hercules foi recompilado e reiniciado com Renewal desligado, EXP 4x e drop 1x. A conta que contém `djow` recebeu o grupo Admin 99. Na sessão web, `@commands` listou 285 comandos disponíveis para o personagem; o grupo fica associado à conta no banco local.

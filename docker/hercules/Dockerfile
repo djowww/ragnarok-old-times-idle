@@ -38,7 +38,7 @@ RUN git clone https://github.com/HerculesWS/Hercules.git . \
         -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=/opt/hercules/cmake_modules/conan_provider.cmake \
         -DPACKETVER="${PACKETVER}" \
         -DENABLE_TESTING=OFF \
-        -DENABLE_RENEWAL=ON \
+        -DENABLE_RENEWAL=OFF \
         -DOBFUSCATIONKEY1= \
         -DOBFUSCATIONKEY2= \
         -DOBFUSCATIONKEY3= \

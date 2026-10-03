@@ -10,7 +10,7 @@ window.ROConfigLocal = {
 			version: 25,
 			langtype: 12,
 			packetver: ${PACKETVER},
-			renewal: true,
+			renewal: false,
 			worldMapSettings: { episode: 12 },
 			packetKeys: false,
 			socketProxy: 'ws://127.0.0.1:5999/',
