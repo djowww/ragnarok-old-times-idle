@@ -269,27 +269,35 @@
   top: 12px;
   right: 13px;
   z-index: 4;
-  width: 168px;
-  border: 1px solid #a1b6bf;
-  background: #c5d1d2;
-  box-shadow: 1px 2px 5px #071e2e9c;
+  width: 146px;
+  padding: 2px;
+  border: 1px solid #587787;
+  border-radius: 2px;
+  background: #b9cbd0;
+  box-shadow:
+    inset 1px 1px #f4fbfb,
+    inset -1px -1px #718f9c,
+    1px 2px 5px #071e2e85;
 }
 
 .classic-minimap-title {
-  padding: 4px 7px;
+  padding: 3px 5px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  background: linear-gradient(#e7f0f1, #b1c5c9);
+  border-bottom: 1px solid #819ca7;
+  background: linear-gradient(#ebf3f4, #c1d2d5);
   color: #334e5b;
   font: 700 10px Tahoma, sans-serif;
 }
 
 .classic-minimap-image {
   position: relative;
-  height: 142px;
+  height: 122px;
   overflow: hidden;
+  border: 1px solid #6d8996;
   background: #80979a repeating-linear-gradient(45deg, #ffffff17 0 2px, transparent 2px 5px);
+  box-shadow: inset 1px 1px #455e67;
 }
 
 .classic-minimap-image img {
@@ -316,10 +324,12 @@
   z-index: 4;
   left: 13px;
   bottom: 70px;
-  width: min(340px, 45%);
-  border-color: #687f86;
-  background: #dbe7e9df;
-  backdrop-filter: blur(2px);
+  width: min(280px, 40%);
+  min-height: 0;
+  border-color: #8199a0;
+  background: #dbe7e9c9;
+  box-shadow: 0 2px 5px #0b23366b;
+  backdrop-filter: blur(1.5px);
 }
 
 .classic-map-stage .journal-panel:not(.mobile-open) {
@@ -327,14 +337,19 @@
 }
 
 .classic-map-stage .journal-panel .panel-heading {
-  min-height: 22px;
-  padding: 3px 7px;
+  min-height: 20px;
+  padding: 2px 6px;
+  background: linear-gradient(#7894a3, #587588);
+}
+
+.classic-map-stage .journal-panel .panel-heading h2 {
+  font-size: 10px;
 }
 
 .classic-map-stage .journal-panel .event-list {
-  height: 119px;
-  padding: 4px 7px;
-  background: #e7eff0e8;
+  height: 86px;
+  padding: 3px 6px;
+  background: #e7eff0b8;
 }
 
 .classic-map-stage .journal-panel .event {
@@ -394,6 +409,9 @@
 
 .classic-shortcut b {
   font: 700 13px Georgia, serif;
+}
+.classic-shortcut .skill-icon {
+  margin-top: 6px;
 }
 
 .classic-chat-toggle {
@@ -467,7 +485,7 @@
   }
 
   .classic-map-stage .journal-panel {
-    width: min(300px, 42%);
+    width: min(270px, 42%);
   }
 
   .cockpit .hunt-controls {
@@ -544,11 +562,11 @@
   .classic-minimap {
     top: 8px;
     right: 8px;
-    width: 121px;
+    width: 108px;
   }
 
   .classic-minimap-image {
-    height: 107px;
+    height: 94px;
   }
 
   .classic-shortcuts {
@@ -579,7 +597,7 @@
   }
 
   .classic-map-stage .journal-panel .event-list {
-    height: 140px;
+    height: 95px;
   }
 
   .classic-chat-toggle {

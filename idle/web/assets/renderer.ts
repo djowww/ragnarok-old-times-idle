@@ -110,7 +110,11 @@ export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: 
     // original renderer holds the first direction until a head turn is asked for.
     const staticIdle = actor.kind === 'character' && index < 8;
     const delay = actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150;
-    const frameIndex = staticIdle ? 0 : Math.floor(Math.max(0, elapsed) / Math.max(25, delay)) % bodyFrames.length;
+    const elapsedFrame = Math.floor(Math.max(0, elapsed) / Math.max(25, delay));
+    const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
+    const frameIndex = staticIdle ? 0 : looping
+        ? elapsedFrame % bodyFrames.length
+        : Math.min(elapsedFrame, bodyFrames.length - 1);
     const bodyFrame = bodyFrames[frameIndex];
     if (!bodyFrame)
         return [];

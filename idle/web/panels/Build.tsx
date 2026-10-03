@@ -1,5 +1,6 @@
 import type { Stat } from "../../shared/types";
 import { number, type PanelProps } from "../components/common";
+import SkillIcon from "../components/SkillIcon";
 
 const attributes: Array<{ stat: Stat; name: string; hint: string }> = [
   { stat: "str", name: "Força", hint: "Ataque corpo a corpo" },
@@ -171,13 +172,7 @@ export default function Build({
             return (
               <article className="skill-row" key={skill.id}>
                 <div className="skill-symbol" aria-hidden="true">
-                  {skill.kind === "passive"
-                    ? "P"
-                    : skill.kind === "heal"
-                      ? "+"
-                      : skill.kind === "magical"
-                        ? "M"
-                        : "A"}
+                  <SkillIcon skill={skill} />
                 </div>
                 <div className="skill-description">
                   <h4>

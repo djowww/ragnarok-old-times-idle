@@ -141,6 +141,15 @@ function actorBounds(actor: DecodedActor, direction = 0, includeWeapon = true): 
   return result;
 }
 
+function actorActionDuration(actor: DecodedActor | null, base: number, direction: number, fallback: number): number {
+  const actions = actor?.body?.action.actions;
+  const directed = actions?.[base + direction];
+  const action = directed?.frames.length ? directed : actions?.[base];
+  return action?.frames.length
+    ? action.frames.length * Math.max(25, action.delayMs)
+    : fallback;
+}
+
 type SceneKind = Area["scene"] | "town";
 type CombatCue = {
   id: number;
@@ -260,10 +269,9 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
     );
     lootCues.current = lootCues.current.filter((cue) => cue.until > now || cue.killId === blockedTerminalId.current);
     const actor = actorsRef.current.hero;
-    const attackAction = actor?.body?.action.actions[actor ? getAttackAction(actor) : 40];
-    const attackDuration = attackAction?.frames.length
-      ? attackAction.frames.length * Math.max(25, attackAction.delayMs)
-      : 500;
+    const attackDuration = actorActionDuration(
+      actor, actor ? getAttackAction(actor) : 40, HERO_COMBAT_DIRECTION, 500,
+    );
     const effectStarts = new Map<number, number>();
     const recentEvents = newEvents.filter((entry) => entry.at >= snapshot.serverTime - 4000)
       .sort((a, b) => a.at - b.at || a.id - b.id);
@@ -295,24 +303,46 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
     let nextCueStart = Math.max(
       now,
       ...combatCues.current.map((cue) => cue.start + cue.duration),
+      previous.areaId === state.areaId ? (defeatedOpponent.current?.until ?? 0) : 0,
     );
-    if (freshEvents.length && nextCueStart - now > 2400 && blockedTerminalId.current === null) {
+    if (freshEvents.length && nextCueStart - now > 2400 && blockedTerminalId.current === null &&
+      !(previous.areaId === state.areaId && (defeatedOpponent.current?.until ?? 0) > now)) {
       combatCues.current = combatCues.current.filter((cue) => cue.start <= now && cue.start + cue.duration > now);
       effects.current = effects.current.filter((effect) => effect.start <= now && now - effect.start < 1500);
       lootCues.current = lootCues.current.filter((drop) => drop.start <= now && drop.until > now);
-      nextCueStart = Math.max(now, ...combatCues.current.map((cue) => cue.start + cue.duration));
+      nextCueStart = Math.max(
+        now,
+        ...combatCues.current.map((cue) => cue.start + cue.duration),
+        previous.areaId === state.areaId ? (defeatedOpponent.current?.until ?? 0) : 0,
+      );
     }
     let precedingSkill: { at: number; skill: Skill; level?: number } | undefined;
     let lastKillId = 0;
     let lootBatchStart: number | undefined;
     let lootOrder = 0;
+    let cueMonsterId = previous.battle?.monsterId ?? state.battle?.monsterId;
+    let killHoldMs = 0;
+    const loadedOpponentFor = (id: number | undefined): DecodedActor | null => id === undefined ? null
+      : lastOpponent.current?.monsterId === id && lastOpponent.current.areaId === state.areaId
+        ? lastOpponent.current.actor
+        : previous.battle?.monsterId === id ? actorsRef.current.enemy : null;
     for (const event of freshEvents) {
+      if (event.kind === "encounter") {
+        cueMonsterId = Object.values(catalog.monsters).find((entry) => entry.name === event.text)?.id;
+        continue;
+      }
       if (event.kind === "kill") {
-        // Let the original death frame breathe before the next encounter.
-        nextCueStart += 160;
+        // Keep the death ACT visible before the following encounter begins.
+        killHoldMs = actorActionDuration(loadedOpponentFor(cueMonsterId), 32, ENEMY_COMBAT_DIRECTION, 700) + 80;
+        nextCueStart += killHoldMs;
         lastKillId = event.id;
         lootBatchStart = undefined;
         lootOrder = 0;
+        cueMonsterId = undefined;
+        continue;
+      }
+      if (event.kind === "death") {
+        cueMonsterId = undefined;
         continue;
       }
       if (event.kind === "loot") {
@@ -370,16 +400,20 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
         nextCueStart += duration;
       }
       if ((event.kind === "damage" && event.target === "player") || event.kind === "dodge") {
-        effectStarts.set(event.id, nextCueStart + 175);
+        const loadedOpponent = loadedOpponentFor(cueMonsterId);
+        // First encounters may arrive before their ACT. A full average monster
+        // swing is safer than cutting it in half; non-looping frames hold.
+        const duration = actorActionDuration(loadedOpponent, 16, ENEMY_COMBAT_DIRECTION, 700);
+        effectStarts.set(event.id, nextCueStart + duration * 0.5);
         combatCues.current.push({
           id: event.id,
           start: nextCueStart,
-          duration: 350,
+          duration,
           action: "enemyAttack",
           hit: event.kind === "damage",
           melee: false,
         });
-        nextCueStart += 350;
+        nextCueStart += duration;
       }
     }
     if (blockedTerminalId.current !== null)
@@ -421,17 +455,35 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
     if (terminal && terminalCue && opponent && previous.areaId === state.areaId) {
       const terminalId = terminal.id;
       const terminalEnd = terminalCue.start + terminalCue.duration;
-      const lootEnd = Math.max(terminalEnd + 200, ...lootCues.current
-        .filter((drop) => drop.killId === terminalId)
-        .map((drop) => drop.until + 80));
       const deadAt = kill ? terminalEnd : undefined;
+      const shiftAfterTerminal = (amount: number) => {
+        if (amount <= 0) return;
+        for (const cue of combatCues.current) if (cue.id > terminalId) cue.start += amount;
+        for (const [id, start] of effectStarts) if (id > terminalId) effectStarts.set(id, start + amount);
+        for (const effect of effects.current) if (effect.id > terminalId) effect.start += amount;
+        for (const drop of lootCues.current) if (drop.killId === terminalId || drop.id > terminalId) {
+          drop.start += amount;
+          drop.until += amount;
+        }
+      };
+      const terminalUntil = (actor: DecodedActor, shift: number) => Math.max(
+        terminalEnd + shift + 200,
+        deadAt === undefined ? 0 : terminalEnd + shift + killHoldMs,
+        deadAt === undefined ? 0 : deadAt + shift + actorActionDuration(actor, 32, ENEMY_COMBAT_DIRECTION, 500) + 80,
+        ...lootCues.current
+          .filter((drop) => drop.killId === terminalId)
+          .map((drop) => drop.until + 80),
+      );
       const ready = lastOpponent.current?.monsterId === opponent.id &&
         lastOpponent.current.areaId === state.areaId ? lastOpponent.current.actor :
         state.battle?.monsterId === opponent.id ? actorsRef.current.enemy : null;
       if (ready) {
+        if (kill) shiftAfterTerminal(Math.max(0,
+          actorActionDuration(ready, 32, ENEMY_COMBAT_DIRECTION, 700) + 80 - killHoldMs,
+        ));
         defeatedOpponent.current = {
           actor: ready, monsterId: opponent.id, terminalId,
-          until: lootEnd, deadAt,
+          until: terminalUntil(ready, 0), deadAt,
         };
       } else {
         const request = opponentRequest.current;
@@ -448,25 +500,19 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
             return;
           const delay = pending.length ? Math.max(0, performance.now() - pending[0].start) : 0;
           for (const cue of pending) cue.start += delay;
-          for (const cue of combatCues.current) if (cue.id > terminalId) {
-            cue.start += delay;
-            cue.blocked = false;
-          }
+          const extraHold = kill ? Math.max(0,
+            actorActionDuration(actor, 32, ENEMY_COMBAT_DIRECTION, 700) + 80 - killHoldMs,
+          ) : 0;
+          shiftAfterTerminal(delay + extraHold);
+          for (const cue of combatCues.current) if (cue.id > terminalId) cue.blocked = false;
           blockedTerminalId.current = null;
           combatCues.current = [...combatCues.current, ...pending]
             .sort((a, b) => a.start - b.start || a.id - b.id);
           for (const effect of suspendedEffects) effect.start += delay;
-          for (const effect of effects.current) if (effect.id > terminalId) effect.start += delay;
-          for (const drop of lootCues.current) if (drop.killId === terminalId || drop.id > terminalId) {
-            drop.start += delay;
-            drop.until += delay;
-          }
           effects.current = [...effects.current, ...suspendedEffects].slice(-60);
           defeatedOpponent.current = {
             actor, monsterId: opponent.id, terminalId,
-            until: Math.max(terminalEnd + delay + 200, ...lootCues.current
-              .filter((drop) => drop.killId === terminalId)
-              .map((drop) => drop.until + 80)),
+            until: terminalUntil(actor, delay),
             deadAt: deadAt === undefined ? undefined : deadAt + delay,
           };
         }).catch(() => {
@@ -582,8 +628,9 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
       const attackProgress = attack ? Math.min(1, (time - attack.start) / attack.duration) : 0;
       const strikeReached = !!attack && attackProgress >= (attack.action === "skill" ? SKILL_IMPACT_MS / attack.duration : 0.5);
       const contactGap = ((heroBounds.right - heroBounds.left) * worldScale + (enemyBounds.right - enemyBounds.left) * enemyScale) * 0.46;
+      const lunge = Math.sin(Math.PI * attackProgress) ** 2;
       const advance = attack?.melee && !motion.matches
-        ? Math.sin(Math.PI * attackProgress) * Math.max(0, enemyX - heroBaseX - contactGap)
+        ? lunge * Math.max(0, enemyX - heroBaseX - contactGap)
         : 0;
       const heroX = heroBaseX + advance;
       const hideNextOpponent = !!activeLoot.length && !showDefeated && !!current.battle && (!cue || cue.id > activeLoot[0].killId);
@@ -635,15 +682,17 @@ export default function Scene({ catalog, snapshot, busy }: PanelProps) {
           fighting ? HERO_COMBAT_DIRECTION : 0,
           cue?.action === "skill" ? time - cue.start : attack ? time - attack.start : heroHurt ? time - enemySwing!.start - enemySwing!.duration / 2 : 0,
         );
+      const opponentDead = showDefeated && lingering!.deadAt !== undefined && time >= lingering!.deadAt;
       if (fighting && opponentActor && !hideNextOpponent)
         paint(
           opponentActor,
-          showDefeated && lingering!.deadAt !== undefined && time >= lingering!.deadAt
-            ? "dead" : enemyHurt ? "hurt" : enemySwing ? "attack" : "idle",
+          opponentDead ? "dead" : enemyHurt ? "hurt" : enemySwing ? "attack" : "idle",
           enemyX,
           enemyScale,
           ENEMY_COMBAT_DIRECTION,
-          enemyHurt ? Math.max(0, time - (attack!.start + (attack!.action === "skill" ? SKILL_IMPACT_MS : attack!.duration * 0.5))) : enemySwing ? time - enemySwing.start : 0,
+          opponentDead ? time - lingering!.deadAt!
+            : enemyHurt ? Math.max(0, time - (attack!.start + (attack!.action === "skill" ? SKILL_IMPACT_MS : attack!.duration * 0.5)))
+              : enemySwing ? time - enemySwing.start : 0,
         );
       const assets = visuals.current;
       if (cue?.skill) {

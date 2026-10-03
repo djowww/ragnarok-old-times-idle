@@ -12,7 +12,7 @@
       "db/pre-re/attr_fix.conf",
       "db/pre-re/size_fix.txt"
     ],
-    "hash": "e465ad77203ae14c8b47c42b5224648dffef69b734a0d95e54c1503ff0a7f68f"
+    "hash": "37071a91dd6e49caa4289e55b7a06cdc220aa54bf467a43f229dc550949d3c12"
   },
   "rates": {
     "baseExp": 4,
@@ -21689,6 +21689,7 @@
       "maxLevel": 1,
       "cooldownMs": 3000,
       "description": "Recupera um pouco de HP quando você está ferido. Uma opção econômica para prolongar as primeiras caçadas.",
+      "iconResource": "data/texture/유저인터페이스/item/nv_firstaid.bmp",
       "spCost": [
         3
       ],
@@ -21703,6 +21704,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "description": "Desfere um golpe físico forte contra o inimigo atual. Use para encerrar encontros mais rapidamente.",
+      "iconResource": "data/texture/유저인터페이스/item/sm_bash.bmp",
       "spCost": [
         8,
         8,
@@ -21736,6 +21738,7 @@
       "cooldownMs": 3000,
       "element": "fire",
       "description": "Atinge o alvo com um golpe físico de fogo. Útil contra criaturas vulneráveis a esse elemento.",
+      "iconResource": "data/texture/유저인터페이스/item/sm_magnum.bmp",
       "spCost": [
         30,
         30,
@@ -21771,6 +21774,7 @@
         "hp": 30
       },
       "description": "Aumenta seu HP máximo permanentemente. Ajuda a suportar caçadas mais perigosas sem gastar SP.",
+      "iconResource": "data/texture/유저인터페이스/item/sm_recovery.bmp",
       "spCost": [
         0,
         0,
@@ -21804,6 +21808,7 @@
       "cooldownMs": 3000,
       "element": "fire",
       "description": "Lança magia de fogo contra o alvo. O dano cresce com seu ataque mágico e a fraqueza elemental do inimigo.",
+      "iconResource": "data/texture/유저인터페이스/item/mg_firebolt.bmp",
       "spCost": [
         12,
         14,
@@ -21837,6 +21842,7 @@
       "cooldownMs": 3000,
       "element": "water",
       "description": "Lança magia de água contra o alvo. Uma boa escolha para enfrentar criaturas de fogo.",
+      "iconResource": "data/texture/유저인터페이스/item/mg_coldbolt.bmp",
       "spCost": [
         12,
         14,
@@ -21870,6 +21876,7 @@
       "cooldownMs": 3000,
       "element": "wind",
       "description": "Atinge o alvo com magia de vento. É especialmente útil contra criaturas de água.",
+      "iconResource": "data/texture/유저인터페이스/item/mg_lightningbolt.bmp",
       "spCost": [
         12,
         14,
@@ -21905,6 +21912,7 @@
         "bow"
       ],
       "description": "Dispara uma rajada que causa dano físico elevado. Requer um arco equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/ac_double.bmp",
       "spCost": [
         12,
         12,
@@ -21940,6 +21948,7 @@
         "bow"
       ],
       "description": "Concentra uma chuva de flechas no inimigo atual. Requer um arco equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/ac_shower.bmp",
       "spCost": [
         15,
         15,
@@ -21975,6 +21984,7 @@
         "dex": 1
       },
       "description": "Aumenta sua DEX permanentemente, melhorando a precisão e o ataque com armas de distância.",
+      "iconResource": "data/texture/유저인터페이스/item/ac_owl.bmp",
       "spCost": [
         0,
         0,
@@ -22007,6 +22017,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "description": "Recupera HP quando você está ferido. Reserve SP para manter a caçada por mais tempo.",
+      "iconResource": "data/texture/유저인터페이스/item/al_heal.bmp",
       "spCost": [
         13,
         16,
@@ -22045,6 +22056,7 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente STR, INT e DEX. Reforça tanto ataques físicos quanto mágicos.",
+      "iconResource": "data/texture/유저인터페이스/item/al_blessing.bmp",
       "spCost": [
         28,
         32,
@@ -22078,6 +22090,7 @@
       "cooldownMs": 3000,
       "element": "holy",
       "description": "Atinge o alvo com magia sagrada. Útil contra criaturas vulneráveis ao elemento sagrado.",
+      "iconResource": "data/texture/유저인터페이스/item/al_holylight.bmp",
       "spCost": [
         15
       ],
@@ -22092,6 +22105,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "description": "Gasta zeny para aplicar um ataque físico poderoso. Use quando o dano extra compensar o custo.",
+      "iconResource": "data/texture/유저인터페이스/item/mc_mammonite.bmp",
       "spCost": [
         5,
         5,
@@ -22140,6 +22154,7 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente sua STR, fortalecendo os ataques corpo a corpo.",
+      "iconResource": "data/texture/유저인터페이스/item/mc_loud.bmp",
       "spCost": [
         8
       ],
@@ -22154,6 +22169,7 @@
       "maxLevel": 1,
       "cooldownMs": 3000,
       "description": "Aplica um golpe físico pesado no inimigo atual. Uma opção ofensiva para caçar com o Mercador.",
+      "iconResource": "data/texture/유저인터페이스/item/mc_cartrevolution.bmp",
       "spCost": [
         12
       ],
@@ -22171,6 +22187,7 @@
         "damagePct": 3
       },
       "description": "Aumenta permanentemente o dano causado pelos seus ataques. Funciona sem ocupar espaço na rotação.",
+      "iconResource": "data/texture/유저인터페이스/item/tf_double.bmp",
       "spCost": [
         0,
         0,
@@ -22204,6 +22221,7 @@
       "cooldownMs": 3000,
       "element": "poison",
       "description": "Aplica um ataque físico de veneno contra o alvo. Escolha de acordo com a resistência elemental da criatura.",
+      "iconResource": "data/texture/유저인터페이스/item/tf_poison.bmp",
       "spCost": [
         12,
         12,
@@ -22239,6 +22257,7 @@
         "flee": 3
       },
       "description": "Aumenta sua esquiva permanentemente, reduzindo a frequência dos golpes recebidos.",
+      "iconResource": "data/texture/유저인터페이스/item/tf_miss.bmp",
       "spCost": [
         0,
         0,
@@ -22274,6 +22293,7 @@
         "spear"
       ],
       "description": "Perfura o inimigo com um ataque físico forte. Requer uma lança equipada.",
+      "iconResource": "data/texture/유저인터페이스/item/kn_pierce.bmp",
       "spCost": [
         7,
         7,
@@ -22309,6 +22329,7 @@
         "spear"
       ],
       "description": "Desfere uma investida poderosa com a lança contra o alvo. Requer uma lança equipada.",
+      "iconResource": "data/texture/유저인터페이스/item/kn_brandishspear.bmp",
       "spCost": [
         12,
         12,
@@ -22342,6 +22363,7 @@
       "cooldownMs": 3000,
       "element": "holy",
       "description": "Aplica um golpe físico sagrado. Combina uma arma forte com a fraqueza elemental do inimigo.",
+      "iconResource": "data/texture/유저인터페이스/item/cr_holycross.bmp",
       "spCost": [
         11,
         12,
@@ -22375,6 +22397,7 @@
       "cooldownMs": 3000,
       "requiredSlot": "shield",
       "description": "Arremessa o escudo para causar dano físico ao alvo. Requer um escudo equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/cr_shieldboomerang.bmp",
       "spCost": [
         12,
         12,
@@ -22398,6 +22421,7 @@
       "cooldownMs": 3000,
       "element": "wind",
       "description": "Concentra magia de vento em uma descarga poderosa. Use contra alvos resistentes ou vulneráveis ao vento.",
+      "iconResource": "data/texture/유저인터페이스/item/wz_jupitel.bmp",
       "spCost": [
         20,
         23,
@@ -22431,6 +22455,7 @@
       "cooldownMs": 8000,
       "element": "water",
       "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos.",
+      "iconResource": "data/texture/유저인터페이스/item/wz_stormgust.bmp",
       "spCost": [
         78,
         78,
@@ -22467,6 +22492,7 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas.",
+      "iconResource": "data/texture/유저인터페이스/item/sa_autospell.bmp",
       "spCost": [
         35,
         35,
@@ -22507,6 +22533,7 @@
         "quantity": 1
       },
       "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso.",
+      "iconResource": "data/texture/유저인터페이스/item/sa_flamelauncher.bmp",
       "spCost": [
         40,
         40,
@@ -22529,6 +22556,7 @@
       "maxLevel": 5,
       "cooldownMs": 3000,
       "description": "Comanda uma investida que causa dano físico ao inimigo atual. Acrescenta uma opção ofensiva à rotação.",
+      "iconResource": "data/texture/유저인터페이스/item/ht_blitzbeat.bmp",
       "spCost": [
         10,
         13,
@@ -22554,6 +22582,7 @@
         "atk": 4
       },
       "description": "Aumenta seu ataque físico permanentemente, fortalecendo os golpes de cada caçada.",
+      "iconResource": "data/texture/유저인터페이스/item/ht_beastbane.bmp",
       "spCost": [
         0,
         0,
@@ -22589,6 +22618,7 @@
         "instrument"
       ],
       "description": "Dispara um ataque físico com seu instrumento. Requer um instrumento equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/ba_musicalstrike.bmp",
       "spCost": [
         1,
         3,
@@ -22615,6 +22645,7 @@
       },
       "durationMs": 60000,
       "description": "Acelera temporariamente seus ataques. Útil para aumentar a frequência dos golpes durante a caçada.",
+      "iconResource": "data/texture/유저인터페이스/item/ba_poembragi.bmp",
       "spCost": [
         40,
         45,
@@ -22650,6 +22681,7 @@
         "whip"
       ],
       "description": "Lança um ataque físico com seu chicote. Requer um chicote equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/dc_throwarrow.bmp",
       "spCost": [
         1,
         3,
@@ -22676,6 +22708,7 @@
       },
       "durationMs": 60000,
       "description": "Acelera temporariamente seus ataques. Mantenha o bônus ativo para atacar com mais frequência.",
+      "iconResource": "data/texture/유저인터페이스/item/dc_serviceforyou.bmp",
       "spCost": [
         40,
         45,
@@ -22712,6 +22745,7 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente sua defesa, reduzindo o dano físico recebido.",
+      "iconResource": "data/texture/유저인터페이스/item/pr_kyrie.bmp",
       "spCost": [
         20,
         20,
@@ -22748,6 +22782,7 @@
         "quantity": 1
       },
       "description": "Recupera HP quando você está ferido. Consome uma Gema Azul a cada uso.",
+      "iconResource": "data/texture/유저인터페이스/item/pr_sanctuary.bmp",
       "spCost": [
         15,
         18,
@@ -22783,6 +22818,7 @@
         "damagePct": 4
       },
       "description": "Aumenta permanentemente o dano causado pelos seus ataques. Ajuda a vencer encontros sem gastar SP adicional.",
+      "iconResource": "data/texture/유저인터페이스/item/mo_tripleattack.bmp",
       "spCost": [
         0,
         0,
@@ -22815,6 +22851,7 @@
       "maxLevel": 5,
       "cooldownMs": 3000,
       "description": "Aplica um ataque físico concentrado e poderoso ao inimigo atual.",
+      "iconResource": "data/texture/유저인터페이스/item/mo_investigate.bmp",
       "spCost": [
         10,
         14,
@@ -22845,6 +22882,7 @@
         "mace"
       ],
       "description": "Acelera temporariamente seus ataques. Requer um machado ou uma maça equipada.",
+      "iconResource": "data/texture/유저인터페이스/item/bs_adrenaline.bmp",
       "spCost": [
         20,
         23,
@@ -22871,6 +22909,7 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente o dano causado, tornando seus ataques mais fortes.",
+      "iconResource": "data/texture/유저인터페이스/item/bs_weaponperfect.bmp",
       "spCost": [
         18,
         16,
@@ -22897,6 +22936,7 @@
         "quantity": 1
       },
       "description": "Causa dano físico elevado ao alvo. Consome uma Garrafa de Ácido a cada uso.",
+      "iconResource": "data/texture/유저인터페이스/item/am_acidterror.bmp",
       "spCost": [
         15,
         15,
@@ -22923,6 +22963,7 @@
         "quantity": 1
       },
       "description": "Recupera HP quando você está ferido. Consome uma Poção Vermelha a cada uso.",
+      "iconResource": "data/texture/유저인터페이스/item/am_potionpitcher.bmp",
       "spCost": [
         1,
         1,
@@ -22948,6 +22989,7 @@
         "katar"
       ],
       "description": "Desfere um ataque físico de grande impacto. Requer um katar equipado.",
+      "iconResource": "data/texture/유저인터페이스/item/as_sonicblow.bmp",
       "spCost": [
         16,
         18,
@@ -22984,6 +23026,7 @@
       },
       "durationMs": 60000,
       "description": "Fortalece temporariamente o dano dos seus ataques. Prepare o bônus antes de enfrentar inimigos mais difíceis.",
+      "iconResource": "data/texture/유저인터페이스/item/as_enchantpoison.bmp",
       "spCost": [
         20,
         20,
@@ -23016,6 +23059,7 @@
       "maxLevel": 5,
       "cooldownMs": 3000,
       "description": "Aplica um ataque físico surpresa e poderoso ao inimigo atual.",
+      "iconResource": "data/texture/유저인터페이스/item/rg_raid.bmp",
       "spCost": [
         20,
         20,
@@ -23038,6 +23082,7 @@
       "maxLevel": 10,
       "cooldownMs": 15000,
       "description": "Obtém uma pequena quantidade de zeny durante o combate. Consome SP e tem um intervalo maior entre usos.",
+      "iconResource": "data/texture/유저인터페이스/item/rg_stealcoin.bmp",
       "spCost": [
         15,
         15,

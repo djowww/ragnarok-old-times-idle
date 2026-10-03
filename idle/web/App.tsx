@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { GameEvent, Slot } from "../shared/types";
 import { useGame } from "./api";
 import Scene from "./components/Scene";
+import SkillIcon from "./components/SkillIcon";
 import { assetUrl, FALLBACK_ICON, getBitmapUrl } from "./assets/items";
 import Offline from "./components/Offline";
 import AudioToggle from "./components/AudioToggle";
@@ -440,7 +441,7 @@ export default function App() {
                               onClick={() => openClassicTab("build")}
                             >
                               <small>F{index + 1}</small>
-                              <b aria-hidden="true">{skill.name.slice(0, 2)}</b>
+                              <SkillIcon skill={skill} />
                             </button>
                           ) : (
                             <span className="classic-shortcut empty" key={index} aria-hidden="true">

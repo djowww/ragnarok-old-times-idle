@@ -35,6 +35,8 @@ export interface Skill {
   id: string; name: string; description: string;
   kind: 'physical' | 'magical' | 'heal' | 'buff' | 'passive' | 'steal';
   maxLevel: number; spCost: number[]; power: number[]; cooldownMs: number;
+  /** Original client BMP from the skill's Hercules source name. */
+  iconResource?: string;
   element?: string; effects?: Effects; durationMs?: number;
   zenyCost?: number[]; itemCost?: { itemId: number; quantity: number };
   requiredWeapon?: WeaponType[];
