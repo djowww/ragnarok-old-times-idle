@@ -68,6 +68,19 @@ services:
     networks:
       - ragnarok_local
 
+  asset-service:
+    build:
+      context: ./docker/asset-service
+      args:
+        REMOTE_CLIENT_REF: 0dd3a3fa71733c0c88ac1beb117039174eb2a7b0
+    volumes:
+      - ./client-data:/app/resources:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
 volumes:
   mariadb_data:
 
