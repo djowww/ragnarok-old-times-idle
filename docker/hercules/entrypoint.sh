@@ -3,6 +3,18 @@ set -Eeuo pipefail
 
 cd /opt/hercules
 
+libconfig_escape() {
+  local value="$1"
+  value=${value//\\/\\\\}
+  value=${value//\"/\\\"}
+  printf '%s' "$value"
+}
+
+export DB_HOST_LIBCONFIG="$(libconfig_escape "${DB_HOST:-database}")"
+export DB_USER_LIBCONFIG="$(libconfig_escape "${DB_USER:?DB_USER is required}")"
+export DB_PASSWORD_LIBCONFIG="$(libconfig_escape "${DB_PASSWORD:?DB_PASSWORD is required}")"
+export DB_NAME_LIBCONFIG="$(libconfig_escape "${DB_NAME:?DB_NAME is required}")"
+
 render_config() {
   local template="$1"
   local destination="$2"

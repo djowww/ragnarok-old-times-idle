@@ -62,6 +62,8 @@ services:
     depends_on:
       hercules:
         condition: service_started
+    environment:
+      WS_ALLOWED_ORIGINS: http://localhost:3338,http://127.0.0.1:3338
     ports:
       - "127.0.0.1:5999:5999"
     restart: unless-stopped

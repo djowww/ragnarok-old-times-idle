@@ -49,7 +49,7 @@ COPY config/ /opt/hercules/docker-config/
 COPY entrypoint.sh /usr/local/bin/hercules-entrypoint
 
 RUN useradd --system --home-dir /opt/hercules --shell /usr/sbin/nologin hercules \
-    && chown -R hercules:hercules /opt/hercules \
+    && chown -R hercules:hercules /opt/hercules/conf /opt/hercules/log \
     && chmod 0755 /usr/local/bin/hercules-entrypoint
 
 WORKDIR /opt/hercules

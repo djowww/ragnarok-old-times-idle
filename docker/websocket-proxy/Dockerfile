@@ -15,7 +15,8 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/MrAntares/roBr
     && npm install --omit=dev --no-audit --no-fund \
     && chown -R node:node /app
 
+COPY proxy-server.js /app/proxy-server.js
+
 USER node
 EXPOSE 5999
-ENTRYPOINT ["node", "wsproxy.js"]
-CMD ["-p", "5999", "-r", "127.0.0.1:6900=hercules:6900,127.0.0.1:6121=hercules:6121,127.0.0.1:5121=hercules:5121"]
+ENTRYPOINT ["node", "proxy-server.js"]

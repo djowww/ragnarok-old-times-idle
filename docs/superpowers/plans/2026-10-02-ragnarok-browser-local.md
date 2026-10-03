@@ -35,6 +35,7 @@
 
 **Arquivos:**
 - Criar: `.gitignore`
+- Criar: `.gitattributes`
 - Criar: `.env.example`
 - Criar: `compose.yaml`
 - Criar: `docker/hercules/Dockerfile`
@@ -64,6 +65,8 @@
 - [x] **Passo 4: Criar configuração por ambiente e inicialização ordenada**
 
   Em `entrypoint.sh`, renderize os templates com `envsubst`, espere o MariaDB aceitar conexões e examine as tabelas-base `login` e `loginlog`: importe `main.sql` e `logs.sql` somente se o banco estiver vazio; se apenas parte do schema estiver presente, pare com uma mensagem clara sem modificar as tabelas. Depois inicie `login-server`, `char-server` e `map-server`. Encerre os três processos se o container receber SIGTERM. Configure os templates para banco `database:3306`, portas padrão `6900/6121/5121`, pacote selecionado, registro local de contas e IPs anunciados `127.0.0.1` para char/map; deixe endereços de escuta internos em todas as interfaces do container.
+
+  Escape aspas e barras invertidas nas credenciais antes de gravá-las em strings libconfig. Force finais de linha LF nos scripts de shell com `.gitattributes`.
 
 - [x] **Passo 5: Fazer uma checagem de configuração e persistência**
 
@@ -99,7 +102,7 @@
 
 - [x] **Passo 3: Criar a imagem separada do proxy**
 
-  Obtenha a mesma revisão do roBrowserLegacy no `docker/websocket-proxy/Dockerfile`; execute `wsproxy.js` com o mapeamento `127.0.0.1:6900=hercules:6900,127.0.0.1:6121=hercules:6121,127.0.0.1:5121=hercules:5121`. Publique `5999` apenas em `127.0.0.1`.
+  Obtenha a mesma revisão do roBrowserLegacy no `docker/websocket-proxy/Dockerfile`; use a dependência `ws` dessa revisão para executar um proxy local que aceite somente origins `localhost:3338` e `127.0.0.1:3338` e encaminhe as três rotas do Hercules. Publique `5999` apenas em `127.0.0.1`.
 
 - [x] **Passo 4: Conectar os serviços no Compose e abrir a página**
 

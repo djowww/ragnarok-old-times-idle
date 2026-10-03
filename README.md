@@ -71,6 +71,8 @@ A configuração do cliente usa o mesmo valor e mantém a packet obfuscation des
 | `3306` | MariaDB | Apenas rede interna do Compose |
 | `6900`, `6121`, `5121` | Login, personagens e mapa do Hercules | Apenas rede interna do Compose; o proxy encaminha as conexões |
 
+O proxy aceita somente conexões vindas da página local (`localhost:3338` ou `127.0.0.1:3338`) e só encaminha as três rotas do Hercules.
+
 Todos os serviços podem ser consultados com:
 
 ```powershell
@@ -95,7 +97,7 @@ Esse comando mantém o volume do MariaDB para o próximo início.
 ## Diagnóstico e limite desta etapa
 
 - **`asset-service` retorna `503`:** confira se `client-data/DATA.INI` e todos os GRFs que ele cita existem e podem ser lidos; depois reinicie o serviço.
-- **A conexão do jogo não avança:** confira se `PACKETVER` coincide e se os logs do proxy mostram redirecionamento para as portas do Hercules.
+- **A conexão do jogo não avança:** confira se `PACKETVER` coincide e consulte os logs do proxy para rejeições de origem ou rota.
 - **O banco ou Hercules não inicia:** use `docker compose ps` e `docker compose logs -f database hercules`; verifique também as credenciais no `.env`.
 - **A página abre, mas faltam telas ou elementos do jogo:** sem os GRFs compatíveis, o cliente não consegue carregar os mapas, sprites, sons e outros recursos.
 
