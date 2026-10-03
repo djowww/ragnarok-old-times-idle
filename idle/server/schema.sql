@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS idle_profiles (
+  id VARCHAR(80) NOT NULL PRIMARY KEY,
+  state_json JSON NOT NULL,
+  updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS idle_commands (
+  profile_id VARCHAR(80) NOT NULL,
+  request_id VARCHAR(64) NOT NULL,
+  fingerprint VARCHAR(64) NOT NULL,
+  created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (profile_id, request_id),
+  CONSTRAINT idle_commands_profile FOREIGN KEY (profile_id) REFERENCES idle_profiles(id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

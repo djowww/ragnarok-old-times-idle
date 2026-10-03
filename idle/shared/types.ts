@@ -35,6 +35,7 @@ export interface Skill {
   element?: string; effects?: Effects; durationMs?: number;
   zenyCost?: number[]; itemCost?: { itemId: number; quantity: number };
   requiredWeapon?: WeaponType[];
+  requiredSlot?: Slot;
 }
 export interface Area {
   id: string; name: string; map: string; minLevel: number; description: string;
@@ -56,7 +57,7 @@ export interface Catalog {
   monsters: Record<number, Monster>; items: Record<number, Item>;
   classes: Record<string, JobClass>; skills: Record<string, Skill>;
   areas: Area[]; quests: Quest[]; challenges: Challenge[];
-  exp: { base: number[]; job: Record<string, number[]> };
+  exp: { base: number[]; baseTrans?: number[]; job: Record<string, number[]> };
   elementModifiers?: Record<string, Record<string, number[]>>;
   sizeModifiers?: Partial<Record<WeaponType, Record<string, number>>>;
 }
