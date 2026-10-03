@@ -41,6 +41,33 @@ services:
     networks:
       - ragnarok_local
 
+  web-client:
+    build:
+      context: ./docker/web-client
+      args:
+        ROBROWSER_REF: d88a3cd4acde0582530e3fc1908532a92e9accea
+    environment:
+      PACKETVER: ${PACKETVER:?Defina PACKETVER em .env}
+    ports:
+      - "127.0.0.1:3338:80"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+  websocket-proxy:
+    build:
+      context: ./docker/websocket-proxy
+      args:
+        ROBROWSER_REF: d88a3cd4acde0582530e3fc1908532a92e9accea
+    depends_on:
+      hercules:
+        condition: service_started
+    ports:
+      - "127.0.0.1:5999:5999"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
 volumes:
   mariadb_data:
 
