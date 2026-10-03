@@ -119,6 +119,7 @@
 - Criar: `docker/asset-service/Dockerfile`
 - Criar: `docker/asset-service/entrypoint.sh`
 - Criar: `docker/asset-service/no-assets-server.js`
+- Testar: `docker/asset-service/no-assets-server.test.js`
 - Modificar: `.gitignore`
 
 **Interfaces:**
@@ -129,15 +130,23 @@
 
   No `Dockerfile`, obtenha `roBrowserLegacy-RemoteClient-JS` no commit `0dd3a3fa71733c0c88ac1beb117039174eb2a7b0`, use Node.js 22.12+ e instale as dependências pelo `package-lock.json`. Configure o modo separado com `ENABLE_WSPROXY=false`, `ENABLE_STATIC_SERVE=false`, `CLIENT_RESPATH=/app/resources`, `CLIENT_PUBLIC_URL=http://localhost:3338` e porta interna `8080`.
 
-- [ ] **Passo 2: Montar dados em modo somente leitura e tratar ausência**
+- [ ] **Passo 2: Escrever o teste do servidor sem GRFs e confirmar RED**
+
+  Em `docker/asset-service/no-assets-server.test.js`, use `node:test` para iniciar `createNoAssetsServer(): http.Server` em porta efêmera, fazer `GET /api/health` e exigir status `503` com uma mensagem que cite `DATA.INI` e `client-data/`. Rode `node --test docker/asset-service/no-assets-server.test.js`; esperado: falha porque o módulo exportado ainda não existe.
+
+- [ ] **Passo 3: Implementar diagnóstico HTTP para GRFs ausentes**
+
+  Em `no-assets-server.js`, exporte `createNoAssetsServer(): http.Server` e, quando executado diretamente, escute em `PORT` (padrão `8080`). Responda qualquer rota com status `503`, `text/plain` e instrução para colocar `DATA.INI` e seus GRFs em `client-data/`.
+
+- [ ] **Passo 4: Montar dados em modo somente leitura e tratar ausência**
 
   Adicione ao Compose o bind `./client-data:/app/resources:ro` e publique `8080` em `127.0.0.1`. Configure `CLIENT_PUBLIC_URL=http://localhost:3338` para CORS. O `entrypoint.sh` deve apontar a ausência de `DATA.INI`, GRFs citados ou falta de leitura, sem baixar, copiar ou gerar assets; sem arquivos, execute `no-assets-server.js` em `8080` para mostrar um diagnóstico HTTP claro e manter a stack utilizável. Com os arquivos presentes, inicie o Remote Client.
 
-- [ ] **Passo 3: Checar o modo sem GRFs**
+- [ ] **Passo 5: Checar o modo sem GRFs**
 
   Suba `asset-service` sem `client-data/`. Esperado: log e resposta HTTP identificam o pré-requisito ausente, o container não entra em ciclo de falha e o README explica como preencher a pasta depois.
 
-- [ ] **Passo 4: Commitar suporte a assets externos**
+- [ ] **Passo 6: Commitar suporte a assets externos**
 
   ```bash
   git add compose.yaml .gitignore docker/asset-service
