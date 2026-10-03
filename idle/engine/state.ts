@@ -11,8 +11,8 @@ export function random(s: GameState): number {
   s.rngState = (Math.imul(s.rngState, 1664525) + 1013904223) >>> 0;
   return s.rngState / 4294967296;
 }
-export function event(s: GameState, at: number, kind: string, text: string, amount?: number, target?: GameEvent['target']) {
-  s.events.push({ id: s.nextEventId++, at, kind, text, ...(amount === undefined ? {} : { amount }), ...(target ? { target } : {}) });
+export function event(s: GameState, at: number, kind: string, text: string, amount?: number, target?: GameEvent['target'], metadata?: Pick<GameEvent, 'skillId' | 'critical'>) {
+  s.events.push({ id: s.nextEventId++, at, kind, text, ...(amount === undefined ? {} : { amount }), ...(target ? { target } : {}), ...(metadata?.skillId ? { skillId: metadata.skillId } : {}), ...(metadata?.critical ? { critical: true } : {}) });
   if (s.events.length > 60) s.events.splice(0, s.events.length - 60);
 }
 export function addItem(s: GameState, c: Catalog, itemId: number, quantity: number, reward = false): InventoryEntry {

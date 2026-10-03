@@ -17,13 +17,19 @@ without warranty. Sources at commit `d88a3cd4acde0582530e3fc1908532a92e9accea`:
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/App/MapViewer.js
 - https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Renderer/MapRenderer.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Renderer/Entity/EntityRender.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/WeaponAction.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Emotions.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/Renderer/Effects/Damage.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Effects/EffectTable.js
+- https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Skills/SkillEffect.js
 
 The local Docker build compiles the pinned roBrowserLegacy MapViewer with a
 small idle-scene integration patch. Its WebGL renderer uses the original local
 map assets through the asset service; the renderer remains GPL-3.0-or-later.
 
-The BMP reader is an original implementation of the uncompressed Windows bitmap
-format. Tests use generated tiny binary fixtures, with no official client pixels.
+The BMP and small uncompressed TGA readers are original implementations. Earlier
+BMP tests use generated tiny binary fixtures, with no official client pixels.
 
 `content/source-manifest.json` records source hashes, selection, omitted drops,
 source skills/classes, client resource-table hash, and explicit idle adaptations.

@@ -40,10 +40,11 @@ function useSkill(s: GameState, c: Catalog, at: number): Skill | undefined {
     s.sp -= cost; s.zeny -= zeny; if (reagent) consume(s, reagent, skill.itemCost!.quantity);
     s.skillReadyAt[id] = at + Math.max(1000, skill.cooldownMs);
     const power = skill.power[index] ?? skill.power.at(-1) ?? 100;
-    if (skill.kind === 'heal') s.hp = Math.min(d.maxHp, s.hp + power);
+    let healed: number | undefined;
+    if (skill.kind === 'heal') { const before = s.hp; s.hp = Math.min(d.maxHp, s.hp + power); healed = s.hp - before; }
     if (skill.kind === 'buff') s.buffs[id] = { expiresAt: at + (skill.durationMs ?? 30000), effects: Object.fromEntries(Object.entries(skill.effects ?? {}).map(([k, v]) => [k, v * level])) };
     if (skill.kind === 'steal') { const amount = Math.max(1, Math.floor(power)); s.zeny += amount; s.totals.zeny += amount; }
-    event(s, at, 'skill', skill.name); return skill;
+    event(s, at, 'skill', skill.name, healed, skill.kind === 'heal' || skill.kind === 'buff' ? 'player' : 'enemy', { skillId: skill.id }); return skill;
   }
   return undefined;
 }
@@ -97,8 +98,8 @@ export function tick(s: GameState, c: Catalog, at: number) {
         const mitigated = Math.max(0, raw * (1 - Math.min(80, defense) / 100) - softDefense / 2);
         // Idle rule: zero/negative source coefficients are immunity; they neither damage nor heal.
         const damage = element <= 0 ? 0 : Math.max(1, Math.floor(mitigated * power * (crit ? 1.4 : 1) * size * element * (1 + (stats.effects.damagePct ?? 0) / 100)));
-        b.hp = Math.max(0, b.hp - damage); event(s, at, 'damage', magical ? 'Dano mágico' : 'Ataque', damage, 'enemy');
-      } else event(s, at, 'miss', 'Ataque errou.');
+        b.hp = Math.max(0, b.hp - damage); event(s, at, 'damage', magical ? 'Dano mágico' : 'Ataque', damage, 'enemy', { skillId: skill?.id, critical: crit });
+      } else event(s, at, 'miss', 'Ataque errou.', undefined, 'enemy', { skillId: skill?.id });
     }
     // Advance the scheduled deadline so integer-second ticks keep the subsecond remainder.
     b.playerNextAttackAt += stats.attackIntervalMs;
@@ -110,7 +111,7 @@ export function tick(s: GameState, c: Catalog, at: number) {
       const raw = monster.attack[0] + Math.floor(random(s) * (monster.attack[1] - monster.attack[0] + 1));
       const damage = Math.max(1, Math.floor((raw * (1 - d.def / 100) - (s.stats.vit + (d.effects.vit ?? 0)) / 2) * (1 - Math.min(100, d.effects.neutralResist ?? 0) / 100)));
       s.hp = Math.max(0, s.hp - damage); event(s, at, 'damage', monster.name, damage, 'player');
-    } else event(s, at, 'dodge', 'Esquiva!');
+    } else event(s, at, 'dodge', 'Esquiva!', undefined, 'player');
     b.enemyNextAttackAt = at + Math.max(1000, monster.attackDelay);
     if (s.hp <= 0) { s.totals.deaths++; s.battle = null; s.status = 'resting'; s.restUntil = at + 30000; if (b.challengeId) s.autoResume = false; event(s, at, 'death', 'Derrota. Recuperando na cidade.'); }
   }

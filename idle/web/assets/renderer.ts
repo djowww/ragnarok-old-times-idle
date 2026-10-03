@@ -4,6 +4,8 @@ import type { SpriteAsset } from '../../shared/types';
 import { decodeSPR, type DecodedSprite, type SpriteFrame } from './sprite';
 import { decodeACT, type DecodedACT, type ActionLayer, type ActionFrame } from './action';
 import { assetUrl } from './items';
+import { weaponAssetPath, weaponAttackAction, type WeaponAppearance } from './weapon';
+export type { WeaponAppearance } from './weapon';
 export interface ActorPart {
     sprite: DecodedSprite;
     action: DecodedACT;
@@ -14,6 +16,8 @@ export interface DecodedActor {
     error?: string;
     body?: ActorPart;
     head?: ActorPart;
+    weapon?: ActorPart;
+    weaponVisual?: WeaponAppearance;
 }
 export interface PosedLayer extends ActionLayer {
     image: SpriteFrame;
@@ -22,25 +26,35 @@ const actorCache = new Map<string, Promise<DecodedActor>>();
 async function binary(path: string) { const response = await fetch(assetUrl(path), { signal: AbortSignal.timeout(15000) }); if (!response.ok)
     throw new Error(`Recurso indisponível (${response.status}): ${path}`); return response.arrayBuffer(); }
 async function loadPart(spr: string, act: string): Promise<ActorPart> { const [s, a] = await Promise.all([binary(spr), binary(act)]); return { sprite: decodeSPR(s), action: decodeACT(a) }; }
-export function loadActor(asset: SpriteAsset): Promise<DecodedActor> {
+async function loadOptionalPart(spr?: string, act?: string): Promise<{ value?: ActorPart; error?: unknown }> {
+    if (!spr || !act) return {};
+    try { return { value: await loadPart(spr, act) }; }
+    catch (error) { return { error }; }
+}
+export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance): Promise<DecodedActor> {
     const kind: DecodedActor['kind'] = asset.headSpr || asset.headAct || asset.spr.replace(/\\/g, '/').includes('인간족/몸통/') ? 'character' : 'monster';
-    const key = JSON.stringify(asset);
+    const key = JSON.stringify({ asset, weaponVisual });
     const cached = actorCache.get(key);
     if (cached)
         return cached;
     const promise = (async () => {
         try {
             const body = await loadPart(asset.spr, asset.act);
-            let head: ActorPart | undefined, error: string | undefined;
-            if (asset.headSpr && asset.headAct) {
-                try {
-                    head = await loadPart(asset.headSpr, asset.headAct);
-                }
-                catch (e) {
-                    error = e instanceof Error ? e.message : String(e);
-                }
-            }
-            return { kind, fallback: false, body, head, error };
+            const weaponFiles = weaponVisual ? weaponAssetPath(asset, weaponVisual) : null;
+            const [headResult, weaponResult] = await Promise.all([
+                loadOptionalPart(asset.headSpr, asset.headAct),
+                loadOptionalPart(weaponFiles?.spr, weaponFiles?.act),
+            ]);
+            const errors = [headResult.error, weaponResult.error]
+                .filter(error => error !== undefined)
+                .map(error => error instanceof Error ? error.message : String(error));
+            return {
+                kind, fallback: false, body,
+                head: headResult.value,
+                weapon: weaponResult.value,
+                weaponVisual,
+                error: errors.length ? errors.join('; ') : undefined,
+            };
         }
         catch (e) {
             return { kind, fallback: true, error: e instanceof Error ? e.message : String(e) };
@@ -49,18 +63,34 @@ export function loadActor(asset: SpriteAsset): Promise<DecodedActor> {
     actorCache.set(key, promise);
     return promise;
 }
-function frameAt(part: ActorPart, action: number, elapsed: number): ActionFrame | undefined { const a = part.action.actions[action] ?? part.action.actions[0]; if (!a?.frames.length)
-    return; return a.frames[Math.floor(Math.max(0, elapsed) / Math.max(25, a.delayMs)) % a.frames.length]; }
+export function getAttackAction(actor: DecodedActor): number {
+    const candidate = actor.kind === 'character' ? weaponAttackAction(actor.weaponVisual) : 16;
+    return actor.body?.action.actions[candidate]?.frames.length ? candidate : actor.kind === 'character' ? 40 : 16;
+}
+
+function actionFrames(part: ActorPart, action: number, fallback = true): ActionFrame[] | undefined {
+    const selected = part.action.actions[action] ?? (fallback ? part.action.actions[0] : undefined);
+    return selected?.frames.length ? selected.frames : undefined;
+}
+
 export function getActorPose(actor: DecodedActor, action: number | 'idle' | 'attack' | 'hurt' | 'dead', elapsed: number): PosedLayer[] {
     if (!actor.body || actor.fallback)
         return [];
-    // Entity/EntityAction.js at pinned roBrowserLegacy: PC groups5/6/8 vs MOB2/3/4.
+    // EntityAction.js at pinned roBrowserLegacy: PC ATTACK1/2/3 groups 5/10/11.
     // ACT groups contain eight directions; PC and monster combat groups differ.
     const actions = actor.kind === 'character'
-        ? { idle: 0, attack: 40, hurt: 48, dead: 64 }
+        ? { idle: 0, attack: getAttackAction(actor), hurt: 48, dead: 64 }
         : { idle: 0, attack: 16, hurt: 24, dead: 32 };
     const index = typeof action === 'number' ? action : actions[action];
-    const bodyFrame = frameAt(actor.body, index, elapsed);
+    const bodyFrames = actionFrames(actor.body, index);
+    if (!bodyFrames)
+        return [];
+    // PC idle's three ACT frames are head-direction/doridori variants. The
+    // original renderer holds the first direction until a head turn is asked for.
+    const staticIdle = actor.kind === 'character' && index === 0;
+    const delay = actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150;
+    const frameIndex = staticIdle ? 0 : Math.floor(Math.max(0, elapsed) / Math.max(25, delay)) % bodyFrames.length;
+    const bodyFrame = bodyFrames[frameIndex];
     if (!bodyFrame)
         return [];
     const result: PosedLayer[] = [];
@@ -73,11 +103,19 @@ export function getActorPose(actor: DecodedActor, action: number | 'idle' | 'att
     } };
     append(actor.body, bodyFrame);
     if (actor.head) {
-        const headFrame = frameAt(actor.head, index, elapsed);
+        const frames = actionFrames(actor.head, index);
+        const headFrame = frames?.[Math.min(frameIndex, frames.length - 1)];
         if (headFrame) {
             const b = bodyFrame.anchors[0] ?? { x: 0, y: 0 }, h = headFrame.anchors[0] ?? { x: 0, y: 0 };
             append(actor.head, headFrame, b.x - h.x, b.y - h.y);
         }
+    }
+    if (actor.weapon) {
+        // Weapon ACT coordinates are already relative to the body origin. Its
+        // matching action/frame is drawn after the head, as in EntityRender.js.
+        const frames = actionFrames(actor.weapon, index, false);
+        const weaponFrame = frames?.[Math.min(frameIndex, frames.length - 1)];
+        if (weaponFrame) append(actor.weapon, weaponFrame);
     }
     return result;
 }

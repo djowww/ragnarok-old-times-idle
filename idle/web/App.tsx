@@ -71,7 +71,7 @@ export default function App() {
   const ActivePanel = panels[tab];
   const changeTab = (next: Tab) => {
     setTab(next);
-    if (window.matchMedia("(max-width: 440px)").matches)
+    if (window.matchMedia("(max-width: 640px)").matches)
       requestAnimationFrame(() =>
         document
           .querySelector(".game-panels")
@@ -180,6 +180,12 @@ export default function App() {
             command: game.command,
           };
           const currentClass = catalog.classes[state.job];
+          const equippedWeapon = state.inventory.find(
+            (entry) => entry.uid === state.equipment.weapon,
+          );
+          const weaponType = equippedWeapon
+            ? catalog.items[equippedWeapon.itemId]?.weaponType
+            : undefined;
           const area = catalog.areas.find((a) => a.id === state.areaId);
           const selectedArea =
             catalog.areas.find((a) => a.id === areaId) ?? catalog.areas[0];
@@ -225,6 +231,11 @@ export default function App() {
                       <ActorPreview
                         asset={currentClass.sprite[state.gender]}
                         name={`${state.name}, ${currentClass.name}`}
+                        weapon={
+                          weaponType
+                            ? { type: weaponType, gender: state.gender, job: state.job }
+                            : undefined
+                        }
                       />
                       <div>
                         <h1>{state.name}</h1>
@@ -305,55 +316,6 @@ export default function App() {
                         </button>
                       </div>
                     )}
-                  </Panel>
-                  <Panel
-                    title="Equipamento"
-                    aside={
-                      <button
-                        className="text-button"
-                        onClick={() => changeTab("inventory")}
-                      >
-                        Mochila
-                      </button>
-                    }
-                  >
-                    <div className="equipment-list">
-                      {(Object.keys(slots) as Slot[]).map((slot) => {
-                        const entry = state.inventory.find(
-                          (e) => e.uid === state.equipment[slot],
-                        );
-                        const item = entry ? catalog.items[entry.itemId] : null;
-                        return (
-                          <div
-                            className={`equipment-row ${entry ? "" : "empty"}`}
-                            key={slot}
-                          >
-                            <span className="slot-label">{slots[slot]}</span>
-                            {entry && item ? (
-                              <>
-                                <ItemIcon item={item} />
-                                <b title={itemName(item, entry)}>
-                                  {itemName(item, entry)}
-                                </b>
-                                <button
-                                  className="icon-button"
-                                  title={`Desequipar ${slots[slot]}`}
-                                  aria-label={`Desequipar ${slots[slot]}`}
-                                  disabled={game.busy}
-                                  onClick={() =>
-                                    void game.command({ type: "unequip", slot })
-                                  }
-                                >
-                                  ×
-                                </button>
-                              </>
-                            ) : (
-                              <span className="slot-empty">—</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
                   </Panel>
                 </aside>
                 <section className="adventure-column">
@@ -552,6 +514,56 @@ export default function App() {
                     <span className="note-rule" />
                   </div>
                 </section>
+                <Panel
+                  title="Equipamento"
+                  className="equipment-panel"
+                  aside={
+                    <button
+                      className="text-button"
+                      onClick={() => changeTab("inventory")}
+                    >
+                      Mochila
+                    </button>
+                  }
+                >
+                  <div className="equipment-list">
+                    {(Object.keys(slots) as Slot[]).map((slot) => {
+                      const entry = state.inventory.find(
+                        (e) => e.uid === state.equipment[slot],
+                      );
+                      const item = entry ? catalog.items[entry.itemId] : null;
+                      return (
+                        <div
+                          className={`equipment-row ${entry ? "" : "empty"}`}
+                          key={slot}
+                        >
+                          <span className="slot-label">{slots[slot]}</span>
+                          {entry && item ? (
+                            <>
+                              <ItemIcon item={item} />
+                              <b title={itemName(item, entry)}>
+                                {itemName(item, entry)}
+                              </b>
+                              <button
+                                className="icon-button"
+                                title={`Desequipar ${slots[slot]}`}
+                                aria-label={`Desequipar ${slots[slot]}`}
+                                disabled={game.busy}
+                                onClick={() =>
+                                  void game.command({ type: "unequip", slot })
+                                }
+                              >
+                                ×
+                              </button>
+                            </>
+                          ) : (
+                            <span className="slot-empty">—</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Panel>
                 <aside className="journal-column">
                   <Panel title="Sua jornada" className="journey-panel">
                     <dl className="journey-stats">

@@ -1,0 +1,425 @@
+/* A compact game HUD around the original map, leaving the other tabs alone. */
+.cockpit {
+  grid-template-columns: clamp(218px, 18vw, 246px) minmax(0, 1fr);
+  grid-template-areas:
+    "character stage"
+    "equipment support";
+  gap: 12px 16px;
+  align-items: start;
+}
+
+.cockpit .hero-column {
+  grid-area: character;
+  display: block;
+}
+
+.adventure-column {
+  grid-area: stage;
+}
+
+.equipment-panel {
+  grid-area: equipment;
+  min-width: 0;
+}
+
+.journal-column {
+  grid-area: support;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #a5b5b2;
+  border-radius: 9px;
+  background: #f0eee4;
+  box-shadow: 0 5px 16px #14252c2e;
+}
+
+.cockpit .panel {
+  border: 1px solid #a5b5b2;
+  border-radius: 9px;
+  background: #f1efe4;
+  box-shadow: 0 5px 16px #14252c2e, inset 0 1px #fffaf0;
+}
+
+.cockpit .panel-heading {
+  min-height: 34px;
+  padding: 7px 12px;
+  color: #f8f7ed;
+  background: linear-gradient(#829eaa, #5c7c8e);
+  border-bottom: 1px solid #435e6d;
+  box-shadow: inset 0 1px #d5e0df99;
+  text-shadow: 0 1px #27414e99;
+}
+
+.cockpit .panel-heading h2 {
+  font-size: 12px;
+}
+
+.hero-panel .hero-identity {
+  padding: 12px 11px 7px;
+}
+
+.hero-panel .hero-vitals {
+  padding: 0 12px 6px;
+  gap: 7px;
+}
+
+.hero-panel .meter {
+  height: 20px;
+}
+
+.hero-panel .hero-quick-stats {
+  padding: 8px 12px 13px;
+  border-top: 1px solid #d1d6ca;
+}
+
+.cockpit .scene-panel {
+  overflow: hidden;
+  border-color: #879f9f;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px #101f2a46;
+}
+
+.cockpit .scene-panel .panel-heading {
+  min-height: 38px;
+  padding: 8px 15px;
+}
+
+.cockpit .scene-panel .panel-heading h2 {
+  font-size: 13px;
+}
+
+.cockpit .scene {
+  height: clamp(400px, 36vw, 500px);
+}
+
+/* The window title already names the map; the in-scene label describes play. */
+.scene-location {
+  top: 15px;
+  left: 15px;
+  padding: 7px 10px;
+  border: 1px solid #d9dfc36b;
+  border-radius: 6px;
+  background: #1f3438c9;
+  text-shadow: 0 1px #122228;
+}
+
+.scene-location > span {
+  display: none;
+}
+
+.scene-location small {
+  color: #f2f0df;
+  font-size: 11px;
+}
+
+.cockpit .hunt-controls {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) repeat(3, max-content);
+  align-items: end;
+  gap: 8px;
+  padding: 12px 14px 8px;
+  background: #e8ece5;
+  border-top: 1px solid #b8c6bf;
+}
+
+.cockpit .area-selector {
+  min-width: 0;
+  color: #4a615d;
+  font-size: 11px;
+}
+
+.cockpit .area-selector select {
+  height: 44px;
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.cockpit .hunt-controls button {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.cockpit .hunt-button {
+  min-width: 108px;
+}
+
+.cockpit .automation-controls {
+  gap: 12px;
+  padding: 2px 14px 12px;
+  background: #e8ece5;
+}
+
+.cockpit .automation-controls .checkbox-label,
+.cockpit .automation-controls .text-button {
+  min-height: 36px;
+}
+
+.cockpit .adventure-note {
+  margin: 1px 8px 0;
+  color: #d6ddce;
+}
+
+.equipment-panel .equipment-list {
+  padding: 5px 10px 9px;
+}
+
+.equipment-panel .equipment-row {
+  min-height: 38px;
+}
+
+.equipment-panel .icon-button {
+  min-width: 32px;
+  width: 32px;
+  min-height: 34px;
+}
+
+.cockpit .journal-column .panel {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.cockpit .journal-column .panel + .panel {
+  border-left: 1px solid #c9d1c7;
+}
+
+.cockpit .journal-column .panel-heading {
+  color: #344f59;
+  background: #e8ebe3;
+  border-bottom: 1px solid #c9d1c7;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.cockpit .journal-column .tiny-label {
+  color: #63756d;
+}
+
+.cockpit .journal-column .event-list {
+  height: 205px;
+  display: block;
+}
+
+@media (max-width: 960px) {
+  .cockpit {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "character"
+      "stage"
+      "equipment"
+      "support";
+    gap: 12px;
+  }
+
+  .hero-panel {
+    display: grid;
+    grid-template-columns: minmax(200px, 0.8fr) minmax(0, 1.2fr);
+  }
+
+  .hero-panel > .panel-heading,
+  .hero-panel > .avatar-choice {
+    grid-column: 1 / -1;
+  }
+
+  .hero-panel .hero-identity {
+    grid-column: 1;
+    grid-row: 2 / 4;
+    align-self: center;
+    padding: 8px 15px;
+  }
+
+  .hero-panel .hero-vitals {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px 12px 5px;
+  }
+
+  .hero-panel .hero-quick-stats {
+    grid-column: 2;
+    grid-row: 3;
+    padding: 6px 12px 10px;
+    border-top: 0;
+  }
+
+  .equipment-panel .equipment-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+  }
+
+  .cockpit .scene {
+    height: clamp(370px, 48vw, 470px);
+  }
+
+  .cockpit .hunt-controls {
+    grid-template-columns: minmax(180px, 1fr) repeat(3, max-content);
+  }
+}
+
+@media (max-width: 640px) {
+  /* Keep the navigation near its panels. A fixed bottom bar covered the
+     primary hunt button on common phone viewports. */
+  .panel-tabs {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    z-index: 10;
+    padding-bottom: 0;
+    border-top: 0;
+    border-bottom: 1px solid #8a9b92;
+    box-shadow: 0 3px 12px #172d3435;
+  }
+
+  .game-footer {
+    padding-bottom: 18px;
+  }
+
+  .world-status {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .world-status > div:first-child {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .world-status .world-status-tools {
+    margin-left: auto;
+  }
+
+  .audio-toggle {
+    min-height: 44px;
+  }
+
+  .hero-panel {
+    display: block;
+  }
+
+  .hero-panel .hero-identity {
+    float: none;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  .hero-panel .hero-identity .actor-preview {
+    width: 60px;
+    min-width: 60px;
+    height: 74px;
+  }
+
+  .hero-panel .hero-identity .actor-preview canvas {
+    width: 76px;
+    height: 71px;
+    transform: translateX(-8px);
+  }
+
+  .hero-panel .hero-vitals {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 0 12px 9px;
+  }
+
+  .hero-panel .hero-vitals .meter {
+    width: 100%;
+    max-width: none;
+    height: 21px;
+  }
+
+  .hero-panel .hero-quick-stats {
+    justify-content: space-around;
+    padding: 8px 12px;
+    border-top: 1px solid #d1d6ca;
+  }
+
+  .hero-panel .avatar-choice button {
+    min-height: 44px;
+  }
+
+  .cockpit .scene {
+    height: clamp(300px, 55vw, 370px);
+  }
+
+  .cockpit .hunt-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+    padding: 11px;
+  }
+
+  .cockpit .area-selector,
+  .cockpit .hunt-button {
+    grid-column: 1 / -1;
+  }
+
+  .cockpit .hunt-controls button {
+    min-width: 0;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .cockpit .automation-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 11px 10px;
+  }
+
+  .cockpit .automation-controls .checkbox-label,
+  .cockpit .automation-controls .text-button {
+    min-height: 44px;
+    white-space: normal;
+    text-align: left;
+    font-size: 11px;
+  }
+
+  .equipment-panel .equipment-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .equipment-panel .equipment-row,
+  .equipment-panel .icon-button {
+    min-height: 44px;
+  }
+
+  .journal-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cockpit .journal-column .panel + .panel {
+    border-left: 0;
+    border-top: 1px solid #c9d1c7;
+  }
+
+  .mobile-journal-toggle {
+    display: block;
+    margin: 0 12px 12px;
+    width: calc(100% - 24px);
+    min-height: 44px;
+    font-size: 11px;
+  }
+
+  .journal-panel {
+    display: none;
+  }
+
+  .journal-panel.mobile-open {
+    display: block;
+  }
+}

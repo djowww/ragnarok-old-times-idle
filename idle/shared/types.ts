@@ -71,7 +71,12 @@ export interface RewardSummary {
   elapsedMs: number; kills: number; deaths: number; baseExp: number; jobExp: number;
   zeny: number; items: Record<number, number>; potions: number; baseLevels: number; jobLevels: number;
 }
-export interface GameEvent { id: number; at: number; kind: string; text: string; amount?: number; target?: 'player' | 'enemy'; }
+export interface GameEvent {
+  id: number; at: number; kind: string; text: string;
+  amount?: number; target?: 'player' | 'enemy';
+  /** Optional presentation metadata. Older persisted events remain valid. */
+  skillId?: string; critical?: boolean;
+}
 export interface GameState {
   schemaVersion: 1; id: string; revision: number; name: string; gender: 'male' | 'female';
   job: string; family: string | null; branch: string | null; reborn: boolean;
