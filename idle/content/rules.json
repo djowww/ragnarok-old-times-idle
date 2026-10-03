@@ -846,7 +846,8 @@
       "maxLevel": 1,
       "powerStart": 5,
       "powerStep": 0,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Recupera um pouco de HP quando você está ferido. Uma opção econômica para prolongar as primeiras caçadas."
     },
     {
       "id": "bash",
@@ -856,7 +857,8 @@
       "maxLevel": 10,
       "powerStart": 130,
       "powerStep": 30,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Desfere um golpe físico forte contra o inimigo atual. Use para encerrar encontros mais rapidamente."
     },
     {
       "id": "magnum_break",
@@ -867,7 +869,8 @@
       "powerStart": 120,
       "powerStep": 20,
       "cooldownMs": 3000,
-      "element": "fire"
+      "element": "fire",
+      "description": "Atinge o alvo com um golpe físico de fogo. Útil contra criaturas vulneráveis a esse elemento."
     },
     {
       "id": "hp_recovery",
@@ -880,7 +883,8 @@
       "cooldownMs": 0,
       "effects": {
         "hp": 30
-      }
+      },
+      "description": "Aumenta seu HP máximo permanentemente. Ajuda a suportar caçadas mais perigosas sem gastar SP."
     },
     {
       "id": "fire_bolt",
@@ -891,7 +895,8 @@
       "powerStart": 100,
       "powerStep": 100,
       "cooldownMs": 3000,
-      "element": "fire"
+      "element": "fire",
+      "description": "Lança magia de fogo contra o alvo. O dano cresce com seu ataque mágico e a fraqueza elemental do inimigo."
     },
     {
       "id": "cold_bolt",
@@ -902,7 +907,8 @@
       "powerStart": 100,
       "powerStep": 100,
       "cooldownMs": 3000,
-      "element": "water"
+      "element": "water",
+      "description": "Lança magia de água contra o alvo. Uma boa escolha para enfrentar criaturas de fogo."
     },
     {
       "id": "lightning_bolt",
@@ -913,7 +919,8 @@
       "powerStart": 100,
       "powerStep": 100,
       "cooldownMs": 3000,
-      "element": "wind"
+      "element": "wind",
+      "description": "Atinge o alvo com magia de vento. É especialmente útil contra criaturas de água."
     },
     {
       "id": "double_strafe",
@@ -926,7 +933,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "bow"
-      ]
+      ],
+      "description": "Dispara uma rajada que causa dano físico elevado. Requer um arco equipado."
     },
     {
       "id": "arrow_shower",
@@ -939,7 +947,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "bow"
-      ]
+      ],
+      "description": "Concentra uma chuva de flechas no inimigo atual. Requer um arco equipado."
     },
     {
       "id": "owl_eye",
@@ -952,7 +961,8 @@
       "cooldownMs": 0,
       "effects": {
         "dex": 1
-      }
+      },
+      "description": "Aumenta sua DEX permanentemente, melhorando a precisão e o ataque com armas de distância."
     },
     {
       "id": "heal",
@@ -962,7 +972,8 @@
       "maxLevel": 10,
       "powerStart": 80,
       "powerStep": 70,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Recupera HP quando você está ferido. Reserve SP para manter a caçada por mais tempo."
     },
     {
       "id": "blessing",
@@ -978,7 +989,8 @@
         "int": 1,
         "dex": 1
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente STR, INT e DEX. Reforça tanto ataques físicos quanto mágicos."
     },
     {
       "id": "holy_light",
@@ -989,7 +1001,8 @@
       "powerStart": 125,
       "powerStep": 0,
       "cooldownMs": 3000,
-      "element": "holy"
+      "element": "holy",
+      "description": "Atinge o alvo com magia sagrada. Útil contra criaturas vulneráveis ao elemento sagrado."
     },
     {
       "id": "mammonite",
@@ -999,7 +1012,8 @@
       "maxLevel": 10,
       "powerStart": 150,
       "powerStep": 50,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Gasta zeny para aplicar um ataque físico poderoso. Use quando o dano extra compensar o custo."
     },
     {
       "id": "crazy_uproar",
@@ -1013,7 +1027,8 @@
       "effects": {
         "str": 4
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente sua STR, fortalecendo os ataques corpo a corpo."
     },
     {
       "id": "cart_revolution",
@@ -1023,7 +1038,8 @@
       "maxLevel": 1,
       "powerStart": 250,
       "powerStep": 0,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Aplica um golpe físico pesado no inimigo atual. Uma opção ofensiva para caçar com o Mercador."
     },
     {
       "id": "double_attack",
@@ -1036,7 +1052,8 @@
       "cooldownMs": 0,
       "effects": {
         "damagePct": 3
-      }
+      },
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Funciona sem ocupar espaço na rotação."
     },
     {
       "id": "envenom",
@@ -1047,7 +1064,8 @@
       "powerStart": 115,
       "powerStep": 15,
       "cooldownMs": 3000,
-      "element": "poison"
+      "element": "poison",
+      "description": "Aplica um ataque físico de veneno contra o alvo. Escolha de acordo com a resistência elemental da criatura."
     },
     {
       "id": "improve_dodge",
@@ -1060,7 +1078,8 @@
       "cooldownMs": 0,
       "effects": {
         "flee": 3
-      }
+      },
+      "description": "Aumenta sua esquiva permanentemente, reduzindo a frequência dos golpes recebidos."
     },
     {
       "id": "pierce",
@@ -1073,7 +1092,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "spear"
-      ]
+      ],
+      "description": "Perfura o inimigo com um ataque físico forte. Requer uma lança equipada."
     },
     {
       "id": "brandish_spear",
@@ -1086,7 +1106,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "spear"
-      ]
+      ],
+      "description": "Desfere uma investida poderosa com a lança contra o alvo. Requer uma lança equipada."
     },
     {
       "id": "holy_cross",
@@ -1097,7 +1118,8 @@
       "powerStart": 135,
       "powerStep": 35,
       "cooldownMs": 3000,
-      "element": "holy"
+      "element": "holy",
+      "description": "Aplica um golpe físico sagrado. Combina uma arma forte com a fraqueza elemental do inimigo."
     },
     {
       "id": "shield_boomerang",
@@ -1108,7 +1130,8 @@
       "powerStart": 150,
       "powerStep": 50,
       "cooldownMs": 3000,
-      "requiredSlot": "shield"
+      "requiredSlot": "shield",
+      "description": "Arremessa o escudo para causar dano físico ao alvo. Requer um escudo equipado."
     },
     {
       "id": "jupitel_thunder",
@@ -1119,7 +1142,8 @@
       "powerStart": 300,
       "powerStep": 100,
       "cooldownMs": 3000,
-      "element": "wind"
+      "element": "wind",
+      "description": "Concentra magia de vento em uma descarga poderosa. Use contra alvos resistentes ou vulneráveis ao vento."
     },
     {
       "id": "storm_gust",
@@ -1130,7 +1154,8 @@
       "powerStart": 240,
       "powerStep": 80,
       "cooldownMs": 8000,
-      "element": "water"
+      "element": "water",
+      "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos."
     },
     {
       "id": "hindsight",
@@ -1144,7 +1169,8 @@
       "effects": {
         "matk": 5
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas."
     },
     {
       "id": "flame_enchant",
@@ -1162,7 +1188,8 @@
       "itemCost": {
         "itemId": 990,
         "quantity": 1
-      }
+      },
+      "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso."
     },
     {
       "id": "blitz_beat",
@@ -1172,7 +1199,8 @@
       "maxLevel": 5,
       "powerStart": 150,
       "powerStep": 40,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Comanda uma investida que causa dano físico ao inimigo atual. Acrescenta uma opção ofensiva à rotação."
     },
     {
       "id": "beast_bane",
@@ -1185,7 +1213,8 @@
       "cooldownMs": 0,
       "effects": {
         "atk": 4
-      }
+      },
+      "description": "Aumenta seu ataque físico permanentemente, fortalecendo os golpes de cada caçada."
     },
     {
       "id": "melody_strike",
@@ -1198,7 +1227,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "instrument"
-      ]
+      ],
+      "description": "Dispara um ataque físico com seu instrumento. Requer um instrumento equipado."
     },
     {
       "id": "poem_of_bragi",
@@ -1212,7 +1242,8 @@
       "effects": {
         "aspd": 1
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Acelera temporariamente seus ataques. Útil para aumentar a frequência dos golpes durante a caçada."
     },
     {
       "id": "slinging_arrow",
@@ -1225,7 +1256,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "whip"
-      ]
+      ],
+      "description": "Lança um ataque físico com seu chicote. Requer um chicote equipado."
     },
     {
       "id": "service_for_you",
@@ -1239,7 +1271,8 @@
       "effects": {
         "aspd": 1
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Acelera temporariamente seus ataques. Mantenha o bônus ativo para atacar com mais frequência."
     },
     {
       "id": "kyrie",
@@ -1253,7 +1286,8 @@
       "effects": {
         "def": 2
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente sua defesa, reduzindo o dano físico recebido."
     },
     {
       "id": "sanctuary",
@@ -1267,7 +1301,8 @@
       "itemCost": {
         "itemId": 717,
         "quantity": 1
-      }
+      },
+      "description": "Recupera HP quando você está ferido. Consome uma Gema Azul a cada uso."
     },
     {
       "id": "triple_attack",
@@ -1280,7 +1315,8 @@
       "cooldownMs": 0,
       "effects": {
         "damagePct": 4
-      }
+      },
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Ajuda a vencer encontros sem gastar SP adicional."
     },
     {
       "id": "investigate",
@@ -1290,7 +1326,8 @@
       "maxLevel": 5,
       "powerStart": 200,
       "powerStep": 100,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Aplica um ataque físico concentrado e poderoso ao inimigo atual."
     },
     {
       "id": "adrenaline",
@@ -1308,7 +1345,8 @@
       "requiredWeapon": [
         "axe",
         "mace"
-      ]
+      ],
+      "description": "Acelera temporariamente seus ataques. Requer um machado ou uma maça equipada."
     },
     {
       "id": "weapon_perfection",
@@ -1322,7 +1360,8 @@
       "effects": {
         "damagePct": 4
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente o dano causado, tornando seus ataques mais fortes."
     },
     {
       "id": "acid_terror",
@@ -1336,7 +1375,8 @@
       "itemCost": {
         "itemId": 7136,
         "quantity": 1
-      }
+      },
+      "description": "Causa dano físico elevado ao alvo. Consome uma Garrafa de Ácido a cada uso."
     },
     {
       "id": "potion_pitcher",
@@ -1350,7 +1390,8 @@
       "itemCost": {
         "itemId": 501,
         "quantity": 1
-      }
+      },
+      "description": "Recupera HP quando você está ferido. Consome uma Poção Vermelha a cada uso."
     },
     {
       "id": "sonic_blow",
@@ -1363,7 +1404,8 @@
       "cooldownMs": 3000,
       "requiredWeapon": [
         "katar"
-      ]
+      ],
+      "description": "Desfere um ataque físico de grande impacto. Requer um katar equipado."
     },
     {
       "id": "enchant_poison",
@@ -1377,7 +1419,8 @@
       "effects": {
         "damagePct": 3
       },
-      "durationMs": 60000
+      "durationMs": 60000,
+      "description": "Fortalece temporariamente o dano dos seus ataques. Prepare o bônus antes de enfrentar inimigos mais difíceis."
     },
     {
       "id": "raid",
@@ -1387,7 +1430,8 @@
       "maxLevel": 5,
       "powerStart": 200,
       "powerStep": 40,
-      "cooldownMs": 3000
+      "cooldownMs": 3000,
+      "description": "Aplica um ataque físico surpresa e poderoso ao inimigo atual."
     },
     {
       "id": "snatcher",
@@ -1397,7 +1441,8 @@
       "maxLevel": 10,
       "powerStart": 3,
       "powerStep": 2,
-      "cooldownMs": 15000
+      "cooldownMs": 15000,
+      "description": "Obtém uma pequena quantidade de zeny durante o combate. Consome SP e tem um intervalo maior entre usos."
     }
   ],
   "spriteJobs": {

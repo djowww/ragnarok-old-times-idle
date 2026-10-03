@@ -12,7 +12,7 @@
       "db/pre-re/attr_fix.conf",
       "db/pre-re/size_fix.txt"
     ],
-    "hash": "f66c74629df6b9acf81c6e233d28a8d93ebe44ffc07daaf0659574084618840f"
+    "hash": "37b2527ec9566e12d4895a77c566951abd24ffab3c58b898351a928ff9d0899c"
   },
   "rates": {
     "baseExp": 4,
@@ -18386,7 +18386,7 @@
       "kind": "heal",
       "maxLevel": 1,
       "cooldownMs": 3000,
-      "description": "Primeiros Socorros: potência por nível. Adaptação idle de NV_FIRSTAID.",
+      "description": "Recupera um pouco de HP quando você está ferido. Uma opção econômica para prolongar as primeiras caçadas.",
       "spCost": [
         3
       ],
@@ -18400,7 +18400,7 @@
       "kind": "physical",
       "maxLevel": 10,
       "cooldownMs": 3000,
-      "description": "Golpe Fulminante: potência por nível. Adaptação idle de SM_BASH.",
+      "description": "Desfere um golpe físico forte contra o inimigo atual. Use para encerrar encontros mais rapidamente.",
       "spCost": [
         8,
         8,
@@ -18433,7 +18433,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "fire",
-      "description": "Impacto Explosivo: potência por nível. Adaptação idle de SM_MAGNUM.",
+      "description": "Atinge o alvo com um golpe físico de fogo. Útil contra criaturas vulneráveis a esse elemento.",
       "spCost": [
         30,
         30,
@@ -18468,7 +18468,7 @@
       "effects": {
         "hp": 30
       },
-      "description": "Recuperação de HP: efeito por nível. Adaptação idle de SM_RECOVERY.",
+      "description": "Aumenta seu HP máximo permanentemente. Ajuda a suportar caçadas mais perigosas sem gastar SP.",
       "spCost": [
         0,
         0,
@@ -18501,7 +18501,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "fire",
-      "description": "Lanças de Fogo: potência por nível. Adaptação idle de MG_FIREBOLT.",
+      "description": "Lança magia de fogo contra o alvo. O dano cresce com seu ataque mágico e a fraqueza elemental do inimigo.",
       "spCost": [
         12,
         14,
@@ -18534,7 +18534,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "water",
-      "description": "Lanças de Gelo: potência por nível. Adaptação idle de MG_COLDBOLT.",
+      "description": "Lança magia de água contra o alvo. Uma boa escolha para enfrentar criaturas de fogo.",
       "spCost": [
         12,
         14,
@@ -18567,7 +18567,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "wind",
-      "description": "Relâmpago: potência por nível. Adaptação idle de MG_LIGHTNINGBOLT.",
+      "description": "Atinge o alvo com magia de vento. É especialmente útil contra criaturas de água.",
       "spCost": [
         12,
         14,
@@ -18602,7 +18602,7 @@
       "requiredWeapon": [
         "bow"
       ],
-      "description": "Rajada de Flechas: potência por nível. Adaptação idle de AC_DOUBLE.",
+      "description": "Dispara uma rajada que causa dano físico elevado. Requer um arco equipado.",
       "spCost": [
         12,
         12,
@@ -18637,7 +18637,7 @@
       "requiredWeapon": [
         "bow"
       ],
-      "description": "Chuva de Flechas: potência por nível. Adaptação idle de AC_SHOWER.",
+      "description": "Concentra uma chuva de flechas no inimigo atual. Requer um arco equipado.",
       "spCost": [
         15,
         15,
@@ -18672,7 +18672,7 @@
       "effects": {
         "dex": 1
       },
-      "description": "Olhos de Coruja: efeito por nível. Adaptação idle de AC_OWL.",
+      "description": "Aumenta sua DEX permanentemente, melhorando a precisão e o ataque com armas de distância.",
       "spCost": [
         0,
         0,
@@ -18704,7 +18704,7 @@
       "kind": "heal",
       "maxLevel": 10,
       "cooldownMs": 3000,
-      "description": "Curar: potência por nível. Adaptação idle de AL_HEAL.",
+      "description": "Recupera HP quando você está ferido. Reserve SP para manter a caçada por mais tempo.",
       "spCost": [
         13,
         16,
@@ -18742,7 +18742,7 @@
         "dex": 1
       },
       "durationMs": 60000,
-      "description": "Bênção: bônus por nível durante 60s. Adaptação idle de AL_BLESSING.",
+      "description": "Aumenta temporariamente STR, INT e DEX. Reforça tanto ataques físicos quanto mágicos.",
       "spCost": [
         28,
         32,
@@ -18775,7 +18775,7 @@
       "maxLevel": 1,
       "cooldownMs": 3000,
       "element": "holy",
-      "description": "Luz Divina: potência por nível. Adaptação idle de AL_HOLYLIGHT.",
+      "description": "Atinge o alvo com magia sagrada. Útil contra criaturas vulneráveis ao elemento sagrado.",
       "spCost": [
         15
       ],
@@ -18789,7 +18789,7 @@
       "kind": "physical",
       "maxLevel": 10,
       "cooldownMs": 3000,
-      "description": "Mammonita: potência por nível. Adaptação idle de MC_MAMMONITE.",
+      "description": "Gasta zeny para aplicar um ataque físico poderoso. Use quando o dano extra compensar o custo.",
       "spCost": [
         5,
         5,
@@ -18837,7 +18837,7 @@
         "str": 4
       },
       "durationMs": 60000,
-      "description": "Grito de Guerra: bônus por nível durante 60s. Adaptação idle de MC_LOUD.",
+      "description": "Aumenta temporariamente sua STR, fortalecendo os ataques corpo a corpo.",
       "spCost": [
         8
       ],
@@ -18851,7 +18851,7 @@
       "kind": "physical",
       "maxLevel": 1,
       "cooldownMs": 3000,
-      "description": "Cavalo de Pau: potência por nível. Adaptação idle de MC_CARTREVOLUTION.",
+      "description": "Aplica um golpe físico pesado no inimigo atual. Uma opção ofensiva para caçar com o Mercador.",
       "spCost": [
         12
       ],
@@ -18868,7 +18868,7 @@
       "effects": {
         "damagePct": 3
       },
-      "description": "Ataque Duplo: efeito por nível. Adaptação idle de TF_DOUBLE.",
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Funciona sem ocupar espaço na rotação.",
       "spCost": [
         0,
         0,
@@ -18901,7 +18901,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "poison",
-      "description": "Envenenar: potência por nível. Adaptação idle de TF_POISON.",
+      "description": "Aplica um ataque físico de veneno contra o alvo. Escolha de acordo com a resistência elemental da criatura.",
       "spCost": [
         12,
         12,
@@ -18936,7 +18936,7 @@
       "effects": {
         "flee": 3
       },
-      "description": "Perícia em Esquiva: efeito por nível. Adaptação idle de TF_MISS.",
+      "description": "Aumenta sua esquiva permanentemente, reduzindo a frequência dos golpes recebidos.",
       "spCost": [
         0,
         0,
@@ -18971,7 +18971,7 @@
       "requiredWeapon": [
         "spear"
       ],
-      "description": "Perfurar: potência por nível. Adaptação idle de KN_PIERCE.",
+      "description": "Perfura o inimigo com um ataque físico forte. Requer uma lança equipada.",
       "spCost": [
         7,
         7,
@@ -19006,7 +19006,7 @@
       "requiredWeapon": [
         "spear"
       ],
-      "description": "Brandir Lança: potência por nível. Adaptação idle de KN_BRANDISHSPEAR.",
+      "description": "Desfere uma investida poderosa com a lança contra o alvo. Requer uma lança equipada.",
       "spCost": [
         12,
         12,
@@ -19039,7 +19039,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "holy",
-      "description": "Crux Divinum: potência por nível. Adaptação idle de CR_HOLYCROSS.",
+      "description": "Aplica um golpe físico sagrado. Combina uma arma forte com a fraqueza elemental do inimigo.",
       "spCost": [
         11,
         12,
@@ -19072,7 +19072,7 @@
       "maxLevel": 5,
       "cooldownMs": 3000,
       "requiredSlot": "shield",
-      "description": "Escudo Bumerangue: potência por nível. Adaptação idle de CR_SHIELDBOOMERANG.",
+      "description": "Arremessa o escudo para causar dano físico ao alvo. Requer um escudo equipado.",
       "spCost": [
         12,
         12,
@@ -19095,7 +19095,7 @@
       "maxLevel": 10,
       "cooldownMs": 3000,
       "element": "wind",
-      "description": "Trovão de Júpiter: potência por nível. Adaptação idle de WZ_JUPITEL.",
+      "description": "Concentra magia de vento em uma descarga poderosa. Use contra alvos resistentes ou vulneráveis ao vento.",
       "spCost": [
         20,
         23,
@@ -19128,7 +19128,7 @@
       "maxLevel": 10,
       "cooldownMs": 8000,
       "element": "water",
-      "description": "Nevasca: potência por nível. Adaptação idle de WZ_STORMGUST.",
+      "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos.",
       "spCost": [
         78,
         78,
@@ -19164,7 +19164,7 @@
         "matk": 5
       },
       "durationMs": 60000,
-      "description": "Desejo Arcano: bônus por nível durante 60s. Adaptação idle de SA_AUTOSPELL.",
+      "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas.",
       "spCost": [
         35,
         35,
@@ -19204,7 +19204,7 @@
         "itemId": 990,
         "quantity": 1
       },
-      "description": "Encantar com Chama: bônus por nível durante 60s. Adaptação idle de SA_FLAMELAUNCHER.",
+      "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso.",
       "spCost": [
         40,
         40,
@@ -19226,7 +19226,7 @@
       "kind": "physical",
       "maxLevel": 5,
       "cooldownMs": 3000,
-      "description": "Ataque Aéreo: potência por nível. Adaptação idle de HT_BLITZBEAT.",
+      "description": "Comanda uma investida que causa dano físico ao inimigo atual. Acrescenta uma opção ofensiva à rotação.",
       "spCost": [
         10,
         13,
@@ -19251,7 +19251,7 @@
       "effects": {
         "atk": 4
       },
-      "description": "Flagelo das Feras: efeito por nível. Adaptação idle de HT_BEASTBANE.",
+      "description": "Aumenta seu ataque físico permanentemente, fortalecendo os golpes de cada caçada.",
       "spCost": [
         0,
         0,
@@ -19286,7 +19286,7 @@
       "requiredWeapon": [
         "instrument"
       ],
-      "description": "Flecha Melódica: potência por nível. Adaptação idle de BA_MUSICALSTRIKE.",
+      "description": "Dispara um ataque físico com seu instrumento. Requer um instrumento equipado.",
       "spCost": [
         1,
         3,
@@ -19312,7 +19312,7 @@
         "aspd": 1
       },
       "durationMs": 60000,
-      "description": "Ritmo de Batalha: bônus por nível durante 60s. Adaptação idle de BA_POEMBRAGI.",
+      "description": "Acelera temporariamente seus ataques. Útil para aumentar a frequência dos golpes durante a caçada.",
       "spCost": [
         40,
         45,
@@ -19347,7 +19347,7 @@
       "requiredWeapon": [
         "whip"
       ],
-      "description": "Flecha Melódica: potência por nível. Adaptação idle de DC_THROWARROW.",
+      "description": "Lança um ataque físico com seu chicote. Requer um chicote equipado.",
       "spCost": [
         1,
         3,
@@ -19373,7 +19373,7 @@
         "aspd": 1
       },
       "durationMs": 60000,
-      "description": "Ritmo de Batalha: bônus por nível durante 60s. Adaptação idle de DC_SERVICEFORYOU.",
+      "description": "Acelera temporariamente seus ataques. Mantenha o bônus ativo para atacar com mais frequência.",
       "spCost": [
         40,
         45,
@@ -19409,7 +19409,7 @@
         "def": 2
       },
       "durationMs": 60000,
-      "description": "Kyrie Eleison: bônus por nível durante 60s. Adaptação idle de PR_KYRIE.",
+      "description": "Aumenta temporariamente sua defesa, reduzindo o dano físico recebido.",
       "spCost": [
         20,
         20,
@@ -19445,7 +19445,7 @@
         "itemId": 717,
         "quantity": 1
       },
-      "description": "Santuário: potência por nível. Adaptação idle de PR_SANCTUARY.",
+      "description": "Recupera HP quando você está ferido. Consome uma Gema Azul a cada uso.",
       "spCost": [
         15,
         18,
@@ -19480,7 +19480,7 @@
       "effects": {
         "damagePct": 4
       },
-      "description": "Combo Triplo: efeito por nível. Adaptação idle de MO_TRIPLEATTACK.",
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Ajuda a vencer encontros sem gastar SP adicional.",
       "spCost": [
         0,
         0,
@@ -19512,7 +19512,7 @@
       "kind": "physical",
       "maxLevel": 5,
       "cooldownMs": 3000,
-      "description": "Investigar: potência por nível. Adaptação idle de MO_INVESTIGATE.",
+      "description": "Aplica um ataque físico concentrado e poderoso ao inimigo atual.",
       "spCost": [
         10,
         14,
@@ -19542,7 +19542,7 @@
         "axe",
         "mace"
       ],
-      "description": "Adrenalina Pura: bônus por nível durante 60s. Adaptação idle de BS_ADRENALINE.",
+      "description": "Acelera temporariamente seus ataques. Requer um machado ou uma maça equipada.",
       "spCost": [
         20,
         23,
@@ -19568,7 +19568,7 @@
         "damagePct": 4
       },
       "durationMs": 60000,
-      "description": "Manejo Perfeito: bônus por nível durante 60s. Adaptação idle de BS_WEAPONPERFECT.",
+      "description": "Aumenta temporariamente o dano causado, tornando seus ataques mais fortes.",
       "spCost": [
         18,
         16,
@@ -19594,7 +19594,7 @@
         "itemId": 7136,
         "quantity": 1
       },
-      "description": "Terror Ácido: potência por nível. Adaptação idle de AM_ACIDTERROR.",
+      "description": "Causa dano físico elevado ao alvo. Consome uma Garrafa de Ácido a cada uso.",
       "spCost": [
         15,
         15,
@@ -19620,7 +19620,7 @@
         "itemId": 501,
         "quantity": 1
       },
-      "description": "Arremessar Poção: potência por nível. Adaptação idle de AM_POTIONPITCHER.",
+      "description": "Recupera HP quando você está ferido. Consome uma Poção Vermelha a cada uso.",
       "spCost": [
         1,
         1,
@@ -19645,7 +19645,7 @@
       "requiredWeapon": [
         "katar"
       ],
-      "description": "Lâminas Destruidoras: potência por nível. Adaptação idle de AS_SONICBLOW.",
+      "description": "Desfere um ataque físico de grande impacto. Requer um katar equipado.",
       "spCost": [
         16,
         18,
@@ -19681,7 +19681,7 @@
         "damagePct": 3
       },
       "durationMs": 60000,
-      "description": "Encantar com Veneno: bônus por nível durante 60s. Adaptação idle de AS_ENCHANTPOISON.",
+      "description": "Fortalece temporariamente o dano dos seus ataques. Prepare o bônus antes de enfrentar inimigos mais difíceis.",
       "spCost": [
         20,
         20,
@@ -19713,7 +19713,7 @@
       "kind": "physical",
       "maxLevel": 5,
       "cooldownMs": 3000,
-      "description": "Ataque Surpresa: potência por nível. Adaptação idle de RG_RAID.",
+      "description": "Aplica um ataque físico surpresa e poderoso ao inimigo atual.",
       "spCost": [
         20,
         20,
@@ -19735,7 +19735,7 @@
       "kind": "steal",
       "maxLevel": 10,
       "cooldownMs": 15000,
-      "description": "Furto de Moedas: potência por nível. Adaptação idle de RG_STEALCOIN.",
+      "description": "Obtém uma pequena quantidade de zeny durante o combate. Consome SP e tem um intervalo maior entre usos.",
       "spCost": [
         15,
         15,

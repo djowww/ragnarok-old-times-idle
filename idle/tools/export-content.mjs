@@ -61,7 +61,7 @@ for (const rule of rules.skills) {
         throw new Error('Missing source skill ' + rule.source);
     const { source, powerStart, powerStep, ...rest } = rule;
     const maxLevel = Math.min(src.MaxLevel, rule.maxLevel);
-    catalog.skills[rule.id] = { ...rest, maxLevel, description: `${rule.name}: ${rule.kind === 'passive' ? 'efeito por nível' : rule.kind === 'buff' ? 'bônus por nível durante ' + Math.round((rule.durationMs ?? 60000) / 1000) + 's' : 'potência por nível'}. Adaptação idle de ${source}.`, spCost: byLevel(src.Requirements?.SPCost ?? 0, maxLevel), power: Array.from({ length: maxLevel }, (_, i) => powerStart + i * powerStep), ...src.Requirements?.ZenyCost && { zenyCost: byLevel(src.Requirements.ZenyCost, maxLevel) } };
+    catalog.skills[rule.id] = { ...rest, maxLevel, description: rule.description, spCost: byLevel(src.Requirements?.SPCost ?? 0, maxLevel), power: Array.from({ length: maxLevel }, (_, i) => powerStart + i * powerStep), ...src.Requirements?.ZenyCost && { zenyCost: byLevel(src.Requirements.ZenyCost, maxLevel) } };
     manifest.skillSources[rule.id] = { id: src.Id, name: source, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost'].includes(k)) };
 }
 const slotFromLoc = loc => { if (Array.isArray(loc))
