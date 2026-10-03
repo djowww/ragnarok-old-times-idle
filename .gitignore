@@ -1,0 +1,8 @@
+.env
+client-data/
+*.grf
+*.gpf
+DATA.INI
+*.log
+/logs/
+/build/

@@ -1,0 +1,9 @@
+char_configuration: {
+  inter: {
+    userid: "s1"
+    passwd: "p1"
+    login_ip: "hercules"
+    bind_ip: "0.0.0.0"
+    char_ip: "127.0.0.1"
+  }
+}

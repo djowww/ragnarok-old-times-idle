@@ -1,0 +1,7 @@
+sql_connection: {
+  db_hostname: "${DB_HOST}"
+  db_port: ${DB_PORT}
+  db_username: "${DB_USER}"
+  db_password: "${DB_PASSWORD}"
+  db_database: "${DB_NAME}"
+}

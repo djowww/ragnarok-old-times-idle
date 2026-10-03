@@ -1,0 +1,49 @@
+services:
+  database:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:?Copie .env.example para .env}
+      MARIADB_USER: ${DB_USER:?Defina DB_USER em .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Defina DB_ROOT_PASSWORD em .env}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mariadb-admin ping --host=127.0.0.1 --user=root --password="$${MARIADB_ROOT_PASSWORD}" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - ragnarok_local
+
+  hercules:
+    build:
+      context: ./docker/hercules
+      args:
+        PACKETVER: ${PACKETVER:?Defina PACKETVER em .env}
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:?Defina DB_NAME em .env}
+      DB_USER: ${DB_USER:?Defina DB_USER em .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+    depends_on:
+      database:
+        condition: service_healthy
+    expose:
+      - "6900"
+      - "6121"
+      - "5121"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+volumes:
+  mariadb_data:
+
+networks:
+  ragnarok_local:
+    driver: bridge
