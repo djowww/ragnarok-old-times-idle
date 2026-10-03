@@ -3,6 +3,7 @@ import type { Slot } from "../shared/types";
 import { useGame } from "./api";
 import Scene, { ActorPreview } from "./components/Scene";
 import Offline from "./components/Offline";
+import AudioToggle from "./components/AudioToggle";
 import {
   duration,
   ItemIcon,
@@ -199,10 +200,13 @@ export default function App() {
                   <span className="dot-separator">/</span>
                   {area && state.status !== "town" ? area.name : "Prontera"}
                 </div>
-                <span>
-                  EXP {catalog.rates.baseExp}× · Job {catalog.rates.jobExp}× ·
-                  Drop {catalog.rates.drop}×
-                </span>
+                <div className="world-status-tools">
+                  <span>
+                    EXP {catalog.rates.baseExp}× · Job {catalog.rates.jobExp}× ·
+                    Drop {catalog.rates.drop}×
+                  </span>
+                  <AudioToggle />
+                </div>
               </div>
               <main id="adventure" className="cockpit">
                 <aside className="hero-column">

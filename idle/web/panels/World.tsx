@@ -204,8 +204,8 @@ export function Bestiary({ catalog, snapshot }: PanelProps) {
             </dl>
             <h4 className="detail-heading">Drops</h4>
             <div className="drop-list">
-              {monster.drops.map((drop) => (
-                <div key={drop.itemId}>
+              {monster.drops.map((drop, index) => (
+                <div key={`${drop.itemId}:${index}`}>
                   <span>
                     {catalog.items[drop.itemId]?.name ?? `Item ${drop.itemId}`}
                   </span>

@@ -3255,6 +3255,60 @@ button.full {
   padding: 4px 7px;
   white-space: nowrap;
 }
+.world-status .world-status-tools {
+  gap: 15px;
+}
+.world-status-tools > span {
+  color: #b5c4b3;
+}
+.audio-controls {
+  position: relative;
+}
+.audio-toggle {
+  font-size: 10px;
+  min-height: 25px;
+  padding: 4px 10px;
+  color: #e3e9d7;
+  border-color: #80998a70;
+  background: #364f52;
+  box-shadow: inset 0 1px #a7bfaa22;
+}
+.audio-toggle:hover:not(:disabled) {
+  background: #4b665b;
+  color: #f4f3e3;
+  border-color: #a1b895;
+}
+.audio-toggle[aria-pressed="true"] {
+  color: #e9dcab;
+  background: #536357;
+  border-color: #adad82;
+}
+.audio-error {
+  position: absolute;
+  right: 0;
+  top: 31px;
+  width: 215px;
+  z-index: 25;
+  padding: 10px;
+  border: 1px solid #af9677;
+  border-radius: 3px;
+  background: #efe4ce;
+  color: #795f40;
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: 0 3px 8px #18333433;
+}
+@media (max-width: 440px) {
+  .world-status .world-status-tools {
+    gap: 7px;
+    font-size: 8px;
+  }
+  .audio-toggle {
+    font-size: 9px;
+    min-height: 25px;
+    padding: 4px 7px;
+  }
+}
 @media (max-width: 440px) {
   .mobile-panel-title {
     display: flex;
