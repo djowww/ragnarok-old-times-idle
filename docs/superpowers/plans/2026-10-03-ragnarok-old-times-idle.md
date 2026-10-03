@@ -55,10 +55,10 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Produz `Catalog`, `GameState`, `GameCommand`, `GameSnapshot`, `DerivedStats`, `SpriteAsset`, `InventoryEntry`, e scripts `test`, `typecheck`, `build`, `dev`, `start`.
 
-- [ ] Definir tipos coerentes com todas as ações/estado da spec, mantendo o motor independente de DOM/SQL.
-- [ ] Configurar dependências fixadas por lockfile, build de API e UI separado, e ignore para módulos/build/reports.
-- [ ] Verificar resolução do toolchain com `pnpm install`, sem testes artificiais de texto/configuração.
-- [ ] Salvar a fundação no branch; comunicar tipos aos implementadores.
+- [x] Definir tipos coerentes com todas as ações/estado da spec, mantendo o motor independente de DOM/SQL.
+- [x] Configurar dependências fixadas por lockfile, build de API e UI separado, e ignore para módulos/build/reports.
+- [x] Verificar resolução do toolchain com `pnpm install`, sem testes artificiais de texto/configuração.
+- [x] Salvar a fundação no branch; comunicar tipos aos implementadores.
 
 ### Task 2: Catálogo, classes e economia reproduzíveis
 
@@ -66,11 +66,11 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome `Catalog`; produz catálogo sem credenciais/GRFs com IDs de origem, 25 monstros, 10 áreas, três chefes, oito cartas, armas obtíveis para todos os ramos, habilidades/classes/curvas e missões.
 
-- [ ] RED: testar parsing com comentários/herança/scripts, Poring HP=50/EXP base=2/Job=1 e Jellopy com chance=7000; conferir que script não é executado.
-- [ ] RED: exigir todas as referências válidas (drops, classes/armas, pré-requisitos), curva capaz de atingir caps e nomes de sprite `skel_soldier`/`skel_archer` para os IDs corretos.
-- [ ] Exportar do mesmo commit Hercules, importar defaults/herança, selecionar os IDs da spec e registrar fontes/hashes/exclusões. Definir efeitos suportados, preços e habilidades de forma explícita.
-- [ ] GREEN: `pnpm test -- tests/content.test.ts`; reproduzir exportação e comparar hash.
-- [ ] Entregar catálogo e relatório de procedência; commit somente arquivos próprios.
+- [x] RED: testar parsing com comentários/herança/scripts, Poring HP=50/EXP base=2/Job=1 e Jellopy com chance=7000; conferir que script não é executado.
+- [x] RED: exigir todas as referências válidas (drops, classes/armas, pré-requisitos), curva capaz de atingir caps e nomes de sprite `skel_soldier`/`skel_archer` para os IDs corretos.
+- [x] Exportar do mesmo commit Hercules, importar defaults/herança, selecionar os IDs da spec e registrar fontes/hashes/exclusões. Definir efeitos suportados, preços e habilidades de forma explícita.
+- [x] GREEN: `pnpm test -- tests/content.test.ts`; reproduzir exportação e comparar hash.
+- [x] Entregar catálogo e relatório de procedência; commit somente arquivos próprios.
 
 ### Task 3: Motor de combate, progressão e comandos
 
@@ -78,13 +78,13 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome tipos/catalogue; produz as quatro funções puras fixadas e `GameError` exportado de `engine/index.ts`.
 
-- [ ] RED: com fixture real e relógio injetado, comparar 600 avanços de um segundo com um avanço de 600 segundos; repetir avanço no mesmo horário não muda XP/loot. Limite de 12 horas deve pausar e descartar tempo além do cap.
-- [ ] RED: provar morte sem recompensa duplicada, auto poção consumindo item, rotação sem SP caindo para ataque básico, e dano de arco melhorando com DEX / magia com INT.
-- [ ] Implementar PRNG determinístico, ticks de um segundo, encontros, combate, recuperação, consumíveis e resumo acumulado. Limitar histórico a 60 eventos e evitar trabalho proporcional a eventos de UI.
-- [ ] RED: testar compra/saldo negativo, propriedade/slot de equipamento, venda protegida, carta consumida uma vez, refinamento falho preservando +5 e requisitos de classe.
-- [ ] Implementar todos os comandos do contrato, atributos/pontos, evolução de classes/skills, missões/bestiário, renascimento e desafios com tentativa/cooldown persistidos.
-- [ ] GREEN: `pnpm test -- tests/engine.test.ts tests/commands.test.ts`; verificar percurso acelerado de Base/Job/caps através do relógio de teste, sem endpoint de concessão livre no produto.
-- [ ] Registrar relatório e commit dos arquivos do motor.
+- [x] RED: com fixture real e relógio injetado, comparar 600 avanços de um segundo com um avanço de 600 segundos; repetir avanço no mesmo horário não muda XP/loot. Limite de 12 horas deve pausar e descartar tempo além do cap.
+- [x] RED: provar morte sem recompensa duplicada, auto poção consumindo item, rotação sem SP caindo para ataque básico, e dano de arco melhorando com DEX / magia com INT.
+- [x] Implementar PRNG determinístico, ticks de um segundo, encontros, combate, recuperação, consumíveis e resumo acumulado. Limitar histórico a 60 eventos e evitar trabalho proporcional a eventos de UI.
+- [x] RED: testar compra/saldo negativo, propriedade/slot de equipamento, venda protegida, carta consumida uma vez, refinamento falho preservando +5 e requisitos de classe.
+- [x] Implementar todos os comandos do contrato, atributos/pontos, evolução de classes/skills, missões/bestiário, renascimento e desafios com tentativa/cooldown persistidos.
+- [x] GREEN: `pnpm test -- tests/engine.test.ts tests/commands.test.ts`; verificar percurso acelerado de Base/Job/caps através do relógio de teste, sem endpoint de concessão livre no produto.
+- [x] Registrar relatório e commit dos arquivos do motor.
 
 ### Task 4: API e MariaDB transacional
 
@@ -92,13 +92,13 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome funções do motor e catálogo; produz `buildApp` e `GameRepository` com os endpoints fixados.
 
-- [ ] RED: HTTP válido executa intenção; payload inválido, quantidade negativa, comando desconhecido e origem externa são rejeitados antes de alterar estado.
-- [ ] Implementar validação, erros com snapshot recuperável, perfil local e entrega de frontend/static assets na mesma origem.
-- [ ] RED: integração MariaDB com duas transações concorrentes e um `requestId` repetido compra somente uma vez; falha de comando reverte estado/recibo; restart recupera JSON persistido. Usar perfil de teste próprio e remover somente essas linhas.
-- [ ] Implementar migração prefixada, `SELECT ... FOR UPDATE`, recibos e persistência; não abrir portas adicionais do banco.
-- [ ] Implementar reconciliação anterior ao contato, resumo após 30s e agendador sem contato; proxy de assets com paths codificados e limites/erros claros.
-- [ ] GREEN: `pnpm test -- tests/api.test.ts`; integração com banco via comando documentado, sem mostrar senhas.
-- [ ] Commit dos módulos do servidor e evidência das verificações.
+- [x] RED: HTTP válido executa intenção; payload inválido, quantidade negativa, comando desconhecido e origem externa são rejeitados antes de alterar estado.
+- [x] Implementar validação, erros com snapshot recuperável, perfil local e entrega de frontend/static assets na mesma origem.
+- [x] RED: integração MariaDB com duas transações concorrentes e um `requestId` repetido compra somente uma vez; falha de comando reverte estado/recibo; restart recupera JSON persistido. Usar perfil de teste próprio e remover somente essas linhas.
+- [x] Implementar migração prefixada, `SELECT ... FOR UPDATE`, recibos e persistência; não abrir portas adicionais do banco.
+- [x] Implementar reconciliação anterior ao contato, resumo após 30s e agendador sem contato; proxy de assets com paths codificados e limites/erros claros.
+- [x] GREEN: `pnpm test -- tests/api.test.ts`; integração com banco via comando documentado, sem mostrar senhas.
+- [x] Commit dos módulos do servidor e evidência das verificações.
 
 ### Task 5: SPR/ACT/BMP e composição de sprites
 
@@ -106,10 +106,10 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome `SpriteAsset`/catalogue; produz `loadActor(asset: SpriteAsset): Promise<DecodedActor>`, `drawActor(ctx, actor, action, elapsed, x, y, scale)`, e `getItemIcon(item): Promise<string>` com cache e fallback explícito.
 
-- [ ] RED: fixtures binárias pequenas testam transparência de palette index 0, ACT transforms/offsets e BMP magenta transparente; binário truncado falha com erro recuperável.
-- [ ] Adaptar decoders SPR/ACT e composição Canvas2D com atribuição upstream; resolver itens pelo ID/recurso do cliente. Não copiar sprites para o repositório.
-- [ ] GREEN: `pnpm test -- tests/assets.test.ts`; verificar leitura real de Poring, um skeleton com alias, corpo/cabeça de Aprendiz e Red Potion pelo proxy.
-- [ ] Commit dos decoders e relatório.
+- [x] RED: fixtures binárias pequenas testam transparência de palette index 0, ACT transforms/offsets e BMP magenta transparente; binário truncado falha com erro recuperável.
+- [x] Adaptar decoders SPR/ACT e composição Canvas2D com atribuição upstream; resolver itens pelo ID/recurso do cliente. Não copiar sprites para o repositório.
+- [x] GREEN: `pnpm test -- tests/assets.test.ts`; verificar leitura real de Poring, um skeleton com alias, corpo/cabeça de Aprendiz e Red Potion pelo proxy.
+- [x] Commit dos decoders e relatório.
 
 ### Task 6: Interface de jogo completa e responsiva
 
@@ -117,12 +117,12 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome `GameSnapshot`, `Catalog`, endpoints e funções do decoder; envia somente comandos tipados com UUID por intenção.
 
-- [ ] Implementar layout de jogo conforme spec: header, personagem/loadout, cena, controles e diário; painéis mochila/loja, atributos/skills, mapa, missões/bestiário, classes/desafios.
-- [ ] Poll de sessão sem permitir requisições sobrepostas; preservar erro/estado anterior, desabilitar ação durante envio, e apresentar falha recuperável.
-- [ ] Conectar todos os comandos: iniciar/parar, cidade/descanso, comprar/vender/equipar/refinar/carta/favorito, pontos, classe/renascimento, poções/rotação, missões/desafios e resumo offline.
-- [ ] Compor cenário leve e sprites reais, barras/feedback de batalha, áudio opcional, foco/contraste e `prefers-reduced-motion`.
-- [ ] Verificar build/typecheck e no browser os controles, largura de computador e celular, erro de API/recurso e retorno offline. UI não precisa de testes que só repetem seu markup.
-- [ ] Commit dos arquivos da interface e relatório de verificação.
+- [x] Implementar layout de jogo conforme spec: header, personagem/loadout, cena, controles e diário; painéis mochila/loja, atributos/skills, mapa, missões/bestiário, classes/desafios.
+- [x] Poll de sessão sem permitir requisições sobrepostas; preservar erro/estado anterior, desabilitar ação durante envio, e apresentar falha recuperável.
+- [x] Conectar todos os comandos: iniciar/parar, cidade/descanso, comprar/vender/equipar/refinar/carta/favorito, pontos, classe/renascimento, poções/rotação, missões/desafios e resumo offline.
+- [x] Compor cenário leve e sprites reais, barras/feedback de batalha, áudio opcional, foco/contraste e `prefers-reduced-motion`.
+- [x] Verificar build/typecheck e no browser os controles, largura de computador e celular, erro de API/recurso e retorno offline. UI não precisa de testes que só repetem seu markup.
+- [x] Commit dos arquivos da interface e relatório de verificação.
 
 ### Task 7: Docker, documentação e operação
 
@@ -130,21 +130,21 @@ O coordenador implementa contratos, servidor e infraestrutura. Três tarefas com
 
 **Interfaces:** Consome build da aplicação; novo serviço `idle-game`, porta `127.0.0.1:3339:3339`, DB interno e asset-service fixo.
 
-- [ ] Build multi-stage com pnpm lockfile, Node 24, frontend compilado e servidor executável; não incluir GRFs ou segredos.
-- [ ] Adicionar serviço ao Compose com espera do banco saudável e restart. Preservar serviços clássicos.
-- [ ] `docker compose up --build -d idle-game`; aguardar `/api/health` saudável e verificar os seis serviços.
-- [ ] Documentar URLs, persistência, diferença entre perfis, comandos de desenvolvimento/teste/exportação, fontes/licenças e aceites observados.
-- [ ] Commit da integração.
+- [x] Build multi-stage com pnpm lockfile, Node 24, frontend compilado e servidor executável; não incluir GRFs ou segredos.
+- [x] Adicionar serviço ao Compose com espera do banco saudável e restart. Preservar serviços clássicos.
+- [x] `docker compose up --build -d idle-game`; aguardar `/api/health` saudável e verificar os seis serviços.
+- [x] Documentar URLs, persistência, diferença entre perfis, comandos de desenvolvimento/teste/exportação, fontes/licenças e aceites observados.
+- [x] Commit da integração.
 
 ### Task 8: Verificação e revisão independente da entrega
 
 **Files:** relatórios/evidências fora do produto e atualização deste plano/README.
 
-- [ ] Executar `pnpm test`, `pnpm typecheck`, `pnpm build`, integração MariaDB e aceites de browser da spec.
-- [ ] Testar offline/restart com perfil de teste isolado; não avançar artificialmente o relógio do perfil do jogador.
-- [ ] Revisão independente do diff, spec e relatórios; corrigir achados que bloqueiam o uso com teste de reprodução.
-- [ ] Capturar tela de computador e celular, verificar ausência de recursos vazios ou botões sem ação.
-- [ ] Commit final, conferir worktree limpo e deixar jogo acessível. Não publicar/mesclar/push sem pedido.
+- [x] Executar `pnpm test`, `pnpm typecheck`, `pnpm build`, integração MariaDB e aceites de browser da spec.
+- [x] Testar offline/restart com perfil de teste isolado; não avançar artificialmente o relógio do perfil do jogador.
+- [x] Revisão independente do diff, spec e relatórios; corrigir achados que bloqueiam o uso com teste de reprodução.
+- [x] Capturar tela de computador e celular, verificar ausência de recursos vazios ou botões sem ação.
+- [x] Commit final, conferir worktree limpo e deixar jogo acessível. Não publicar/mesclar/push sem pedido.
 
 ## Preflight de interfaces
 
