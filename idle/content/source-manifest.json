@@ -1356,12 +1356,12 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "5b7522ebc4a607a1cd36bb36b32fa364a76237969e5e35361995825e6e2b7fba",
+  "rulesSha256": "47aec021cd7836712dce6fa6c60a041fc3456f6f74ea5e7213ba9f568eca8af7",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
   },
-  "catalogSha256": "f241ef11e8962fd1a10f57e9e777351099c718f021039e1762e01f30a61acb0f",
+  "catalogSha256": "d04e2211e2b7302e40f1c83000ba3ed8f1d73c4ae4cc9ed6f8bbf9d0851c7986",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

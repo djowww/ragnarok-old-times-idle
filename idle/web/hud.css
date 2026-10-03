@@ -413,6 +413,22 @@
 .classic-shortcut .skill-icon {
   margin-top: 6px;
 }
+.classic-shortcut.is-waiting .skill-icon {
+  opacity: 0.64;
+}
+.shortcut-readiness {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #e9eee7;
+  border-radius: 50%;
+  background: #a28556;
+}
+.classic-shortcut.is-ready .shortcut-readiness {
+  background: #4f9361;
+}
 
 .classic-chat-toggle {
   display: none;
@@ -437,6 +453,21 @@
 .cockpit .hunt-controls button {
   min-height: 44px;
   border-radius: 1px;
+}
+.cockpit .hunt-context {
+  padding: 2px 12px 8px;
+  border-top: 1px solid #c1d1d3;
+  background: #dce7e6;
+  color: #455d65;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.cockpit .hunt-context span {
+  display: block;
+  color: #805f3d;
+}
+.cockpit .hunt-context b {
+  color: #355468;
 }
 
 .cockpit .automation-controls {

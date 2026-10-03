@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { AreaActivityBucket, Catalog, HuntFocus } from "../../shared/types";
 import { ActorPreview } from "../components/Scene";
 import {
   Empty,
@@ -7,6 +8,36 @@ import {
   RewardLine,
   type PanelProps,
 } from "../components/common";
+
+const elementNames: Record<string, string> = {
+  neutral: "Neutro", water: "Água", earth: "Terra", fire: "Fogo",
+  wind: "Vento", poison: "Veneno", holy: "Sagrado", dark: "Sombrio",
+  ghost: "Fantasma", undead: "Morto-vivo",
+};
+
+export function huntFocusLabel(focus: HuntFocus | undefined, catalog: Catalog): string {
+  if (!focus || focus === "any") return "Qualquer monstro";
+  if (focus.startsWith("monster:"))
+    return catalog.monsters[Number(focus.slice(8))]?.name ?? "Qualquer monstro";
+  const element = focus.slice(8);
+  return `Elemento ${elementNames[element] ?? element}`;
+}
+
+function recentActivity(buckets: AreaActivityBucket[] | undefined, now: number) {
+  const currentMinute = Math.floor(now / 60_000) * 60_000;
+  const recent = (buckets ?? []).filter((bucket) =>
+    bucket.minute >= currentMinute - 14 * 60_000 && bucket.minute <= currentMinute,
+  );
+  return recent.reduce((total, bucket) => ({
+    elapsedMs: total.elapsedMs + bucket.elapsedMs,
+    baseExp: total.baseExp + bucket.baseExp,
+    jobExp: total.jobExp + bucket.jobExp,
+    lootZeny: total.lootZeny + bucket.lootZeny,
+    deaths: total.deaths + bucket.deaths,
+    potions: total.potions + bucket.potions,
+    damageTaken: total.damageTaken + bucket.damageTaken,
+  }), { elapsedMs: 0, baseExp: 0, jobExp: 0, lootZeny: 0, deaths: 0, potions: 0, damageTaken: 0 });
+}
 
 export function World({ catalog, snapshot, busy, command }: PanelProps) {
   const { state } = snapshot;
@@ -20,7 +51,7 @@ export function World({ catalog, snapshot, busy, command }: PanelProps) {
         <div className="route-map" aria-label="Áreas de exploração">
           {catalog.areas.map((area, index) => (
             <div
-              className={`map-stop ${state.areaId === area.id ? "current" : ""} ${state.baseLevel < area.minLevel ? "locked" : ""}`}
+              className={`map-stop ${state.areaId === area.id ? "current" : ""} ${state.pendingAreaId === area.id ? "pending" : ""} ${state.baseLevel < area.minLevel ? "locked" : ""}`}
               key={area.id}
             >
               <span className="map-stop-marker">{index + 1}</span>
@@ -28,7 +59,7 @@ export function World({ catalog, snapshot, busy, command }: PanelProps) {
                 {area.name}
                 <small>
                   Base {area.minLevel}
-                  {state.visitedAreas.includes(area.id) ? " · explorada" : ""}
+                  {state.pendingAreaId === area.id ? " · próxima área" : state.visitedAreas.includes(area.id) ? " · explorada" : ""}
                 </small>
               </span>
             </div>
@@ -44,14 +75,25 @@ export function World({ catalog, snapshot, busy, command }: PanelProps) {
         {catalog.areas.map((area) => {
           const unlocked = state.baseLevel >= area.minLevel;
           const current = state.areaId === area.id;
+          const pending = state.pendingAreaId === area.id;
+          const cancellingPendingArea = !!state.pendingAreaId && current && state.status === "hunting";
+          const focus = state.huntFocus?.[area.id] ?? "any";
+          const elements = [...new Set(area.monsters.map((id) => catalog.monsters[id]?.element.toLowerCase()).filter((value): value is string => !!value))];
+          const activity = recentActivity(state.areaActivity?.[area.id], snapshot.serverTime);
+          const enoughActivity = activity.elapsedMs >= 60_000;
+          const hourly = (value: number) => number(value * 3_600_000 / activity.elapsedMs);
+          const risk = activity.deaths > 0 || activity.potions >= 5
+            ? "alto" : activity.potions > 0 || activity.damageTaken >= snapshot.stats.maxHp
+              ? "moderado" : "baixo";
           return (
             <article
-              className={`area-row ${current ? "current" : ""}`}
+              className={`area-row ${current ? "current" : ""} ${pending ? "pending" : ""}`}
               key={area.id}
             >
-              <div>
+              <div className="area-details">
                 <h3>
                   {area.name} <span>Base {area.minLevel}+</span>
+                  {pending && <span className="area-pending-label">Próxima área</span>}
                 </h3>
                 <p>{area.description}</p>
                 <div className="area-monsters">
@@ -59,27 +101,63 @@ export function World({ catalog, snapshot, busy, command }: PanelProps) {
                     <span key={id}>{catalog.monsters[id].name}</span>
                   ))}
                 </div>
+                <div className="area-activity" aria-label={`Resultados recentes em ${area.name}`}>
+                  <small className="area-activity-window">Últimos 15 min de caça</small>
+                  {enoughActivity ? (
+                    <>
+                      <span><b>Base</b> {hourly(activity.baseExp)} EXP/h <em>estimativa</em></span>
+                      <span><b>Job</b> {hourly(activity.jobExp)} EXP/h <em>estimativa</em></span>
+                      <span><b>Zeny potencial</b> {hourly(activity.lootZeny)}/h <em>estimativa</em></span>
+                    </>
+                  ) : (
+                    <span className="area-collecting">Coletando dados para estimativas · disponível após 1 min nesta área</span>
+                  )}
+                  {activity.elapsedMs > 0 && (
+                    <span className={`area-risk risk-${risk}`} title="Risco alto com derrotas ou 5 poções; moderado com poções ou dano igual ao HP máximo; baixo nos demais casos."><b>Risco {risk}</b> · {activity.deaths} derrotas · {activity.potions} poções</span>
+                  )}
+                </div>
               </div>
-              <button
-                className={
-                  current && state.status === "hunting" ? "" : "primary"
-                }
-                disabled={
-                  busy ||
-                  !unlocked ||
-                  (current && state.status === "hunting") ||
-                  state.status === "challenge"
-                }
-                onClick={() =>
-                  void command({ type: "startHunt", areaId: area.id })
-                }
-              >
-                {!unlocked
-                  ? `Base ${area.minLevel}`
-                  : current && state.status === "hunting"
-                    ? "Caçando aqui"
+              <div className="area-actions">
+                <label className="area-focus">
+                  Preferência de caça
+                  <select
+                    value={focus}
+                    disabled={busy || !unlocked}
+                    onChange={(event) => void command({
+                      type: "setHuntFocus", areaId: area.id, focus: event.target.value as HuntFocus,
+                    })}
+                  >
+                    <option value="any">Qualquer monstro</option>
+                    <optgroup label="Monstro">
+                      {area.monsters.map((id) => (
+                        <option key={id} value={`monster:${id}`}>{catalog.monsters[id].name}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Elemento">
+                      {elements.map((element) => (
+                        <option key={element} value={`element:${element}`}>
+                          {elementNames[element] ?? element}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </label>
+                <button
+                  className={(current && state.status === "hunting" && !cancellingPendingArea) || pending ? "" : "primary"}
+                  disabled={busy || !unlocked || pending || state.status === "resting" || state.status === "challenge" || (current && state.status === "hunting" && !cancellingPendingArea)}
+                  onClick={() => void command({ type: "startHunt", areaId: area.id })}
+                >
+                  {!unlocked ? `Base ${area.minLevel}`
+                    : cancellingPendingArea ? "Cancelar troca"
+                    : pending ? "Troca agendada"
+                    : state.status === "resting" ? "Recuperando"
+                    : state.status === "challenge" ? "Desafio em curso"
+                    : current && state.status === "hunting" ? "Caçando aqui"
+                    : state.status === "hunting" && state.battle ? "Trocar após combate"
+                    : current && state.status === "paused" ? "Retomar caça"
                     : "Caçar"}
-              </button>
+                </button>
+              </div>
             </article>
           );
         })}

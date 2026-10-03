@@ -12,7 +12,7 @@
       "db/pre-re/attr_fix.conf",
       "db/pre-re/size_fix.txt"
     ],
-    "hash": "37071a91dd6e49caa4289e55b7a06cdc220aa54bf467a43f229dc550949d3c12"
+    "hash": "5ac235b2a9874a6a118a71a97a88e209af0de0511ed000f7f3d73c9508d24e75"
   },
   "rates": {
     "baseExp": 4,
@@ -9079,7 +9079,7 @@
       "weight": 10,
       "resource": "data/texture/유저인터페이스/item/코튼셔츠.bmp",
       "effects": {},
-      "shop": true
+      "shop": false
     },
     "2303": {
       "id": 2303,
@@ -9363,7 +9363,7 @@
       "weight": 30,
       "resource": "data/texture/유저인터페이스/item/포멀드레스.bmp",
       "effects": {},
-      "shop": true
+      "shop": false
     },
     "2322": {
       "id": 2322,

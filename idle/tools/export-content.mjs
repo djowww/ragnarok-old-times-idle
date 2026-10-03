@@ -118,6 +118,10 @@ for (const id of rules.shop) {
     if (!itemById[id] || !includeItem(itemById[id], true))
         throw new Error('Unsupported shop item ' + id);
 }
+for (const id of rules.catalogItems ?? []) {
+    if (!itemById[id] || !includeItem(itemById[id]))
+        throw new Error('Unsupported catalog item ' + id);
+}
 for (const id of Object.keys(rules.cards))
     includeItem(itemById[id]);
 const monsterIds = [...new Set([...rules.areas.flatMap(a => a.monsters), ...rules.bosses.map(b => b.monsterId)])];

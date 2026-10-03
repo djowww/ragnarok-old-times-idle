@@ -8,10 +8,11 @@ export class ValidationError extends Error {
 type Rule = (value: unknown) => boolean;
 const integer = (min: number, max: number): Rule => value => typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max;
 const token: Rule = value => typeof value === 'string' && /^[A-Za-z0-9_:\-]{1,80}$/.test(value);
+const huntFocus: Rule = value => typeof value === 'string' && (value === 'any' || /^monster:[1-9]\d{0,6}$/.test(value) || /^element:[a-z]{1,32}$/.test(value));
 const oneOf = (...values: unknown[]): Rule => value => values.includes(value);
 const boolean: Rule = value => typeof value === 'boolean';
 const rules: Record<string, Record<string, Rule>> = {
-  startHunt: { areaId: token }, stop: {}, rest: {}, sellLoot: {}, rebirth: {}, dismissOffline: {},
+  startHunt: { areaId: token }, setHuntFocus: { areaId: token, focus: huntFocus }, stop: {}, rest: {}, sellLoot: {}, rebirth: {}, dismissOffline: {},
   setGender: { gender: oneOf('male', 'female') },
   allocate: { stat: oneOf('str', 'agi', 'vit', 'int', 'dex', 'luk'), amount: integer(1, 99) },
   learnSkill: { skillId: token },

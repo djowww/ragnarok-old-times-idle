@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { GameEvent, Slot } from "../shared/types";
+import type { Catalog, DerivedStats, GameEvent, GameState, Skill, Slot } from "../shared/types";
 import { useGame } from "./api";
 import Scene from "./components/Scene";
 import SkillIcon from "./components/SkillIcon";
@@ -20,7 +20,7 @@ import {
 import Inventory from "./panels/Inventory";
 import Shop from "./panels/Shop";
 import Build from "./panels/Build";
-import { Bestiary, Quests, World } from "./panels/World";
+import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges from "./panels/Challenges";
 
@@ -44,6 +44,39 @@ const classicMenu: ReadonlyArray<{ tab: Tab; label: string; file: string; fallba
 ];
 const classicTexture = (file: string) =>
   assetUrl(`data/texture/유저인터페이스/basic_interface/${file}`);
+
+function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
+  const level = state.learnedSkills[skill.id] ?? 0;
+  const index = Math.max(0, level - 1);
+  const sp = skill.spCost[index] ?? skill.spCost.at(-1) ?? 0;
+  const zeny = skill.zenyCost?.[index] ?? skill.zenyCost?.at(-1) ?? 0;
+  const reasons: string[] = [];
+  const cooldown = (state.skillReadyAt[skill.id] ?? 0) - now;
+  if (cooldown > 0) reasons.push(`recarga em ${Math.ceil(cooldown / 1000)} s`);
+  if (state.sp < sp) reasons.push(`SP insuficiente (${state.sp}/${sp})`);
+  if (state.zeny < zeny) reasons.push(`zeny insuficiente (${state.zeny}/${zeny})`);
+  const weapon = state.inventory.find((entry) => entry.uid === state.equipment.weapon);
+  const weaponType = weapon ? catalog.items[weapon.itemId]?.weaponType : undefined;
+  if (skill.requiredWeapon?.length && (!weaponType || !skill.requiredWeapon.includes(weaponType)))
+    reasons.push("arma incompatível");
+  if (skill.requiredSlot && !state.equipment[skill.requiredSlot])
+    reasons.push(`${slots[skill.requiredSlot].toLowerCase()} necessário`);
+  const itemCost = skill.itemCost;
+  if (itemCost && !state.inventory.some((entry) =>
+    entry.itemId === itemCost.itemId && entry.quantity >= itemCost.quantity,
+  )) reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
+  if (skill.kind === "heal" && state.hp > stats.maxHp * 0.7)
+    reasons.push("aguardando HP abaixo de 70%");
+  if (skill.kind === "buff" && (state.buffs[skill.id]?.expiresAt ?? 0) > now)
+    reasons.push("efeito ainda ativo");
+  if (!state.battle) reasons.push("aguardando combate");
+  const detail = [`${sp} SP`, ...(zeny ? [`${zeny} zeny`] : []), `intervalo ${Math.ceil(skill.cooldownMs / 1000)} s`].join(" · ");
+  return {
+    ready: reasons.length === 0,
+    label: `${skill.name} Nv. ${level} · rotação automática · ${detail} · ${reasons.length ? reasons.join("; ") : "pronta para uso automático"}`,
+  };
+}
+
 function ClassicMinimap({ mapName, mapLabel }: { mapName: string; mapLabel: string }) {
   const [image, setImage] = useState<string | null>(null);
   useEffect(() => {
@@ -270,12 +303,17 @@ export default function App() {
             (total, entry) => total + (catalog.items[entry.itemId]?.weight ?? 0) * entry.quantity,
             0,
           );
-          const hotbarSkills = currentClass.skills
-            .map((id) => catalog.skills[id])
-            .filter((skill) => skill && skill.kind !== "passive" && (state.learnedSkills[skill.id] ?? 0) > 0)
-            .slice(0, 7);
           const selectedArea =
             catalog.areas.find((a) => a.id === areaId) ?? catalog.areas[0];
+          const pendingArea = catalog.areas.find((a) => a.id === state.pendingAreaId);
+          const cancellingPendingArea = !!state.pendingAreaId && state.status === "hunting" && state.areaId === selectedArea.id;
+          const currentFocus = state.areaId ? state.huntFocus?.[state.areaId] : undefined;
+          const latestEvent = state.events.at(-1);
+          const retreatRecovery = state.status === "resting" && latestEvent?.kind === "retreat" && serverTime < latestEvent.at + 10_000;
+          const readyQuest = catalog.quests.find((quest) =>
+            !state.quests[quest.id]?.claimed && (state.quests[quest.id]?.progress ?? 0) >= quest.amount,
+          );
+          const nextQuest = readyQuest ?? catalog.quests.find((quest) => !state.quests[quest.id]?.claimed);
           const active =
             state.status === "hunting" || state.status === "challenge";
           const baseGoal =
@@ -430,18 +468,21 @@ export default function App() {
                       <CombatJournal events={state.events} open={journalOpen} />
                       <div className="classic-shortcuts" role="group" aria-label="Atalhos de habilidades automáticas">
                         {Array.from({ length: 7 }, (_, index) => {
-                          const skill = hotbarSkills[index];
+                          const skillId = index < 3 ? state.rotation[index] : undefined;
+                          const skill = skillId ? catalog.skills[skillId] : undefined;
+                          const readiness = skill ? skillReadiness(skill, state, stats, catalog, serverTime) : null;
                           return skill ? (
                             <button
                               type="button"
-                              className="classic-shortcut"
+                              className={`classic-shortcut ${readiness?.ready ? "is-ready" : "is-waiting"}`}
                               key={index}
-                              title={`${skill.name} Nv. ${state.learnedSkills[skill.id]} · uso automático`}
-                              aria-label={`Ver ${skill.name}, nível ${state.learnedSkills[skill.id]}`}
+                              title={readiness?.label}
+                              aria-label={`Ver habilidades: ${readiness?.label}`}
                               onClick={() => openClassicTab("build")}
                             >
                               <small>F{index + 1}</small>
                               <SkillIcon skill={skill} />
+                              <span className="shortcut-readiness" aria-hidden="true" />
                             </button>
                           ) : (
                             <span className="classic-shortcut empty" key={index} aria-hidden="true">
@@ -469,7 +510,7 @@ export default function App() {
                       <label className="area-selector">
                         Área de caça
                         <select
-                          value={areaId}
+                          value={selectedArea.id}
                           disabled={game.busy || state.status === "challenge"}
                           onChange={(e) => setAreaId(e.target.value)}
                         >
@@ -492,29 +533,37 @@ export default function App() {
                         disabled={
                           game.busy ||
                           state.baseLevel < selectedArea.minLevel ||
+                          state.status === "resting" ||
                           state.status === "challenge" ||
+                          state.pendingAreaId === selectedArea.id ||
                           (state.status === "hunting" &&
-                            state.areaId === areaId)
+                            state.areaId === selectedArea.id && !cancellingPendingArea)
                         }
                         onClick={() =>
-                          void game.command({ type: "startHunt", areaId })
+                          void game.command({ type: "startHunt", areaId: selectedArea.id })
                         }
                       >
-                        {state.status === "hunting" && state.areaId === areaId
-                          ? "Caçando"
-                          : state.areaId === areaId && state.status === "paused"
-                            ? "Retomar caça"
-                            : "Iniciar caça"}
+                        {cancellingPendingArea ? "Cancelar troca"
+                          : state.pendingAreaId === selectedArea.id ? "Troca agendada"
+                          : state.status === "resting" ? "Recuperando"
+                          : state.status === "hunting" && state.areaId === selectedArea.id ? "Caçando"
+                          : state.status === "hunting" && state.battle ? "Trocar após combate"
+                          : state.areaId === selectedArea.id && state.status === "paused" ? "Retomar caça"
+                          : "Iniciar caça"}
                       </button>
                       <button
-                        disabled={game.busy || state.status === "town"}
+                        disabled={game.busy || state.status === "town" || (state.status === "resting" && !state.autoResume)}
                         onClick={() => void game.command({ type: "stop" })}
                       >
-                        {state.status === "challenge" ? "Desistir" : "Cidade"}
+                        {state.status === "challenge" ? "Desistir"
+                          : state.status === "resting" ? "Cancelar retomada"
+                          : state.status === "hunting" && state.battle ? "Recuar · 10 s"
+                          : "Cidade"}
                       </button>
                       <button
                         disabled={
                           game.busy ||
+                          state.status === "challenge" ||
                           state.status === "resting" ||
                           (state.hp >= stats.maxHp && state.sp >= stats.maxSp)
                         }
@@ -523,9 +572,15 @@ export default function App() {
                         Descansar
                       </button>
                     </div>
+                    {state.areaId && (
+                      <div className="hunt-context">
+                        Foco em {area?.name ?? "área atual"}: <b>{huntFocusLabel(currentFocus, catalog)}</b>
+                        {pendingArea && <span>Próxima área: <b>{pendingArea.name}</b> após o combate atual.</span>}
+                      </div>
+                    )}
                     {state.status === "resting" && (
                       <div className="rest-status" role="status">
-                        Recuperando forças
+                        {retreatRecovery ? "Retirada · recuperando forças" : "Recuperando forças"}
                         {state.restUntil > serverTime
                           ? ` · ${duration(state.restUntil - serverTime)}`
                           : ""}
@@ -718,26 +773,24 @@ export default function App() {
                     </dl>
                     <div className="journey-divider" />
                     <button
-                      className="journey-quest"
+                      className={`journey-quest ${readyQuest ? "claimable" : ""}`}
                       onClick={() => changeTab("quests")}
                     >
-                      {(() => {
-                        const next = catalog.quests.find(
-                          (q) => !state.quests[q.id]?.claimed,
-                        );
-                        return next ? (
-                          <>
-                            <span>Próximo objetivo</span>
-                            <b>{next.name}</b>
-                            <small>{next.description}</small>
-                          </>
-                        ) : (
-                          <>
-                            <span>Objetivos concluídos</span>
-                            <b>Siga explorando Rune-Midgard</b>
-                          </>
-                        );
-                      })()}
+                      {nextQuest ? (
+                        <>
+                          <span>{readyQuest ? "Recompensa disponível" : "Próximo objetivo"}</span>
+                          <b>{nextQuest.name}</b>
+                          <small>{nextQuest.description}</small>
+                          <small className="journey-progress">
+                            {readyQuest ? "Pronta para resgatar" : "Progresso"} · {number(state.quests[nextQuest.id]?.progress ?? 0)} / {number(nextQuest.amount)}
+                          </small>
+                        </>
+                      ) : (
+                        <>
+                          <span>Objetivos concluídos</span>
+                          <b>Siga explorando Rune-Midgard</b>
+                        </>
+                      )}
                     </button>
                   </Panel>
                 </aside>

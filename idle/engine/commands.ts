@@ -3,6 +3,7 @@ import { addItem, consume, event, GameError, isProtected, owned, random, require
 import { availableClasses, clampResources, classSkills, healFull, statNames } from './stats.js';
 import { grantReward, updateQuests } from './progression.js';
 import { beginBattle } from './combat.js';
+import { encounterDelay, focusForArea, focusMatches } from '../shared/hunt.js';
 function town(s: GameState) { requireRule(s.status === 'town', 'TOWN_REQUIRED', 'Volte à cidade para esta ação.'); }
 function equipAllowed(s: GameState, c: Catalog, i: Item) { return i.type === 'equipment' && i.slot && s.baseLevel >= i.minLevel && (!i.allowedClasses.length || i.allowedClasses.includes(s.job)) && (!i.weaponType || c.classes[s.job].weapons.includes(i.weaponType)); }
 function removeIneligible(s: GameState, c: Catalog) { for (const [slot, uid] of Object.entries(s.equipment)) { const e = s.inventory.find(e => e.uid === uid); if (!e || !equipAllowed(s, c, c.items[e.itemId])) delete s.equipment[slot as keyof typeof s.equipment]; } }
@@ -10,12 +11,44 @@ export function executeCommand(s: GameState, c: Catalog, command: GameCommand, n
   switch (command.type) {
     case 'startHunt': {
       const area = c.areas.find(a => a.id === command.areaId); requireRule(area && area.minLevel <= s.baseLevel, 'AREA_LOCKED', 'Área indisponível para seu nível.');
+      requireRule(s.status !== 'resting', 'RECOVERING', 'Aguarde o fim da recuperação.');
+      requireRule(s.status !== 'challenge', 'CHALLENGE_ACTIVE', 'Encerre o desafio antes de caçar.');
       requireRule(s.hp > 0, 'RECOVERING', 'Recupere seu HP na cidade.');
-      s.status = 'hunting'; s.areaId = area.id; s.battle = null; s.nextEncounterAt = now + 1000; s.restUntil = 0;
+      if (s.status === 'hunting' && s.areaId === area.id) { s.pendingAreaId = null; break; }
+      if (s.status === 'hunting' && s.battle) {
+        s.pendingAreaId = area.id; event(s, now, 'hunt', `Próxima área: ${area.name}.`); break;
+      }
+      const alreadyHunting = s.status === 'hunting';
+      s.status = 'hunting'; s.areaId = area.id; s.pendingAreaId = null;
+      s.nextEncounterAt = alreadyHunting
+        ? Math.max(s.nextEncounterAt, now + encounterDelay(s, area.id, 1000))
+        : now + encounterDelay(s, area.id, 1000);
+      s.restUntil = 0;
       if (!s.visitedAreas.includes(area.id)) s.visitedAreas.push(area.id); event(s, now, 'hunt', `Caçando em ${area.name}.`); break;
     }
-    case 'stop': s.status = 'town'; s.battle = null; s.autoResume = false; break;
-    case 'rest': s.status = 'resting'; s.battle = null; s.restUntil = now + 30000; s.autoResume = false; break;
+    case 'setHuntFocus': {
+      const area = c.areas.find(a => a.id === command.areaId);
+      requireRule(area && focusMatches(c, area, command.focus), 'INVALID_HUNT_FOCUS', 'Alvo indisponível nesta área.');
+      const previous = focusForArea(s, area.id);
+      (s.huntFocus ??= {})[area.id] = command.focus;
+      if (previous === 'any' && command.focus !== 'any' && s.status === 'hunting' && s.areaId === area.id && !s.battle)
+        s.nextEncounterAt += 1000;
+      break;
+    }
+    case 'stop': {
+      s.autoResume = false; s.pendingAreaId = null;
+      if (s.status === 'resting') break;
+      if (s.status === 'hunting' && s.battle) {
+        s.status = 'resting'; s.battle = null; s.restUntil = now + 10000;
+        event(s, now, 'retreat', 'Retirada do combate. Recuperando na cidade.');
+        break;
+      }
+      s.status = 'town'; s.battle = null; break;
+    }
+    case 'rest': {
+      requireRule(s.status !== 'challenge', 'CHALLENGE_ACTIVE', 'Não é possível descansar durante o desafio.');
+      s.status = 'resting'; s.battle = null; s.pendingAreaId = null; s.restUntil = now + 30000; break;
+    }
     case 'setGender': requireRule(command.gender === 'male' || command.gender === 'female', 'INVALID_GENDER', 'Avatar inválido.'); requireRule(c.classes[s.job].tier === 0 && !s.branch && !s.reborn, 'GENDER_LOCKED', 'Escolha o avatar antes da evolução de classe.'); s.gender = command.gender; break;
     case 'allocate': {
       requireRule(statNames.includes(command.stat) && Number.isSafeInteger(command.amount) && command.amount > 0 && s.stats[command.stat] + command.amount <= 99, 'INVALID_ALLOCATION', 'Distribuição de atributo inválida (máximo 99).');

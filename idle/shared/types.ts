@@ -46,6 +46,12 @@ export interface Area {
   id: string; name: string; map: string; minLevel: number; description: string;
   monsters: number[]; scene: 'field' | 'forest' | 'sewer' | 'cave' | 'sea' | 'orc' | 'desert' | 'castle';
 }
+export type HuntFocus = 'any' | `monster:${number}` | `element:${string}`;
+export interface AreaActivityBucket {
+  /** Epoch milliseconds at the start of a one-minute bucket. */
+  minute: number; elapsedMs: number; kills: number; deaths: number;
+  baseExp: number; jobExp: number; lootZeny: number; damageTaken: number; potions: number;
+}
 export interface Reward { zeny: number; baseExp: number; jobExp: number; items: Array<{ itemId: number; quantity: number }>; }
 export interface Quest {
   id: string; name: string; description: string;
@@ -93,6 +99,9 @@ export interface GameState {
   inventory: InventoryEntry[]; equipment: Partial<Record<Slot, string>>;
   status: 'town' | 'hunting' | 'challenge' | 'resting' | 'paused';
   areaId: string | null; battle: Battle | null; nextEncounterAt: number; restUntil: number;
+  /** Optional for profiles saved before hunt strategy was introduced. */
+  pendingAreaId?: string | null; huntFocus?: Record<string, HuntFocus>;
+  areaActivity?: Record<string, AreaActivityBucket[]>;
   autoPotion: { hpThreshold: number; spThreshold: number }; potionReadyAt: number; autoResume: boolean;
   bestiary: Record<number, number>; visitedAreas: string[]; quests: Record<string, { claimed: boolean; progress: number }>;
   challengeCooldowns: Record<string, number>; challengeAttempts: number; challengeWins: Record<string, number>;
@@ -111,6 +120,7 @@ export interface GameSnapshot {
 }
 export type GameCommand =
   | { type: 'startHunt'; areaId: string }
+  | { type: 'setHuntFocus'; areaId: string; focus: HuntFocus }
   | { type: 'stop' | 'rest' | 'sellLoot' | 'rebirth' | 'dismissOffline' }
   | { type: 'setGender'; gender: 'male' | 'female' }
   | { type: 'allocate'; stat: Stat; amount: number }
