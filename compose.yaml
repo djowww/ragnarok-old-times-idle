@@ -1,6 +1,7 @@
 services:
   database:
     image: mariadb:11.4
+    restart: unless-stopped
     environment:
       MARIADB_DATABASE: ${DB_NAME:?Copie .env.example para .env}
       MARIADB_USER: ${DB_USER:?Defina DB_USER em .env}

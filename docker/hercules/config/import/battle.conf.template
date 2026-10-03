@@ -1,0 +1,4 @@
+battle_configuration: {
+  // roBrowser sends plain packet IDs (packetKeys: false).
+  packet_obfuscation: 0
+}

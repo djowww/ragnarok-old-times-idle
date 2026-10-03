@@ -80,6 +80,10 @@ Until those files are present, the stack can provide the local web page and serv
 - Idle hunting, offline progression, custom marketplace, guild, or monetization features.
 - Bundling, downloading, or redistributing Ragnarok client assets.
 
+## Authorized follow-up — 2026-10-02
+
+The user subsequently requested that we obtain the client data and finish browser gameplay acceptance. This authorizes a one-time download from an official Ragnarok client source, extraction without running its installer, and local import into the ignored `client-data/` directory. The assets remain outside Git and Docker images. This follow-up also covers resolving the loading screen stuck at 100% and checking login, character creation, map entry and movement.
+
 ## References
 
 - [Hercules source repository](https://github.com/HerculesWS/Hercules)

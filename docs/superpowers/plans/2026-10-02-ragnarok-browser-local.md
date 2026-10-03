@@ -188,3 +188,21 @@
   git add README.md .env.example
   git commit -m "docs: explain local browser Ragnarok setup"
   ```
+
+### Task 5: Dados oficiais locais e aceite do jogo no browser
+
+Continuação autorizada pelo usuário em 2026-10-02: obter os dados do cliente e concluir o fluxo jogável.
+
+- [x] Reproduzir a tela preta em 100% e rastrear a causa: o servidor de diagnóstico devolve 503, e a falha de `cursors.spr` não avança o callback de inicialização do roBrowser.
+- [x] Identificar uma fonte oficial: instalador bRO em `client.downloader.levelupgames.com.br/ragnarok.exe`, indicado em publicação administrativa do fórum oficial.
+- [x] Baixar o instalador, conferir tamanho e extrair seus dados sem executá-lo.
+- [x] Importar `DATA.INI`, GRFs e diretórios auxiliares em `client-data/`, sem adicioná-los ao Git ou à imagem.
+- [x] Reiniciar o serviço de assets e verificar health, cursor SPR/ACT e textos com HTTP 200.
+- [x] Verificar login, criação/seleção de personagem, entrada no mapa e movimento no navegador.
+- [x] Documentar a operação e registrar as correções de integração confirmadas.
+
+Falha de operação encontrada durante o diagnóstico: o MariaDB não tinha política de restart e permanecia parado após reiniciar o Docker Desktop. Aplicar `unless-stopped`, verificar a configuração e a política efetiva no container.
+
+Falha de integração confirmada na revisão: as chaves vazias no CMake não desligam a ofuscação, pois Hercules recupera as chaves padrão e exige ofuscação por configuração. O import `battle_configuration.packet_obfuscation: 0` é renderizado no início do servidor para coincidir com `packetKeys: false` do browser. Build, import gerado, servidor online e entrada no mapa foram conferidos.
+
+Dados aceitos: instalador oficial de 3.060.840.269 bytes; extração com checksum interno e exit 0 via innoextract moderno do MSYS2. `data.grf` de 3.419.644.539 bytes (2.0), System/AI e 172 BGM. `event.grf` (1.02) preservado mas inativo; `DATA.INI` gerado com apenas data.grf. Health retornou `status: ok`, errors 0; SPR iniciou com SP e ACT com AC. Navegador mostrou personagem djow em iz_int e int_land, com envio CZ_REQUEST_MOVE e resposta ZC_NOTIFY_PLAYERMOVE. Evidência local em AppData/Local/RagIDLE/evidence/ragnarok-browser.jpg. Nenhum GRF, instalador ou música foi incluído no Git.

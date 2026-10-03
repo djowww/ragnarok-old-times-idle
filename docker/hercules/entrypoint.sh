@@ -32,6 +32,8 @@ render_config /opt/hercules/docker-config/import/map-server.conf.template \
   /opt/hercules/conf/import/map-server.conf
 render_config /opt/hercules/docker-config/import/inter-server.conf.template \
   /opt/hercules/conf/import/inter-server.conf
+render_config /opt/hercules/docker-config/import/battle.conf.template \
+  /opt/hercules/conf/import/battle.conf
 
 db_args=(
   --protocol=TCP
