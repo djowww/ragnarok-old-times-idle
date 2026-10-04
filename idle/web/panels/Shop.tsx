@@ -9,7 +9,7 @@ import {
 import { ItemFacts, typeNames } from "./Inventory";
 
 export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("consumable");
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<number | null>(null);
   const items = Object.values(catalog.items).filter(

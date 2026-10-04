@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 const localMaps = new Set([
   "prontera",
+  "prt_in",
   "prt_fild08",
   "prt_sewb1",
   "prt_fild04",

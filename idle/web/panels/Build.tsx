@@ -15,7 +15,8 @@ export default function Build({
   snapshot,
   busy,
   command,
-}: PanelProps) {
+  mode = "all",
+}: PanelProps & { mode?: "all" | "stats" | "skills" }) {
   const { state, stats } = snapshot;
   const ids = new Set(Object.keys(state.learnedSkills));
   const visited = new Set<string>();
@@ -39,8 +40,8 @@ export default function Build({
     void command({ type: "setRotation", skillIds: next });
   };
   return (
-    <div className="build-layout">
-      <section>
+    <div className={`build-layout build-layout-${mode}`}>
+      {mode !== "skills" && <section>
         <div className="section-title">
           <h3>Atributos</h3>
           <b className="point-count">{number(state.statPoints)} pontos</b>
@@ -106,8 +107,8 @@ export default function Build({
         <p className="note">
           Os atributos distribuídos são permanentes até o renascimento.
         </p>
-      </section>
-      <section className="skills-section">
+      </section>}
+      {mode !== "stats" && <section className="skills-section">
         <div className="section-title">
           <h3>Habilidades</h3>
           <b className="point-count">{number(state.skillPoints)} pontos</b>
@@ -235,7 +236,7 @@ export default function Build({
             );
           })}
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

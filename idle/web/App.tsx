@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import type { Catalog, DerivedStats, GameEvent, GameState, Skill, Slot } from "../shared/types";
 import { useGame } from "./api";
 import Scene from "./components/Scene";
+import ShopScene from "./components/ShopScene";
 import SkillIcon from "./components/SkillIcon";
+import QuestReward from "./components/QuestReward";
 import { assetUrl, FALLBACK_ICON, getBitmapUrl } from "./assets/items";
 import Offline from "./components/Offline";
 import AudioToggle from "./components/AudioToggle";
@@ -24,23 +26,27 @@ import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges from "./panels/Challenges";
 
-const tabs = [
-  ["inventory", "Mochila"],
-  ["shop", "Loja"],
-  ["build", "Atributos & habilidades"],
-  ["world", "Mapa"],
-  ["quests", "Missões"],
-  ["bestiary", "Bestiário"],
-  ["classes", "Classes"],
-  ["challenges", "Desafios"],
-] as const;
-type Tab = (typeof tabs)[number][0];
-const classicMenu: ReadonlyArray<{ tab: Tab; label: string; file: string; fallback: string }> = [
-  { tab: "build", label: "Status", file: "btn_status_off.bmp", fallback: "St" },
-  { tab: "inventory", label: "Equipamento", file: "btn_equip_off.bmp", fallback: "Eq" },
-  { tab: "inventory", label: "Mochila", file: "btn_items_off.bmp", fallback: "It" },
-  { tab: "world", label: "Mapa", file: "btn_map_off.bmp", fallback: "Mp" },
-  { tab: "build", label: "Habilidades", file: "btn_skill_off.bmp", fallback: "Sk" },
+type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
+  "quests" | "bestiary" | "classes" | "challenges" | "shop";
+const windowTitles: Record<GameWindow, string> = {
+  stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
+  skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
+  bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
+  shop: "Loja de poções de Prontera",
+};
+const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
+  { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
+  { destination: "equipment", label: "Equipamento", file: "btn_equip_off.bmp" },
+  { destination: "inventory", label: "Mochila", file: "btn_items_off.bmp" },
+  { destination: "world", label: "Mapa", file: "btn_map_off.bmp" },
+  { destination: "skills", label: "Habilidades", file: "btn_skill_off.bmp" },
+];
+const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
+  { destination: "shop", label: "Loja" },
+  { destination: "quests", label: "Missões" },
+  { destination: "bestiary", label: "Bestiário" },
+  { destination: "classes", label: "Classes" },
+  { destination: "challenges", label: "Desafios" },
 ];
 const classicTexture = (file: string) =>
   assetUrl(`data/texture/유저인터페이스/basic_interface/${file}`);
@@ -125,11 +131,44 @@ function CombatJournal({ events, open }: { events: GameEvent[]; open: boolean })
     </Panel>
   );
 }
+function EquipmentWindow({ catalog, snapshot, busy, command, onInventory }: PanelProps & { onInventory: () => void }) {
+  const { state } = snapshot;
+  return (
+    <div className="equipment-window">
+      <p className="ro-window-intro">Seu equipamento atual acompanha o personagem em toda caçada.</p>
+      <div className="equipment-list">
+        {(Object.keys(slots) as Slot[]).map((slot) => {
+          const entry = state.inventory.find((item) => item.uid === state.equipment[slot]);
+          const item = entry ? catalog.items[entry.itemId] : null;
+          return (
+            <div className={`equipment-row ${entry ? "" : "empty"}`} key={slot}>
+              <span className="slot-label">{slots[slot]}</span>
+              {entry && item ? (
+                <>
+                  <ItemIcon item={item} />
+                  <b title={itemName(item, entry)}>{itemName(item, entry)}</b>
+                  <button className="icon-button" title={`Desequipar ${slots[slot]}`}
+                    aria-label={`Desequipar ${slots[slot]}`} disabled={busy}
+                    onClick={() => void command({ type: "unequip", slot })}>×</button>
+                </>
+              ) : <span className="slot-empty">—</span>}
+            </div>
+          );
+        })}
+      </div>
+      <button className="ro-window-link" onClick={onInventory}>Abrir mochila</button>
+    </div>
+  );
+}
 export default function App() {
   const game = useGame();
-  const [tab, setTab] = useState<Tab>("inventory");
+  const [activeWindow, setActiveWindow] = useState<GameWindow | null>(null);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 640px)").matches);
+  const windowTrigger = useRef<HTMLElement | null>(null);
+  const windowClose = useRef<HTMLButtonElement | null>(null);
   const [areaId, setAreaId] = useState("");
-  const [potionEditor, setPotionEditor] = useState(false);
+  const [potionEditor, setPotionEditor] = useState<"hp" | "sp" | null>(null);
+  const [potionValue, setPotionValue] = useState(0);
   const [journalOpen, setJournalOpen] = useState(
     () => !window.matchMedia("(max-width: 640px)").matches,
   );
@@ -138,17 +177,60 @@ export default function App() {
   const newestLootId = [...(game.snapshot?.state.events ?? [])]
     .reverse()
     .find((event) => event.kind === "loot")?.id ?? null;
-  const [hpThreshold, setHpThreshold] = useState(50);
-  const [spThreshold, setSpThreshold] = useState(25);
+  const claimedBaseline = useRef<Record<string, boolean> | null>(null);
+  const [rewardQuestId, setRewardQuestId] = useState<string | null>(null);
   useEffect(() => {
-    if (game.snapshot) {
-      setHpThreshold(game.snapshot.state.autoPotion.hpThreshold);
-      setSpThreshold(game.snapshot.state.autoPotion.spThreshold);
+    const query = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (!game.snapshot || !game.catalog) return;
+    const current = Object.fromEntries(game.catalog.quests.map((quest) =>
+      [quest.id, !!game.snapshot?.state.quests[quest.id]?.claimed]));
+    if (claimedBaseline.current) {
+      const newlyClaimed = game.catalog.quests.find((quest) =>
+        current[quest.id] && !claimedBaseline.current?.[quest.id]);
+      if (newlyClaimed) setRewardQuestId(newlyClaimed.id);
     }
-  }, [
-    game.snapshot?.state.autoPotion.hpThreshold,
-    game.snapshot?.state.autoPotion.spThreshold,
-  ]);
+    claimedBaseline.current = current;
+  }, [game.snapshot?.state.quests, game.catalog]);
+  const dismissReward = () => {
+    setRewardQuestId(null);
+    window.setTimeout(() => {
+      const target = windowClose.current?.isConnected ? windowClose.current : windowTrigger.current;
+      if (target?.isConnected) target.focus();
+    }, 0);
+  };
+  useEffect(() => {
+    if (!rewardQuestId) return;
+    const timeout = window.setTimeout(dismissReward, 7000);
+    return () => window.clearTimeout(timeout);
+  }, [rewardQuestId, activeWindow]);
+  useEffect(() => {
+    if (!activeWindow) return;
+    windowClose.current?.focus();
+  }, [activeWindow]);
+  const openWindow = (destination: GameWindow, trigger?: HTMLElement) => {
+    if (trigger) windowTrigger.current = trigger;
+    setPotionEditor(null);
+    setActiveWindow(destination);
+  };
+  const closeWindow = () => {
+    setActiveWindow(null);
+    window.setTimeout(() => windowTrigger.current?.focus(), 0);
+  };
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (rewardQuestId) { dismissReward(); return; }
+      if (potionEditor) { setPotionEditor(null); return; }
+      if (activeWindow) closeWindow();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeWindow, potionEditor, rewardQuestId]);
   useEffect(() => {
     if (!areaId && game.catalog)
       setAreaId(game.snapshot?.state.areaId ?? game.catalog.areas[0].id);
@@ -168,38 +250,12 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [newestLootId]);
   const { catalog, snapshot } = game;
-  const panels = {
-    inventory: Inventory,
-    shop: Shop,
-    build: Build,
-    world: World,
-    quests: Quests,
-    bestiary: Bestiary,
-    classes: Classes,
-    challenges: Challenges,
-  };
-  const ActivePanel = panels[tab];
-  const changeTab = (next: Tab) => {
-    setTab(next);
-    if (window.matchMedia("(max-width: 640px)").matches)
-      requestAnimationFrame(() =>
-        document
-          .querySelector(".game-panels")
-          ?.scrollIntoView({ block: "start", behavior: "auto" }),
-      );
-  };
-  const openClassicTab = (next: Tab) => {
-    changeTab(next);
-    requestAnimationFrame(() =>
-      document.querySelector(".game-panels")?.scrollIntoView({ block: "start", behavior: "smooth" }),
-    );
-  };
   return (
     <div className="game-shell">
-      <a className="skip-link" href="#adventure">
+      <a className="skip-link" href="#adventure" inert={isMobile && !!activeWindow}>
         Ir para a aventura
       </a>
-      <header className="masthead">
+      <header className="masthead" inert={isMobile && !!activeWindow}>
         <a className="brand" href="/" aria-label="Ragnarok Old Times Idle">
           <span className="brand-name">Ragnarok</span>
           <span className="brand-subtitle">
@@ -313,7 +369,9 @@ export default function App() {
           const readyQuest = catalog.quests.find((quest) =>
             !state.quests[quest.id]?.claimed && (state.quests[quest.id]?.progress ?? 0) >= quest.amount,
           );
-          const nextQuest = readyQuest ?? catalog.quests.find((quest) => !state.quests[quest.id]?.claimed);
+          const rewardedQuest = rewardQuestId
+            ? catalog.quests.find((quest) => quest.id === rewardQuestId)
+            : undefined;
           const active =
             state.status === "hunting" || state.status === "challenge";
           const baseGoal =
@@ -324,7 +382,7 @@ export default function App() {
             catalog.exp.job[currentClass.expGroup]?.[state.jobLevel] ?? 0;
           return (
             <>
-              <div className="world-status">
+              <div className="world-status" inert={isMobile && !!activeWindow}>
                 <div>
                   <span className="status-diamond" aria-hidden="true" />
                   {statusNames[state.status]}
@@ -342,7 +400,7 @@ export default function App() {
                 </div>
               </div>
               <main id="adventure" className="cockpit">
-                <aside className="hero-column">
+                <aside className="hero-column" inert={isMobile && !!activeWindow}>
                   <Panel
                     title="Informações básicas"
                     className="hero-panel"
@@ -352,13 +410,70 @@ export default function App() {
                       <span>{currentClass.name}{state.reborn ? " · Transcendente" : ""}</span>
                     </div>
                     <div className="hero-vitals">
-                      <Meter label="HP" value={state.hp} max={stats.maxHp} />
-                      <Meter
-                        label="SP"
-                        value={state.sp}
-                        max={stats.maxSp}
-                        kind="sp"
-                      />
+                      <div className="vital-row">
+                        <Meter label="HP" value={state.hp} max={stats.maxHp} />
+                        <button type="button" className="potion-threshold"
+                          aria-label={`Ajustar auto cura de HP, atualmente ${state.autoPotion.hpThreshold}%`}
+                          aria-expanded={potionEditor === "hp"}
+                          aria-controls="hp-potion-editor"
+                          title={`Poção vermelha automática: HP ≤ ${state.autoPotion.hpThreshold}%`}
+                          onClick={() => {
+                            setActiveWindow(null);
+                            setPotionValue(state.autoPotion.hpThreshold);
+                            setPotionEditor(potionEditor === "hp" ? null : "hp");
+                          }}>
+                          <ItemIcon item={catalog.items[501]} />
+                          <span>{state.autoPotion.hpThreshold}%</span>
+                        </button>
+                        {potionEditor === "hp" && (
+                          <form id="hp-potion-editor" className="potion-popover"
+                            onSubmit={async (event) => {
+                              event.preventDefault();
+                              if (await game.command({ type: "setPotions", hpThreshold: potionValue,
+                                spThreshold: state.autoPotion.spThreshold })) setPotionEditor(null);
+                            }}>
+                            <label>Usar poção vermelha quando HP ≤
+                              <input type="number" min="0" max="100" value={potionValue}
+                                onChange={(event) => setPotionValue(Math.min(100, Math.max(0,
+                                  Math.floor(Number(event.target.value) || 0))))} />%
+                            </label>
+                            <small>0% desativa o uso automático.</small>
+                            <button type="submit" className="primary" disabled={game.busy}>Salvar</button>
+                          </form>
+                        )}
+                      </div>
+                      <div className="vital-row">
+                        <Meter label="SP" value={state.sp} max={stats.maxSp} kind="sp" />
+                        <button type="button" className="potion-threshold"
+                          aria-label={`Ajustar auto cura de SP, atualmente ${state.autoPotion.spThreshold}%`}
+                          aria-expanded={potionEditor === "sp"}
+                          aria-controls="sp-potion-editor"
+                          title={`Poção azul automática: SP ≤ ${state.autoPotion.spThreshold}%`}
+                          onClick={() => {
+                            setActiveWindow(null);
+                            setPotionValue(state.autoPotion.spThreshold);
+                            setPotionEditor(potionEditor === "sp" ? null : "sp");
+                          }}>
+                          <ItemIcon item={catalog.items[505]} />
+                          <span>{state.autoPotion.spThreshold}%</span>
+                        </button>
+                        {potionEditor === "sp" && (
+                          <form id="sp-potion-editor" className="potion-popover"
+                            onSubmit={async (event) => {
+                              event.preventDefault();
+                              if (await game.command({ type: "setPotions", hpThreshold: state.autoPotion.hpThreshold,
+                                spThreshold: potionValue })) setPotionEditor(null);
+                            }}>
+                            <label>Usar poção azul quando SP ≤
+                              <input type="number" min="0" max="100" value={potionValue}
+                                onChange={(event) => setPotionValue(Math.min(100, Math.max(0,
+                                  Math.floor(Number(event.target.value) || 0))))} />%
+                            </label>
+                            <small>0% desativa o uso automático.</small>
+                            <button type="submit" className="primary" disabled={game.busy}>Salvar</button>
+                          </form>
+                        )}
+                      </div>
                       <Meter
                         label={`Base ${state.baseLevel}`}
                         value={state.baseExp}
@@ -387,28 +502,30 @@ export default function App() {
                       <span>Zeny <b>{number(state.zeny)}</b></span>
                     </div>
                     <nav className="classic-basic-menu" aria-label="Janelas clássicas">
-                      {classicMenu.map(({ tab: destination, label, file, fallback }, index) => (
+                      {classicMenu.map(({ destination, label, file }) => (
                         <button
                           type="button"
-                          key={`${label}-${index}`}
-                          className={label === "Mochila" && lootPulse ? "loot-pulse" : undefined}
+                          key={destination}
+                          className={`ro-menu-button ${label === "Mochila" && lootPulse ? "loot-pulse" : ""}`}
                           data-loot-destination={label === "Mochila" ? "inventory" : undefined}
                           aria-label={`Abrir ${label}`}
+                          aria-pressed={activeWindow === destination}
                           title={label}
-                          onClick={() => openClassicTab(destination)}
+                          onClick={(event) => openWindow(destination, event.currentTarget)}
                         >
                           <img src={classicTexture(file)} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
-                          <span aria-hidden="true">{fallback}</span>
+                          <span className="ro-menu-label">{label}</span>
                         </button>
                       ))}
                       <button
                         type="button"
+                        className="ro-menu-button"
                         aria-label="Abrir diário de combate"
                         title="Diário de combate"
                         onClick={() => setJournalOpen(!journalOpen)}
                       >
                         <img src={classicTexture("btn_dialog_off.bmp")} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
-                        <span aria-hidden="true">Ch</span>
+                        <span className="ro-menu-label">Diário</span>
                       </button>
                     </nav>
                     {currentClass.tier === 0 && !state.reborn && (
@@ -444,10 +561,12 @@ export default function App() {
                     )}
                   </Panel>
                 </aside>
-                <section className="adventure-column">
+                <section className="adventure-column" inert={isMobile && !!activeWindow}>
                   <Panel
                     title={
-                      state.status === "challenge"
+                      activeWindow === "shop"
+                        ? "Loja de poções de Prontera"
+                        : state.status === "challenge"
                         ? "Arena de desafios"
                         : state.status === "town"
                           ? "Praça de Prontera"
@@ -463,11 +582,23 @@ export default function App() {
                     className="scene-panel"
                   >
                     <div className="classic-map-stage">
-                      <Scene {...props} />
-                      <ClassicMinimap mapName={mapName} mapLabel={mapLabel} />
-                      <CombatJournal events={state.events} open={journalOpen} />
+                      {activeWindow === "shop" ? <ShopScene /> : <Scene {...props} />}
+                      <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
+                        mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
+                      {activeWindow !== "shop" && <CombatJournal events={state.events} open={journalOpen} />}
+                      <nav className="ro-quick-menu" aria-label="Destinos da aventura">
+                        {quickMenu.map(({ destination, label }) => (
+                          <button type="button" key={destination}
+                            aria-pressed={activeWindow === destination}
+                            onClick={(event) => openWindow(destination, event.currentTarget)}>
+                            {label}
+                            {destination === "quests" && readyQuest &&
+                              <span className="notification-count" aria-label="Recompensa disponível">!</span>}
+                          </button>
+                        ))}
+                      </nav>
                       <div className="classic-shortcuts" role="group" aria-label="Atalhos de habilidades automáticas">
-                        {Array.from({ length: 7 }, (_, index) => {
+                        {Array.from({ length: 9 }, (_, index) => {
                           const skillId = index < 3 ? state.rotation[index] : undefined;
                           const skill = skillId ? catalog.skills[skillId] : undefined;
                           const readiness = skill ? skillReadiness(skill, state, stats, catalog, serverTime) : null;
@@ -478,24 +609,25 @@ export default function App() {
                               key={index}
                               title={readiness?.label}
                               aria-label={`Ver habilidades: ${readiness?.label}`}
-                              onClick={() => openClassicTab("build")}
+                              onClick={(event) => openWindow("skills", event.currentTarget)}
                             >
                               <small>F{index + 1}</small>
                               <SkillIcon skill={skill} />
                               <span className="shortcut-readiness" aria-hidden="true" />
                             </button>
+                          ) : index === 3 ? (
+                            <span className="classic-shortcut basic-attack" key={index}
+                              role="img" aria-label="F4: ataque básico automático"
+                              title="Ataque básico automático">
+                              <small>F4</small>
+                              <ItemIcon item={catalog.items[1101]} />
+                            </span>
                           ) : (
                             <span className="classic-shortcut empty" key={index} aria-hidden="true">
                               <small>F{index + 1}</small>
                             </span>
                           );
                         })}
-                        <button type="button" className={`classic-shortcut ${lootPulse ? "loot-pulse" : ""}`} data-loot-destination="shortcut" title="Abrir mochila" aria-label="Abrir mochila" onClick={() => openClassicTab("inventory")}>
-                          <small>F8</small><b aria-hidden="true">It</b>
-                        </button>
-                        <button type="button" className="classic-shortcut" title="Abrir habilidades" aria-label="Abrir habilidades" onClick={() => openClassicTab("build")}>
-                          <small>F9</small><b aria-hidden="true">Sk</b>
-                        </button>
                       </div>
                       <button
                         type="button"
@@ -608,84 +740,8 @@ export default function App() {
                         />{" "}
                         Retomar caça após recuperar
                       </label>
-                      <button
-                        className="text-button"
-                        aria-expanded={potionEditor}
-                        onClick={() => setPotionEditor(!potionEditor)}
-                      >
-                        Auto poção · HP {state.autoPotion.hpThreshold}% / SP{" "}
-                        {state.autoPotion.spThreshold}%
-                      </button>
+                      <span className="automation-hint">Poções: ajuste HP e SP nas barras do personagem.</span>
                     </div>
-                    {potionEditor && (
-                      <form
-                        className="potion-settings"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          if (
-                            await game.command({
-                              type: "setPotions",
-                              hpThreshold,
-                              spThreshold,
-                            })
-                          )
-                            setPotionEditor(false);
-                        }}
-                      >
-                        <label>
-                          HP ≤{" "}
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={hpThreshold}
-                            onChange={(e) =>
-                              setHpThreshold(
-                                Math.min(
-                                  100,
-                                  Math.max(
-                                    0,
-                                    Math.floor(Number(e.target.value) || 0),
-                                  ),
-                                ),
-                              )
-                            }
-                          />{" "}
-                          %
-                        </label>
-                        <label>
-                          SP ≤{" "}
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={spThreshold}
-                            onChange={(e) =>
-                              setSpThreshold(
-                                Math.min(
-                                  100,
-                                  Math.max(
-                                    0,
-                                    Math.floor(Number(e.target.value) || 0),
-                                  ),
-                                ),
-                              )
-                            }
-                          />{" "}
-                          %
-                        </label>
-                        <button
-                          className="primary"
-                          disabled={game.busy}
-                          type="submit"
-                        >
-                          Salvar
-                        </button>
-                        <p className="note">
-                          0% desativa. Usa poções reais da mochila.
-                        </p>
-                      </form>
-                    )}
                   </Panel>
                   <div className="adventure-note">
                     <span className="note-rule" />
@@ -697,184 +753,64 @@ export default function App() {
                     <span className="note-rule" />
                   </div>
                 </section>
-                <Panel
-                  title="Equipamento"
-                  className="equipment-panel"
-                  aside={
-                    <button
-                      className="text-button"
-                      onClick={() => changeTab("inventory")}
-                    >
-                      Mochila
-                    </button>
-                  }
-                >
-                  <div className="equipment-list">
-                    {(Object.keys(slots) as Slot[]).map((slot) => {
-                      const entry = state.inventory.find(
-                        (e) => e.uid === state.equipment[slot],
-                      );
-                      const item = entry ? catalog.items[entry.itemId] : null;
-                      return (
-                        <div
-                          className={`equipment-row ${entry ? "" : "empty"}`}
-                          key={slot}
-                        >
-                          <span className="slot-label">{slots[slot]}</span>
-                          {entry && item ? (
-                            <>
-                              <ItemIcon item={item} />
-                              <b title={itemName(item, entry)}>
-                                {itemName(item, entry)}
-                              </b>
-                              <button
-                                className="icon-button"
-                                title={`Desequipar ${slots[slot]}`}
-                                aria-label={`Desequipar ${slots[slot]}`}
-                                disabled={game.busy}
-                                onClick={() =>
-                                  void game.command({ type: "unequip", slot })
-                                }
-                              >
-                                ×
-                              </button>
-                            </>
-                          ) : (
-                            <span className="slot-empty">—</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </Panel>
-                <aside className="journal-column">
-                  <Panel title="Sua jornada" className="journey-panel">
-                    <dl className="journey-stats">
-                      <div>
-                        <dt>Abates totais</dt>
-                        <dd>{number(state.totals.kills)}</dd>
-                      </div>
-                      <div>
-                        <dt>Áreas exploradas</dt>
-                        <dd>
-                          {state.visitedAreas.length} / {catalog.areas.length}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Missões concluídas</dt>
-                        <dd>
-                          {
-                            Object.values(state.quests).filter((q) => q.claimed)
-                              .length
-                          }{" "}
-                          / {catalog.quests.length}
-                        </dd>
-                      </div>
-                    </dl>
-                    <div className="journey-divider" />
-                    <button
-                      className={`journey-quest ${readyQuest ? "claimable" : ""}`}
-                      onClick={() => changeTab("quests")}
-                    >
-                      {nextQuest ? (
-                        <>
-                          <span>{readyQuest ? "Recompensa disponível" : "Próximo objetivo"}</span>
-                          <b>{nextQuest.name}</b>
-                          <small>{nextQuest.description}</small>
-                          <small className="journey-progress">
-                            {readyQuest ? "Pronta para resgatar" : "Progresso"} · {number(state.quests[nextQuest.id]?.progress ?? 0)} / {number(nextQuest.amount)}
-                          </small>
-                        </>
-                      ) : (
-                        <>
-                          <span>Objetivos concluídos</span>
-                          <b>Siga explorando Rune-Midgard</b>
-                        </>
-                      )}
-                    </button>
-                  </Panel>
-                </aside>
-              </main>
-              <section className="game-panels panel">
-                <div className="panel-heading mobile-panel-title">
-                  <h2>{tabs.find(([id]) => id === tab)?.[1]}</h2>
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      document
-                        .getElementById("adventure")
-                        ?.scrollIntoView({ block: "start", behavior: "auto" })
-                    }
-                  >
-                    Voltar à caça ↑
-                  </button>
-                </div>
-                <nav
-                  className="panel-tabs"
-                  role="tablist"
-                  aria-label="Painéis do jogo"
-                >
-                  {tabs.map(([id, label], index) => (
-                    <button
-                      role="tab"
-                      id={`tab-${id}`}
-                      aria-controls={`panel-${id}`}
-                      aria-selected={tab === id}
-                      tabIndex={tab === id ? 0 : -1}
-                      key={id}
-                      className={tab === id ? "active" : ""}
-                      onClick={() => changeTab(id)}
-                      onKeyDown={(e) => {
-                        if (
-                          ["ArrowRight", "ArrowLeft", "Home", "End"].includes(
-                            e.key,
-                          )
-                        ) {
-                          e.preventDefault();
-                          const next =
-                            e.key === "Home"
-                              ? 0
-                              : e.key === "End"
-                                ? tabs.length - 1
-                                : (index +
-                                    (e.key === "ArrowRight" ? 1 : -1) +
-                                    tabs.length) %
-                                  tabs.length;
-                          changeTab(tabs[next][0]);
-                          document
-                            .getElementById(`tab-${tabs[next][0]}`)
-                            ?.focus();
+                {activeWindow && (
+                  <div className="ro-window-layer">
+                    <button type="button" className="ro-window-backdrop"
+                      aria-label="Fechar janela" onClick={closeWindow} />
+                    <section className={`ro-window ro-window-${activeWindow}`}
+                      role="dialog" aria-label={windowTitles[activeWindow]}
+                      aria-modal={isMobile}
+                      onKeyDown={(event) => {
+                        if (!isMobile || event.key !== "Tab") return;
+                        const controls = [...event.currentTarget.querySelectorAll<HTMLElement>(
+                          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                        )].filter((element) => element.getClientRects().length > 0);
+                        const first = controls[0];
+                        const last = controls.at(-1);
+                        if (!first || !last) return;
+                        if (event.shiftKey && document.activeElement === first) {
+                          event.preventDefault();
+                          last.focus();
+                        } else if (!event.shiftKey && document.activeElement === last) {
+                          event.preventDefault();
+                          first.focus();
                         }
-                      }}
-                    >
-                      {label}
-                      {id === "quests" &&
-                        catalog.quests.some(
-                          (q) =>
-                            !state.quests[q.id]?.claimed &&
-                            (state.quests[q.id]?.progress ?? 0) >= q.amount,
-                        ) && (
-                          <span
-                            className="notification-count"
-                            aria-label="Recompensa disponível"
-                          >
-                            !
-                          </span>
-                        )}
-                    </button>
-                  ))}
-                </nav>
-                <div
-                  id={`panel-${tab}`}
-                  role="tabpanel"
-                  aria-labelledby={`tab-${tab}`}
-                  tabIndex={0}
-                  className="tab-content"
-                >
-                  <ActivePanel {...props} />
-                </div>
-              </section>
-              <footer className="game-footer">
+                      }}>
+                      <div className="ro-window-titlebar">
+                        <h2>{windowTitles[activeWindow]}</h2>
+                        <button type="button" className="ro-window-close"
+                          ref={windowClose} aria-label="Fechar janela"
+                          onClick={closeWindow}>×</button>
+                      </div>
+                      <div className="ro-window-content">
+                        {activeWindow === "stats" && <Build {...props} mode="stats" />}
+                        {activeWindow === "equipment" &&
+                          <EquipmentWindow {...props} onInventory={() => setActiveWindow("inventory")} />}
+                        {activeWindow === "inventory" && <Inventory {...props} />}
+                        {activeWindow === "skills" && <Build {...props} mode="skills" />}
+                        {activeWindow === "world" && <>
+                          <div className="ro-journey-summary" role="group" aria-label="Sua jornada">
+                            <span>Abates <b>{number(state.totals.kills)}</b></span>
+                            <span>Áreas exploradas <b>{state.visitedAreas.length} / {catalog.areas.length}</b></span>
+                            <span>Missões concluídas <b>{Object.values(state.quests).filter((quest) => quest.claimed).length} / {catalog.quests.length}</b></span>
+                          </div>
+                          <World {...props} />
+                        </>}
+                        {activeWindow === "quests" && <Quests {...props} />}
+                        {activeWindow === "bestiary" && <Bestiary {...props} />}
+                        {activeWindow === "classes" && <Classes {...props} />}
+                        {activeWindow === "challenges" && <Challenges {...props} />}
+                        {activeWindow === "shop" && <Shop {...props} />}
+                      </div>
+                      {rewardedQuest && <QuestReward quest={rewardedQuest}
+                        catalog={catalog} onClose={dismissReward} />}
+                    </section>
+                  </div>
+                )}
+                {!activeWindow && rewardedQuest && <QuestReward quest={rewardedQuest}
+                  catalog={catalog} onClose={dismissReward} />}
+              </main>
+              <footer className="game-footer" inert={isMobile && !!activeWindow}>
                 <span>
                   Ragnarok Old Times Idle <span>·</span> aventura solo local
                 </span>
