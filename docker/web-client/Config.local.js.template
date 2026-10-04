@@ -1,0 +1,21 @@
+window.ROConfigLocal = {
+	remoteClient: 'http://127.0.0.1:8080/',
+	skipIntro: true,
+	servers: [
+		{
+			display: 'Ragnarok Local',
+			desc: 'Servidor local Hercules',
+			address: '127.0.0.1',
+			port: 6900,
+			version: 25,
+			langtype: 12,
+			packetver: ${PACKETVER},
+			renewal: false,
+			worldMapSettings: { episode: 12 },
+			packetKeys: false,
+			socketProxy: 'ws://127.0.0.1:5999/',
+			forceUseAddress: true,
+			adminList: [2000000]
+		}
+	]
+};

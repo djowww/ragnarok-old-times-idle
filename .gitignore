@@ -1,0 +1,15 @@
+.env
+client-data/
+*.grf
+*.gpf
+DATA.INI
+*.log
+/logs/
+/build/
+node_modules/
+idle/dist/
+idle/public-build/
+idle/.staging/
+.superpowers/sdd/
+idle/coverage/
+/docs/superpowers/

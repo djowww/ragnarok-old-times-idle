@@ -1,0 +1,120 @@
+services:
+  idle-game:
+    build:
+      context: ./idle
+      dockerfile: ../docker/idle-game/Dockerfile
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:?Defina DB_NAME em .env}
+      DB_USER: ${DB_USER:?Defina DB_USER em .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+      ASSET_ORIGIN: http://asset-service:8080
+    depends_on:
+      database:
+        condition: service_healthy
+      asset-service:
+        condition: service_started
+    ports:
+      - "127.0.0.1:3339:3339"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3339/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+  database:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:?Copie .env.example para .env}
+      MARIADB_USER: ${DB_USER:?Defina DB_USER em .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Defina DB_ROOT_PASSWORD em .env}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mariadb-admin ping --host=127.0.0.1 --user=root --password="$${MARIADB_ROOT_PASSWORD}" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - ragnarok_local
+
+  hercules:
+    build:
+      context: ./docker/hercules
+      args:
+        PACKETVER: ${PACKETVER:?Defina PACKETVER em .env}
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:?Defina DB_NAME em .env}
+      DB_USER: ${DB_USER:?Defina DB_USER em .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+    depends_on:
+      database:
+        condition: service_healthy
+    expose:
+      - "6900"
+      - "6121"
+      - "5121"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+  web-client:
+    build:
+      context: ./docker/web-client
+      args:
+        ROBROWSER_REF: d88a3cd4acde0582530e3fc1908532a92e9accea
+    environment:
+      PACKETVER: ${PACKETVER:?Defina PACKETVER em .env}
+    ports:
+      - "127.0.0.1:3338:80"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+  websocket-proxy:
+    build:
+      context: ./docker/websocket-proxy
+      args:
+        ROBROWSER_REF: d88a3cd4acde0582530e3fc1908532a92e9accea
+    depends_on:
+      hercules:
+        condition: service_started
+    environment:
+      WS_ALLOWED_ORIGINS: http://localhost:3338,http://127.0.0.1:3338
+    ports:
+      - "127.0.0.1:5999:5999"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+  asset-service:
+    build:
+      context: ./docker/asset-service
+      args:
+        REMOTE_CLIENT_REF: 0dd3a3fa71733c0c88ac1beb117039174eb2a7b0
+    volumes:
+      - ./client-data:/app/resources:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    networks:
+      - ragnarok_local
+
+volumes:
+  mariadb_data:
+
+networks:
+  ragnarok_local:
+    driver: bridge

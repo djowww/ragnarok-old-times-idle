@@ -1,0 +1,9 @@
+map_configuration: {
+  inter: {
+    userid: "s1"
+    passwd: "p1"
+    char_ip: "hercules"
+    bind_ip: "0.0.0.0"
+    map_ip: "127.0.0.1"
+  }
+}

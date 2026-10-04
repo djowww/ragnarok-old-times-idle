@@ -1,0 +1,210 @@
+diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
+index 4e3faeb..bc91d54 100644
+--- a/src/App/MapViewer.js
++++ b/src/App/MapViewer.js
+@@ -28,6 +28,54 @@ import Intro from 'UI/Components/Intro/Intro.js';
+  */
+ const MapViewer = {};
+ 
++// RagIDLE uses the pinned MapViewer as a read-only backdrop for its idle scene.
++// The source scene files remain in the user's local GRF mount.
++const idleSceneMaps = Object.freeze({
++	prontera: [155, 187],
++	prt_in: [126, 76],
++	prt_fild08: [199, 199],
++	prt_sewb1: [169, 177],
++	prt_fild04: [243, 155],
++	prt_fild03: [199, 149],
++	pay_dun00: [127, 85],
++	iz_dun01: [143, 169],
++	gef_fild10: [205, 211],
++	moc_pryd02: [101, 77],
++	gef_dun02: [125, 113],
++	gl_knt01: [161, 157]
++});
++const idleScene = Configs.get('idleScene', false);
++let idleSceneName = '';
++let idleSceneTimeout = 0;
++let idleSceneSettled = false;
++let idleSceneFailed = false;
++let idleSceneRendered = false;
++
++function idleSceneNotify(type, detail) {
++	if (type === 'ragidle-map-error') {
++		if (idleSceneFailed) return;
++		idleSceneFailed = true;
++	} else if (idleSceneSettled) {
++		return;
++	}
++	idleSceneSettled = true;
++	clearTimeout(idleSceneTimeout);
++	const status = document.getElementById('map-idle-status');
++	if (status) {
++		status.textContent = type === 'ragidle-map-error' ? detail || 'O mapa original não pôde ser carregado.' : '';
++		status.style.display = type === 'ragidle-map-error' ? 'flex' : 'none';
++	}
++	if (window.parent === window) return;
++	let parentOrigin;
++	try {
++		parentOrigin = new URL(document.referrer).origin;
++	} catch {
++		return;
++	}
++	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	window.parent.postMessage({ type, map: idleSceneName }, parentOrigin);
++}
++
+ /**
+  * @var {object} Entity to target
+  */
+@@ -45,6 +93,39 @@ MapViewer.dropDown = null;
+ MapViewer.init = function Init() {
+ 	// Increase max intersection test (because of the max zoom)
+ 	Altitude.MAX_INTERSECT_COUNT = 500;
++	if (idleScene) {
++		try {
++			idleSceneName = decodeURIComponent(location.hash.slice(1)).replace(/\.rsw$/i, '').toLowerCase();
++		} catch {
++			idleSceneName = '';
++		}
++		if (!Object.prototype.hasOwnProperty.call(idleSceneMaps, idleSceneName)) {
++			idleSceneNotify('ragidle-map-error', 'Este mapa não faz parte da seleção do jogo idle.');
++			return;
++		}
++		idleSceneTimeout = window.setTimeout(
++			() => idleSceneNotify('ragidle-map-error', 'O mapa original demorou demais para carregar.'),
++			60000
++		);
++		MapRenderer.onError = error => idleSceneNotify('ragidle-map-error', String(error || 'Falha ao ler o mapa.'));
++		const renderMap = MapRenderer.onRender;
++		MapRenderer.onRender = function (tick, gl) {
++			try {
++				renderMap.call(MapRenderer, tick, gl);
++				if (gl.isContextLost()) {
++					idleSceneNotify('ragidle-map-error', 'O contexto WebGL do mapa foi perdido.');
++					return;
++				}
++				if (!idleSceneRendered) {
++					idleSceneRendered = true;
++					idleSceneNotify('ragidle-map-ready');
++				}
++			} catch (error) {
++				idleSceneNotify('ragidle-map-error', String(error || 'Falha ao renderizar o mapa.'));
++				throw error;
++			}
++		};
++	}
+ 
+ 	let ready = false;
+ 	let maptoload = '';
+@@ -111,12 +192,27 @@ MapViewer.init = function Init() {
+ 
+ 		// Initialize renderer
+ 		q.add(function () {
+-			Renderer.init();
+-			q._next();
++			try {
++				Renderer.init();
++				if (idleScene) {
++					Renderer.canvas.addEventListener('webglcontextlost', () =>
++						idleSceneNotify('ragidle-map-error', 'O contexto WebGL do mapa foi perdido.')
++					);
++				}
++				q._next();
++			} catch (error) {
++				if (!idleScene) throw error;
++				idleSceneNotify('ragidle-map-error', 'WebGL está indisponível neste navegador.');
++			}
+ 		});
+ 
+ 		// Start Intro, wait the user to add files
+ 		q.add(function () {
++			if (idleScene) {
++				Client.onFilesLoaded = q.next;
++				Client.init([]);
++				return;
++			}
+ 			Intro.onFilesSubmit = function (files) {
+ 				Client.onFilesLoaded = q.next;
+ 				Client.init(files);
+@@ -132,6 +228,14 @@ MapViewer.init = function Init() {
+ 		MapRenderer.onLoad = MapViewer.onLoad;
+ 		MapControl.init();
+ 		MapControl.onRequestWalk = MapViewer.onMouseDown;
++		if (idleScene) {
++			try {
++				MapRenderer.setMap(idleSceneName + '.rsw');
++			} catch (error) {
++				idleSceneNotify('ragidle-map-error', String(error || 'Falha ao abrir o mapa.'));
++			}
++			return;
++		}
+ 
+ 		// Direct access from API
+ 		if (Configs.get('api')) {
+@@ -175,16 +279,22 @@ MapViewer.init = function Init() {
+ MapViewer.onLoad = function () {
+ 	BGM.stop();
+ 
+-	if (!Configs.get('api')) {
++	if (!Configs.get('api') && !idleScene) {
+ 		document.body.appendChild(MapViewer.dropDown);
+ 	}
+ 
+-	MapViewer.spot.position[0] = Altitude.width >> 1;
+-	MapViewer.spot.position[1] = Altitude.height >> 1;
++	const idleFocus = idleScene ? idleSceneMaps[idleSceneName] : null;
++	MapViewer.spot.position[0] = idleFocus ? idleFocus[0] : Altitude.width >> 1;
++	MapViewer.spot.position[1] = idleFocus ? idleFocus[1] : Altitude.height >> 1;
+ 	MapViewer.spot.position[2] = Altitude.getCellHeight(MapViewer.spot.position[0], MapViewer.spot.position[1]);
+ 
+ 	Camera.setTarget(MapViewer.spot);
+ 	Camera.init();
++	if (idleScene) {
++		// The classic camera scale keeps the map legible in the 333px idle viewport.
++		Camera.zoomFinal = 125;
++		return;
++	}
+ 
+ 	Camera.altitudeTo = -200;
+ 	Camera.zoomFinal = 200;
+diff --git a/src/Renderer/MapRenderer.js b/src/Renderer/MapRenderer.js
+index be5fd21..aab8567 100644
+--- a/src/Renderer/MapRenderer.js
++++ b/src/Renderer/MapRenderer.js
+@@ -9,6 +9,7 @@
+  */
+ 
+ import Thread from 'Core/Thread.js';
++import Configs from 'Core/Configs.js';
+ import SoundManager from 'Audio/SoundManager.js';
+ import BGM from 'Audio/BGM.js';
+ import DB from 'DB/DBManager.js';
+@@ -352,6 +353,9 @@ class MapRenderer {
+ 	 * Callback to execute once the map is loaded
+ 	 */
+ 	static onLoad() {}
++
++	/** Callback for a failed map load; the classic client keeps its existing UI. */
++	static onError() {}
+ }
+ 
+ /**
+@@ -492,12 +496,15 @@ function onMapComplete(success, error) {
+ 
+ 	// Problem during loading ?
+ 	if (!success) {
++		this.onError(error);
+ 		UIManager.showErrorBox(error).ui.css('zIndex', 1000);
+ 		return;
+ 	}
+ 
+-	// Play BGM
+-	BGM.play((mapInfo && mapInfo.mp3) || '01.mp3');
++	// The idle scene has its own user-controlled music player.
++	if (!Configs.get('idleScene', false)) {
++		BGM.play((mapInfo && mapInfo.mp3) || '01.mp3');
++	}
+ 
+ 	// Apply fog to map
+ 	this.fog.exist = !!(mapInfo && mapInfo.fog);

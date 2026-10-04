@@ -1,0 +1,729 @@
+/* The pre-renewal windows sit over a full-width map. Client BMPs remain in
+   client-data and are requested through the local asset service. */
+.cockpit {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "stage stage" "equipment support";
+  gap: 12px;
+  align-items: start;
+}
+
+.cockpit .panel {
+  border: 1px solid #637d8e;
+  border-radius: 2px;
+  background: #e8ece8;
+  box-shadow: 1px 2px 5px #142b3899, inset 1px 1px #fff;
+}
+
+.cockpit .panel-heading {
+  min-height: 27px;
+  padding: 4px 9px;
+  border-bottom: 1px solid #7e99a7;
+  background: linear-gradient(#dfeaed, #aebfc6);
+  color: #354951;
+  box-shadow: inset 0 1px #fff;
+  text-shadow: 0 1px #fff9;
+}
+
+.cockpit .panel-heading h2 {
+  font: 700 11px Tahoma, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+.cockpit .panel-heading .tiny-label,
+.cockpit .panel-heading .text-button {
+  color: #496574;
+  text-shadow: none;
+}
+
+.adventure-column {
+  grid-area: stage;
+  display: block;
+  min-width: 0;
+}
+
+.cockpit .scene-panel {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  background: #d9e0de;
+}
+
+.cockpit .scene-panel > .panel-heading {
+  min-height: 31px;
+  background: linear-gradient(#e2ecee, #a9bac1);
+}
+
+.cockpit .scene-panel > .panel-heading h2 {
+  font-size: 12px;
+}
+
+.hunt-indicator {
+  color: #456273;
+  font-size: 10px;
+}
+
+.classic-map-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #17282d;
+}
+
+.classic-map-stage .scene {
+  height: clamp(490px, 54vw, 650px);
+  border-bottom: 0;
+}
+
+.scene-location {
+  display: none;
+}
+
+.scene .target-card {
+  top: 190px;
+  right: 14px;
+  width: 164px;
+  border-radius: 1px;
+  background: #e8ede9ed;
+  border-color: #7f979e;
+  box-shadow: 1px 2px 4px #0e263867;
+}
+
+.hero-column {
+  position: absolute;
+  left: 15px;
+  top: 44px;
+  z-index: 5;
+  width: 280px;
+  display: block;
+}
+
+.cockpit .hero-panel {
+  width: 280px;
+  background-color: #dde7e8;
+  background-image: url("/assets/data/texture/%EC%9C%A0%EC%A0%80%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4/basic_interface/basewin_bg.bmp");
+  background-position: center top;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-color: #8299a4;
+}
+
+.hero-panel .panel-heading {
+  min-height: 20px;
+  padding: 3px 9px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.hero-panel .hero-identity {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  padding: 1px 11px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.hero-panel .hero-identity h1 {
+  font: 700 12px Tahoma, "Segoe UI", sans-serif;
+  line-height: 1.2;
+  color: #223845;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-panel .hero-identity span {
+  font-size: 10px;
+  color: #435563;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-panel .hero-vitals {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
+  padding: 0 10px 4px;
+}
+
+.hero-panel .meter {
+  width: 100%;
+  height: 14px;
+  border-radius: 0;
+  border: 1px solid #879fab;
+  background: #c6d4d9;
+  box-shadow: inset 0 1px #8dabb3;
+}
+
+.hero-panel .meter-fill {
+  transition: width 180ms linear;
+}
+
+.hero-panel .meter-hp .meter-fill {
+  background: linear-gradient(#f5a4a4, #db5657);
+  border-right-color: #ac4446;
+}
+
+.hero-panel .meter-sp .meter-fill {
+  background: linear-gradient(#b5ddfb, #639cd0);
+  border-right-color: #5e8da9;
+}
+
+.hero-panel .meter-exp .meter-fill,
+.hero-panel .meter-job .meter-fill {
+  background: linear-gradient(#f0df9b, #c7ae62);
+}
+
+.hero-panel .meter-text {
+  font-size: 9px;
+  line-height: 1;
+  color: #263944;
+  text-shadow: 0 1px #ffffffb3;
+}
+
+.classic-basic-resources {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 11px 3px;
+  font-size: 9px;
+  color: #3b505b;
+  font-variant-numeric: tabular-nums;
+}
+
+.classic-basic-menu {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1px;
+  padding: 0 7px 3px;
+}
+
+.classic-basic-menu button {
+  position: relative;
+  width: 30px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #d3dfe1;
+  box-shadow: none;
+  color: #2d4654;
+  font: 700 9px Tahoma, sans-serif;
+}
+
+.classic-basic-menu button:hover:not(:disabled) {
+  outline: 1px solid #387394;
+  outline-offset: -1px;
+}
+
+.classic-basic-menu img {
+  position: absolute;
+  inset: 0;
+  width: 30px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+
+.classic-basic-menu img:not([hidden]) + span {
+  visibility: hidden;
+}
+
+.classic-basic-menu img[hidden] + span {
+  visibility: visible;
+}
+
+@keyframes classic-loot-arrival {
+  0%, 100% { box-shadow: 0 0 0 1px #f8e5a8, 0 0 9px 2px #f4c755; }
+  50% { box-shadow: 0 0 0 3px #fff7cb, 0 0 15px 5px #ffe58a; }
+}
+
+.classic-basic-menu button.loot-pulse,
+.classic-shortcut.loot-pulse {
+  outline: 2px solid #fff0a5;
+  outline-offset: 1px;
+  animation: classic-loot-arrival 650ms ease-in-out 2;
+}
+
+.hero-panel .avatar-choice {
+  gap: 3px;
+  padding: 3px 9px;
+  border-top: 1px solid #adc1c8;
+  background: #d9e4e4;
+}
+
+.hero-panel .avatar-choice span {
+  margin-right: auto;
+}
+
+.hero-panel .avatar-choice button {
+  width: 32px;
+  min-height: 24px;
+  padding: 0;
+}
+
+.classic-minimap {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  z-index: 4;
+  width: 146px;
+  padding: 2px;
+  border: 1px solid #587787;
+  border-radius: 2px;
+  background: #b9cbd0;
+  box-shadow:
+    inset 1px 1px #f4fbfb,
+    inset -1px -1px #718f9c,
+    1px 2px 5px #071e2e85;
+}
+
+.classic-minimap-title {
+  padding: 3px 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid #819ca7;
+  background: linear-gradient(#ebf3f4, #c1d2d5);
+  color: #334e5b;
+  font: 700 10px Tahoma, sans-serif;
+}
+
+.classic-minimap-image {
+  position: relative;
+  height: 122px;
+  overflow: hidden;
+  border: 1px solid #6d8996;
+  background: #80979a repeating-linear-gradient(45deg, #ffffff17 0 2px, transparent 2px 5px);
+  box-shadow: inset 1px 1px #455e67;
+}
+
+.classic-minimap-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.classic-minimap-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid #6b231b;
+  background: #e66c47;
+  box-shadow: 0 0 0 2px #fff8;
+}
+
+.classic-map-stage .journal-panel {
+  position: absolute;
+  z-index: 4;
+  left: 13px;
+  bottom: 70px;
+  width: min(280px, 40%);
+  min-height: 0;
+  border-color: #8199a0;
+  background: #dbe7e9c9;
+  box-shadow: 0 2px 5px #0b23366b;
+  backdrop-filter: blur(1.5px);
+}
+
+.classic-map-stage .journal-panel:not(.mobile-open) {
+  display: none;
+}
+
+.classic-map-stage .journal-panel .panel-heading {
+  min-height: 20px;
+  padding: 2px 6px;
+  background: linear-gradient(#7894a3, #587588);
+}
+
+.classic-map-stage .journal-panel .panel-heading h2 {
+  font-size: 10px;
+}
+
+.classic-map-stage .journal-panel .event-list {
+  height: 86px;
+  padding: 3px 6px;
+  background: #e7eff0b8;
+}
+
+.classic-map-stage .journal-panel .event {
+  grid-template-columns: 34px minmax(0, 1fr);
+  padding: 2px 0;
+  line-height: 1.35;
+  border-bottom: 0;
+  color: #344651;
+}
+
+.classic-map-stage .journal-panel .event time {
+  color: #637780;
+}
+
+.classic-shortcuts {
+  position: absolute;
+  z-index: 4;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid #8da8af;
+  background: #d6e1e0ed;
+  box-shadow: 1px 2px 5px #0b2336a1;
+}
+
+.classic-shortcut {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  min-height: 39px;
+  flex: 0 0 39px;
+  padding: 0;
+  border: 1px solid #7e989c;
+  border-radius: 0;
+  background: linear-gradient(#f2f2e8, #b7c9c8);
+  box-shadow: inset 1px 1px #fff;
+  color: #41627a;
+}
+
+.classic-shortcut.empty {
+  background: #bccbc9c7;
+}
+
+.classic-shortcut small {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font: 700 8px Tahoma, sans-serif;
+  color: #5e6d6d;
+}
+
+.classic-shortcut b {
+  font: 700 13px Georgia, serif;
+}
+.classic-shortcut .skill-icon {
+  margin-top: 6px;
+}
+.classic-shortcut.is-waiting .skill-icon {
+  opacity: 0.64;
+}
+.shortcut-readiness {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #e9eee7;
+  border-radius: 50%;
+  background: #a28556;
+}
+.classic-shortcut.is-ready .shortcut-readiness {
+  background: #4f9361;
+}
+
+.classic-chat-toggle {
+  display: none;
+}
+
+.cockpit .hunt-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) repeat(3, max-content);
+  align-items: end;
+  gap: 8px;
+  padding: 10px 12px 7px;
+  background: #dce7e6;
+  border-top: 1px solid #79919c;
+}
+
+.cockpit .area-selector {
+  min-width: 0;
+  color: #3b5965;
+}
+
+.cockpit .area-selector select,
+.cockpit .hunt-controls button {
+  min-height: 44px;
+  border-radius: 1px;
+}
+.cockpit .hunt-context {
+  padding: 2px 12px 8px;
+  border-top: 1px solid #c1d1d3;
+  background: #dce7e6;
+  color: #455d65;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.cockpit .hunt-context span {
+  display: block;
+  color: #805f3d;
+}
+.cockpit .hunt-context b {
+  color: #355468;
+}
+
+.cockpit .automation-controls {
+  gap: 12px;
+  padding: 3px 12px 10px;
+  background: #dce7e6;
+}
+
+.cockpit .adventure-note {
+  display: none;
+}
+
+.equipment-panel {
+  grid-area: equipment;
+  min-width: 0;
+}
+
+.equipment-panel .equipment-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 10px;
+  padding: 5px 10px 8px;
+}
+
+.equipment-panel .equipment-row {
+  min-height: 38px;
+}
+
+.journal-column {
+  grid-area: support;
+  display: block;
+  min-width: 0;
+}
+
+.cockpit .journey-panel .panel-heading {
+  background: linear-gradient(#dfeaed, #aebfc6);
+}
+
+.panel-tabs button.active {
+  box-shadow: inset 0 3px #4f7892;
+}
+
+@media (max-width: 960px) {
+  .classic-map-stage .scene {
+    height: clamp(430px, 58vw, 560px);
+  }
+
+  .classic-map-stage .journal-panel {
+    width: min(270px, 42%);
+  }
+
+  .cockpit .hunt-controls {
+    grid-template-columns: minmax(175px, 1fr) repeat(3, max-content);
+  }
+}
+
+@media (max-width: 640px) {
+  .cockpit {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "character" "stage" "equipment" "support";
+    gap: 9px;
+  }
+
+  .hero-column {
+    position: static;
+    grid-area: character;
+    width: 100%;
+  }
+
+  .cockpit .hero-panel {
+    width: 100%;
+  }
+
+  .hero-panel .hero-vitals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .hero-panel .meter {
+    height: 18px;
+  }
+
+  .hero-panel .hero-identity {
+    float: none;
+    width: auto;
+    height: auto;
+    justify-content: flex-start;
+    padding: 3px 11px 5px;
+  }
+
+  .hero-panel .avatar-choice button,
+  .classic-basic-menu button {
+    min-width: 44px;
+    width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .classic-basic-menu {
+    justify-content: space-between;
+    padding: 3px 7px 6px;
+  }
+
+  .classic-basic-menu img {
+    inset: 12px 7px;
+  }
+
+  .classic-map-stage {
+    --mobile-map-height: clamp(340px, 72vh, 470px);
+    overflow: visible;
+  }
+
+  .classic-map-stage .scene {
+    height: var(--mobile-map-height);
+  }
+
+  .scene .target-card {
+    top: 133px;
+    right: 8px;
+    width: 145px;
+  }
+
+  .classic-minimap {
+    top: 8px;
+    right: 8px;
+    width: 108px;
+  }
+
+  .classic-minimap-image {
+    height: 94px;
+  }
+
+  .classic-shortcuts {
+    top: calc(var(--mobile-map-height) - 58px);
+    bottom: auto;
+    left: 7px;
+    right: 7px;
+    transform: none;
+    justify-content: start;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .classic-shortcut {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    flex-basis: 44px;
+  }
+
+  .classic-map-stage .journal-panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    border: 0;
+    border-top: 1px solid #879da2;
+    box-shadow: none;
+  }
+
+  .classic-map-stage .journal-panel .event-list {
+    height: 95px;
+  }
+
+  .classic-chat-toggle {
+    display: block;
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    min-height: 44px;
+    border-radius: 0;
+    border: 0;
+    border-top: 1px solid #79919c;
+    background: #dce7e6;
+    text-align: left;
+    color: #375669;
+  }
+
+  .cockpit .hunt-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    padding: 9px;
+  }
+
+  .cockpit .area-selector,
+  .cockpit .hunt-button {
+    grid-column: 1 / -1;
+  }
+
+  .cockpit .hunt-controls button {
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .cockpit .automation-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0 9px 9px;
+  }
+
+  .cockpit .automation-controls .checkbox-label,
+  .cockpit .automation-controls .text-button {
+    min-height: 44px;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .equipment-panel .equipment-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .equipment-panel .equipment-row,
+  .equipment-panel .icon-button {
+    min-height: 44px;
+  }
+
+  .panel-tabs {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    z-index: 10;
+    padding-bottom: 0;
+    border-top: 0;
+    border-bottom: 1px solid #8a9b92;
+    box-shadow: 0 3px 12px #172d3435;
+  }
+
+  .game-footer {
+    padding-bottom: 18px;
+  }
+
+  .world-status {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .world-status > div:first-child {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .world-status .world-status-tools {
+    margin-left: auto;
+  }
+
+  .audio-toggle {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classic-basic-menu button.loot-pulse,
+  .classic-shortcut.loot-pulse {
+    animation: none;
+    box-shadow: 0 0 0 2px #fff7cb;
+  }
+}

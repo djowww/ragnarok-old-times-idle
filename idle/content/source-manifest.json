@@ -1,0 +1,2740 @@
+{
+  "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+  "license": "GPL-3.0-or-later",
+  "sources": [
+    {
+      "path": "db/pre-re/mob_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_db.conf",
+      "sha256": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43"
+    },
+    {
+      "path": "db/pre-re/item_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf",
+      "sha256": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30"
+    },
+    {
+      "path": "db/pre-re/job_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/job_db.conf",
+      "sha256": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc"
+    },
+    {
+      "path": "db/pre-re/exp_group_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/exp_group_db.conf",
+      "sha256": "6e959dcfdebc489d1c7d4714fe2bbf88d437b44ec7bd215fe2bb104aae5a7ced"
+    },
+    {
+      "path": "db/pre-re/skill_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_db.conf",
+      "sha256": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11"
+    },
+    {
+      "path": "db/pre-re/skill_tree.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_tree.conf",
+      "sha256": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37"
+    },
+    {
+      "path": "db/pre-re/attr_fix.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/attr_fix.conf",
+      "sha256": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c"
+    },
+    {
+      "path": "db/pre-re/size_fix.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/size_fix.txt",
+      "sha256": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+    }
+  ],
+  "adaptations": [
+    "Deterministic healing uses midpoints of source ranges.",
+    "Skill damage, cooldowns, effects, simplified buffs, rotation and encounters are explicit idle adaptations.",
+    "No scripts execute. Ammo requirements are waived; zeny and declared reagents remain real costs.",
+    "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
+    "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
+    "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
+    "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database."
+  ],
+  "excludedDrops": [],
+  "inertDropItems": [
+    {
+      "itemId": 619,
+      "aegisName": "Unripe_Apple",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 622,
+      "aegisName": "Rainbow_Carrot",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1602,
+      "aegisName": "Rod_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 620,
+      "aegisName": "Orange_Juice",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 528,
+      "aegisName": "Monsters_Feed",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1916,
+      "aegisName": "Guitar_Of_Vast_Land",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2322,
+      "aegisName": "Silk_Robe_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 602,
+      "aegisName": "Wing_Of_Butterfly",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2207,
+      "aegisName": "Fancy_Flower",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 692,
+      "aegisName": "Wind_Scroll_1_3",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4040,
+      "aegisName": "Creamy_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 511,
+      "aegisName": "Green_Herb",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4033,
+      "aegisName": "Poporing_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4044,
+      "aegisName": "Smokie_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 578,
+      "aegisName": "Strawberry",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4025,
+      "aegisName": "Skeleton_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4038,
+      "aegisName": "Zombie_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 623,
+      "aegisName": "Earthworm_The_Dude",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4027,
+      "aegisName": "Kukre_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4049,
+      "aegisName": "Vadon_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 631,
+      "aegisName": "Deadly_Noxious_Herb",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4055,
+      "aegisName": "Marina_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2267,
+      "aegisName": "Cigar",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4066,
+      "aegisName": "Orc_Warrior_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2602,
+      "aegisName": "Earring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2206,
+      "aegisName": "Wedding_Veil",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 12127,
+      "aegisName": "High_end_Cooking_Kits",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2338,
+      "aegisName": "Wedding_Dress",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4255,
+      "aegisName": "Orc_Lady_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4086,
+      "aegisName": "Soldier_Skeleton_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2285,
+      "aegisName": "Apple_Of_Archer",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1752,
+      "aegisName": "Fire_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 4094,
+      "aegisName": "Archer_Skeleton_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2604,
+      "aegisName": "Glove",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 525,
+      "aegisName": "Panacea",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4106,
+      "aegisName": "Mummy_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4122,
+      "aegisName": "Deviruchi_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2608,
+      "aegisName": "Rosary",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 603,
+      "aegisName": "Old_Blue_Box",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1261,
+      "aegisName": "Infiltrator",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4127,
+      "aegisName": "Nightmare_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 5017,
+      "aegisName": "Bone_Helm",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2108,
+      "aegisName": "Mirror_Shield_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4136,
+      "aegisName": "Khalitzburg_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2318,
+      "aegisName": "Clothes_Of_The_Lord",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1421,
+      "aegisName": "Battle_Hook",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1162,
+      "aegisName": "Broad_Sword_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4140,
+      "aegisName": "Knight_Of_Abyss_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 617,
+      "aegisName": "Old_Violet_Box",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1232,
+      "aegisName": "Assasin_Dagger",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2235,
+      "aegisName": "Crown",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 5053,
+      "aegisName": "Spinx_Helm",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1285,
+      "aegisName": "Cakram",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4144,
+      "aegisName": "Osiris_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 608,
+      "aegisName": "Seed_Of_Yggdrasil",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1466,
+      "aegisName": "Crescent_Scythe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2256,
+      "aegisName": "Magestic_Goat",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1476,
+      "aegisName": "Crescent_Scythe_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 5160,
+      "aegisName": "Magestic_Goat_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4147,
+      "aegisName": "Baphomet_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 607,
+      "aegisName": "Yggdrasilberry",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1168,
+      "aegisName": "Zweihander",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4142,
+      "aegisName": "Doppelganger_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1413,
+      "aegisName": "Gungnir",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2249,
+      "aegisName": "Coronet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 616,
+      "aegisName": "Old_Card_Album",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 16001,
+      "aegisName": "Red_Square_Bag",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4132,
+      "aegisName": "Mistress_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 526,
+      "aegisName": "Royal_Jelly",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1524,
+      "aegisName": "Golden_Mace",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2246,
+      "aegisName": "Golden_Gear",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 10016,
+      "aegisName": "Golden_Bell",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 4128,
+      "aegisName": "Golden_Bug_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 10018,
+      "aegisName": "Monkey_Circlet",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 1366,
+      "aegisName": "Right_Epsilon",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1124,
+      "aegisName": "Orcish_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1387,
+      "aegisName": "Giant_Axe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4143,
+      "aegisName": "Orc_Hero_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2420,
+      "aegisName": "Angels_Arrival",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 645,
+      "aegisName": "Center_Potion",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1917,
+      "aegisName": "Guitar_Of_Gentle_Breeze",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4211,
+      "aegisName": "Vocal_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2244,
+      "aegisName": "Big_Sis_Ribbon",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 5125,
+      "aegisName": "Kiss_Of_Angel",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4306,
+      "aegisName": "Toad_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2116,
+      "aegisName": "Angels_Safeguard",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 531,
+      "aegisName": "Apple_Juice",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4197,
+      "aegisName": "Mastering_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 625,
+      "aegisName": "Lusty_Iron",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 533,
+      "aegisName": "Grape_Juice",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4179,
+      "aegisName": "Dragon_Fly_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1148,
+      "aegisName": "Star_Dust_Blade",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2521,
+      "aegisName": "Angels_Warmth",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 626,
+      "aegisName": "Monster_Juice",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4183,
+      "aegisName": "Vagabond_Wolf_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2250,
+      "aegisName": "Fillet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2355,
+      "aegisName": "Angels_Protection",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4266,
+      "aegisName": "Eclipse_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2254,
+      "aegisName": "Angelic_Chain",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 610,
+      "aegisName": "Leaf_Of_Yggdrasil",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2282,
+      "aegisName": "Spirit_Chain",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4054,
+      "aegisName": "Angeling_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1135,
+      "aegisName": "Cutlas",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1128,
+      "aegisName": "Hae_Dong_Gum_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 5019,
+      "aegisName": "Corsair",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1189,
+      "aegisName": "Krasnaya",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4137,
+      "aegisName": "Drake_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1133,
+      "aegisName": "Fire_Brand",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2268,
+      "aegisName": "Smoking_Pipe",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1258,
+      "aegisName": "Katar_Of_Raging_Blaze",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 13046,
+      "aegisName": "Krieg",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4123,
+      "aegisName": "Eddga_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2274,
+      "aegisName": "Ghost_Bandana",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2336,
+      "aegisName": "Thief_Clothes_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 604,
+      "aegisName": "Branch_Of_Dead_Tree",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 695,
+      "aegisName": "Ghost_Scroll_1_5",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4047,
+      "aegisName": "Ghostring_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 10006,
+      "aegisName": "Queens_Hair_Ornament",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 2615,
+      "aegisName": "Safety_Ring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2234,
+      "aegisName": "Tiara",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 639,
+      "aegisName": "Armlet_Of_Obedience",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2005,
+      "aegisName": "Dea_Staff",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4146,
+      "aegisName": "Maya_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1477,
+      "aegisName": "Spectral_Spear",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1234,
+      "aegisName": "Moonlight_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1525,
+      "aegisName": "Long_Mace",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 10008,
+      "aegisName": "Punisher",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 638,
+      "aegisName": "Silver_Knife_Of_Chaste",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1648,
+      "aegisName": "Staff_Of_Bordeaux",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4131,
+      "aegisName": "Moonlight_Flower_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1136,
+      "aegisName": "Solar_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2327,
+      "aegisName": "Holy_Robe",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 5002,
+      "aegisName": "Gemmed_Crown",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1552,
+      "aegisName": "Tablet",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1231,
+      "aegisName": "Bazerald",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4148,
+      "aegisName": "Pharaoh_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1223,
+      "aegisName": "Forturn_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1236,
+      "aegisName": "Sucsamad",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 13047,
+      "aegisName": "Weihna",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4121,
+      "aegisName": "Phreeoni_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1363,
+      "aegisName": "Brood_Axe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2621,
+      "aegisName": "Ring_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 5007,
+      "aegisName": "Loard_Circlet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1371,
+      "aegisName": "Doom_Slayer_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 16000,
+      "aegisName": "Erde",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4135,
+      "aegisName": "Orc_Load_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2331,
+      "aegisName": "Tights_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2622,
+      "aegisName": "Earring_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1970,
+      "aegisName": "Queens_Whip",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2291,
+      "aegisName": "Masquerade",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4277,
+      "aegisName": "Zherlthsh_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4207,
+      "aegisName": "Mysteltainn_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4254,
+      "aegisName": "Tirfing_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4250,
+      "aegisName": "Executioner_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1468,
+      "aegisName": "Zephyrus",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4318,
+      "aegisName": "Knight_Windstorm_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1131,
+      "aegisName": "Ice_Falchon",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1256,
+      "aegisName": "Katar_Of_Cold_Icicle",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1815,
+      "aegisName": "Claw_Of_Garm",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4324,
+      "aegisName": "Garm_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1417,
+      "aegisName": "Pole_Axe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4163,
+      "aegisName": "Gryphon_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1559,
+      "aegisName": "Legacy_Of_Dragon",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2527,
+      "aegisName": "Dragon_Breath",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4203,
+      "aegisName": "Mutant_Dragon_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1615,
+      "aegisName": "Bone_Wand",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2004,
+      "aegisName": "Kronos",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1237,
+      "aegisName": "Grimtooth_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2334,
+      "aegisName": "Mage_Coat",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2507,
+      "aegisName": "Cape_Of_Ancient_Lord",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 5162,
+      "aegisName": "Bone_Helm_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4168,
+      "aegisName": "Dark_Lord_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 5093,
+      "aegisName": "Blue_Coif_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 568,
+      "aegisName": "Lemon",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1306,
+      "aegisName": "War_Axe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1364,
+      "aegisName": "Great_Axe",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4300,
+      "aegisName": "Chimera_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4198,
+      "aegisName": "Maya_Puple_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2508,
+      "aegisName": "Ragamuffin_Cape",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 522,
+      "aegisName": "Fruit_Of_Mastela",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4169,
+      "aegisName": "Dark_Illusion_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4290,
+      "aegisName": "Cat_O_Nine_Tail_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1141,
+      "aegisName": "Immaterial_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 658,
+      "aegisName": "Union_Of_Tribe",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4305,
+      "aegisName": "Turtle_General_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1230,
+      "aegisName": "House_Auger",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4276,
+      "aegisName": "Lord_Of_Death_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2255,
+      "aegisName": "Satanic_Chain",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4241,
+      "aegisName": "Archangeling_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1473,
+      "aegisName": "Wizardy_Staff",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1557,
+      "aegisName": "Book_Of_The_Apocalypse",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4134,
+      "aegisName": "Dracula_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 10020,
+      "aegisName": "Sword_Of_Grave_Keeper",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 1471,
+      "aegisName": "Hell_Fire",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1474,
+      "aegisName": "Gae_Bolg",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 661,
+      "aegisName": "Sway_Apron",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4330,
+      "aegisName": "Dark_Snake_Lord_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1165,
+      "aegisName": "Masamune",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 13303,
+      "aegisName": "Huuma_Blaze",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1235,
+      "aegisName": "Azoth",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4263,
+      "aegisName": "Incant_Samurai_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2344,
+      "aegisName": "Flame_Sprits_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2346,
+      "aegisName": "Water_Sprits_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2350,
+      "aegisName": "Earth_Sprits_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2348,
+      "aegisName": "Wind_Sprits_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2110,
+      "aegisName": "Holy_Guard",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4005,
+      "aegisName": "Poring__Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4236,
+      "aegisName": "Amon_Ra_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 694,
+      "aegisName": "Ghost_Scroll_1_3",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4174,
+      "aegisName": "Deviling_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2296,
+      "aegisName": "Binoculars",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2231,
+      "aegisName": "Gemmed_Sallet_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4302,
+      "aegisName": "Tao_Gunka_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4336,
+      "aegisName": "Ungoliant_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 13017,
+      "aegisName": "House_Auger_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1242,
+      "aegisName": "Counter_Dagger",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1531,
+      "aegisName": "Spanner",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4342,
+      "aegisName": "Rsx_0806_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 5104,
+      "aegisName": "Dark_Blindfold",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 12395,
+      "aegisName": "Tantanmen",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4372,
+      "aegisName": "Bacsojin_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1132,
+      "aegisName": "Edge",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1470,
+      "aegisName": "Brionac",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1469,
+      "aegisName": "Longinuss_Spear",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1166,
+      "aegisName": "Dragon_Slayer",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1415,
+      "aegisName": "Skewer",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4357,
+      "aegisName": "B_Seyren_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2319,
+      "aegisName": "Glittering_Clothes",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1233,
+      "aegisName": "Exercise",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1265,
+      "aegisName": "Bloody_Roar",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 13002,
+      "aegisName": "Ginnungagap",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4359,
+      "aegisName": "B_Eremes_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1138,
+      "aegisName": "Mysteltainn_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1140,
+      "aegisName": "Byeorrun_Gum",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1365,
+      "aegisName": "Sabbath",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1369,
+      "aegisName": "Guillotine",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1368,
+      "aegisName": "Tomahawk",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4361,
+      "aegisName": "B_Harword_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1814,
+      "aegisName": "Berserk",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1527,
+      "aegisName": "Quadrille",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1528,
+      "aegisName": "Grand_Cross",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1560,
+      "aegisName": "Diary_Of_Great_Sage",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4363,
+      "aegisName": "B_Magaleta_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1228,
+      "aegisName": "Combat_Knife",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1720,
+      "aegisName": "Bow_Of_Rudra",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1724,
+      "aegisName": "Dragon_Wing",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4367,
+      "aegisName": "B_Shecil_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1723,
+      "aegisName": "Luna_Bow",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1241,
+      "aegisName": "Cursed_Dagger",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2616,
+      "aegisName": "Critical_Ring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2343,
+      "aegisName": "Robe_Of_Casting",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1618,
+      "aegisName": "Survival_Rod_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4365,
+      "aegisName": "B_Katrinn_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 644,
+      "aegisName": "Gift_Box",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1167,
+      "aegisName": "Schweizersabel",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1130,
+      "aegisName": "Nagan",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4352,
+      "aegisName": "B_Ygnizem_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 13159,
+      "aegisName": "Butcher_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 546,
+      "aegisName": "Yellow_Slim_Potion",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 547,
+      "aegisName": "White_Slim_Potion",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 12040,
+      "aegisName": "Stone_Of_Intelligence_",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4354,
+      "aegisName": "Gemini_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2659,
+      "aegisName": "Vesper_Core01",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2660,
+      "aegisName": "Vesper_Core02",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2661,
+      "aegisName": "Vesper_Core03",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2662,
+      "aegisName": "Vesper_Core04",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4374,
+      "aegisName": "Apocalips_H_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 12090,
+      "aegisName": "Agi_Dish10",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 634,
+      "aegisName": "Tropical_Banana",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 12129,
+      "aegisName": "Fantastic_Cooking_Kits",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 5116,
+      "aegisName": "Banana_Hat",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4376,
+      "aegisName": "Lady_Tanee_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 12095,
+      "aegisName": "Dex_Dish10",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 2520,
+      "aegisName": "Goibnes_Shoulder_Arms",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4396,
+      "aegisName": "Tha_Odium_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2419,
+      "aegisName": "Goibnes_Combat_Boots",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4397,
+      "aegisName": "Tha_Despero_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2354,
+      "aegisName": "Goibnes_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4395,
+      "aegisName": "Tha_Maero_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 5128,
+      "aegisName": "Goibnes_Helmet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4398,
+      "aegisName": "Tha_Dolor_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2519,
+      "aegisName": "Morriganes_Manteau",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4399,
+      "aegisName": "Thanatos_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2649,
+      "aegisName": "Morpheuss_Armlet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2648,
+      "aegisName": "Morpheuss_Ring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 12080,
+      "aegisName": "Int_Dish10",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4386,
+      "aegisName": "Detale_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2651,
+      "aegisName": "Morriganes_Pendant",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2650,
+      "aegisName": "Morriganes_Belt",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4403,
+      "aegisName": "Kiel_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2357,
+      "aegisName": "Valkyrie_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2524,
+      "aegisName": "Valkyrie_Manteau",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2421,
+      "aegisName": "Valkyrie_Shoes",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4407,
+      "aegisName": "Randgris_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1377,
+      "aegisName": "Hurricane_Fury",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4408,
+      "aegisName": "Gloom_Under_Night_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2509,
+      "aegisName": "Clack_Of_Servival",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2111,
+      "aegisName": "Herald_Of_GOD",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4419,
+      "aegisName": "Ktullanux_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 5123,
+      "aegisName": "Ulle_Cap",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1175,
+      "aegisName": "Altas_Weapon",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4425,
+      "aegisName": "Atroce_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 13001,
+      "aegisName": "Dragon_Killer",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2677,
+      "aegisName": "Spiritual_Ring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2678,
+      "aegisName": "Ring_Of_Flame_Lord",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2679,
+      "aegisName": "Ring_Of_Resonance",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2345,
+      "aegisName": "Flame_Sprits_Armor_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4430,
+      "aegisName": "Ifrit_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 523,
+      "aegisName": "Holy_Water",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 1420,
+      "aegisName": "Long_Horn",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1422,
+      "aegisName": "Hunting_Spear",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1614,
+      "aegisName": "Blessed_Wand",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4441,
+      "aegisName": "Fallen_Bishop_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2423,
+      "aegisName": "Variant_Shoes",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1565,
+      "aegisName": "Death_Note",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2000,
+      "aegisName": "Destruction_Rod",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2702,
+      "aegisName": "Bison_Horn",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4145,
+      "aegisName": "Berzebub_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1737,
+      "aegisName": "Ixion_Wing",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 5808,
+      "aegisName": "Diabolus_Helmet",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2374,
+      "aegisName": "Diabolus_Robe",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2375,
+      "aegisName": "Diabolus_Armor",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2433,
+      "aegisName": "Diabolus_Boots",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1484,
+      "aegisName": "Cardo",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1170,
+      "aegisName": "Katzbalger",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2554,
+      "aegisName": "Piece_Of_Angent_Skin",
+      "sourceType": "IT_ARMOR"
+    }
+  ],
+  "missingItemResources": [],
+  "skillSources": {
+    "first_aid": {
+      "id": 142,
+      "name": "NV_FIRSTAID",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 3
+      },
+      "unsupportedRequirements": []
+    },
+    "bash": {
+      "id": 5,
+      "name": "SM_BASH",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 8,
+          "Lv2": 8,
+          "Lv3": 8,
+          "Lv4": 8,
+          "Lv5": 8,
+          "Lv6": 15,
+          "Lv7": 15,
+          "Lv8": 15,
+          "Lv9": 15,
+          "Lv10": 15
+        },
+        "WeaponTypes": {
+          "NoWeapon": true,
+          "Daggers": true,
+          "1HSwords": true,
+          "2HSwords": true,
+          "1HSpears": true,
+          "2HSpears": true,
+          "1HAxes": true,
+          "2HAxes": true,
+          "Maces": true,
+          "2HMaces": true,
+          "Staves": true,
+          "Knuckles": true,
+          "Instruments": true,
+          "Whips": true,
+          "Books": true,
+          "Katars": true,
+          "Revolvers": true,
+          "Rifles": true,
+          "GatlingGuns": true,
+          "Shotguns": true,
+          "GrenadeLaunchers": true,
+          "FuumaShurikens": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "magnum_break": {
+      "id": 7,
+      "name": "SM_MAGNUM",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "HPCost": {
+          "Lv1": 20,
+          "Lv2": 20,
+          "Lv3": 19,
+          "Lv4": 19,
+          "Lv5": 18,
+          "Lv6": 18,
+          "Lv7": 17,
+          "Lv8": 17,
+          "Lv9": 16,
+          "Lv10": 16
+        },
+        "SPCost": 30
+      },
+      "unsupportedRequirements": [
+        "HPCost"
+      ]
+    },
+    "hp_recovery": {
+      "id": 4,
+      "name": "SM_RECOVERY",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "fire_bolt": {
+      "id": 19,
+      "name": "MG_FIREBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "cold_bolt": {
+      "id": 14,
+      "name": "MG_COLDBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "lightning_bolt": {
+      "id": 20,
+      "name": "MG_LIGHTNINGBOLT",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 12,
+          "Lv2": 14,
+          "Lv3": 16,
+          "Lv4": 18,
+          "Lv5": 20,
+          "Lv6": 22,
+          "Lv7": 24,
+          "Lv8": 26,
+          "Lv9": 28,
+          "Lv10": 30
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "double_strafe": {
+      "id": 46,
+      "name": "AC_DOUBLE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "WeaponTypes": {
+          "Bows": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "arrow_shower": {
+      "id": 47,
+      "name": "AC_SHOWER",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 15,
+        "WeaponTypes": {
+          "Bows": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "owl_eye": {
+      "id": 43,
+      "name": "AC_OWL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "heal": {
+      "id": 28,
+      "name": "AL_HEAL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 13,
+          "Lv2": 16,
+          "Lv3": 19,
+          "Lv4": 22,
+          "Lv5": 25,
+          "Lv6": 28,
+          "Lv7": 31,
+          "Lv8": 34,
+          "Lv9": 37,
+          "Lv10": 40
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "blessing": {
+      "id": 34,
+      "name": "AL_BLESSING",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 28,
+          "Lv2": 32,
+          "Lv3": 36,
+          "Lv4": 40,
+          "Lv5": 44,
+          "Lv6": 48,
+          "Lv7": 52,
+          "Lv8": 56,
+          "Lv9": 60,
+          "Lv10": 64
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "holy_light": {
+      "id": 156,
+      "name": "AL_HOLYLIGHT",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 15
+      },
+      "unsupportedRequirements": []
+    },
+    "mammonite": {
+      "id": 42,
+      "name": "MC_MAMMONITE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 5,
+        "ZenyCost": {
+          "Lv1": 100,
+          "Lv2": 200,
+          "Lv3": 300,
+          "Lv4": 400,
+          "Lv5": 500,
+          "Lv6": 600,
+          "Lv7": 700,
+          "Lv8": 800,
+          "Lv9": 900,
+          "Lv10": 1000
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "crazy_uproar": {
+      "id": 155,
+      "name": "MC_LOUD",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 8
+      },
+      "unsupportedRequirements": []
+    },
+    "cart_revolution": {
+      "id": 153,
+      "name": "MC_CARTREVOLUTION",
+      "sourceMaxLevel": 1,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "State": "Cart"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "double_attack": {
+      "id": 48,
+      "name": "TF_DOUBLE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "envenom": {
+      "id": 52,
+      "name": "TF_POISON",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12
+      },
+      "unsupportedRequirements": []
+    },
+    "improve_dodge": {
+      "id": 49,
+      "name": "TF_MISS",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "pierce": {
+      "id": 56,
+      "name": "KN_PIERCE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 7,
+        "WeaponTypes": {
+          "1HSpears": true,
+          "2HSpears": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "brandish_spear": {
+      "id": 57,
+      "name": "KN_BRANDISHSPEAR",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "WeaponTypes": {
+          "1HSpears": true,
+          "2HSpears": true
+        },
+        "State": "Riding"
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "State"
+      ]
+    },
+    "holy_cross": {
+      "id": 253,
+      "name": "CR_HOLYCROSS",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 11,
+          "Lv2": 12,
+          "Lv3": 13,
+          "Lv4": 14,
+          "Lv5": 15,
+          "Lv6": 16,
+          "Lv7": 17,
+          "Lv8": 18,
+          "Lv9": 19,
+          "Lv10": 20
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "shield_boomerang": {
+      "id": 251,
+      "name": "CR_SHIELDBOOMERANG",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 12,
+        "State": "Shield"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "jupitel_thunder": {
+      "id": 84,
+      "name": "WZ_JUPITEL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 23,
+          "Lv3": 26,
+          "Lv4": 29,
+          "Lv5": 32,
+          "Lv6": 35,
+          "Lv7": 38,
+          "Lv8": 41,
+          "Lv9": 44,
+          "Lv10": 47
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "storm_gust": {
+      "id": 89,
+      "name": "WZ_STORMGUST",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 78
+      },
+      "unsupportedRequirements": []
+    },
+    "hindsight": {
+      "id": 279,
+      "name": "SA_AUTOSPELL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 35
+      },
+      "unsupportedRequirements": []
+    },
+    "flame_enchant": {
+      "id": 280,
+      "name": "SA_FLAMELAUNCHER",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 40,
+        "Items": {
+          "Boody_Red": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "blitz_beat": {
+      "id": 129,
+      "name": "HT_BLITZBEAT",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 10,
+          "Lv2": 13,
+          "Lv3": 16,
+          "Lv4": 19,
+          "Lv5": 22,
+          "Lv6": 25,
+          "Lv7": 28,
+          "Lv8": 31,
+          "Lv9": 34,
+          "Lv10": 37
+        },
+        "State": "Falcon"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "beast_bane": {
+      "id": 126,
+      "name": "HT_BEASTBANE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "melody_strike": {
+      "id": 316,
+      "name": "BA_MUSICALSTRIKE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 1,
+          "Lv2": 3,
+          "Lv3": 5,
+          "Lv4": 7,
+          "Lv5": 9,
+          "Lv6": 11,
+          "Lv7": 13,
+          "Lv8": 15,
+          "Lv9": 17,
+          "Lv10": 19
+        },
+        "WeaponTypes": {
+          "Instruments": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "poem_of_bragi": {
+      "id": 321,
+      "name": "BA_POEMBRAGI",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 40,
+          "Lv2": 45,
+          "Lv3": 50,
+          "Lv4": 55,
+          "Lv5": 60,
+          "Lv6": 65,
+          "Lv7": 70,
+          "Lv8": 75,
+          "Lv9": 80,
+          "Lv10": 85
+        },
+        "WeaponTypes": {
+          "Instruments": true,
+          "Whips": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "slinging_arrow": {
+      "id": 324,
+      "name": "DC_THROWARROW",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 1,
+          "Lv2": 3,
+          "Lv3": 5,
+          "Lv4": 7,
+          "Lv5": 9,
+          "Lv6": 11,
+          "Lv7": 13,
+          "Lv8": 15,
+          "Lv9": 17,
+          "Lv10": 19
+        },
+        "WeaponTypes": {
+          "Whips": true
+        },
+        "AmmoTypes": {
+          "A_ARROW": true
+        },
+        "AmmoAmount": 1
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes",
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
+    },
+    "service_for_you": {
+      "id": 330,
+      "name": "DC_SERVICEFORYOU",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 40,
+          "Lv2": 45,
+          "Lv3": 50,
+          "Lv4": 55,
+          "Lv5": 60,
+          "Lv6": 65,
+          "Lv7": 70,
+          "Lv8": 75,
+          "Lv9": 80,
+          "Lv10": 85
+        },
+        "WeaponTypes": {
+          "Instruments": true,
+          "Whips": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "kyrie": {
+      "id": 73,
+      "name": "PR_KYRIE",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 20,
+          "Lv3": 20,
+          "Lv4": 25,
+          "Lv5": 25,
+          "Lv6": 25,
+          "Lv7": 30,
+          "Lv8": 30,
+          "Lv9": 30,
+          "Lv10": 35
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "sanctuary": {
+      "id": 70,
+      "name": "PR_SANCTUARY",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 15,
+          "Lv2": 18,
+          "Lv3": 21,
+          "Lv4": 24,
+          "Lv5": 27,
+          "Lv6": 30,
+          "Lv7": 33,
+          "Lv8": 36,
+          "Lv9": 39,
+          "Lv10": 42
+        },
+        "Items": {
+          "Blue_Gemstone": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "triple_attack": {
+      "id": 263,
+      "name": "MO_TRIPLEATTACK",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {},
+      "unsupportedRequirements": []
+    },
+    "investigate": {
+      "id": 266,
+      "name": "MO_INVESTIGATE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 10,
+          "Lv2": 14,
+          "Lv3": 17,
+          "Lv4": 19,
+          "Lv5": 20,
+          "Lv6": 20,
+          "Lv7": 20,
+          "Lv8": 20,
+          "Lv9": 20,
+          "Lv10": 20
+        },
+        "SpiritSphereCost": 1
+      },
+      "unsupportedRequirements": [
+        "SpiritSphereCost"
+      ]
+    },
+    "adrenaline": {
+      "id": 111,
+      "name": "BS_ADRENALINE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 20,
+          "Lv2": 23,
+          "Lv3": 26,
+          "Lv4": 29,
+          "Lv5": 32,
+          "Lv6": 35,
+          "Lv7": 38,
+          "Lv8": 41,
+          "Lv9": 44,
+          "Lv10": 47
+        },
+        "WeaponTypes": {
+          "1HAxes": true,
+          "2HAxes": true,
+          "Maces": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "weapon_perfection": {
+      "id": 112,
+      "name": "BS_WEAPONPERFECT",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 18,
+          "Lv2": 16,
+          "Lv3": 14,
+          "Lv4": 12,
+          "Lv5": 10,
+          "Lv6": 8,
+          "Lv7": 6,
+          "Lv8": 4,
+          "Lv9": 2,
+          "Lv10": 1
+        }
+      },
+      "unsupportedRequirements": []
+    },
+    "acid_terror": {
+      "id": 230,
+      "name": "AM_ACIDTERROR",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 15,
+        "Items": {
+          "Acid_Bottle": 1
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "potion_pitcher": {
+      "id": 231,
+      "name": "AM_POTIONPITCHER",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 1,
+        "Items": {
+          "Red_Potion": {
+            "Lv1": 1
+          },
+          "Orange_Potion": {
+            "Lv2": 1
+          },
+          "Yellow_Potion": {
+            "Lv3": 1
+          },
+          "White_Potion": {
+            "Lv4": 1
+          },
+          "Blue_Potion": {
+            "Lv5": 1
+          }
+        }
+      },
+      "unsupportedRequirements": [
+        "Items"
+      ]
+    },
+    "sonic_blow": {
+      "id": 136,
+      "name": "AS_SONICBLOW",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 16,
+          "Lv2": 18,
+          "Lv3": 20,
+          "Lv4": 22,
+          "Lv5": 24,
+          "Lv6": 26,
+          "Lv7": 28,
+          "Lv8": 30,
+          "Lv9": 32,
+          "Lv10": 34
+        },
+        "WeaponTypes": {
+          "Katars": true
+        }
+      },
+      "unsupportedRequirements": [
+        "WeaponTypes"
+      ]
+    },
+    "enchant_poison": {
+      "id": 138,
+      "name": "AS_ENCHANTPOISON",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 20
+      },
+      "unsupportedRequirements": []
+    },
+    "raid": {
+      "id": 214,
+      "name": "RG_RAID",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 20,
+        "State": "Hiding"
+      },
+      "unsupportedRequirements": [
+        "State"
+      ]
+    },
+    "snatcher": {
+      "id": 211,
+      "name": "RG_STEALCOIN",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": 15
+      },
+      "unsupportedRequirements": []
+    }
+  },
+  "classSources": {
+    "novice": {
+      "job": "Novice",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "Novice"
+    },
+    "high_novice": {
+      "job": "Novice_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "HighNovice"
+    },
+    "swordsman": {
+      "job": "Swordsman",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_swordsman": {
+      "job": "Swordsman_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "mage": {
+      "job": "Magician",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_mage": {
+      "job": "Magician_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "archer": {
+      "job": "Archer",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_archer": {
+      "job": "Archer_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "acolyte": {
+      "job": "Acolyte",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_acolyte": {
+      "job": "Acolyte_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "merchant": {
+      "job": "Merchant",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_merchant": {
+      "job": "Merchant_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "thief": {
+      "job": "Thief",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "FirstClasses"
+    },
+    "high_thief": {
+      "job": "Thief_High",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedFirstClasses"
+    },
+    "knight": {
+      "job": "Knight",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "lord_knight": {
+      "job": "Lord_Knight",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "crusader": {
+      "job": "Crusader",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "paladin": {
+      "job": "Paladin",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "wizard": {
+      "job": "Wizard",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "high_wizard": {
+      "job": "High_Wizard",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "sage": {
+      "job": "Sage",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "professor": {
+      "job": "Professor",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "hunter": {
+      "job": "Hunter",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "sniper": {
+      "job": "Sniper",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "bard": {
+      "job": "Bard",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "clown": {
+      "job": "Clown",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "dancer": {
+      "job": "Dancer",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "gypsy": {
+      "job": "Gypsy",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "priest": {
+      "job": "Priest",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "high_priest": {
+      "job": "High_Priest",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "monk": {
+      "job": "Monk",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "champion": {
+      "job": "Champion",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "blacksmith": {
+      "job": "Blacksmith",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "whitesmith": {
+      "job": "Whitesmith",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "alchemist": {
+      "job": "Alchemist",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "creator": {
+      "job": "Creator",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "assassin": {
+      "job": "Assassin",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "assassin_cross": {
+      "job": "Assassin_Cross",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    },
+    "rogue": {
+      "job": "Rogue",
+      "baseExpGroup": "FirstClasses",
+      "jobExpGroup": "SecondClasses"
+    },
+    "stalker": {
+      "job": "Stalker",
+      "baseExpGroup": "TranscendedClasses",
+      "jobExpGroup": "TranscendedSecondClasses"
+    }
+  },
+  "bossRoster": {
+    "miniBossSource": "https://irowiki.org/wiki/Boss",
+    "miniBossMonsterIds": [
+      1088,
+      1089,
+      1090,
+      1091,
+      1092,
+      1093,
+      1096,
+      1120,
+      1200,
+      1203,
+      1204,
+      1205,
+      1259,
+      1262,
+      1283,
+      1289,
+      1302,
+      1307,
+      1388,
+      1582,
+      1618,
+      1626,
+      1681,
+      1704,
+      1705,
+      1706,
+      1707,
+      1813
+    ],
+    "mvpCriterion": "MvpExp or MvpDrops in pinned mob_db.conf",
+    "excludedMvpSpritePrefixes": [
+      "EVENT_"
+    ]
+  },
+  "itemResources": {
+    "path": "data/idnum2itemresnametable.txt",
+    "encoding": "CP949 (WHATWG euc-kr)",
+    "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
+    "redistributed": false
+  },
+  "hpSpModifierSource": {
+    "path": "src/map/status.c",
+    "url": "https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/status.c",
+    "functions": [
+      "status_get_base_maxhp",
+      "status_get_base_maxsp"
+    ],
+    "modifier": "JOBL_UPPER: floor(base * 1.25)",
+    "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
+  },
+  "rulesSha256": "aaa75e289ab27eea7995db0f9fbba9eb3e63bba23d06cfc7d21f23b80073c818",
+  "spriteMappingSource": {
+    "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
+    "license": "GPL-3.0-or-later",
+    "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
+  },
+  "catalogSha256": "b6ad762fa55d433f4b0c39e360d38570c46b35c9fad7b1d58c1c780cb67c1ce3",
+  "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
+}

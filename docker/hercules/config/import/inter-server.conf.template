@@ -1,0 +1,6 @@
+inter_configuration: {
+  database_names: {
+    account_db: "login"
+    login_db: "loginlog"
+  }
+}

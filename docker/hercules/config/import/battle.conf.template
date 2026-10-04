@@ -1,0 +1,9 @@
+battle_configuration: {
+  // roBrowser sends plain packet IDs (packetKeys: false).
+  packet_obfuscation: 0
+  // Gold Times rates: 4x base/job quests and MVPs; drops remain 1x.
+  base_exp_rate: 400
+  job_exp_rate: 400
+  quest_exp_rate: 400
+  mvp_exp_rate: 400
+}

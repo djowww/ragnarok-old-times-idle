@@ -1,0 +1,7 @@
+sql_connection: {
+  db_hostname: "${DB_HOST_LIBCONFIG}"
+  db_port: ${DB_PORT}
+  db_username: "${DB_USER_LIBCONFIG}"
+  db_password: "${DB_PASSWORD_LIBCONFIG}"
+  db_database: "${DB_NAME_LIBCONFIG}"
+}

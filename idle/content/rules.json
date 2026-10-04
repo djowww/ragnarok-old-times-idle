@@ -1,0 +1,2016 @@
+{
+  "version": "0.1.0",
+  "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+  "rates": {
+    "baseExp": 4,
+    "jobExp": 4,
+    "drop": 1
+  },
+  "adaptations": [
+    "Deterministic healing uses midpoints of source ranges.",
+    "Skill damage, cooldowns, effects, simplified buffs, rotation and encounters are explicit idle adaptations.",
+    "No scripts execute. Ammo requirements are waived; zeny and declared reagents remain real costs.",
+    "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
+    "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
+    "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
+    "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database."
+  ],
+  "classes": [
+    {
+      "id": "novice",
+      "source": "Novice",
+      "name": "Aprendiz",
+      "family": "novice",
+      "tier": 0,
+      "trans": false,
+      "minJobLevel": 1,
+      "weapons": [
+        "dagger",
+        "sword",
+        "axe",
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "first_aid"
+      ],
+      "spriteJob": "NOVICE"
+    },
+    {
+      "id": "high_novice",
+      "source": "Novice_High",
+      "name": "Alto Aprendiz",
+      "family": "novice",
+      "tier": 0,
+      "trans": true,
+      "minJobLevel": 1,
+      "weapons": [
+        "dagger",
+        "sword",
+        "axe",
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "first_aid"
+      ],
+      "spriteJob": "NOVICE",
+      "rebirthOf": "novice"
+    },
+    {
+      "id": "swordsman",
+      "source": "Swordsman",
+      "name": "Espadachim",
+      "family": "swordsman",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear"
+      ],
+      "skills": [
+        "bash",
+        "magnum_break",
+        "hp_recovery"
+      ],
+      "spriteJob": "SWORDMAN"
+    },
+    {
+      "id": "high_swordsman",
+      "source": "Swordsman_High",
+      "name": "Alto Espadachim",
+      "family": "swordsman",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear"
+      ],
+      "skills": [
+        "bash",
+        "magnum_break",
+        "hp_recovery"
+      ],
+      "spriteJob": "SWORDMAN",
+      "rebirthOf": "swordsman"
+    },
+    {
+      "id": "mage",
+      "source": "Magician",
+      "name": "Mago",
+      "family": "mage",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "fire_bolt",
+        "cold_bolt",
+        "lightning_bolt"
+      ],
+      "spriteJob": "MAGICIAN"
+    },
+    {
+      "id": "high_mage",
+      "source": "Magician_High",
+      "name": "Alto Mago",
+      "family": "mage",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "fire_bolt",
+        "cold_bolt",
+        "lightning_bolt"
+      ],
+      "spriteJob": "MAGICIAN",
+      "rebirthOf": "mage"
+    },
+    {
+      "id": "archer",
+      "source": "Archer",
+      "name": "Arqueiro",
+      "family": "archer",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "bow"
+      ],
+      "skills": [
+        "double_strafe",
+        "arrow_shower",
+        "owl_eye"
+      ],
+      "spriteJob": "ARCHER"
+    },
+    {
+      "id": "high_archer",
+      "source": "Archer_High",
+      "name": "Alto Arqueiro",
+      "family": "archer",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "bow"
+      ],
+      "skills": [
+        "double_strafe",
+        "arrow_shower",
+        "owl_eye"
+      ],
+      "spriteJob": "ARCHER",
+      "rebirthOf": "archer"
+    },
+    {
+      "id": "acolyte",
+      "source": "Acolyte",
+      "name": "Noviço",
+      "family": "acolyte",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "heal",
+        "blessing",
+        "holy_light"
+      ],
+      "spriteJob": "ACOLYTE"
+    },
+    {
+      "id": "high_acolyte",
+      "source": "Acolyte_High",
+      "name": "Alto Noviço",
+      "family": "acolyte",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "heal",
+        "blessing",
+        "holy_light"
+      ],
+      "spriteJob": "ACOLYTE",
+      "rebirthOf": "acolyte"
+    },
+    {
+      "id": "merchant",
+      "source": "Merchant",
+      "name": "Mercador",
+      "family": "merchant",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace"
+      ],
+      "skills": [
+        "mammonite",
+        "crazy_uproar",
+        "cart_revolution"
+      ],
+      "spriteJob": "MERCHANT"
+    },
+    {
+      "id": "high_merchant",
+      "source": "Merchant_High",
+      "name": "Alto Mercador",
+      "family": "merchant",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace"
+      ],
+      "skills": [
+        "mammonite",
+        "crazy_uproar",
+        "cart_revolution"
+      ],
+      "spriteJob": "MERCHANT",
+      "rebirthOf": "merchant"
+    },
+    {
+      "id": "thief",
+      "source": "Thief",
+      "name": "Gatuno",
+      "family": "thief",
+      "tier": 1,
+      "trans": false,
+      "parent": "novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger"
+      ],
+      "skills": [
+        "double_attack",
+        "envenom",
+        "improve_dodge"
+      ],
+      "spriteJob": "THIEF"
+    },
+    {
+      "id": "high_thief",
+      "source": "Thief_High",
+      "name": "Alto Gatuno",
+      "family": "thief",
+      "tier": 1,
+      "trans": true,
+      "parent": "high_novice",
+      "minJobLevel": 10,
+      "weapons": [
+        "dagger"
+      ],
+      "skills": [
+        "double_attack",
+        "envenom",
+        "improve_dodge"
+      ],
+      "spriteJob": "THIEF",
+      "rebirthOf": "thief"
+    },
+    {
+      "id": "knight",
+      "source": "Knight",
+      "name": "Cavaleiro",
+      "family": "swordsman",
+      "tier": 2,
+      "trans": false,
+      "parent": "swordsman",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear"
+      ],
+      "skills": [
+        "pierce",
+        "brandish_spear"
+      ],
+      "spriteJob": "KNIGHT"
+    },
+    {
+      "id": "lord_knight",
+      "source": "Lord_Knight",
+      "name": "Lorde",
+      "family": "swordsman",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_swordsman",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear"
+      ],
+      "skills": [
+        "pierce",
+        "brandish_spear"
+      ],
+      "spriteJob": "KNIGHT_H",
+      "rebirthOf": "knight"
+    },
+    {
+      "id": "crusader",
+      "source": "Crusader",
+      "name": "Templário",
+      "family": "swordsman",
+      "tier": 2,
+      "trans": false,
+      "parent": "swordsman",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear",
+        "mace"
+      ],
+      "skills": [
+        "holy_cross",
+        "shield_boomerang"
+      ],
+      "spriteJob": "CRUSADER"
+    },
+    {
+      "id": "paladin",
+      "source": "Paladin",
+      "name": "Paladino",
+      "family": "swordsman",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_swordsman",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "sword",
+        "spear",
+        "mace"
+      ],
+      "skills": [
+        "holy_cross",
+        "shield_boomerang"
+      ],
+      "spriteJob": "CRUSADER_H",
+      "rebirthOf": "crusader"
+    },
+    {
+      "id": "wizard",
+      "source": "Wizard",
+      "name": "Bruxo",
+      "family": "mage",
+      "tier": 2,
+      "trans": false,
+      "parent": "mage",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "jupitel_thunder",
+        "storm_gust"
+      ],
+      "spriteJob": "WIZARD"
+    },
+    {
+      "id": "high_wizard",
+      "source": "High_Wizard",
+      "name": "Arquimago",
+      "family": "mage",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_mage",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "jupitel_thunder",
+        "storm_gust"
+      ],
+      "spriteJob": "WIZARD_H",
+      "rebirthOf": "wizard"
+    },
+    {
+      "id": "sage",
+      "source": "Sage",
+      "name": "Sábio",
+      "family": "mage",
+      "tier": 2,
+      "trans": false,
+      "parent": "mage",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "hindsight",
+        "flame_enchant"
+      ],
+      "spriteJob": "SAGE"
+    },
+    {
+      "id": "professor",
+      "source": "Professor",
+      "name": "Professor",
+      "family": "mage",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_mage",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "staff"
+      ],
+      "skills": [
+        "hindsight",
+        "flame_enchant"
+      ],
+      "spriteJob": "SAGE_H",
+      "rebirthOf": "sage"
+    },
+    {
+      "id": "hunter",
+      "source": "Hunter",
+      "name": "Caçador",
+      "family": "archer",
+      "tier": 2,
+      "trans": false,
+      "parent": "archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow"
+      ],
+      "skills": [
+        "blitz_beat",
+        "beast_bane"
+      ],
+      "spriteJob": "HUNTER"
+    },
+    {
+      "id": "sniper",
+      "source": "Sniper",
+      "name": "Atirador",
+      "family": "archer",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow"
+      ],
+      "skills": [
+        "blitz_beat",
+        "beast_bane"
+      ],
+      "spriteJob": "HUNTER_H",
+      "rebirthOf": "hunter"
+    },
+    {
+      "id": "bard",
+      "source": "Bard",
+      "name": "Bardo",
+      "family": "archer",
+      "tier": 2,
+      "trans": false,
+      "parent": "archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "instrument"
+      ],
+      "skills": [
+        "melody_strike",
+        "poem_of_bragi"
+      ],
+      "spriteJob": "BARD",
+      "gender": "male"
+    },
+    {
+      "id": "clown",
+      "source": "Clown",
+      "name": "Menestrel",
+      "family": "archer",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "instrument"
+      ],
+      "skills": [
+        "melody_strike",
+        "poem_of_bragi"
+      ],
+      "spriteJob": "BARD_H",
+      "rebirthOf": "bard",
+      "gender": "male"
+    },
+    {
+      "id": "dancer",
+      "source": "Dancer",
+      "name": "Odalisca",
+      "family": "archer",
+      "tier": 2,
+      "trans": false,
+      "parent": "archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "whip"
+      ],
+      "skills": [
+        "slinging_arrow",
+        "service_for_you"
+      ],
+      "spriteJob": "DANCER",
+      "gender": "female"
+    },
+    {
+      "id": "gypsy",
+      "source": "Gypsy",
+      "name": "Cigana",
+      "family": "archer",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_archer",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "whip"
+      ],
+      "skills": [
+        "slinging_arrow",
+        "service_for_you"
+      ],
+      "spriteJob": "DANCER_H",
+      "rebirthOf": "dancer",
+      "gender": "female"
+    },
+    {
+      "id": "priest",
+      "source": "Priest",
+      "name": "Sacerdote",
+      "family": "acolyte",
+      "tier": 2,
+      "trans": false,
+      "parent": "acolyte",
+      "minJobLevel": 40,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "kyrie",
+        "sanctuary"
+      ],
+      "spriteJob": "PRIEST"
+    },
+    {
+      "id": "high_priest",
+      "source": "High_Priest",
+      "name": "Sumo Sacerdote",
+      "family": "acolyte",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_acolyte",
+      "minJobLevel": 40,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "kyrie",
+        "sanctuary"
+      ],
+      "spriteJob": "PRIEST_H",
+      "rebirthOf": "priest"
+    },
+    {
+      "id": "monk",
+      "source": "Monk",
+      "name": "Monge",
+      "family": "acolyte",
+      "tier": 2,
+      "trans": false,
+      "parent": "acolyte",
+      "minJobLevel": 40,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "triple_attack",
+        "investigate"
+      ],
+      "spriteJob": "MONK"
+    },
+    {
+      "id": "champion",
+      "source": "Champion",
+      "name": "Mestre",
+      "family": "acolyte",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_acolyte",
+      "minJobLevel": 40,
+      "weapons": [
+        "mace",
+        "staff"
+      ],
+      "skills": [
+        "triple_attack",
+        "investigate"
+      ],
+      "spriteJob": "MONK_H",
+      "rebirthOf": "monk"
+    },
+    {
+      "id": "blacksmith",
+      "source": "Blacksmith",
+      "name": "Ferreiro",
+      "family": "merchant",
+      "tier": 2,
+      "trans": false,
+      "parent": "merchant",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace",
+        "sword"
+      ],
+      "skills": [
+        "adrenaline",
+        "weapon_perfection"
+      ],
+      "spriteJob": "BLACKSMITH"
+    },
+    {
+      "id": "whitesmith",
+      "source": "Whitesmith",
+      "name": "Mestre Ferreiro",
+      "family": "merchant",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_merchant",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace",
+        "sword"
+      ],
+      "skills": [
+        "adrenaline",
+        "weapon_perfection"
+      ],
+      "spriteJob": "BLACKSMITH_H",
+      "rebirthOf": "blacksmith"
+    },
+    {
+      "id": "alchemist",
+      "source": "Alchemist",
+      "name": "Alquimista",
+      "family": "merchant",
+      "tier": 2,
+      "trans": false,
+      "parent": "merchant",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace",
+        "sword"
+      ],
+      "skills": [
+        "acid_terror",
+        "potion_pitcher"
+      ],
+      "spriteJob": "ALCHEMIST"
+    },
+    {
+      "id": "creator",
+      "source": "Creator",
+      "name": "Criador",
+      "family": "merchant",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_merchant",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "axe",
+        "mace",
+        "sword"
+      ],
+      "skills": [
+        "acid_terror",
+        "potion_pitcher"
+      ],
+      "spriteJob": "ALCHEMIST_H",
+      "rebirthOf": "alchemist"
+    },
+    {
+      "id": "assassin",
+      "source": "Assassin",
+      "name": "Mercenário",
+      "family": "thief",
+      "tier": 2,
+      "trans": false,
+      "parent": "thief",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "katar"
+      ],
+      "skills": [
+        "sonic_blow",
+        "enchant_poison"
+      ],
+      "spriteJob": "ASSASSIN"
+    },
+    {
+      "id": "assassin_cross",
+      "source": "Assassin_Cross",
+      "name": "Algoz",
+      "family": "thief",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_thief",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "katar"
+      ],
+      "skills": [
+        "sonic_blow",
+        "enchant_poison"
+      ],
+      "spriteJob": "ASSASSIN_H",
+      "rebirthOf": "assassin"
+    },
+    {
+      "id": "rogue",
+      "source": "Rogue",
+      "name": "Arruaceiro",
+      "family": "thief",
+      "tier": 2,
+      "trans": false,
+      "parent": "thief",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "sword"
+      ],
+      "skills": [
+        "raid",
+        "snatcher"
+      ],
+      "spriteJob": "ROGUE"
+    },
+    {
+      "id": "stalker",
+      "source": "Stalker",
+      "name": "Desordeiro",
+      "family": "thief",
+      "tier": 2,
+      "trans": true,
+      "parent": "high_thief",
+      "minJobLevel": 40,
+      "weapons": [
+        "dagger",
+        "bow",
+        "sword"
+      ],
+      "skills": [
+        "raid",
+        "snatcher"
+      ],
+      "spriteJob": "ROGUE_H",
+      "rebirthOf": "rogue"
+    }
+  ],
+  "skills": [
+    {
+      "id": "first_aid",
+      "source": "NV_FIRSTAID",
+      "name": "Primeiros Socorros",
+      "kind": "heal",
+      "maxLevel": 1,
+      "powerStart": 5,
+      "powerStep": 0,
+      "cooldownMs": 3000,
+      "description": "Recupera um pouco de HP quando você está ferido. Uma opção econômica para prolongar as primeiras caçadas."
+    },
+    {
+      "id": "bash",
+      "source": "SM_BASH",
+      "name": "Golpe Fulminante",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 130,
+      "powerStep": 30,
+      "cooldownMs": 3000,
+      "description": "Desfere um golpe físico forte contra o inimigo atual. Use para encerrar encontros mais rapidamente."
+    },
+    {
+      "id": "magnum_break",
+      "source": "SM_MAGNUM",
+      "name": "Impacto Explosivo",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 120,
+      "powerStep": 20,
+      "cooldownMs": 3000,
+      "element": "fire",
+      "description": "Atinge o alvo com um golpe físico de fogo. Útil contra criaturas vulneráveis a esse elemento."
+    },
+    {
+      "id": "hp_recovery",
+      "source": "SM_RECOVERY",
+      "name": "Recuperação de HP",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "hp": 30
+      },
+      "description": "Aumenta seu HP máximo permanentemente. Ajuda a suportar caçadas mais perigosas sem gastar SP."
+    },
+    {
+      "id": "fire_bolt",
+      "source": "MG_FIREBOLT",
+      "name": "Lanças de Fogo",
+      "kind": "magical",
+      "maxLevel": 10,
+      "powerStart": 100,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "element": "fire",
+      "description": "Lança magia de fogo contra o alvo. O dano cresce com seu ataque mágico e a fraqueza elemental do inimigo."
+    },
+    {
+      "id": "cold_bolt",
+      "source": "MG_COLDBOLT",
+      "name": "Lanças de Gelo",
+      "kind": "magical",
+      "maxLevel": 10,
+      "powerStart": 100,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "element": "water",
+      "description": "Lança magia de água contra o alvo. Uma boa escolha para enfrentar criaturas de fogo."
+    },
+    {
+      "id": "lightning_bolt",
+      "source": "MG_LIGHTNINGBOLT",
+      "name": "Relâmpago",
+      "kind": "magical",
+      "maxLevel": 10,
+      "powerStart": 100,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "element": "wind",
+      "description": "Atinge o alvo com magia de vento. É especialmente útil contra criaturas de água."
+    },
+    {
+      "id": "double_strafe",
+      "source": "AC_DOUBLE",
+      "name": "Rajada de Flechas",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 200,
+      "powerStep": 20,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "bow"
+      ],
+      "description": "Dispara uma rajada que causa dano físico elevado. Requer um arco equipado."
+    },
+    {
+      "id": "arrow_shower",
+      "source": "AC_SHOWER",
+      "name": "Chuva de Flechas",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 155,
+      "powerStep": 5,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "bow"
+      ],
+      "description": "Concentra uma chuva de flechas no inimigo atual. Requer um arco equipado."
+    },
+    {
+      "id": "owl_eye",
+      "source": "AC_OWL",
+      "name": "Olhos de Coruja",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "dex": 1
+      },
+      "description": "Aumenta sua DEX permanentemente, melhorando a precisão e o ataque com armas de distância."
+    },
+    {
+      "id": "heal",
+      "source": "AL_HEAL",
+      "name": "Curar",
+      "kind": "heal",
+      "maxLevel": 10,
+      "powerStart": 80,
+      "powerStep": 70,
+      "cooldownMs": 3000,
+      "description": "Recupera HP quando você está ferido. Reserve SP para manter a caçada por mais tempo."
+    },
+    {
+      "id": "blessing",
+      "source": "AL_BLESSING",
+      "name": "Bênção",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "str": 1,
+        "int": 1,
+        "dex": 1
+      },
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente STR, INT e DEX. Reforça tanto ataques físicos quanto mágicos."
+    },
+    {
+      "id": "holy_light",
+      "source": "AL_HOLYLIGHT",
+      "name": "Luz Divina",
+      "kind": "magical",
+      "maxLevel": 1,
+      "powerStart": 125,
+      "powerStep": 0,
+      "cooldownMs": 3000,
+      "element": "holy",
+      "description": "Atinge o alvo com magia sagrada. Útil contra criaturas vulneráveis ao elemento sagrado."
+    },
+    {
+      "id": "mammonite",
+      "source": "MC_MAMMONITE",
+      "name": "Mammonita",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 150,
+      "powerStep": 50,
+      "cooldownMs": 3000,
+      "description": "Gasta zeny para aplicar um ataque físico poderoso. Use quando o dano extra compensar o custo."
+    },
+    {
+      "id": "crazy_uproar",
+      "source": "MC_LOUD",
+      "name": "Grito de Guerra",
+      "kind": "buff",
+      "maxLevel": 1,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "str": 4
+      },
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente sua STR, fortalecendo os ataques corpo a corpo."
+    },
+    {
+      "id": "cart_revolution",
+      "source": "MC_CARTREVOLUTION",
+      "name": "Cavalo de Pau",
+      "kind": "physical",
+      "maxLevel": 1,
+      "powerStart": 250,
+      "powerStep": 0,
+      "cooldownMs": 3000,
+      "description": "Aplica um golpe físico pesado no inimigo atual. Uma opção ofensiva para caçar com o Mercador."
+    },
+    {
+      "id": "double_attack",
+      "source": "TF_DOUBLE",
+      "name": "Ataque Duplo",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "damagePct": 3
+      },
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Funciona sem ocupar espaço na rotação."
+    },
+    {
+      "id": "envenom",
+      "source": "TF_POISON",
+      "name": "Envenenar",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 115,
+      "powerStep": 15,
+      "cooldownMs": 3000,
+      "element": "poison",
+      "description": "Aplica um ataque físico de veneno contra o alvo. Escolha de acordo com a resistência elemental da criatura."
+    },
+    {
+      "id": "improve_dodge",
+      "source": "TF_MISS",
+      "name": "Perícia em Esquiva",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "flee": 3
+      },
+      "description": "Aumenta sua esquiva permanentemente, reduzindo a frequência dos golpes recebidos."
+    },
+    {
+      "id": "pierce",
+      "source": "KN_PIERCE",
+      "name": "Perfurar",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 150,
+      "powerStep": 20,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "spear"
+      ],
+      "description": "Perfura o inimigo com um ataque físico forte. Requer uma lança equipada."
+    },
+    {
+      "id": "brandish_spear",
+      "source": "KN_BRANDISHSPEAR",
+      "name": "Brandir Lança",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 200,
+      "powerStep": 20,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "spear"
+      ],
+      "description": "Desfere uma investida poderosa com a lança contra o alvo. Requer uma lança equipada."
+    },
+    {
+      "id": "holy_cross",
+      "source": "CR_HOLYCROSS",
+      "name": "Crux Divinum",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 135,
+      "powerStep": 35,
+      "cooldownMs": 3000,
+      "element": "holy",
+      "description": "Aplica um golpe físico sagrado. Combina uma arma forte com a fraqueza elemental do inimigo."
+    },
+    {
+      "id": "shield_boomerang",
+      "source": "CR_SHIELDBOOMERANG",
+      "name": "Escudo Bumerangue",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 150,
+      "powerStep": 50,
+      "cooldownMs": 3000,
+      "requiredSlot": "shield",
+      "description": "Arremessa o escudo para causar dano físico ao alvo. Requer um escudo equipado."
+    },
+    {
+      "id": "jupitel_thunder",
+      "source": "WZ_JUPITEL",
+      "name": "Trovão de Júpiter",
+      "kind": "magical",
+      "maxLevel": 10,
+      "powerStart": 300,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "element": "wind",
+      "description": "Concentra magia de vento em uma descarga poderosa. Use contra alvos resistentes ou vulneráveis ao vento."
+    },
+    {
+      "id": "storm_gust",
+      "source": "WZ_STORMGUST",
+      "name": "Nevasca",
+      "kind": "magical",
+      "maxLevel": 10,
+      "powerStart": 240,
+      "powerStep": 80,
+      "cooldownMs": 8000,
+      "element": "water",
+      "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos."
+    },
+    {
+      "id": "hindsight",
+      "source": "SA_AUTOSPELL",
+      "name": "Desejo Arcano",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "matk": 5
+      },
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas."
+    },
+    {
+      "id": "flame_enchant",
+      "source": "SA_FLAMELAUNCHER",
+      "name": "Encantar com Chama",
+      "kind": "buff",
+      "maxLevel": 5,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "damagePct": 5
+      },
+      "durationMs": 60000,
+      "itemCost": {
+        "itemId": 990,
+        "quantity": 1
+      },
+      "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso."
+    },
+    {
+      "id": "blitz_beat",
+      "source": "HT_BLITZBEAT",
+      "name": "Ataque Aéreo",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 150,
+      "powerStep": 40,
+      "cooldownMs": 3000,
+      "description": "Comanda uma investida que causa dano físico ao inimigo atual. Acrescenta uma opção ofensiva à rotação."
+    },
+    {
+      "id": "beast_bane",
+      "source": "HT_BEASTBANE",
+      "name": "Flagelo das Feras",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "atk": 4
+      },
+      "description": "Aumenta seu ataque físico permanentemente, fortalecendo os golpes de cada caçada."
+    },
+    {
+      "id": "melody_strike",
+      "source": "BA_MUSICALSTRIKE",
+      "name": "Flecha Melódica",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 150,
+      "powerStep": 50,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "instrument"
+      ],
+      "description": "Dispara um ataque físico com seu instrumento. Requer um instrumento equipado."
+    },
+    {
+      "id": "poem_of_bragi",
+      "source": "BA_POEMBRAGI",
+      "name": "Ritmo de Batalha",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "aspd": 1
+      },
+      "durationMs": 60000,
+      "description": "Acelera temporariamente seus ataques. Útil para aumentar a frequência dos golpes durante a caçada."
+    },
+    {
+      "id": "slinging_arrow",
+      "source": "DC_THROWARROW",
+      "name": "Flecha Melódica",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 150,
+      "powerStep": 50,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "whip"
+      ],
+      "description": "Lança um ataque físico com seu chicote. Requer um chicote equipado."
+    },
+    {
+      "id": "service_for_you",
+      "source": "DC_SERVICEFORYOU",
+      "name": "Ritmo de Batalha",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "aspd": 1
+      },
+      "durationMs": 60000,
+      "description": "Acelera temporariamente seus ataques. Mantenha o bônus ativo para atacar com mais frequência."
+    },
+    {
+      "id": "kyrie",
+      "source": "PR_KYRIE",
+      "name": "Kyrie Eleison",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "def": 2
+      },
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente sua defesa, reduzindo o dano físico recebido."
+    },
+    {
+      "id": "sanctuary",
+      "source": "PR_SANCTUARY",
+      "name": "Santuário",
+      "kind": "heal",
+      "maxLevel": 10,
+      "powerStart": 100,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "itemCost": {
+        "itemId": 717,
+        "quantity": 1
+      },
+      "description": "Recupera HP quando você está ferido. Consome uma Gema Azul a cada uso."
+    },
+    {
+      "id": "triple_attack",
+      "source": "MO_TRIPLEATTACK",
+      "name": "Combo Triplo",
+      "kind": "passive",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "effects": {
+        "damagePct": 4
+      },
+      "description": "Aumenta permanentemente o dano causado pelos seus ataques. Ajuda a vencer encontros sem gastar SP adicional."
+    },
+    {
+      "id": "investigate",
+      "source": "MO_INVESTIGATE",
+      "name": "Investigar",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 200,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "description": "Aplica um ataque físico concentrado e poderoso ao inimigo atual."
+    },
+    {
+      "id": "adrenaline",
+      "source": "BS_ADRENALINE",
+      "name": "Adrenalina Pura",
+      "kind": "buff",
+      "maxLevel": 5,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "aspd": 3
+      },
+      "durationMs": 60000,
+      "requiredWeapon": [
+        "axe",
+        "mace"
+      ],
+      "description": "Acelera temporariamente seus ataques. Requer um machado ou uma maça equipada."
+    },
+    {
+      "id": "weapon_perfection",
+      "source": "BS_WEAPONPERFECT",
+      "name": "Manejo Perfeito",
+      "kind": "buff",
+      "maxLevel": 5,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "damagePct": 4
+      },
+      "durationMs": 60000,
+      "description": "Aumenta temporariamente o dano causado, tornando seus ataques mais fortes."
+    },
+    {
+      "id": "acid_terror",
+      "source": "AM_ACIDTERROR",
+      "name": "Terror Ácido",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 200,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "itemCost": {
+        "itemId": 7136,
+        "quantity": 1
+      },
+      "description": "Causa dano físico elevado ao alvo. Consome uma Garrafa de Ácido a cada uso."
+    },
+    {
+      "id": "potion_pitcher",
+      "source": "AM_POTIONPITCHER",
+      "name": "Arremessar Poção",
+      "kind": "heal",
+      "maxLevel": 5,
+      "powerStart": 100,
+      "powerStep": 100,
+      "cooldownMs": 3000,
+      "itemCost": {
+        "itemId": 501,
+        "quantity": 1
+      },
+      "description": "Recupera HP quando você está ferido. Consome uma Poção Vermelha a cada uso."
+    },
+    {
+      "id": "sonic_blow",
+      "source": "AS_SONICBLOW",
+      "name": "Lâminas Destruidoras",
+      "kind": "physical",
+      "maxLevel": 10,
+      "powerStart": 440,
+      "powerStep": 40,
+      "cooldownMs": 3000,
+      "requiredWeapon": [
+        "katar"
+      ],
+      "description": "Desfere um ataque físico de grande impacto. Requer um katar equipado."
+    },
+    {
+      "id": "enchant_poison",
+      "source": "AS_ENCHANTPOISON",
+      "name": "Encantar com Veneno",
+      "kind": "buff",
+      "maxLevel": 10,
+      "powerStart": 0,
+      "powerStep": 0,
+      "cooldownMs": 30000,
+      "effects": {
+        "damagePct": 3
+      },
+      "durationMs": 60000,
+      "description": "Fortalece temporariamente o dano dos seus ataques. Prepare o bônus antes de enfrentar inimigos mais difíceis."
+    },
+    {
+      "id": "raid",
+      "source": "RG_RAID",
+      "name": "Ataque Surpresa",
+      "kind": "physical",
+      "maxLevel": 5,
+      "powerStart": 200,
+      "powerStep": 40,
+      "cooldownMs": 3000,
+      "description": "Aplica um ataque físico surpresa e poderoso ao inimigo atual."
+    },
+    {
+      "id": "snatcher",
+      "source": "RG_STEALCOIN",
+      "name": "Furto de Moedas",
+      "kind": "steal",
+      "maxLevel": 10,
+      "powerStart": 3,
+      "powerStep": 2,
+      "cooldownMs": 15000,
+      "description": "Obtém uma pequena quantidade de zeny durante o combate. Consome SP e tem um intervalo maior entre usos."
+    }
+  ],
+  "spriteJobs": {
+    "NOVICE": "초보자",
+    "SWORDMAN": "검사",
+    "MAGICIAN": "마법사",
+    "ARCHER": "궁수",
+    "ACOLYTE": "성직자",
+    "MERCHANT": "상인",
+    "THIEF": "도둑",
+    "KNIGHT": "기사",
+    "PRIEST": "프리스트",
+    "WIZARD": "위저드",
+    "BLACKSMITH": "제철공",
+    "HUNTER": "헌터",
+    "ASSASSIN": "어세신",
+    "KNIGHT2": "페코페코_기사",
+    "CRUSADER": "크루세이더",
+    "MONK": "몽크",
+    "SAGE": "세이지",
+    "ROGUE": "로그",
+    "ALCHEMIST": "연금술사",
+    "BARD": "바드",
+    "DANCER": "무희",
+    "CRUSADER2": "신페코크루세이더",
+    "SUPERNOVICE": "슈퍼노비스",
+    "GUNSLINGER": "건너",
+    "NINJA": "닌자",
+    "TAEKWON": "태권소년",
+    "STAR": "권성",
+    "STAR2": "권성융합",
+    "LINKER": "소울링커",
+    "MARRIED": "결혼",
+    "XMAS": "산타",
+    "SUMMER": "여름",
+    "KNIGHT_H": "로드나이트",
+    "PRIEST_H": "하이프리",
+    "WIZARD_H": "하이위저드",
+    "BLACKSMITH_H": "화이트스미스",
+    "HUNTER_H": "스나이퍼",
+    "ASSASSIN_H": "어쌔신크로스",
+    "KNIGHT2_H": "로드페코",
+    "CRUSADER_H": "팔라딘",
+    "MONK_H": "챔피온",
+    "SAGE_H": "프로페서",
+    "ROGUE_H": "스토커",
+    "ALCHEMIST_H": "크리에이터",
+    "BARD_H": "클라운",
+    "DANCER_H": "집시",
+    "CRUSADER2_H": "페코팔라딘",
+    "RUNE_KNIGHT": "룬나이트",
+    "WARLOCK": "워록",
+    "RANGER": "레인져",
+    "ARCHBISHOP": "아크비숍",
+    "MECHANIC": "미케닉",
+    "GUILLOTINE_CROSS": "길로틴크로스",
+    "ROYAL_GUARD": "가드",
+    "SORCERER": "소서러",
+    "MINSTREL": "민스트럴",
+    "WANDERER": "원더러",
+    "SURA": "슈라",
+    "GENETIC": "제네릭",
+    "SHADOW_CHASER": "쉐도우체이서",
+    "RUNE_KNIGHT2": "룬나이트쁘띠",
+    "ROYAL_GUARD2": "그리폰가드",
+    "RANGER2": "레인져늑대",
+    "MECHANIC2": "마도기어",
+    "SUPERNOVICE2": "슈퍼노비스",
+    "KAGEROU": "kagerou",
+    "OBORO": "oboro",
+    "REBELLION": "rebellion",
+    "STAR_EMPEROR": "성제",
+    "SOUL_REAPER": "소울리퍼",
+    "DRAGON_KNIGHT": "dragon_knight",
+    "MEISTER": "meister",
+    "SHADOW_CROSS": "shadow_cross",
+    "ARCH_MAGE": "arch_mage",
+    "CARDINAL": "cardinal",
+    "WINDHAWK": "windhawk",
+    "IMPERIAL_GUARD": "imperial_guard",
+    "BIOLO": "biolo",
+    "ABYSS_CHASER": "abyss_chaser",
+    "ELEMENTAL_MASTER": "elemetal_master",
+    "INQUISITOR": "inquisitor",
+    "TROUBADOUR": "troubadour",
+    "TROUVERE": "trouvere",
+    "WINDHAWK2": "wolf_windhawk",
+    "MEISTER2": "meister_madogear2",
+    "DRAGON_KNIGHT2": "dragon_knight_chicken",
+    "IMPERIAL_GUARD2": "imperial_guard_chicken",
+    "SKY_EMPEROR": "sky_emperor",
+    "SOUL_ASCETIC": "soul_ascetic",
+    "SHINKIRO": "shinkiro",
+    "SHIRANUI": "shiranui",
+    "NIGHT_WATCH": "night_watch",
+    "HYPER_NOVICE": "hyper_novice",
+    "SPIRIT_HANDLER": "spirit_handler",
+    "SKY_EMPEROR2": "sky_emperor2",
+    "PORING_NOVICE": "노비스포링",
+    "SHEEP_ACO": "복사알파카",
+    "OSTRICH_ARCHER": "타조궁수",
+    "FOX_MAGICIAN": "여우마법사",
+    "PIG_MERCHANT": "상인멧돼지",
+    "PECO_SWORD": "페코검사",
+    "DOG_THIEF": "켈베로스도둑",
+    "SHEEP_PRIEST": "프리스트알파카",
+    "OSTRICH_HUNTER": "타조헌터",
+    "FOX_WIZ": "여우위저드",
+    "PIG_BLACKSMITH": "제철공멧돼지",
+    "LION_KNIGHT": "사자기사",
+    "DOG_ASSASSIN": "켈베로스어쎄신",
+    "SHEEP_MONK": "몽크알파카",
+    "OSTRICH_BARD": "타조바드",
+    "OSTRICH_DANCER": "타조무희",
+    "FOX_SAGE": "여우세이지",
+    "PIG_ALCHE": "연금술사멧돼지",
+    "LION_CRUSADER": "사자크루세이더",
+    "DOG_ROGUE": "켈베로스로그",
+    "SHEEP_ARCB": "아크비숍알파카",
+    "OSTRICH_RANGER": "타조레인져",
+    "FOX_WARLOCK": "여우워록",
+    "PIG_MECHANIC": "미케닉멧돼지",
+    "LION_RUNE_KNIGHT": "사자룬나이트",
+    "DOG_G_CROSS": "켈베로스길로틴크로스",
+    "SHEEP_SURA": "슈라알파카",
+    "OSTRICH_MINSTREL": "타조민스트럴",
+    "OSTRICH_WANDER": "타조원더러",
+    "FOX_SORCERER": "여우소서러",
+    "PIG_GENETIC": "제네릭멧돼지",
+    "LION_ROYAL_GUARD": "사자로얄가드",
+    "DOG_CHASER": "켈베로스쉐도우체이서",
+    "PORING_SNOVICE": "슈퍼노비스포링",
+    "FROG_NINJA": "노비스포링",
+    "PECO_GUNNER": "페코건너",
+    "PORING_TAEKWON": "태권소년포링",
+    "PORING_STAR": "권성포링",
+    "FROG_LINKER": "두꺼비소울링커",
+    "FROG_KAGEROU": "frog_kagerou",
+    "FROG_OBORO": "frog_oboro",
+    "PECO_REBELLION": "peco_rebellion",
+    "SOUL_REAPER2": "해태소울리퍼",
+    "STAR_EMPEROR2": "해태성제",
+    "DO_SUMMONER": "summoner",
+    "SHEEP_HPRIEST": "하이프리스트알파카",
+    "OSTRICH_SNIPER": "타조스나이퍼",
+    "FOX_HWIZ": "여우하이위저드",
+    "PIG_WHITESMITH": "화이트스미스멧돼지",
+    "LION_KNIGHT_H": "사자로드나이트",
+    "DOG_ASSA_X": "켈베로스어쎄신크로스",
+    "SHEEP_CHAMP": "챔피온알파카",
+    "OSTRICH_CROWN": "타조크라운",
+    "OSTRICH_ZIPSI": "타조짚시",
+    "FOX_PROF": "여우프로페서",
+    "PIG_CREATOR": "크리에이터멧돼지",
+    "LION_CRUSADER_H": "사자팔라딘",
+    "DOG_STALKER": "켈베로스스토커",
+    "DRAGON_KNIGHT_RIDING": "dragon_knight_riding",
+    "MEISTER_RIDING": "meister_riding",
+    "SHADOW_CROSS_RIDING": "shadow_cross_riding",
+    "ARCH_MAGE_RIDING": "arch_mage_riding",
+    "CARDINAL_RIDING": "cardinal_riding",
+    "WINDHAWK_RIDING": "windhawk_riding",
+    "IMPERIAL_GUARD_RIDING": "imperial_guard_riding",
+    "BIOLO_RIDING": "biolo_riding",
+    "ABYSS_CHASER_RIDING": "abyss_chaser_riding",
+    "ELEMENTAL_MASTER_RIDING": "elemetal_master_riding",
+    "INQUISITOR_RIDING": "inquisitor_riding",
+    "TROUBADOUR_RIDING": "troubadour_riding",
+    "TROUVERE_RIDING": "trouvere_riding",
+    "DRUID": "druid",
+    "ALITEA": "alitea",
+    "KARNOS": "karnos",
+    "DRUID_RIDING": "druid_riding",
+    "ALITEA_RIDING": "alitea_riding",
+    "KARNOS_RIDING": "karnos_riding",
+    "WEREWOLF": "werewolf",
+    "WERERAPTOR": "wereraptor"
+  },
+  "areas": [
+    {
+      "id": "prontera_south",
+      "name": "Sul de Prontera",
+      "map": "prt_fild08",
+      "minLevel": 1,
+      "monsters": [
+        1002,
+        1063,
+        1113
+      ],
+      "scene": "field",
+      "description": "Caçada em Sul de Prontera. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "sewers",
+      "name": "Esgotos",
+      "map": "prt_sewb1",
+      "minLevel": 5,
+      "monsters": [
+        1051,
+        1175
+      ],
+      "scene": "sewer",
+      "description": "Caçada em Esgotos. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "rocker_fields",
+      "name": "Campos dos Rockers",
+      "map": "prt_fild04",
+      "minLevel": 8,
+      "monsters": [
+        1052,
+        1018
+      ],
+      "scene": "field",
+      "description": "Caçada em Campos dos Rockers. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "prontera_forest",
+      "name": "Bosque de Prontera",
+      "map": "prt_fild03",
+      "minLevel": 12,
+      "monsters": [
+        1031,
+        1056,
+        1057
+      ],
+      "scene": "forest",
+      "description": "Caçada em Bosque de Prontera. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "payon_cave",
+      "name": "Caverna de Payon",
+      "map": "pay_dun00",
+      "minLevel": 15,
+      "monsters": [
+        1076,
+        1015
+      ],
+      "scene": "cave",
+      "description": "Caçada em Caverna de Payon. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "byalan",
+      "name": "Byalan",
+      "map": "iz_dun01",
+      "minLevel": 20,
+      "monsters": [
+        1070,
+        1066,
+        1141
+      ],
+      "scene": "sea",
+      "description": "Caçada em Byalan. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "orc_village",
+      "name": "Vila dos Orcs",
+      "map": "gef_fild10",
+      "minLevel": 25,
+      "monsters": [
+        1023,
+        1273
+      ],
+      "scene": "orc",
+      "description": "Caçada em Vila dos Orcs. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "pyramid",
+      "name": "Pirâmide",
+      "map": "moc_pryd02",
+      "minLevel": 35,
+      "monsters": [
+        1028,
+        1016,
+        1041
+      ],
+      "scene": "desert",
+      "description": "Caçada em Pirâmide. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "geffen_dungeon",
+      "name": "Calabouço de Geffen",
+      "map": "gef_dun02",
+      "minLevel": 50,
+      "monsters": [
+        1109,
+        1061
+      ],
+      "scene": "cave",
+      "description": "Caçada em Calabouço de Geffen. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "glast_heim",
+      "name": "Cavalaria de Glast Heim",
+      "map": "gl_knt01",
+      "minLevel": 65,
+      "monsters": [
+        1163,
+        1132,
+        1219
+      ],
+      "scene": "castle",
+      "description": "Caçada em Cavalaria de Glast Heim. Acesso definido pelo balanceamento idle."
+    }
+  ],
+  "cards": {
+    "4001": {
+      "luk": 2,
+      "perfectDodge": 1
+    },
+    "4004": {
+      "dex": 1,
+      "hit": 3
+    },
+    "4006": {
+      "luk": 1,
+      "crit": 1,
+      "perfectDodge": 1
+    },
+    "4016": {
+      "agi": 1
+    },
+    "4021": {
+      "dex": 1,
+      "atk": 5
+    },
+    "4028": {
+      "str": 2
+    },
+    "4051": {
+      "agi": 1,
+      "perfectDodge": 5
+    },
+    "4133": {
+      "neutralResist": 20
+    }
+  },
+  "shop": [
+    501,
+    502,
+    503,
+    504,
+    505,
+    512,
+    717,
+    984,
+    985,
+    990,
+    7136,
+    1201,
+    1204,
+    1219,
+    1101,
+    1104,
+    1119,
+    1301,
+    1351,
+    1401,
+    1404,
+    1501,
+    1504,
+    1601,
+    1604,
+    1701,
+    1704,
+    1250,
+    1901,
+    1905,
+    1950,
+    1954,
+    2301,
+    2102,
+    2211,
+    2402,
+    2502,
+    2607
+  ],
+  "catalogItems": [
+    2302,
+    2320
+  ],
+  "heal": {
+    "501": [
+      55,
+      0
+    ],
+    "502": [
+      125,
+      0
+    ],
+    "503": [
+      205,
+      0
+    ],
+    "504": [
+      365,
+      0
+    ],
+    "505": [
+      0,
+      50
+    ],
+    "507": [
+      23,
+      0
+    ],
+    "508": [
+      48,
+      0
+    ],
+    "509": [
+      95,
+      0
+    ],
+    "510": [
+      0,
+      22
+    ],
+    "512": [
+      19,
+      0
+    ],
+    "513": [
+      19,
+      0
+    ],
+    "514": [
+      0,
+      12
+    ],
+    "515": [
+      19,
+      0
+    ],
+    "516": [
+      19,
+      0
+    ],
+    "517": [
+      85,
+      0
+    ],
+    "518": [
+      85,
+      30
+    ],
+    "519": [
+      32,
+      0
+    ],
+    "520": [
+      205,
+      0
+    ]
+  },
+  "itemEffects": {
+    "1601": {
+      "matk": 10
+    },
+    "1604": {
+      "matk": 15
+    },
+    "2607": {
+      "sp": 10
+    }
+  },
+  "monsterAliases": {
+    "1016": "skel_archer",
+    "1028": "skel_soldier",
+    "1502": "poring",
+    "1646": "seyren",
+    "1647": "eremes",
+    "1648": "harword",
+    "1649": "magaleta",
+    "1650": "shecil",
+    "1651": "katrinn",
+    "1658": "ygnizem",
+    "1626": "dark_priest",
+    "1802": "magaleta",
+    "1813": "hydro",
+    "1917": "morocc"
+  },
+  "monsterNameAliases": {
+    "1204": "Ogretooth",
+    "1813": "Hydrolancer"
+  },
+  "bosses": [
+    {
+      "id": "mastering",
+      "name": "Mastering",
+      "monsterId": 1090,
+      "minLevel": 15,
+      "timeoutMs": 600000,
+      "firstReward": {
+        "zeny": 1500,
+        "baseExp": 500,
+        "jobExp": 250,
+        "items": [
+          { "itemId": 984, "quantity": 1 },
+          { "itemId": 985, "quantity": 1 }
+        ]
+      }
+    },
+    {
+      "id": "angeling",
+      "name": "Angeling",
+      "monsterId": 1096,
+      "minLevel": 40,
+      "timeoutMs": 600000,
+      "firstReward": {
+        "zeny": 10000,
+        "baseExp": 3000,
+        "jobExp": 1500,
+        "items": [
+          { "itemId": 984, "quantity": 2 },
+          { "itemId": 985, "quantity": 2 }
+        ]
+      }
+    },
+    {
+      "id": "golden_thief_bug",
+      "name": "Besouro-Ladrão Dourado",
+      "monsterId": 1086,
+      "minLevel": 70,
+      "timeoutMs": 600000,
+      "firstReward": {
+        "zeny": 30000,
+        "baseExp": 10000,
+        "jobExp": 5000,
+        "items": [
+          { "itemId": 984, "quantity": 3 },
+          { "itemId": 985, "quantity": 3 }
+        ]
+      }
+    },
+    {
+      "id": "ogretooth",
+      "name": "Ogretooth",
+      "monsterId": 1204,
+      "minLevel": 63
+    },
+    {
+      "id": "hydrolancer",
+      "name": "Hydrolancer",
+      "monsterId": 1813,
+      "minLevel": 91
+    }
+  ],
+  "miniBossMonsterIds": [
+    1088, 1089, 1090, 1091, 1092, 1093, 1096, 1120, 1200, 1203, 1204, 1205,
+    1259, 1262, 1283, 1289, 1302, 1307, 1388, 1582, 1618, 1626, 1681,
+    1704, 1705, 1706, 1707, 1813
+  ],
+  "miniBossRosterSource": "https://irowiki.org/wiki/Boss",
+  "excludedMvpSpritePrefixes": ["EVENT_"],
+  "sourceHashes": {
+    "mob_db.conf": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43",
+    "item_db.conf": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30",
+    "job_db.conf": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc",
+    "exp_group_db.conf": "6e959dcfdebc489d1c7d4714fe2bbf88d437b44ec7bd215fe2bb104aae5a7ced",
+    "skill_db.conf": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11",
+    "skill_tree.conf": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37",
+    "attr_fix.conf": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c",
+    "size_fix.txt": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+  },
+  "referenceHashes": {
+    "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
+    "jobNameTable": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
+  }
+}
