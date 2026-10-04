@@ -1,7 +1,7 @@
 # Portal Ragnarok Old Times Idle
 
 Data: 2026-10-04
-Status: direção aprovada em conversa; especificação aguardando revisão do usuário.
+Status: direção e especificação aprovadas pelo usuário em 2026-10-04; implementação depende da revisão do plano e escolha do método de execução.
 
 ## Objetivo e decisões aprovadas
 
