@@ -50,17 +50,17 @@ export function Panel({
   className = "",
   children,
 }: {
-  title: string;
+  title?: string;
   aside?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
   return (
     <section className={`panel ${className}`}>
-      <div className="panel-heading">
+      {title && <div className="panel-heading">
         <h2>{title}</h2>
         {aside}
-      </div>
+      </div>}
       {children}
     </section>
   );

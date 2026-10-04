@@ -6,18 +6,26 @@ import {
   type PanelProps,
 } from "../components/common";
 
+export type ChallengeFilter = "all" | "mvp" | "miniboss";
+
 export default function Challenges({
   catalog,
   snapshot,
   busy,
   command,
-}: PanelProps) {
+  filter = "all",
+}: PanelProps & { filter?: ChallengeFilter }) {
   const { state, serverTime } = snapshot;
+  const challenges = catalog.challenges.filter((challenge) => {
+    if (filter === "all") return true;
+    const isMvp = (catalog.monsters[challenge.monsterId]?.mvpDrops?.length ?? 0) > 0;
+    return filter === "mvp" ? isMvp : !isMvp;
+  });
   return (
     <div className="challenges-panel">
       <div className="section-title">
-        <h3>Prove sua preparação</h3>
-        <span>{state.challengeAttempts} tentativas</span>
+        <h3>{filter === "mvp" ? "Caçada a MVP" : filter === "miniboss" ? "Mini-chefes" : "Prove sua preparação"}</h3>
+        <span>{challenges.length} encontros · {state.challengeAttempts} tentativas</span>
       </div>
       <p className="muted">
         Um adversário poderoso, dez minutos e a sua build. A primeira vitória
@@ -36,7 +44,7 @@ export default function Challenges({
         </div>
       )}
       <div className="challenge-list">
-        {catalog.challenges.map((challenge) => {
+        {challenges.map((challenge) => {
           const monster = catalog.monsters[challenge.monsterId];
           const remaining =
             (state.challengeCooldowns[challenge.id] ?? 0) - serverTime;
