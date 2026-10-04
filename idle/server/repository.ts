@@ -11,6 +11,8 @@ export async function migrate(pool: Pool): Promise<void> {
   const schema = await readFile(new URL('./schema.sql', import.meta.url), 'utf8')
     .catch(() => readFile(new URL('../../server/schema.sql', import.meta.url), 'utf8'));
   for (const statement of schema.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(statement);
+  // Reserve the legacy identity without rewriting its state, timestamps or receipts.
+  await pool.execute("UPDATE idle_profiles SET character_name_key = 'djow', updated_at = updated_at WHERE id = 'local-djow' AND character_name_key IS NULL");
 }
 function decode(value: unknown): GameState {
   const state = (typeof value === 'string' ? JSON.parse(value) : value) as GameState;
