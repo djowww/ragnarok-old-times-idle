@@ -20,11 +20,14 @@ const fixedRng = () => 0;
 describe('pinned pre-renewal skill export', () => {
   it('contains every resolved source class tree and exact level metadata', () => {
     expect(Object.keys(catalog.classes)).toHaveLength(40);
-    expect(Object.keys(catalog.skills)).toHaveLength(351);
+    expect(Object.keys(catalog.skills)).toHaveLength(348);
     for (const job of Object.values(catalog.classes)) {
       expect(job.jobBonuses?.str).toHaveLength(job.jobCap);
       expect(job.weaponAspd?.unarmed).toBeGreaterThan(0);
       for (const id of job.skills) expect(catalog.skills[id], id).toBeDefined();
+      expect(job.skills.some(id => catalog.skills[id].sourceName?.startsWith('WE_'))).toBe(false);
+      if (job.family !== 'merchant')
+        expect(job.skills.some(id => catalog.skills[id].sourceName === 'ALL_INCCARRY')).toBe(false);
     }
     for (const s of Object.values(catalog.skills)) {
       for (const values of [s.castTimeMs, s.afterCastDelayMs, s.hitCount, s.sourceHitCount, s.aoeRadius, s.range]) {

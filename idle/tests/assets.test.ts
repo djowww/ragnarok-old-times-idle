@@ -41,13 +41,15 @@ describe('actor composition', () => {
         expect(pose[0].image.type).toBe(1);
         expect(pose[1]).toMatchObject({ x: 2, y: -18 });
     });
-    it('uses elapsed milliseconds and gracefully falls back from unavailable attack actions', async () => {
+    it('loops idle frames but holds the final frame of unavailable combat actions', async () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const images = [0, 1].map(n => ({ width: 1, height: 1, type: 0, rgba: new Uint8ClampedArray([n, 0, 0, 255]) }));
         const layers = images.map((_, index) => ({ x: 0, y: 0, index, mirror: false, color: [255, 255, 255, 255], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 }));
-        const actor: any = { fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
+        const actor: any = { kind: 'monster', fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
+        expect(getActorPose(actor, 'idle', 200)[0].image.rgba[0]).toBe(0);
         expect(getActorPose(actor, 'attack', 100)[0].image.rgba[0]).toBe(1);
-        expect(getActorPose(actor, 'dead', 200)[0].image.rgba[0]).toBe(0);
+        expect(getActorPose(actor, 'attack', 200)[0].image.rgba[0]).toBe(1);
+        expect(getActorPose(actor, 'dead', 200)[0].image.rgba[0]).toBe(1);
     });
 });
 // Opt-in local integration: client binaries are fetched, never written to the repository.
