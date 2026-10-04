@@ -1,0 +1,21 @@
+.item-rarity-common { --item-rarity-color: #405144; }
+.item-rarity-uncommon { --item-rarity-color: #357548; }
+.item-rarity-rare { --item-rarity-color: #235ea3; }
+.item-rarity-epic { --item-rarity-color: #7939a2; }
+.item-rarity-legendary { --item-rarity-color: #965800; }
+.item-rarity-unidentified { --item-rarity-color: #757575; }
+.item-cell[class*="item-rarity-"] .item-cell-name,
+.item-detail-title[class*="item-rarity-"] h3,
+.item-rarity-label,
+.equipment-slot[class*="item-rarity-"] .equipment-item-name {
+  color: var(--item-rarity-color);
+}
+.item-cell.item-rarity-unidentified .item-icon,
+.item-detail-title.item-rarity-unidentified .item-icon {
+  filter: grayscale(1);
+  opacity: .65;
+}
+.item-rarity-label { font-size: .78rem; }
+.item-rarity-bonus { margin: 0; font-size: .8rem; }
+.item-identification { padding: 10px 0; }
+.item-identification p { margin: 0 0 8px; }

@@ -6,6 +6,8 @@ import { decodeACT, type DecodedACT, type ActionLayer, type ActionFrame } from '
 import { assetUrl } from './items';
 import { weaponAssetPath, weaponAttackAction, type WeaponAppearance } from './weapon';
 export type { WeaponAppearance } from './weapon';
+/** Visual size of game characters; effects and loot keep their native scale. */
+export const GAME_ACTOR_SCALE = 1.1;
 export interface ActorPart {
     sprite: DecodedSprite;
     action: DecodedACT;
@@ -61,6 +63,10 @@ export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance): 
         }
     })();
     actorCache.set(key, promise);
+    void promise.then((actor) => {
+        if ((actor.fallback || actor.error) && actorCache.get(key) === promise)
+            actorCache.delete(key);
+    });
     return promise;
 }
 export function getAttackAction(actor: DecodedActor): number {
@@ -86,32 +92,48 @@ function facingFrames(part: ActorPart, preferred: number): { index: number; fram
     return undefined;
 }
 
-export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'hurt' | 'dead';
+export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'skill' | 'hurt' | 'dead';
 
-export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: number, direction = 0): PosedLayer[] {
+function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: number) {
     if (!actor.body || actor.fallback)
-        return [];
+        return undefined;
     // EntityAction.js: each ACT group has eight directions. SKILL is group 12
     // (96..103) for PCs. Monsters do not share the PC skill action layout.
     const actions = actor.kind === 'character'
-        ? { idle: 0, attack: getAttackAction(actor), cast: 96, hurt: 48, dead: 64 }
-        : { idle: 0, attack: 16, cast: 0, hurt: 24, dead: 32 };
+        ? { idle: 0, attack: getAttackAction(actor), cast: 96, skill: 96, hurt: 48, dead: 64 }
+        : { idle: 0, attack: 16, cast: 0, skill: 0, hurt: 24, dead: 32 };
     const base = typeof action === 'number' ? action : actions[action];
     const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
     // Keep the requested body direction whenever its ACT provides it. Optional
     // head and weapon layers independently choose a same-facing fallback.
     const candidates = [...new Set([base + dir, base, dir, 0])];
     const index = candidates.find((candidate) => actionFrames(actor.body!, candidate));
-    if (index === undefined) return [];
+    if (index === undefined) return undefined;
     const bodyFrames = actionFrames(actor.body, index);
     if (!bodyFrames)
-        return [];
+        return undefined;
+    const delay = Math.max(25, actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150);
+    return { index, bodyFrames, delay };
+}
+
+export function getActorActionDuration(actor: DecodedActor, action: ActorAction, direction = 0, fallback = 500): number {
+    const selected = actorBodyAction(actor, action, direction);
+    return selected ? selected.bodyFrames.length * selected.delay : fallback;
+}
+
+export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: number, direction = 0, motionMs?: number): PosedLayer[] {
+    const selected = actorBodyAction(actor, action, direction);
+    if (!selected || !actor.body) return [];
+    const { index, bodyFrames, delay } = selected;
     // PC idle's three ACT frames are head-direction/doridori variants. The
     // original renderer holds the first direction until a head turn is asked for.
     const staticIdle = actor.kind === 'character' && index < 8;
-    const delay = actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150;
-    const elapsedFrame = Math.floor(Math.max(0, elapsed) / Math.max(25, delay));
     const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
+    // The server movement controls a one-shot's pace; every optional layer
+    // follows the body's frame index instead of advancing on a separate clock.
+    const playbackDelay = !looping && Number.isFinite(motionMs) && motionMs! > 0
+        ? Math.max(1, motionMs! / bodyFrames.length) : delay;
+    const elapsedFrame = Math.floor(Math.max(0, elapsed) / playbackDelay);
     const frameIndex = staticIdle ? 0 : looping
         ? elapsedFrame % bodyFrames.length
         : Math.min(elapsedFrame, bodyFrames.length - 1);
@@ -167,12 +189,12 @@ function imageCanvas(image: SpriteFrame, color: ActionLayer['color']): HTMLCanva
     variants.set(key, canvas);
     return canvas;
 }
-export function drawActor(ctx: CanvasRenderingContext2D, actor: DecodedActor, action: ActorAction, elapsed: number, x: number, y: number, scale = 1, direction = 0): void {
+export function drawActor(ctx: CanvasRenderingContext2D, actor: DecodedActor, action: ActorAction, elapsed: number, x: number, y: number, scale = 1, direction = 0, motionMs?: number): void {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
     ctx.imageSmoothingEnabled = false;
-    const pose = getActorPose(actor, action, elapsed, direction);
+    const pose = getActorPose(actor, action, elapsed, direction, motionMs);
     if (!pose.length) {
         ctx.fillStyle = '#d9caab';
         ctx.strokeStyle = '#746648';

@@ -3,6 +3,7 @@ import type { Pool, RowDataPacket } from 'mysql2/promise';
 import type { GameState } from '../shared/types.js';
 export interface StateRepository {
   transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint?: string): Promise<GameState>;
+  transactCooperatively?(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint?: string): Promise<GameState>;
   read(): Promise<GameState>;
   health(): Promise<boolean>;
 }
@@ -26,6 +27,12 @@ export class GameRepository implements StateRepository {
     await this.pool.execute('INSERT IGNORE INTO idle_profiles (id, state_json) VALUES (?, ?)', [this.profileId, JSON.stringify(initial)]);
   }
   async transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint = ''): Promise<GameState> {
+    return this.runTransaction(requestId, action, fingerprint);
+  }
+  async transactCooperatively(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint = ''): Promise<GameState> {
+    return this.runTransaction(requestId, action, fingerprint);
+  }
+  private async runTransaction(requestId: string | null, action: (state: GameState) => GameState | Promise<GameState>, fingerprint = ''): Promise<GameState> {
     await this.initialize();
     const connection = await this.pool.getConnection();
     try {
@@ -39,7 +46,7 @@ export class GameRepository implements StateRepository {
           await connection.commit(); return previous;
         }
       }
-      const next = action(structuredClone(previous));
+      const next = await action(structuredClone(previous));
       if (next.id !== previous.id || next.schemaVersion !== 1) throw new Error('Invalid idle state identity');
       next.revision = previous.revision + 1;
       await connection.execute('UPDATE idle_profiles SET state_json = ? WHERE id = ?', [JSON.stringify(next), this.profileId]);

@@ -1,0 +1,25 @@
+/* Original Ragnarok EquipmentV0 proportions and local GRF interface background. */
+.ro-window-layer .ro-window-equipment { width: 282px; flex: 0 0 auto; max-width: calc(100vw - 12px); border-radius: 3px; background: white; box-shadow: 1px 2px 4px #172a3b80; }
+.ro-window-equipment .ro-window-titlebar { min-height: 17px; height: 17px; padding: 0 3px 0 6px; gap: 3px; background: #e1e6ef url("/assets/data/texture/유저인터페이스/basic_interface/titlebar_mid.bmp") repeat-x; font: bold 11px/17px Tahoma, sans-serif; border-bottom: 0; }
+.ro-window-equipment .ro-window-titlebar h2 { margin: 0; }
+.ro-window-equipment .ro-window-close { width: 11px; height: 11px; min-height: 11px; flex-basis: 11px; border: 1px solid #8993a4; padding: 0; border-radius: 0; background: linear-gradient(#fff, #d4dbe6); color: #556171; box-shadow: inset 0 1px white; font: bold 11px/8px Tahoma, sans-serif; }
+.ro-window-equipment .ro-window-close:hover:not(:disabled) { background: #fff; color: #263a50; }
+.ro-window-equipment .ro-window-content { padding: 0; background: white; container-type: normal; }
+.classic-equipment-window { width: 280px; max-width: 100%; font: 10px/12px Tahoma, sans-serif; color: #333; background: white; }
+.classic-equipment-layout { position: relative; display: grid; grid-template-columns: minmax(0, 112px) 56px minmax(0, 112px); grid-template-rows: repeat(5, 26px); width: 100%; height: 130px; background-color: #fff; background-repeat: no-repeat; background-size: 100% 130px; }
+.classic-equipment-portrait { position: absolute; left: 50%; top: 14px; width: 56px; height: 108px; transform: translateX(-50%); pointer-events: none; }
+.classic-equipment-portrait .actor-preview { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); border: 0; border-radius: 0; background: transparent; padding: 0; margin: 0; box-shadow: none; }
+.classic-equipment-portrait canvas { image-rendering: pixelated; }
+.classic-equipment-slot { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; min-width: 0; padding: 1px 4px; }
+.classic-equipment-slot.right { flex-direction: row-reverse; text-align: right; }
+.classic-equipment-slot .classic-equipment-item { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 0; background: #fff; box-shadow: none; }
+.classic-equipment-slot .classic-equipment-item:hover:not(:disabled) { background: #e8edf7; }
+.classic-equipment-slot .item-icon { width: 24px; min-width: 24px; height: 24px; border: 0; background: transparent; box-shadow: none; }
+.classic-equipment-slot .item-icon img { max-width: 24px; max-height: 24px; }
+.classic-equipment-slot .equipment-item-name { flex: 1; min-width: 0; height: 24px; overflow: hidden; background: #fff; font-size: 10px; line-height: 12px; overflow-wrap: anywhere; text-shadow: 1px 1px white; }
+.classic-equipment-empty-label { display: block; max-width: 78px; padding-left: 25px; color: #627080; font: 8px/10px Tahoma, sans-serif; text-shadow: 1px 1px white; }
+.classic-equipment-slot.right .classic-equipment-empty-label { padding-left: 0; padding-right: 25px; }
+.classic-equipment-unknown { color: #757575; font: bold 16px Tahoma, sans-serif; }
+.classic-equipment-footer { display: flex; align-items: center; justify-content: space-between; gap: 5px; height: 23px; padding: 2px 5px; border-top: 1px solid #e3e3e3; border-bottom: 1px solid #c0c0c0; background: white; font-size: 9px; }
+.classic-equipment-footer > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.classic-equipment-footer button { min-height: 17px; padding: 0 4px; border: 1px solid #a2a8b3; border-radius: 2px; box-shadow: inset 0 1px white; background: linear-gradient(white, #e4e7ed); color: #414758; font: 9px/15px Tahoma, sans-serif; }

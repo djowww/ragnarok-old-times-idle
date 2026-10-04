@@ -1,0 +1,17 @@
+.ro-drag-handle { cursor: grab; touch-action: none; user-select: none; }
+.ro-drag-handle:active { cursor: grabbing; }
+.ro-drag-handle:focus-visible { outline: 2px solid #467892; outline-offset: -2px; }
+.ro-drag-handle :is(button, a) { cursor: pointer; touch-action: auto; }
+.ro-drag-handle :is(input, select, textarea, [data-no-drag]) { cursor: auto; touch-action: auto; }
+.hunt-drag-handle { position: absolute; z-index: 2; inset: 0 0 auto; height: 9px; overflow: hidden; border-radius: 5px 5px 0 0; color: #567581; text-align: center; font: bold 9px/8px Tahoma, sans-serif; background: #dce8e440; }
+.shortcut-drag-handle { display: grid; align-items: center; align-self: stretch; flex: 0 0 6px; width: 6px; color: #5c7b87; font: bold 15px/1 Tahoma, sans-serif; }
+.shortcut-cooldown-mask { position: absolute; z-index: 1; inset: auto 0 0; background: #16304678; pointer-events: none; }
+.classic-shortcut .shortcut-cooldown-seconds { position: absolute; z-index: 2; left: 50%; top: 53%; transform: translate(-50%, -50%); font: bold 11px/1 Tahoma, sans-serif; color: #fff; text-shadow: 0 1px 2px #071824, 1px 0 #071824, -1px 0 #071824; pointer-events: none; }
+.shortcut-readiness { z-index: 3; pointer-events: none; }
+.offline-unidentified-icon { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid #a8a89c; color: #757575; background: #eeeee5; font: bold 15px Tahoma, sans-serif; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hero-column[style*="position: fixed"] { overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.hero-column[style*="position: fixed"] .ro-book-popover { position: static; width: 100%; margin-top: 4px; }
+.hero-column[style*="position: fixed"] .potion-popover { position: static; width: 100%; margin-top: 4px; }
+.hero-column[style*="position: fixed"] .potion-popover::before { display: none; }
+@media (max-width: 640px) { .shortcut-drag-handle { flex-basis: 5px; width: 5px; } }

@@ -26,7 +26,7 @@ describe('playable source catalog', () => {
     it('offers valid drops, all areas, supported cards and a useful weapon for every branch', () => {
         expect(data.areas).toHaveLength(10);
         expect(data.areas.flatMap(a => a.monsters)).toHaveLength(25);
-        expect(data.challenges).toHaveLength(3);
+        expect(data.challenges).toHaveLength(81);
         expect(Object.values(data.items).filter(i => i.type === 'card')).toHaveLength(8);
         for (const mob of Object.values(data.monsters))
             for (const drop of mob.drops)

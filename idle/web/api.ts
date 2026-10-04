@@ -177,7 +177,13 @@ export function useGame() {
     const poll = async () => {
       if (disposed) return;
       if (!document.hidden) await refresh();
-      if (!disposed) timer = window.setTimeout(poll, 850);
+      if (!disposed) {
+        const status = lastSnapshot.current?.state.status;
+        const delay = !document.hidden && (status === "hunting" || status === "challenge")
+          ? 250
+          : 850;
+        timer = window.setTimeout(poll, delay);
+      }
     };
     void poll();
     const focus = () => {

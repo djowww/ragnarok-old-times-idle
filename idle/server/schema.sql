@@ -4,6 +4,15 @@ CREATE TABLE IF NOT EXISTS idle_profiles (
   updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS idle_chat_messages (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  profile_id VARCHAR(80) NOT NULL,
+  player_name VARCHAR(80) NOT NULL,
+  message_text VARCHAR(240) NOT NULL,
+  created_at_ms BIGINT UNSIGNED NOT NULL,
+  CONSTRAINT idle_chat_profile FOREIGN KEY (profile_id) REFERENCES idle_profiles(id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS idle_commands (
   profile_id VARCHAR(80) NOT NULL,
   request_id VARCHAR(64) NOT NULL,

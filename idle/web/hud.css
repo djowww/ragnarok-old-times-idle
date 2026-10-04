@@ -399,19 +399,11 @@
   background: #bccbc9c7;
 }
 
-.classic-shortcut small {
-  position: absolute;
-  top: 1px;
-  left: 2px;
-  font: 700 8px Tahoma, sans-serif;
-  color: #5e6d6d;
-}
-
 .classic-shortcut b {
   font: 700 13px Georgia, serif;
 }
 .classic-shortcut .skill-icon {
-  margin-top: 6px;
+  margin-top: 0;
 }
 .classic-shortcut.is-waiting .skill-icon {
   opacity: 0.64;

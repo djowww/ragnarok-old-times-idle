@@ -40,7 +40,9 @@ function recentActivity(buckets: AreaActivityBucket[] | undefined, now: number) 
 }
 
 export function World({ catalog, snapshot, busy, command }: PanelProps) {
-  const { state } = snapshot;
+  const { state, serverTime } = snapshot;
+  const recovering = state.status === "resting" && (state.restMode !== "field" || state.restUntil > serverTime);
+  const sitting = state.status === "resting" && state.restMode === "field" && !recovering;
   return (
     <div className="world-layout">
       <div className="atlas">
@@ -144,17 +146,17 @@ export function World({ catalog, snapshot, busy, command }: PanelProps) {
                 </label>
                 <button
                   className={(current && state.status === "hunting" && !cancellingPendingArea) || pending ? "" : "primary"}
-                  disabled={busy || !unlocked || pending || state.status === "resting" || state.status === "challenge" || (current && state.status === "hunting" && !cancellingPendingArea)}
+                  disabled={busy || !unlocked || pending || recovering || state.status === "challenge" || (current && state.status === "hunting" && !cancellingPendingArea)}
                   onClick={() => void command({ type: "startHunt", areaId: area.id })}
                 >
                   {!unlocked ? `Base ${area.minLevel}`
                     : cancellingPendingArea ? "Cancelar troca"
                     : pending ? "Troca agendada"
-                    : state.status === "resting" ? "Recuperando"
+                    : recovering ? "Recuperando"
                     : state.status === "challenge" ? "Desafio em curso"
                     : current && state.status === "hunting" ? "Caçando aqui"
-                    : state.status === "hunting" && state.battle ? "Trocar após combate"
-                    : current && state.status === "paused" ? "Retomar caça"
+                    : state.status === "hunting" && state.battle ? "Trocar após este alvo"
+                    : current && (state.status === "paused" || sitting) ? "Retomar caça"
                     : "Caçar"}
                 </button>
               </div>
