@@ -29,11 +29,13 @@ The idle mode adapts progression and rewards for shorter sessions. It does not e
 
 ### Start the stack
 
-From the repository root, create the local environment file and replace its sample passwords:
+From the repository root, copy the example environment file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
+
+On macOS or Linux, use `cp .env.example .env`. Replace the sample passwords in `.env`.
 
 Then build and start the services:
 

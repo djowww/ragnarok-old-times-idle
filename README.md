@@ -30,11 +30,13 @@ O modo idle adapta regras e recompensas para sessões curtas. Ele não executa s
 
 ### Preparar e iniciar
 
-Na raiz do repositório:
+Na raiz do repositório, copie o arquivo de ambiente de exemplo:
 
 ```powershell
 Copy-Item .env.example .env
 ```
+
+No macOS ou Linux, use `cp .env.example .env`.
 
 Edite `.env` e substitua as senhas locais de exemplo. Depois, inicie a stack:
 
@@ -101,7 +103,7 @@ docker compose up --build -d idle-game
 O catálogo, as regras de seleção e as adaptações do idle estão documentados em [`idle/content/`](idle/content/). O exportador compara hashes com as fontes fixadas do Hercules e trata scripts de itens como dados, sem executá-los. Para regenerar o catálogo, inicie a stack e use:
 
 ```powershell
-Set-Location idle
+cd idle
 pnpm export-content
 ```
 
