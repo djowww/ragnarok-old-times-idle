@@ -10,8 +10,10 @@ import { createAuthService } from './identity/service.js';
 import { assertAllowedMutation, LOCAL_ORIGINS, registerAuthRoutes } from './identity/routes.js';
 import { callerRepository, registerGameRoutes, resolveGameRepository } from './game-routes.js';
 import type { PortalQueries } from './portal/types.js';
+import { loadNews } from './portal/news.js';
+import { registerPortalRoutes } from './portal/routes.js';
 export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; }
-export async function buildApp({ catalog, accounts, profiles, chatRepository, now, publicOrigin, assetOrigin = 'http://asset-service:8080', webRoot }: AppOptions) {
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, assetOrigin = 'http://asset-service:8080', webRoot }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
   const allowedOrigins = [...LOCAL_ORIGINS, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])];
   app.addHook('onRequest', async (request, reply) => {
@@ -33,6 +35,7 @@ export async function buildApp({ catalog, accounts, profiles, chatRepository, no
   });
   const auth = createAuthService({ accounts, catalog, now, secureCookie: publicOrigin ? new URL(publicOrigin).protocol === 'https:' : false });
   await registerAuthRoutes(app, auth);
+  if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
   await registerGameRoutes(app, { auth, profiles, catalog, now });
   registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, profiles), now);
   app.get('/api/catalog', async () => catalog);

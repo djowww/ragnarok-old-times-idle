@@ -8,6 +8,7 @@ import { MysqlChatRepository } from './chat.js';
 import { SqlAccountStore } from './identity/repository.js';
 import { SqlGameProfiles } from './profiles.js';
 import { createScheduler } from './scheduler.js';
+import { SqlPortalQueries } from './portal/repository.js';
 
 const catalog = await loadCatalog();
 const pool = createPool({ host: process.env.DB_HOST ?? 'database', port: Number(process.env.DB_PORT ?? 3306), user: process.env.DB_USER, password: process.env.DB_PASSWORD, database: process.env.DB_NAME, connectionLimit: 6, charset: 'utf8mb4' });
@@ -16,7 +17,7 @@ const repository = new GameRepository(pool, () => createInitialState(catalog, Da
 await repository.read();
 const profiles = new SqlGameProfiles(pool);
 const accounts = new SqlAccountStore(pool);
-const app = await buildApp({ catalog, accounts, profiles, chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build') });
+const app = await buildApp({ catalog, accounts, profiles, portal: new SqlPortalQueries(pool), chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build') });
 const scheduler = createScheduler({ profiles, catalog, now: Date.now, reportError: profileId => { console.error(`Não foi possível salvar o progresso idle (${profileId}).`); } });
 scheduler.start();
 app.addHook('onClose', async () => { await scheduler.stop(); await pool.end(); });
