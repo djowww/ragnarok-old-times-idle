@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Pool, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import type { StateRepository } from './repository.js';
 
@@ -59,10 +59,11 @@ class ChatRateLimit {
     return 0;
   }
 }
-export function registerChatRoutes(app: FastifyInstance, chat: ChatRepository | undefined, profiles: StateRepository, now: () => number): void {
+export function registerChatRoutes(app: FastifyInstance, chat: ChatRepository | undefined, resolveProfile: (request: FastifyRequest) => Promise<StateRepository>, now: () => number): void {
   const rateLimit = new ChatRateLimit();
   const unavailable = { error: { code: 'CHAT_UNAVAILABLE', message: 'Chat indisponível. O histórico continua visível; a conexão será tentada novamente.' } };
   app.get('/api/chat', async (request, reply) => {
+    await resolveProfile(request);
     try {
       const after = historyCursor(request.query);
       if (!chat) return reply.code(503).send(unavailable);
@@ -75,6 +76,7 @@ export function registerChatRoutes(app: FastifyInstance, chat: ChatRepository | 
     }
   });
   app.post('/api/chat', async (request, reply) => {
+    const profiles = await resolveProfile(request);
     try {
       const text = messageText(request.body);
       if (!chat) return reply.code(503).send(unavailable);

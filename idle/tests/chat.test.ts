@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import catalogJSON from '../content/catalog.json';
-import type { Catalog, GameState } from '../shared/types.js';
-import { createInitialState } from '../engine/index.js';
+import type { Catalog } from '../shared/types.js';
 import { buildApp } from '../server/app.js';
-import type { StateRepository } from '../server/repository.js';
+import { createAuthService } from '../server/identity/service.js';
 import { MysqlChatRepository } from '../server/chat.js';
+import { MemoryAccountStore } from './portal-fixture.js';
 import type { Pool } from 'mysql2/promise';
 
 const catalog = catalogJSON as unknown as Catalog;
@@ -23,113 +23,119 @@ class MemoryChat {
     return structuredClone(message);
   }
 }
-class MemoryProfile implements StateRepository {
-  state = createInitialState(catalog, 1000, 'Djow do servidor');
-  async read() { return structuredClone(this.state); }
-  async health() { return true; }
-  async transact(_id: string | null, _action: (state: GameState) => GameState): Promise<GameState> {
-    throw new Error('Chat must not issue gameplay commands');
-  }
-}
-const apps: ReturnType<typeof buildApp>[] = [];
+const apps: Awaited<ReturnType<typeof buildApp>>[] = [];
 afterEach(async () => { for (const app of apps.splice(0)) await app.close(); });
-function setup(chatRepository = new MemoryChat()) {
+async function setup(chatRepository: MemoryChat | undefined = new MemoryChat(), configured = true) {
   let at = 1000;
-  const repository = new MemoryProfile();
-  const app = buildApp({ catalog, repository, chatRepository, now: () => at });
+  const accounts = new MemoryAccountStore();
+  const app = await buildApp({ catalog, accounts, profiles: accounts.profiles, chatRepository: configured ? chatRepository : undefined, now: () => at });
+  const registered = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { username: 'chat_user', characterName: 'Djow do servidor', gender: 'male', password: 'valid-password', confirmation: 'valid-password' } });
+  expect(registered.statusCode).toBe(201);
+  const token = registered.cookies[0].value;
+  const repository = accounts.profiles.forProfile(registered.json().profileId);
   apps.push(app);
-  return { app, chat: chatRepository, repository, advance: (ms: number) => { at += ms; } };
+  return { app, token, accounts, chat: chatRepository, repository, advance: (ms: number) => { at += ms; } };
 }
 describe('local global chat', () => {
+  it('rejects anonymous chat and authors messages from two resolved accounts', async () => {
+    const { app, token, chat } = await setup();
+    expect((await app.inject('/api/chat')).statusCode).toBe(401);
+    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'anonymous' } })).statusCode).toBe(401);
+    const b = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { username: 'second_user', characterName: 'Segundo autor', gender: 'female', password: 'valid-password', confirmation: 'valid-password' } });
+    expect(b.statusCode).toBe(201);
+    for (const session of [token, b.cookies[0].value]) expect((await app.inject({ method: 'POST', url: '/api/chat', cookies: { idle_session: session }, payload: { text: 'Olá', profileId: 'forged', name: 'Admin' } })).statusCode).toBe(201);
+    expect(chat.messages.map(message => message.name)).toEqual(['Djow do servidor', 'Segundo autor']);
+    expect(chat.identities[0].id).not.toBe(chat.identities[1].id);
+  });
   it('trims text and uses the server profile identity instead of submitted names', async () => {
-    const { app, chat, repository } = setup();
-    const response = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: '  Olá, Prontera!  ', name: 'Administrador', profileId: 'forged-profile' } });
+    const { app, token, chat, repository } = await setup();
+    const response = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', payload: { text: '  Olá, Prontera!  ', name: 'Administrador', profileId: 'forged-profile' } });
     expect(response.statusCode).toBe(201);
     expect(response.json()).toEqual({ message: { id: 1, name: 'Djow do servidor', text: 'Olá, Prontera!', at: 1000 } });
-    expect(chat.identities).toEqual([{ id: repository.state.id, name: 'Djow do servidor' }]);
-    expect(repository.state.revision).toBe(0);
+    expect(chat.identities).toEqual([{ id: (await repository.read()).id, name: 'Djow do servidor' }]);
+    expect((await repository.read()).revision).toBe(0);
   });
   it.each([{ payload: null }, { payload: [] }, { payload: {} }, { payload: { text: 42 } }, { payload: { text: '  \n  ' } }, { payload: { text: 'x'.repeat(241) } }, { payload: { text: 'a\u0000b' } }])('rejects malformed or excessive message text: %j', async ({ payload }) => {
-    const { app, chat } = setup();
-    const response = await app.inject({ method: 'POST', url: '/api/chat', headers: { 'Content-Type': 'application/json' }, payload: JSON.stringify(payload) });
+    const { app, token, chat } = await setup();
+    const response = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', headers: { 'Content-Type': 'application/json' }, payload: JSON.stringify(payload) });
     expect(response.statusCode).toBe(400);
     expect(chat.messages).toEqual([]);
   });
   it('accepts the text boundary and returns markup as plain message text', async () => {
-    const { app } = setup();
-    const boundary = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'x'.repeat(240) } });
+    const { app, token } = await setup();
+    const boundary = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', payload: { text: 'x'.repeat(240) } });
     expect(boundary.statusCode).toBe(201);
-    const markup = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: '<img src=x onerror=alert(1)>' } });
+    const markup = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', payload: { text: '<img src=x onerror=alert(1)>' } });
     expect(markup.statusCode).toBe(201);
     expect(markup.json().message.text).toBe('<img src=x onerror=alert(1)>');
   });
   it('serves the latest 50 messages in order then pages every unseen message without skipping', async () => {
     const chat = new MemoryChat();
     chat.messages = Array.from({ length: 105 }, (_, index) => ({ id: index + 1, name: 'Teste', text: `Mensagem ${index + 1}`, at: 1000 }));
-    const { app } = setup(chat);
-    const recent = (await app.inject('/api/chat')).json();
+    const { app, token } = await setup(chat);
+    const recent = (await app.inject({ url: '/api/chat', cookies: { idle_session: token } })).json();
     expect(recent.messages).toHaveLength(50);
     expect(recent.messages[0].id).toBe(56);
     expect(recent.messages.at(-1).id).toBe(105);
     expect(recent.nextCursor).toBe(105);
-    const first = (await app.inject('/api/chat?after=0&limit=99999')).json();
+    const first = (await app.inject({ url: '/api/chat?after=0&limit=99999', cookies: { idle_session: token } })).json();
     expect(first.messages).toHaveLength(50);
     expect(first.messages[0].id).toBe(1);
     expect(first.nextCursor).toBe(50);
     expect(first.hasMore).toBe(true);
-    const second = (await app.inject('/api/chat?after=50')).json();
+    const second = (await app.inject({ url: '/api/chat?after=50', cookies: { idle_session: token } })).json();
     expect(second.messages[0].id).toBe(51);
     expect(second.nextCursor).toBe(100);
     expect(second.hasMore).toBe(true);
-    const last = (await app.inject('/api/chat?after=100')).json();
+    const last = (await app.inject({ url: '/api/chat?after=100', cookies: { idle_session: token } })).json();
     expect(last.messages.map((message: Message) => message.id)).toEqual([101, 102, 103, 104, 105]);
     expect(last.hasMore).toBe(false);
-    const empty = (await app.inject('/api/chat?after=105')).json();
+    const empty = (await app.inject({ url: '/api/chat?after=105', cookies: { idle_session: token } })).json();
     expect(empty).toEqual({ messages: [], nextCursor: 105, hasMore: false });
   });
   it.each(['-1', '1.5', 'abc', '4294967296', '1e3', ''])('rejects an invalid history cursor %j', async cursor => {
-    const { app } = setup();
-    expect((await app.inject(`/api/chat?after=${cursor}`)).statusCode).toBe(400);
+    const { app, token } = await setup();
+    expect((await app.inject({ url: `/api/chat?after=${cursor}`, cookies: { idle_session: token } })).statusCode).toBe(400);
   });
   it('limits the same profile across browser addresses and allows a later message', async () => {
-    const { app, chat, advance } = setup();
+    const { app, token, chat, advance } = await setup();
     for (let index = 0; index < 5; index++) {
-      expect((await app.inject({ method: 'POST', url: '/api/chat', remoteAddress: `127.0.0.${index + 1}`, payload: { text: 'Teste' } })).statusCode).toBe(201);
+      expect((await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', remoteAddress: `127.0.0.${index + 1}`, payload: { text: 'Teste' } })).statusCode).toBe(201);
     }
-    const denied = await app.inject({ method: 'POST', url: '/api/chat', remoteAddress: '127.0.0.9', payload: { text: 'Excesso' } });
+    const denied = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', remoteAddress: '127.0.0.9', payload: { text: 'Excesso' } });
     expect(denied.statusCode).toBe(429);
     expect(denied.headers['retry-after']).toBe('10');
     expect(chat.messages).toHaveLength(5);
     advance(10_000);
-    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Após a pausa' } })).statusCode).toBe(201);
+    expect((await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', payload: { text: 'Após a pausa' } })).statusCode).toBe(201);
   });
-  it('also limits one address when its profiles differ', async () => {
-    const { app, repository, chat } = setup();
-    for (let index = 0; index < 15; index++) {
-      repository.state.id = `profile-${index}`;
-      expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Teste' } })).statusCode).toBe(201);
+  it('also limits one address when its authenticated profiles differ', async () => {
+    const { app, accounts, chat } = await setup();
+    for (let index = 0; index < 16; index++) {
+      // Real sessions from separate identities; seeding avoids HTTP registration IP limits.
+      const auth = createAuthService({ accounts, catalog, now: () => 1000, secureCookie: false, passwords: { async hash() { return 'test-hash'; }, async verify() { return true; } } });
+      const identity = await auth.register({ username: `chat_${index}`, characterName: `Personagem ${index}`, gender: 'male', password: 'valid-password', confirmation: 'valid-password' });
+      const result = await app.inject({ method: 'POST', url: '/api/chat', cookies: { idle_session: identity.token }, payload: { text: 'Teste' } });
+      expect(result.statusCode).toBe(index < 15 ? 201 : 429);
     }
-    repository.state.id = 'profile-extra';
-    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Excesso' } })).statusCode).toBe(429);
     expect(chat.messages).toHaveLength(15);
   });
   it('rejects a foreign origin without publishing a message', async () => {
-    const { app, chat } = setup();
-    expect((await app.inject({ method: 'POST', url: '/api/chat', headers: { origin: 'https://example.invalid' }, payload: { text: 'Teste' } })).statusCode).toBe(403);
+    const { app, token, chat } = await setup();
+    expect((await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', headers: { origin: 'https://example.invalid' }, payload: { text: 'Teste' } })).statusCode).toBe(403);
     expect(chat.messages).toEqual([]);
   });
   it('returns a recoverable availability error when persistence is unavailable', async () => {
-    const { app, chat } = setup();
+    const { app, token, chat } = await setup();
     chat.list = async () => { throw new Error('Database unavailable'); };
     chat.append = async () => { throw new Error('Database unavailable'); };
-    expect((await app.inject('/api/chat')).statusCode).toBe(503);
-    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Teste' } })).statusCode).toBe(503);
+    expect((await app.inject({ url: '/api/chat', cookies: { idle_session: token } })).statusCode).toBe(503);
+    expect((await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/chat', payload: { text: 'Teste' } })).statusCode).toBe(503);
     expect(chat.messages).toEqual([]);
   });
   it('reports unavailable chat when the server has no configured persistence', async () => {
-    const app = buildApp({ catalog, repository: new MemoryProfile(), now: () => 1000 });
-    apps.push(app);
-    const response = await app.inject('/api/chat');
+    const { app, token } = await setup(undefined, false);
+    const response = await app.inject({ url: '/api/chat', cookies: { idle_session: token } });
     expect(response.statusCode).toBe(503);
     expect(response.json().error.code).toBe('CHAT_UNAVAILABLE');
   });
