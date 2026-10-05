@@ -37,6 +37,15 @@ async function setup(chatRepository: MemoryChat | undefined = new MemoryChat(), 
   return { app, token, accounts, chat: chatRepository, repository, advance: (ms: number) => { at += ms; } };
 }
 describe('local global chat', () => {
+  it('uses the shared expected-identity guard before history or message publication', async()=>{
+    const {app,token,chat}=await setup();const a=(await app.inject({url:'/api/auth/me',cookies:{idle_session:token}})).json();
+    const registration=await app.inject({method:'POST',url:'/api/auth/register',payload:{username:'guard_chat',characterName:'Guard Chat',gender:'female',password:'valid-password',confirmation:'valid-password'}});
+    expect(registration.statusCode).toBe(201);const bToken=registration.cookies[0].value;const headers={'x-idle-expected-identity':JSON.stringify([a.accountId,a.profileId])};
+    for(const method of ['GET','POST'] as const){const response=await app.inject({method,url:'/api/chat',cookies:{idle_session:bToken},headers,...(method==='POST'?{payload:{text:'wrong account'}}:{})});expect(response.statusCode).toBe(401);expect(response.json().error.code).toBe('AUTH_REQUIRED');}
+    expect(chat.messages).toEqual([]);expect(chat.identities).toEqual([]);
+    const accepted=await app.inject({method:'POST',url:'/api/chat',cookies:{idle_session:token},headers,payload:{text:'correct account',name:'Fake',profileId:'foreign'}});
+    expect(accepted.statusCode).toBe(201);expect(chat.identities).toEqual([{id:a.profileId,name:a.characterName}]);
+  });
   it('rejects anonymous chat and authors messages from two resolved accounts', async () => {
     const { app, token, chat } = await setup();
     expect((await app.inject('/api/chat')).statusCode).toBe(401);

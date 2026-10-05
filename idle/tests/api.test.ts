@@ -76,6 +76,28 @@ describe('idle HTTP intentions', () => {
 });
 
 describe('authenticated gameplay isolation', () => {
+  it('rejects expected identity mismatches before selecting, contacting or debiting any profile', async()=>{
+    const {app,token,accounts,repository,advance}=await setup();
+    const a=(await app.inject({url:'/api/auth/me',cookies:{idle_session:token}})).json();
+    const registration=await app.inject({method:'POST',url:'/api/auth/register',payload:{username:'guard_b',characterName:'Guard B',gender:'female',password:'valid-password',confirmation:'valid-password'}});
+    expect(registration.statusCode).toBe(201);const b=registration.json();const bToken=registration.cookies[0].value;
+    const bRepository=accounts.profiles.forProfile(b.profileId);const beforeA=await repository.read();const beforeB=await bRepository.read();advance(60_000);
+    const selected:string[]=[];const select=accounts.profiles.forProfile.bind(accounts.profiles);accounts.profiles.forProfile=id=>{selected.push(id);return select(id);};
+    const expected=JSON.stringify([a.accountId,a.profileId]);
+    for(const url of ['/api/session','/api/command']){
+      const response=await app.inject({method:'POST',url,cookies:{idle_session:bToken},headers:{'x-idle-expected-identity':expected},payload:url==='/api/session'?{}:{requestId:'guard-purchase',command:{type:'buy',itemId:501,quantity:2}}});
+      expect(response.statusCode).toBe(401);expect(response.json().error.code).toBe('AUTH_REQUIRED');expect(response.headers['cache-control']).toBe('no-store');
+    }
+    expect(selected).toEqual([]);expect(await repository.read()).toEqual(beforeA);expect(await bRepository.read()).toEqual(beforeB);
+    for(const invalid of ['{bad','[]',JSON.stringify([a.accountId]),JSON.stringify([a.accountId,a.profileId,'extra']),JSON.stringify([b.accountId,a.profileId]),JSON.stringify([a.accountId,b.profileId])]){
+      const response=await app.inject({method:'POST',url:'/api/session',cookies:{idle_session:token},headers:{'x-idle-expected-identity':invalid},payload:{}});expect(response.statusCode).toBe(401);expect(response.json().error.code).toBe('AUTH_REQUIRED');
+    }
+    expect(selected).toEqual([]);
+    const accepted=await app.inject({method:'POST',url:'/api/command',cookies:{idle_session:token},headers:{'x-idle-expected-identity':expected},payload:{profileId:b.profileId,requestId:'guard-purchase',command:{type:'buy',itemId:501,quantity:2}}});
+    expect(accepted.statusCode).toBe(200);expect(accepted.json().state.id).toBe(a.profileId);expect(accepted.json().state.zeny).toBe(100);
+    const compatible=await app.inject({method:'POST',url:'/api/command',cookies:{idle_session:bToken},headers:{'x-idle-account-id':a.accountId,'x-idle-profile-id':a.profileId},payload:{profileId:a.profileId,requestId:'guard-purchase',command:{type:'buy',itemId:501,quantity:2}}});
+    expect(compatible.statusCode).toBe(200);expect(compatible.json().state.id).toBe(b.profileId);expect(compatible.json().state.zeny).toBe(100);
+  });
   it.each([[404, 404, 'Recurso do cliente não encontrado.'], [500, 503, 'Recursos do cliente indisponíveis.']])('preserves asset failure mapping for upstream %i', async (upstream, status, message) => {
     const { app } = await setup();
     vi.stubGlobal('fetch', async () => new Response(null, { status: Number(upstream) }));
