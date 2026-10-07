@@ -53,6 +53,72 @@ docker compose ps
 
 Abra o idle em **http://localhost:3339/**. O cliente clássico fica em **http://localhost:3338/applications/pwa/index.html**. O primeiro build compila os serviços e pode levar alguns minutos.
 
+Em um banco novo, o Compose aguarda MariaDB saudável e os schemas clássicos
+`login`/`loginlog` importados pelo Hercules antes de iniciar o Idle. O probe é
+somente leitura e não imprime credenciais. As migrações do portal são aditivas;
+reiniciar ou reconstruir o Idle conserva o volume e o progresso existente.
+`PUBLIC_ORIGIN` pode ser definido em `.env`; o padrão é `http://localhost:3339`.
+Uma origem HTTPS configurada habilita cookies seguros.
+
+### Contas e portal
+
+As contas do Idle são independentes do Hercules. Crie uma conta em
+`http://localhost:3339/registro`, entre em `/login` e acompanhe o personagem em
+`/painel` ou `/jogar`. Cada conta possui um personagem e progresso próprio;
+`/ranking` publica somente os personagens vinculados a contas do Idle.
+Os links diretos e o reload dessas páginas são servidos pelo mesmo servidor.
+Os comunicados em `/noticias` vêm de `idle/content/news.json`, versionado com
+parágrafos de texto e incluído na imagem; editar o conteúdo exige novo build.
+
+O perfil legado `local-djow` e seus recibos permanecem armazenados. Cadastro
+ou coincidência de nome não o associa a uma conta. Uma associação explícita
+é uma decisão posterior do jogador; o CLI local compilado está disponível:
+
+```powershell
+docker compose exec idle-game node dist/server/link-legacy.js --username <conta>
+```
+
+Execute esse comando apenas quando quiser associar o legado à conta indicada.
+Ele não cria contas nem define senha padrão. Os testes usam personagens próprios.
+
+### Repetir a aplicação local com o checkout de implementação
+
+Para aplicar o portal revisado à instalação local, use a configuração existente em
+`C:/Users/Usuário/.codex/worktrees/ragnarok-browser-local/RagIDLE`, com um
+`compose.override.yaml` adjacente que contém somente:
+
+```yaml
+services:
+  idle-game:
+    image: ragidle-idle-game
+    build:
+      context: C:/Users/Usuário/.codex/worktrees/idle-portal/RagIDLE/idle
+      dockerfile: C:/Users/Usuário/.codex/worktrees/idle-portal/RagIDLE/docker/idle-game/Dockerfile
+```
+
+Conserve o checkout `idle-portal/RagIDLE` enquanto esse override apontar para
+ele. Ao movê-lo, ajuste os dois caminhos. Mescle essas três propriedades em
+qualquer override existente, preservando suas outras opções. O override mantém
+o `.env`, recursos, volume, rede e serviços da configuração ativa.
+Comandos que usam `-f` precisam incluir ambos os arquivos explicitamente:
+
+```powershell
+$activeRoot = 'C:/Users/Usuário/.codex/worktrees/ragnarok-browser-local/RagIDLE'
+$composeArgs = @('--project-directory', $activeRoot, '--env-file', "$activeRoot/.env", '-p', 'ragidle', '-f', "$activeRoot/compose.yaml", '-f', "$activeRoot/compose.override.yaml")
+docker compose @composeArgs build idle-game
+docker compose @composeArgs up -d --no-deps --no-build idle-game
+docker compose @composeArgs restart idle-game
+```
+
+Antes da primeira aplicação, preserve a imagem Idle anterior com uma tag
+local de rollback e confirme silenciosamente a presença de `login`/`loginlog`
+no Hercules. A instalação existente já possui esses schemas; recriar somente
+o Idle não instala o novo healthcheck no Hercules em execução. O `--no-deps`
+mantém os demais containers. Para rollback, atribua a imagem preservada à tag
+`ragidle-idle-game` e repita o `up` acima, sem executar `build`; as migrações
+aditivas do portal permanecem no banco. A instalação de volume novo usa a
+ordem de saúde do Compose versionado neste checkout.
+
 ### Assets do cliente Ragnarok
 
 Os recursos do cliente são lidos de `client-data/`, diretório ignorado pelo Git e montado somente para leitura nos containers. Copie para lá os arquivos de uma instalação que você tenha direito de usar. No mínimo, configure `client-data/DATA.INI` para listar GRFs compatíveis e coloque cada arquivo referenciado no mesmo diretório:
@@ -101,6 +167,24 @@ pnpm typecheck
 pnpm build
 pnpm dev
 ```
+
+Para uma verificação focada, use `pnpm exec vitest run tests/hosting.test.ts`.
+A suíte local informa os testes SQL/assets opcionais ignorados. A verificação
+completa requer banco **descartável**, recursos reais e execução serial:
+
+```powershell
+docker run --rm -d --name ragidle-portal-test-db --network ragidle_ragnarok_local -e MARIADB_DATABASE=idle_portal_test -e MARIADB_USER=idle_test -e MARIADB_PASSWORD=idle_test_local -e MARIADB_ROOT_PASSWORD=idle_test_root_local mariadb:11.4
+# Aguarde a prontidão do banco temporário antes dos testes.
+docker build --target dependencies -t ragidle-portal-tests -f docker/idle-game/Dockerfile idle
+docker run --rm --network ragidle_ragnarok_local -e DB_HOST=ragidle-portal-test-db -e DB_NAME=idle_portal_test -e DB_USER=idle_test -e DB_PASSWORD=idle_test_local -e IDLE_DB_TEST=1 -e IDLE_ASSET_ORIGIN=http://asset-service:8080 ragidle-portal-tests node node_modules/vitest/vitest.mjs run --no-file-parallelism
+docker stop ragidle-portal-test-db
+```
+
+Essas credenciais são exclusivas do banco de testes, que não monta o volume
+do jogador nem publica porta. Não use esse banco para navegador ou scheduler.
+Não execute fixtures SQL na instalação real. Para comprovar início de volume
+novo e persistência, use outro projeto Compose com sua própria rede, volume,
+contas QA e porta local; preserve seus dados durante o reinício de teste.
 
 O Vite abre em `http://localhost:5173/` e encaminha API e assets para a stack local. Para reconstruir o serviço idle servido pelo Docker, volte à raiz e execute:
 
