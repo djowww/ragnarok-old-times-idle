@@ -24,6 +24,8 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('SQL accounts', () => {
     expect(await counts()).toEqual({ accounts: before.accounts + 1, profiles: before.profiles + 1, sessions: before.sessions + 1 });
     expect(account).toMatchObject({ username: input.username, profileId: input.profile.id, characterName: input.profile.name });
     expect(await store.getSession(session.tokenHash, session.createdAt)).toEqual(account);
+    const [metadata] = await db.pool.query<RowDataPacket[]>('SELECT created_at_ms FROM idle_accounts WHERE id = ?', [account.accountId]);
+    expect(Number(metadata[0].created_at_ms)).toBe(1000);
     const restored = await new GameRepository(db.pool, () => { throw new Error('must not reset'); }, account.profileId).read();
     expect(restored).toMatchObject({ baseLevel: 1, jobLevel: 1, zeny: 200 });
     expect(restored).toEqual(input.profile);
@@ -121,5 +123,27 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('SQL accounts', () => {
     const [untouched] = await db.pool.query<RowDataPacket[]>('SELECT character_name_key FROM idle_profiles WHERE id = ?', [unlinked.profile.id]);
     expect(untouched[0].character_name_key).toBeNull();
     expect(await store.findCredentials('djow')).toBeNull();
+  });
+  it('adds unknown creation dates to preexisting accounts without changing credentials, profiles, sessions or receipts', async () => {
+    // Disposable fixture only: recreate the exact pre-date schema by removing the optional column.
+    const [columns] = await db.pool.query<RowDataPacket[]>("SHOW COLUMNS FROM idle_accounts LIKE 'created_at_ms'");
+    if (columns.length) await db.pool.query('ALTER TABLE idle_accounts DROP COLUMN created_at_ms');
+    const input = seed(); const accountId = randomUUID(); const session = sessionSeed();
+    await db.pool.execute('INSERT INTO idle_profiles (id, state_json, character_name_key) VALUES (?, ?, ?)', [input.profile.id, JSON.stringify(input.profile), input.nameKey]);
+    await db.pool.execute('INSERT INTO idle_accounts (id, username, password_hash, credential_version, profile_id) VALUES (?, ?, ?, ?, ?)', [accountId, input.username, 'historical-hash', 7, input.profile.id]);
+    await db.pool.execute('INSERT INTO idle_sessions (token_hash, account_id, credential_version, created_at_ms, expires_at_ms) VALUES (?, ?, ?, ?, ?)', [session.tokenHash, accountId, 7, session.createdAt, session.expiresAt]);
+    await db.pool.execute('INSERT INTO idle_commands (profile_id, request_id, fingerprint) VALUES (?, ?, ?)', [input.profile.id, 'historical-receipt', 'original']);
+    async function capture() {
+      const [accounts] = await db.pool.query<RowDataPacket[]>('SELECT id, username, password_hash, credential_version, profile_id FROM idle_accounts WHERE id = ?', [accountId]);
+      const [profiles] = await db.pool.query<RowDataPacket[]>('SELECT * FROM idle_profiles WHERE id = ?', [input.profile.id]);
+      const [sessions] = await db.pool.query<RowDataPacket[]>('SELECT * FROM idle_sessions WHERE account_id = ?', [accountId]);
+      const [receipts] = await db.pool.query<RowDataPacket[]>('SELECT * FROM idle_commands WHERE profile_id = ?', [input.profile.id]);
+      return { accounts, profiles, sessions, receipts };
+    }
+    const before = await capture(); await migrate(db.pool); await migrate(db.pool);
+    expect(await capture()).toEqual(before);
+    const [metadata] = await db.pool.query<RowDataPacket[]>('SELECT created_at_ms FROM idle_accounts WHERE id = ?', [accountId]);
+    expect(metadata[0].created_at_ms).toBeNull();
+    expect(await store.getSession(session.tokenHash, 1000)).toMatchObject({ accountId, profileId: input.profile.id });
   });
 });

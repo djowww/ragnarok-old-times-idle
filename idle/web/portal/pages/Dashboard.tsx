@@ -18,7 +18,7 @@ export default function Dashboard() {
     return () => { active = false; resource.users--; queueMicrotask(() => { if (!resource.users) resource.abort.abort(); }); };
   }, [attempt, identity.accountId, identity.profileId, auth.invalidate]);
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmation: '' }); const [success, setSuccess] = useState(false);
-  const form = useAccountForm('/api/auth/password', account => { auth.accept(account); setPasswords({ currentPassword: '', newPassword: '', confirmation: '' }); setSuccess(true); });
+  const form = useAccountForm('/api/auth/password', account => { auth.accept(account); setPasswords({ currentPassword: '', newPassword: '', confirmation: '' }); setSuccess(true); }, identity);
   const state = snapshot?.state; const job = state && catalog.data?.classes[state.job];
   const weaponEntry = state?.inventory.find(item => item.uid === state.equipment.weapon); const weapon = weaponEntry && catalog.data?.items[weaponEntry.itemId]?.weaponType;
   const status = { town: 'Na cidade', hunting: 'Caçando', challenge: 'Em desafio', resting: 'Descansando', paused: 'Caça pausada' };

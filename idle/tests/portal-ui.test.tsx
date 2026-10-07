@@ -115,8 +115,23 @@ it('contacts exactly once in StrictMode with JSON and identity, and retains pane
   const calls = requests.filter(r => r.path === '/api/session'); expect(calls).toHaveLength(1); expect(calls[0].options.method).toBe('POST'); expect(calls[0].options.body).toBe('{}'); expect(new Headers(calls[0].options.headers).get('X-Idle-Expected-Identity')).toBe('["account-ui","profile-ui"]');
   override = path => path === '/api/auth/password' ? Promise.resolve(json({ error: { code: 'CURRENT_PASSWORD_INVALID', message: 'A senha atual está incorreta.', fields: { currentPassword: 'A senha atual está incorreta.' } } }, 400)) : undefined;
   await input('currentPassword', 'wrong-password'); await input('newPassword', 'password-456'); await input('confirmation', 'password-456'); await submit();
+  expect(new Headers(requests.find(r => r.path === '/api/auth/password')!.options.headers).get('X-Idle-Expected-Identity')).toBe('["account-ui","profile-ui"]');
   expect(location.pathname).toBe('/painel'); expect(host.querySelector('[role="alert"]')?.textContent).toContain('senha atual'); expect(host.querySelector('[name="currentPassword"]')).not.toBeNull();
   await act(async () => navigate('/noticias')); await act(async () => navigate('/painel')); expect(requests.filter(r => r.path === '/api/session')).toHaveLength(2);
+});
+it.each([200, 401])('ignores a delayed password response (%s) after logout and login to another account', async status => {
+  authenticated = true; await render('/painel');
+  let release!: (response: Response) => void;
+  const other = { accountId: 'other-account', profileId: 'other-profile', username: 'other', characterName: 'Other' };
+  const otherState = { ...state, id: other.profileId, name: other.characterName };
+  override = path => path === '/api/auth/password' ? new Promise(done => { release = done; }) : path === '/api/auth/logout' ? Promise.resolve(json({ ok: true })) : path === '/api/auth/login' ? Promise.resolve(json(other)) : path === '/api/session' ? Promise.resolve(json(getSnapshot(otherState, catalog, 1000))) : undefined;
+  await input('currentPassword', 'password-123'); await input('newPassword', 'password-456'); await input('confirmation', 'password-456'); await submit();
+  expect(new Headers(requests.find(r => r.path === '/api/auth/password')!.options.headers).get('X-Idle-Expected-Identity')).toBe('["account-ui","profile-ui"]');
+  const passwordSignal = requests.find(r => r.path === '/api/auth/password')!.options.signal;
+  await click('Sair'); await click('Entrar na conta'); await input('username', 'other'); await input('password', 'password-123'); await submit();
+  expect(passwordSignal?.aborted).toBe(true); expect(location.pathname).toBe('/painel'); expect(host.textContent).toContain('Other');
+  await act(async () => release(status === 200 ? json(account) : json({ error: { code: 'AUTH_REQUIRED', message: 'Expired A' } }, 401)));
+  expect(location.pathname).toBe('/painel'); expect(host.textContent).toContain('Other'); expect(host.textContent).not.toContain('Senha alterada');
 });
 it('removes private content on AUTH_REQUIRED and offers retry on an initial auth outage', async () => {
   override = path => path === '/api/auth/me' ? Promise.resolve(json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Serviço indisponível.' } }, 503)) : undefined;

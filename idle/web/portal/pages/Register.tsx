@@ -9,7 +9,7 @@ export function Field({ label, error, hint, ...props }: InputHTMLAttributes<HTML
   return <div className="portal-field"><label htmlFor={`field-${props.name}`}>{label}</label><input {...props} id={`field-${props.name}`} aria-invalid={!!error} aria-describedby={error || hint ? `help-${props.name}` : undefined} /><small id={`help-${props.name}`} className={error ? 'portal-field-error' : ''}>{error ?? hint}</small></div>;
 }
 export function validatePassword(value: string) { return [...value].length < 10 || [...value].length > 128 || new TextEncoder().encode(value).length > 512 ? 'Use 10 a 128 caracteres, até 512 bytes.' : ''; }
-export function useAccountForm(path: string, success: (account: AccountView) => void) {
+export function useAccountForm(path: string, success: (account: AccountView) => void, identity?: Pick<AccountView, 'accountId' | 'profileId'>) {
   const auth = useAuth(); const locked = useRef(false); const mounted = useRef(false); const controller = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [fields, setFields] = useState<Record<string, string>>({});
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; controller.current?.abort(); }; }, []);
@@ -17,8 +17,14 @@ export function useAccountForm(path: string, success: (account: AccountView) => 
     event.preventDefault(); if (locked.current) return;
     setError(''); setFields(validation); if (Object.values(validation).some(Boolean)) { setError('Confira os campos informados.'); return; }
     locked.current = true; setBusy(true); const abort = new AbortController(); controller.current = abort;
-    try { const account = await request<AccountView>(path, { method: 'POST', body, signal: abort.signal }); if (mounted.current && !abort.signal.aborted) success(account); }
-    catch (failure) { if (!mounted.current || abort.signal.aborted) return; if (failure instanceof ApiFailure && failure.code === 'AUTH_REQUIRED') auth.invalidate(); else { setError((failure as Error).message); setFields(failure instanceof ApiFailure ? failure.fields ?? {} : {}); } }
+    try {
+      const account = await request<AccountView>(path, { method: 'POST', body, identity, signal: abort.signal });
+      if (mounted.current && !abort.signal.aborted) success(account);
+    } catch (failure) {
+      if (!mounted.current || abort.signal.aborted) return;
+      if (failure instanceof ApiFailure && failure.code === 'AUTH_REQUIRED') auth.invalidate();
+      else { setError((failure as Error).message); setFields(failure instanceof ApiFailure ? failure.fields ?? {} : {}); }
+    }
     finally { locked.current = false; if (mounted.current) setBusy(false); }
   }
   return { busy, error, fields, send };

@@ -11,13 +11,15 @@ import { parseCommandRequest } from './validation.js';
 
 const callerRepositories = new WeakMap<FastifyRequest, StateRepository>();
 export function callerRepository(request: FastifyRequest): StateRepository | undefined { return callerRepositories.get(request); }
-export function assertExpectedIdentity(headers: Record<string, string | string[] | undefined>, account: Pick<AccountView, 'accountId' | 'profileId'>): void {
+export function assertExpectedIdentity(headers: Record<string, string | string[] | undefined>, account: Pick<AccountView, 'accountId' | 'profileId'> | null): void {
   const header = headers['x-idle-expected-identity'];
   if (header === undefined) return;
   let expected: unknown;
   try { expected = typeof header === 'string' ? JSON.parse(header) : null; } catch { expected = null; }
   // This is only a consistency guard. The cookie alone selects the account and repository.
-  if (!Array.isArray(expected) || expected.length !== 2 || expected[0] !== account.accountId || expected[1] !== account.profileId)
+  // Logout may already have no session; validate the header but keep that exit idempotent.
+  if (!Array.isArray(expected) || expected.length !== 2 || expected.some(value => typeof value !== 'string' || !value) ||
+    (account && (expected[0] !== account.accountId || expected[1] !== account.profileId)))
     throw new PortalError('AUTH_REQUIRED', 401, 'A sessão desta aba mudou. Entre novamente para continuar.');
 }
 export async function resolveGameRepository(request: FastifyRequest, auth: AuthService, profiles: GameProfiles): Promise<StateRepository> {

@@ -28,6 +28,47 @@ async function fixture(secureCookie = false, passwords = fastPasswords) {
 function cookie(response: { headers: Record<string, unknown> }): string { return String(response.headers['set-cookie']).split(';')[0]; }
 
 describe('account auth routes', () => {
+  it('rejects stale-panel password and logout under another shared-password account without side effects', async () => {
+    const { app, accounts } = await fixture(false, { hash: (await import('../server/identity/password.js')).hashPassword, verify: (await import('../server/identity/password.js')).verifyPassword });
+    const a = await app.inject({ method: 'POST', url: '/api/auth/register', payload: registration });
+    const b = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { ...registration, username: 'other', characterName: 'Other' } });
+    const before = await Promise.all(['hero', 'other'].map(name => accounts.findCredentials(name)));
+    const headers = { cookie: cookie(b), 'x-idle-expected-identity': JSON.stringify([a.json().accountId, a.json().profileId]) };
+    for (const url of ['/api/auth/password', '/api/auth/logout']) {
+      const response = await app.inject({ method: 'POST', url, headers, payload: url.endsWith('password') ? { currentPassword: registration.password, newPassword: 'abcdefghij', confirmation: 'abcdefghij' } : {} });
+      expect(response.statusCode).toBe(401); expect(response.json().error.code).toBe('AUTH_REQUIRED');
+      expect(response.headers['set-cookie']).toBeUndefined();
+      expect(await Promise.all(['hero', 'other'].map(name => accounts.findCredentials(name)))).toEqual(before);
+      for (const session of [a, b]) expect((await app.inject({ url: '/api/auth/me', headers: { cookie: cookie(session) } })).json()).toEqual(session.json());
+    }
+  });
+  it.each(['/api/auth/password', '/api/auth/logout'])('rejects malformed expectation before any credential work at %s', async url => {
+    let derivations = 0;
+    const { app, accounts } = await fixture(false, { ...fastPasswords, async hash(password) { derivations++; return fastPasswords.hash(password); }, async verify(password, encoded) { derivations++; return fastPasswords.verify(password, encoded); } });
+    const registered = await app.inject({ method: 'POST', url: '/api/auth/register', payload: registration });
+    const before = await accounts.findCredentials('hero'); const workBefore = derivations;
+    for (const expectation of ['not-json', '{}', '["a"]', '[1,2]']) {
+      const response = await app.inject({ method: 'POST', url, headers: { cookie: cookie(registered), 'x-idle-expected-identity': expectation }, payload: { currentPassword: registration.password, newPassword: 'abcdefghij', confirmation: 'abcdefghij' } });
+      expect(response.statusCode).toBe(401); expect(response.json().error.code).toBe('AUTH_REQUIRED'); expect(response.headers['set-cookie']).toBeUndefined();
+    }
+    expect(derivations).toBe(workBefore); expect(await accounts.findCredentials('hero')).toEqual(before);
+    expect((await app.inject({ url: '/api/auth/me', headers: { cookie: cookie(registered) } })).statusCode).toBe(200);
+  });
+  it('rotates matching expected identity and exits idempotently even after the session is absent', async () => {
+    const { app } = await fixture();
+    const registered = await app.inject({ method: 'POST', url: '/api/auth/register', payload: registration });
+    const expectation = JSON.stringify([registered.json().accountId, registered.json().profileId]);
+    const changed = await app.inject({ method: 'POST', url: '/api/auth/password', headers: { cookie: cookie(registered), 'x-idle-expected-identity': expectation }, payload: { currentPassword: registration.password, newPassword: 'abcdefghij', confirmation: 'abcdefghij' } });
+    expect(changed.statusCode).toBe(200); expect(changed.json()).toEqual(registered.json());
+    expect((await app.inject({ url: '/api/auth/me', headers: { cookie: cookie(registered) } })).statusCode).toBe(401);
+    for (const sessionCookie of [cookie(changed), cookie(changed), '']) {
+      const exited = await app.inject({ method: 'POST', url: '/api/auth/logout', headers: { cookie: sessionCookie, 'x-idle-expected-identity': expectation }, payload: {} });
+      expect(exited.statusCode).toBe(200); expect(String(exited.headers['set-cookie'])).toContain('Max-Age=0');
+    }
+    expect((await app.inject({ url: '/api/auth/me', headers: { cookie: cookie(changed) } })).statusCode).toBe(401);
+    const malformed = await app.inject({ method: 'POST', url: '/api/auth/logout', headers: { 'x-idle-expected-identity': 'not-json' }, payload: {} });
+    expect(malformed.statusCode).toBe(401); expect(malformed.headers['set-cookie']).toBeUndefined();
+  });
   it('registers a server-created profile and returns a private projection with a seven-day cookie', async () => {
     const { app, accounts, auth } = await fixture(true);
     const response = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { ...registration, profile: { id: 'local-djow', zeny: 999999 } } });
@@ -166,6 +207,8 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('SQL auth service', () => {
     const suffix = randomUUID().slice(0, 8);
     const first = await auth.register({ ...registration, username: `sql_${suffix}`, characterName: `SQL ${suffix}` });
     db.profileIds.push(first.account.profileId);
+    const [metadata] = await db.pool.query<RowDataPacket[]>('SELECT created_at_ms FROM idle_accounts WHERE id = ?', [first.account.accountId]);
+    expect(Number(metadata[0].created_at_ms)).toBe(1000);
     const [stored] = await db.pool.query<RowDataPacket[]>('SELECT token_hash FROM idle_sessions WHERE account_id = ?', [first.account.accountId]);
     expect(stored).toHaveLength(1);
     expect(stored[0].token_hash).toBe(createHash('sha256').update(first.token).digest('hex'));

@@ -4,6 +4,7 @@ import type { AuthResult, AuthService } from './service.js';
 import { PortalError } from './types.js';
 import { AttemptLimiter, AuthLimitError } from './limits.js';
 import { validateLogin, validatePassword, validateRegistration } from './validation.js';
+import { assertExpectedIdentity } from '../game-routes.js';
 
 export const LOCAL_ORIGINS = ['http://localhost:3339', 'http://127.0.0.1:3339', 'http://localhost:5173', 'http://127.0.0.1:5173'];
 export function assertAllowedMutation(headers: { origin?: string; secFetchSite?: string; contentType?: string }, allowedOrigins: string[] = LOCAL_ORIGINS): void {
@@ -54,6 +55,8 @@ export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService
       return account;
     });
     scope.post('/api/auth/logout', async (request, reply) => {
+      const account = await auth.resolve(request.cookies.idle_session);
+      assertExpectedIdentity(request.headers, account);
       await auth.logout(request.cookies.idle_session);
       reply.clearCookie('idle_session', { ...cookieOptions, maxAge: 0 });
       return { ok: true };
@@ -61,6 +64,7 @@ export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService
     scope.post('/api/auth/password', async (request, reply) => {
       const account = await auth.resolve(request.cookies.idle_session);
       if (!account) throw new PortalError('AUTH_REQUIRED', 401, 'Entre na sua conta para continuar.');
+      assertExpectedIdentity(request.headers, account);
       limits.consume(`password:account:${account.accountId}`, 5, 900000);
       return sendSession(reply, await auth.changePassword(account, validatePassword(request.body)));
     });

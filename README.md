@@ -172,6 +172,9 @@ Para uma verificação focada, use `pnpm exec vitest run tests/hosting.test.ts`.
 A suíte local informa os testes SQL/assets opcionais ignorados. A verificação
 completa requer banco **descartável**, recursos reais e execução serial:
 
+Antes deste bloco Docker, volte à raiz do repositório (se estiver em `idle/`,
+execute `cd ..`). Os caminhos de build abaixo são relativos à raiz.
+
 ```powershell
 docker run --rm -d --name ragidle-portal-test-db --network ragidle_ragnarok_local -e MARIADB_DATABASE=idle_portal_test -e MARIADB_USER=idle_test -e MARIADB_PASSWORD=idle_test_local -e MARIADB_ROOT_PASSWORD=idle_test_root_local mariadb:11.4
 # Aguarde a prontidão do banco temporário antes dos testes.

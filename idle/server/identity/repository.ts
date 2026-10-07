@@ -35,8 +35,8 @@ export class SqlAccountStore implements AccountStore {
           [seed.profile.id, JSON.stringify(seed.profile), seed.nameKey]);
       } catch (error) { duplicate(error, 'characterName'); }
       try {
-        await connection.execute('INSERT INTO idle_accounts (id, username, password_hash, profile_id) VALUES (?, ?, ?, ?)',
-          [accountId, username, seed.passwordHash, seed.profile.id]);
+        await connection.execute('INSERT INTO idle_accounts (id, username, password_hash, profile_id, created_at_ms) VALUES (?, ?, ?, ?, ?)',
+          [accountId, username, seed.passwordHash, seed.profile.id, session.createdAt]);
       } catch (error) { duplicate(error, 'username'); }
       await this.insertSession(connection, accountId, 1, session);
       return { accountId, username, profileId: seed.profile.id, characterName: seed.profile.name };

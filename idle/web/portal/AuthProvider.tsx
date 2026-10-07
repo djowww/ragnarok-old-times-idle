@@ -25,10 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [begin, invalidate]);
   const logout = useCallback(async () => {
+    const identity = state.account ?? undefined;
     // Invalidate before awaiting the network so old private work unmounts immediately.
     invalidate(); const job = begin();
     try {
-      await request('/api/auth/logout', { method: 'POST', body: {}, signal: job.abort.signal });
+      await request('/api/auth/logout', { method: 'POST', body: {}, identity, signal: job.abort.signal });
       if (mounted.current && generation.current === job.generation) setState(previous => ({ ...previous, error: null }));
     } catch (error) {
       if (mounted.current && generation.current === job.generation) {
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState(previous => ({ ...previous, error: failure })); throw failure;
       }
     }
-  }, [begin, invalidate]);
+  }, [begin, invalidate, state.account]);
   useEffect(() => {
     mounted.current = true; void refresh().catch(() => { });
     return () => { mounted.current = false; ++generation.current; operation.current?.abort(); };

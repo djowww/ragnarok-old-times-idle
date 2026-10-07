@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS idle_accounts (
   CONSTRAINT idle_accounts_profile FOREIGN KEY (profile_id) REFERENCES idle_profiles(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+ALTER TABLE idle_accounts ADD COLUMN IF NOT EXISTS created_at_ms BIGINT UNSIGNED NULL;
+
 CREATE TABLE IF NOT EXISTS idle_sessions (
   token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL PRIMARY KEY,
   account_id VARCHAR(80) NOT NULL,
