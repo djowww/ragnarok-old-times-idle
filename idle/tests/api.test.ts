@@ -6,6 +6,7 @@ import { buildApp } from '../server/app.js';
 import { MemoryAccountStore } from './portal-fixture.js';
 
 const catalog = catalogJSON as unknown as Catalog;
+const adminToken = 'api-admin-test-token-that-is-long-enough-for-production-validation';
 const apps: Awaited<ReturnType<typeof buildApp>>[] = [];
 afterEach(async () => { for (const app of apps.splice(0)) await app.close(); });
 async function setup() {
@@ -21,6 +22,24 @@ async function setup() {
   return { app, accounts, token, profileId, repository, advance: (ms: number) => { now += ms; } };
 }
 describe('idle HTTP intentions', () => {
+  it('scopes an admin grant to the currently authenticated game profile', async () => {
+    const accounts = new MemoryAccountStore();
+    const app = await buildApp({ catalog, accounts, profiles: accounts.profiles, now: () => 1000, adminToken });
+    apps.push(app);
+    const registered = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { username: 'admin_scope', characterName: 'Admin Scope', gender: 'male', password: 'valid-password', confirmation: 'valid-password' } });
+    expect(registered.statusCode).toBe(201);
+    const gameCookie = registered.cookies.find(cookie => cookie.name === 'idle_session')!.value;
+    const adminLogin = await app.inject({ method: 'POST', url: '/api/admin/session', payload: { token: adminToken } });
+    expect(adminLogin.statusCode).toBe(200);
+    const adminCookie = adminLogin.cookies.find(cookie => cookie.name === 'ragidle_admin')!.value;
+    const payload = { requestId: 'admin-scope-action-01', action: { type: 'zeny', amount: 500 } };
+    const anonymous = await app.inject({ method: 'POST', url: '/api/admin/action', cookies: { ragidle_admin: adminCookie }, payload });
+    expect(anonymous.statusCode).toBe(401);
+    const applied = await app.inject({ method: 'POST', url: '/api/admin/action', cookies: { ragidle_admin: adminCookie, idle_session: gameCookie }, payload });
+    expect(applied.statusCode).toBe(200);
+    const profileId = registered.json().profileId as string;
+    expect((await accounts.profiles.forProfile(profileId).read()).zeny).toBe(700);
+  });
   it('rejects invalid purchase amounts and unsolicited XP without changing balances', async () => {
     const { app, token, repository } = await setup();
     const res = await app.inject({ cookies: { idle_session: token }, method: 'POST', url: '/api/command', payload: { requestId: 'invalid-0001', command: { type: 'buy', itemId: 501, quantity: -1 } } });

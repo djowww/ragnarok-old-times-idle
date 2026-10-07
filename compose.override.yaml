@@ -1,0 +1,6 @@
+services:
+  idle-game:
+    image: ragidle-idle-game
+    build:
+      context: ./idle
+      dockerfile: ../docker/idle-game/Dockerfile

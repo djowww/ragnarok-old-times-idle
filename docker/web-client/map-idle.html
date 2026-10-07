@@ -25,7 +25,7 @@
   <body>
     <div id="map-idle-status" role="status">Carregando mapa original…</div>
     <script type="module">
-      import('./MapViewer.js').catch(() => {
+      import('./MapViewer.js?v=20261007-areas14').catch(() => {
         const status = document.getElementById('map-idle-status');
         status.textContent = 'O visualizador do mapa original não pôde iniciar.';
         let parentOrigin;

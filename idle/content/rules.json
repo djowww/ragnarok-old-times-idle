@@ -1756,6 +1756,56 @@
       ],
       "scene": "castle",
       "description": "Caçada em Cavalaria de Glast Heim. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "sewers_depths",
+      "name": "Esgotos — segundo nível",
+      "map": "prt_sewb2",
+      "minLevel": 13,
+      "monsters": [
+        1051,
+        1175
+      ],
+      "scene": "sewer",
+      "description": "Uma descida mais perigosa pelos esgotos de Prontera."
+    },
+    {
+      "id": "payon_cave_depths",
+      "name": "Caverna de Payon — segundo nível",
+      "map": "pay_dun01",
+      "minLevel": 25,
+      "monsters": [
+        1015,
+        1076,
+        1028
+      ],
+      "scene": "cave",
+      "description": "Esqueletos e mortos-vivos guardam as galerias profundas."
+    },
+    {
+      "id": "byalan_depths",
+      "name": "Byalan — segundo nível",
+      "map": "iz_dun02",
+      "minLevel": 30,
+      "monsters": [
+        1070,
+        1066,
+        1141
+      ],
+      "scene": "sea",
+      "description": "As correntes subterrâneas escondem criaturas marinhas mais resistentes."
+    },
+    {
+      "id": "orc_dungeon",
+      "name": "Calabouço dos Orcs",
+      "map": "orcsdun01",
+      "minLevel": 32,
+      "monsters": [
+        1023,
+        1273
+      ],
+      "scene": "orc",
+      "description": "Avance para dentro do território dos Orcs e enfrente seus guerreiros."
     }
   ],
   "cards": {
