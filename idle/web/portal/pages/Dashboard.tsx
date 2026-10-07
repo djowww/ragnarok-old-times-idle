@@ -1,0 +1,28 @@
+import { useEffect, useRef, useState } from 'react';
+import type { Catalog, GameSnapshot } from '../../../shared/types';
+import { ActorPreview } from '../../components/Scene';
+import { ApiFailure, request } from '../../http';
+import { useAuth } from '../AuthProvider';
+import { formatNumber, LoadState, Logout, Panel, usePublicData } from '../PortalShell';
+import { Link } from '../router';
+import { Field, useAccountForm, validatePassword } from './Register';
+export default function Dashboard() {
+  const auth = useAuth(); const identity = auth.account!; const catalog = usePublicData<Catalog>('/api/catalog');
+  const [snapshot, setSnapshot] = useState<GameSnapshot | null>(null); const [error, setError] = useState<ApiFailure | null>(null); const [attempt, setAttempt] = useState(0);
+  const contact = useRef<{ promise: Promise<GameSnapshot>; abort: AbortController; users: number; attempt: number } | null>(null);
+  useEffect(() => {
+    // An effect replay subscribes to the same contact. A real route exit aborts it.
+    if (!contact.current || contact.current.attempt !== attempt) { const abort = new AbortController(); contact.current = { promise: request<GameSnapshot>('/api/session', { method: 'POST', body: {}, identity, signal: abort.signal }), abort, users: 0, attempt }; }
+    const resource = contact.current; resource.users++; let active = true; setError(null);
+    void resource.promise.then(value => { if (!active) return; if (value.state.id !== identity.profileId) { auth.invalidate(); return; } setSnapshot(value); }, failure => { if (!active || resource.abort.signal.aborted) return; if (failure instanceof ApiFailure && failure.code === 'AUTH_REQUIRED') auth.invalidate(); else setError(failure); });
+    return () => { active = false; resource.users--; queueMicrotask(() => { if (!resource.users) resource.abort.abort(); }); };
+  }, [attempt, identity.accountId, identity.profileId, auth.invalidate]);
+  const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmation: '' }); const [success, setSuccess] = useState(false);
+  const form = useAccountForm('/api/auth/password', account => { auth.accept(account); setPasswords({ currentPassword: '', newPassword: '', confirmation: '' }); setSuccess(true); }, identity);
+  const state = snapshot?.state; const job = state && catalog.data?.classes[state.job];
+  const weaponEntry = state?.inventory.find(item => item.uid === state.equipment.weapon); const weapon = weaponEntry && catalog.data?.items[weaponEntry.itemId]?.weaponType;
+  const status = { town: 'Na cidade', hunting: 'Caçando', challenge: 'Em desafio', resting: 'Descansando', paused: 'Caça pausada' };
+  return <><h1>Painel do jogador</h1><div className="portal-dashboard"><div><Panel title="Meu personagem">{snapshot && catalog.data && state && job ? <><div className="portal-character"><div className="portal-portrait"><ActorPreview asset={job.sprite[state.gender]} name={state.name} appearance={state.appearance} weapon={weapon ? { type: weapon, gender: state.gender, job: state.job } : undefined} /><span>{job.name}</span></div><div><h3>{state.name}</h3><p>Conta: <strong>{identity.username}</strong></p><p>{state.gender === 'female' ? 'Aparência feminina' : 'Aparência masculina'}{state.reborn ? ' · Renascido' : ''}</p><p className="portal-hunt-state">{status[state.status]}</p></div></div><dl className="portal-character-facts"><dt>Nível Base / Job</dt><dd>{state.baseLevel} / {state.jobLevel}</dd><dt>EXP Base</dt><dd>{formatNumber(state.baseExp)}</dd><dt>EXP Job</dt><dd>{formatNumber(state.jobExp)}</dd><dt>Zeny</dt><dd>{formatNumber(state.zeny)} z</dd><dt>Total de abates</dt><dd>{formatNumber(state.totals.kills)}</dd><dt>Área atual</dt><dd>{catalog.data.areas.find(area => area.id === state.areaId)?.name ?? 'Prontera'}</dd></dl><div className="portal-actions"><Link href="/jogar" className="portal-button portal-primary">Jogar</Link><Link href="/ranking">Ver ranking</Link><Logout /></div></> : <LoadState error={error ?? catalog.error} retry={() => { if (error) setAttempt(value => value + 1); if (catalog.error) catalog.retry(); }} />}</Panel><Panel title="Seu progresso offline"><p>A aventura continua por até <strong>12 horas</strong> sem um novo acesso. Ao atingir o limite, a caça pausa até você voltar.</p><p>Abrir este painel registra seu retorno. O resumo offline permanece disponível ao entrar no jogo.</p>{snapshot?.offlineSummary && <p>Há um resumo da sua última jornada esperando por você no jogo.</p>}</Panel></div>
+    <Panel title="Trocar senha"><form noValidate onSubmit={event => { setSuccess(false); void form.send(event, passwords, { currentPassword: passwords.currentPassword ? '' : 'Informe a senha atual.', newPassword: validatePassword(passwords.newPassword), confirmation: passwords.newPassword === passwords.confirmation ? '' : 'As senhas precisam corresponder.' }); }}><p>Use sua senha atual para definir uma nova.</p>{form.error && <p role="alert" className="portal-feedback">{form.error}</p>}{success && <p role="status" className="portal-success">Senha alterada. As outras sessões foram encerradas.</p>}{[['currentPassword', 'Senha atual'], ['newPassword', 'Nova senha'], ['confirmation', 'Confirmar nova senha']].map(([name, label]) => <Field key={name} name={name} label={label} type="password" autoComplete={name === 'currentPassword' ? 'current-password' : 'new-password'} value={passwords[name as keyof typeof passwords]} hint={name === 'newPassword' ? '10 a 128 caracteres.' : undefined} error={form.fields[name]} onChange={event => setPasswords(previous => ({ ...previous, [name]: event.target.value }))} />)}<button disabled={form.busy}>{form.busy ? 'Salvando…' : 'Alterar senha'}</button></form></Panel>
+  </div></>;
+}

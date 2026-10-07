@@ -8,6 +8,8 @@ import type {
   Slot,
 } from "../../shared/types";
 import { getItemIcon } from "../assets/items";
+import { isItemIdentified, itemRarity, rarityBonusText, rarityNames } from "../../shared/loot";
+import "../styles/item-rarity.css";
 
 export interface PanelProps {
   catalog: Catalog;
@@ -42,8 +44,21 @@ export function duration(ms: number) {
       : `${seconds}s`;
 }
 export function itemName(item: Item, entry?: InventoryEntry) {
+  if (item.type === "equipment" && !isItemIdentified(entry)) {
+    const category = item.slot ? slots[item.slot] : "Equipamento";
+    const feminine = item.slot && ["weapon", "armor", "head", "garment"].includes(item.slot);
+    return `${category} não ${feminine ? "identificada" : "identificado"}`;
+  }
   return `${entry?.refine ? `+${entry.refine} ` : ""}${item.name}${item.slots ? ` [${item.slots}]` : ""}`;
 }
+export function itemRarityClass(entry?: InventoryEntry): string {
+  return `item-rarity-${itemRarity(entry)}`;
+}
+export function itemRarityLabel(entry?: InventoryEntry): string {
+  const rarity = itemRarity(entry);
+  return rarity === "unidentified" ? "Não identificado" : rarityNames[rarity];
+}
+export const itemRarityBonus = rarityBonusText;
 export function Panel({
   title,
   aside,

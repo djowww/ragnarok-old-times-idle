@@ -21,7 +21,7 @@ describe('authoritative clock and combat', () => {
   });
   it('preserves fractional ticks and caps offline time from last browser contact across restart', () => {
     const c = fixture(); const s = createInitialState(c, 250);
-    const partial = advanceState(s, c, 1749); expect(partial.lastSimulatedAt).toBe(1250);
+    const partial = advanceState(s, c, 1749); expect(partial.lastSimulatedAt).toBe(1500);
     const done = advanceState(partial, c, 2250); expect(done.totals.elapsedMs).toBe(2000);
     const capped = advanceState(s, c, 13 * 3600000 + 250);
     expect(capped.totals.elapsedMs).toBe(12 * 3600000); expect(capped.status).toBe('paused');
@@ -48,18 +48,21 @@ describe('authoritative clock and combat', () => {
   it('reads catalog elemental and weapon size adjustments as percentages', () => {
     const c = fixture(); c.monsters[1002].hp = 10000; c.monsters[1002].def = 0; c.monsters[1002].stats = { ...c.monsters[1002].stats, vit: 0, agi: 0 }; c.monsters[1002].element = 'Neutral';
     c.elementModifiers = { neutral: { Neutral: [100, 100, 100, 100] } }; c.sizeModifiers = { dagger: { medium: 75 } }; c.items[1201].effects.crit = 100;
-    let s = applyCommand(createInitialState(c, 0), c, { type: 'startHunt', areaId: 'prontera' }, 0); s.stats.dex = 99; s.stats.luk = 99; s.rotation = [];
-    s = advanceState(s, c, 2000);
-    // Physical 1+19+19+20 = 59, guaranteed crit1.4, medium75% = floor61.95.
-    expect(s.events.find(e => e.kind === 'damage' && e.target === 'enemy')?.amount).toBe(61);
+    let s = createInitialState(c, 0); s.baseLevel = 15; s.stats.dex = 99; s.stats.luk = 99; s.rotation = [];
+    s = applyCommand(s, c, { type: 'challenge', challengeId: 'mastering' }, 0);
+    s = advanceState(s, c, 3000);
+    // Classic size modifies weapon ATK: floor(20 * .75) + 1 + 19 + 19 = 54.
+    // A pre-renewal critical bypasses defense without a 1.4 damage multiplier.
+    expect(s.events.find(e => e.kind === 'damage' && e.target === 'enemy')?.amount).toBe(54);
   });
   it('uses attack skills only with their declared SP, zeny, reagent and weapon', () => {
     const c = fixture(); c.monsters[1002].hp = 10000;
     c.skills.costly = { id: 'costly', name: 'Costly', description: '', kind: 'physical', maxLevel: 1, spCost: [5], power: [200], cooldownMs: 3000, zenyCost: [20], itemCost: { itemId: 909, quantity: 1 }, requiredWeapon: ['dagger'] };
-    let s = applyCommand(createInitialState(c, 0), c, { type: 'startHunt', areaId: 'prontera' }, 0); s.learnedSkills.costly = 1; s.rotation = ['costly']; s.autoPotion.spThreshold = 0;
-    const absent = advanceState(s, c, 2000); expect(absent.zeny).toBe(200); expect(absent.sp).toBe(s.sp); expect(absent.events.some(e => e.text === 'Costly')).toBe(false);
+    let s = createInitialState(c, 0); s.baseLevel = 15; s.learnedSkills.costly = 1; s.rotation = ['costly']; s.autoPotion.spThreshold = 0;
+    s = applyCommand(s, c, { type: 'challenge', challengeId: 'mastering' }, 0);
+    const absent = advanceState(s, c, 3000); expect(absent.zeny).toBe(200); expect(absent.sp).toBe(s.sp); expect(absent.events.some(e => e.text === 'Costly')).toBe(false);
     s.inventory.push({ uid: 'reagent', itemId: 909, quantity: 1, refine: 0, cards: [], favorite: false });
-    const used = advanceState(s, c, 2000); expect(used.zeny).toBe(180); expect(used.sp).toBe(s.sp - 5); expect(used.inventory.some(e => e.uid === 'reagent')).toBe(false);
+    const used = advanceState(s, c, 3000); expect(used.zeny).toBe(180); expect(used.sp).toBe(s.sp - 5); expect(used.inventory.some(e => e.uid === 'reagent')).toBe(false);
     expect(advanceState(used, c, 4000).zeny).toBe(180);
   });
   it('applies learned passive levels and expires active buffs without recasting early', () => {
@@ -89,7 +92,9 @@ describe('authoritative clock and combat', () => {
   });
   it('regenerates hunting SP on elapsed ticks even when creation time is not a whole second', () => {
     const c = fixture(); c.monsters[1002].hp = 100000; let s = createInitialState(c, 250); s.sp = 0; s.rotation = []; s.autoPotion.spThreshold = 0;
-    s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 250); s = advanceState(s, c, 5250); expect(s.sp).toBe(1);
+    s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 250);
+    s = advanceState(s, c, 8249); expect(s.sp).toBe(0);
+    s = advanceState(s, c, 8250); expect(s.sp).toBe(1);
   });
   it('falls back to a basic attack when a skill requires a missing equipment slot', () => {
     const c = fixture(); c.monsters[1002].hp = 100000;
@@ -98,18 +103,21 @@ describe('authoritative clock and combat', () => {
     s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 0); s = advanceState(s, c, 2000);
     expect(s.sp).toBe(50); expect(s.events.some(e => e.text === 'Shield')).toBe(false); expect(s.events.some(e => e.target === 'enemy')).toBe(true);
   });
-  it.each([[1,10], [50,12], [99,16]])('preserves attack interval remainder for AGI %i (%i attacks in twenty seconds)', (agi, count) => {
+  it.each([[1,9,1990], [50,11,1598], [99,15,1206]])('preserves attack interval remainder for AGI %i (%i attacks in twenty seconds, %i ms apart)', (agi, count, interval) => {
     const c = fixture(); c.monsters[1002].hp = 1000000; c.monsters[1002].attackDelay = 1000000; c.items[1201].effects.crit = 100;
     let s = createInitialState(c, 0); s.baseLevel = 15; s.stats.agi = agi; s.rotation = [];
     s = applyCommand(s, c, { type: 'challenge', challengeId: 'mastering' }, 0);
     const offline = advanceState(s, c, 20000); let segmented = s; for (let t = 1000; t <= 20000; t += 1000) segmented = advanceState(segmented, c, t);
-    expect(offline).toEqual(segmented); expect(offline.events.filter(e => e.kind === 'damage' && e.target === 'enemy')).toHaveLength(count);
+    expect(offline).toEqual(segmented);
+    const hits = offline.events.filter(e => e.kind === 'damage' && e.target === 'enemy');
+    expect(hits).toHaveLength(count); expect(hits[0].at).toBe(2750);
+    expect(hits.slice(1).map((hit, index) => hit.at - hits[index].at)).toEqual(Array(count - 1).fill(interval));
     expect(offline.battle!.playerNextAttackAt).toBeGreaterThan(20000);
   });
   it('uses a blue potion when HP is low and all red potions have run out', () => {
     const c = fixture(); let s = createInitialState(c, 0); s.hp = 1; s.sp = 0; s.rotation = []; s.inventory = s.inventory.filter(e => e.itemId !== 501);
     s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 0); s = advanceState(s, c, 1000);
-    expect(s.sp).toBe(40); expect(s.totals.potions).toBe(1); expect(s.inventory.find(e => e.itemId === 505)!.quantity).toBe(4); expect(s.potionReadyAt).toBe(3000);
+    expect(s.sp).toBe(40); expect(s.totals.potions).toBe(1); expect(s.inventory.find(e => e.itemId === 505)!.quantity).toBe(4); expect(s.potionReadyAt).toBe(2250);
     const next = advanceState(s, c, 2000); expect(next.totals.potions).toBe(1);
   });
   it.each([0,-100])('deals zero damage against an elemental coefficient of %i without healing the target', coefficient => {
@@ -117,11 +125,12 @@ describe('authoritative clock and combat', () => {
     c.elementModifiers = { holy: { holy: [100,100,100,coefficient] } }; c.skills.firebolt.element = 'Holy';
     let s = createInitialState(c, 0); s.baseLevel = 15; s.learnedSkills.firebolt = 1; s.rotation = ['firebolt'];
     s = applyCommand(s,c,{type:'challenge',challengeId:'mastering'},0); s = advanceState(s,c,1000);
-    expect(s.events.find(e => e.target === 'enemy')?.amount).toBe(0); expect(s.battle!.hp).toBe(10000);
+    expect(s.events.find(e => e.kind === 'damage' && e.target === 'enemy' && e.skillId === 'firebolt')?.amount).toBe(0); expect(s.battle!.hp).toBe(10000);
   });
   it.each([1,40,99])('Holy Light against actual Holy4 Angeling never turns defense into damage at INT %i', int => {
-    const c = catalogJson as unknown as Catalog; let s = createInitialState(c,0); s.job = 'priest'; s.baseLevel = 40; s.stats.int = int; s.sp = 100; s.learnedSkills.holy_light = 1; s.rotation = ['holy_light'];
-    s = applyCommand(s,c,{type:'challenge',challengeId:'angeling'},0); const beforeHp = s.battle!.hp; s = advanceState(s,c,1000);
-    expect(s.events.find(e => e.target === 'enemy')?.amount).toBe(0); expect(s.battle!.hp).toBe(beforeHp);
+    const c = catalogJson as unknown as Catalog; let s = createInitialState(c,0); s.job = 'priest'; s.baseLevel = 40; s.stats.int = int; s.stats.dex = 99; s.sp = 100; s.learnedSkills.holy_light = 1; s.rotation = ['holy_light'];
+    // DEX99 completes the source 2s cast in 680ms, before Angeling reaches melee.
+    s = applyCommand(s,c,{type:'challenge',challengeId:'angeling'},0); const beforeHp = s.battle!.hp; s = advanceState(s,c,2000);
+    expect(s.events.find(e => e.kind === 'damage' && e.target === 'enemy' && e.skillId === 'holy_light')?.amount).toBe(0); expect(s.battle!.hp).toBe(beforeHp);
   });
 });

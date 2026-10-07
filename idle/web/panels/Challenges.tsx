@@ -86,7 +86,7 @@ export default function Challenges({
                 className={`challenge-card ${current ? "current" : ""}`}
                 key={challenge.id}
               >
-                <ActorPreview asset={monster.sprite} name={monster.name} large />
+                <ActorPreview asset={monster.sprite} name={monster.name} size="natural" />
                 <div>
                   <span className="eyebrow">
                     {challenge.category === "mvp" ? "MVP" : "Mini-chefe"} · Base {challenge.minLevel}+
