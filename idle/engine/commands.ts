@@ -176,6 +176,22 @@ export function executeCommand(
       );
       s.gender = command.gender;
       break;
+    case "changeAppearance":
+      town(s);
+      requireRule(
+        Number.isSafeInteger(command.hairStyle) && command.hairStyle >= 0 && command.hairStyle <= 27 &&
+          Number.isSafeInteger(command.hairColor) && command.hairColor >= 0 && command.hairColor <= 8 &&
+          Number.isSafeInteger(command.clothesColor) && command.clothesColor >= 0 && command.clothesColor <= 4,
+        "INVALID_APPEARANCE",
+        "Escolha um penteado ou uma cor disponíveis no estilista.",
+      );
+      s.appearance = {
+        hairStyle: command.hairStyle,
+        hairColor: command.hairColor,
+        clothesColor: command.clothesColor,
+      };
+      event(s, now, "appearance", "A aparência foi atualizada no estilista de Prontera.");
+      break;
     case "allocate": {
       requireRule(
         statNames.includes(command.stat) &&

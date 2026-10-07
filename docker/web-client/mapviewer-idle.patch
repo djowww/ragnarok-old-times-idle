@@ -19,7 +19,7 @@ index 4e3faeb..6281733 100644
 +	prontera: [155, 187],
 +	prt_in: [130, 76],
 +	prt_fild08: [199, 199],
-+	prt_sewb1: [169, 177],
++	prt_sewb1: [178, 186],
 +	prt_fild04: [243, 155],
 +	prt_fild03: [199, 149],
 +	pay_dun00: [127, 85],
@@ -295,7 +295,7 @@ new file mode 100644
 index 0000000..02a18d9
 --- /dev/null
 +++ b/src/Renderer/IdleActors.js
-@@ -0,0 +1,283 @@
+@@ -0,0 +1,338 @@
 +/** RagIDLE presentation bridge. Simulation and animation poses stay in the parent. */
 +import SpriteRenderer from 'Renderer/SpriteRenderer.js';
 +import Ground from 'Renderer/Map/Ground.js';
@@ -307,12 +307,15 @@ index 0000000..02a18d9
 +const MAX_ACTORS = 160;
 +const MAX_LAYERS = 1024;
 +const textures = new Map();
++const capacityBlocked = new Map();
 +let textureBytes = 0;
 +let session = '';
 +let origin = '';
 +let map = '';
 +let sequence = -1;
 +let actors = [];
++const completeLayers = new Map();
++let ownedActors = [];
 +let stateAt = -Infinity;
 +let lastAck = -Infinity;
 +let evicted = [];
@@ -332,8 +335,11 @@ index 0000000..02a18d9
 +    try { gl.deleteTexture(frame.texture); } catch { /* Cache ownership must still be released. */ }
 +  }
 +  textures.clear();
++  capacityBlocked.clear();
 +  textureBytes = 0;
 +  actors = [];
++  completeLayers.clear();
++  ownedActors = [];
 +  sequence = -1;
 +  stateAt = lastAck = -Infinity;
 +  evicted = [];
@@ -377,7 +383,7 @@ index 0000000..02a18d9
 +    origin = parentOrigin;
 +    map = mapName;
 +    if (failed) { notify('ragidle-map-actors-error'); return true; }
-+    notify('ragidle-map-actors-ready', { version: 1 });
++    notify('ragidle-map-actors-ready', { version: 2 });
 +    return true;
 +  }
 +  if (data.session !== session || mapName !== map || parentOrigin !== origin) return false;
@@ -391,7 +397,10 @@ index 0000000..02a18d9
 +    let packetBytes = 0;
 +    const flipY = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
 +    const premultiply = gl.getParameter(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
-+    const protectedFrames = new Set(actors.flatMap(actor => actor.layers.map(layer => layer.frame)));
++    const protectedFrames = new Set([
++      ...actors.flatMap(actor => actor.layers.map(layer => layer.frame)),
++      ...[...completeLayers.values()].flatMap(layers => layers.map(layer => layer.frame))
++    ]);
 +    try { for (const frame of data.frames) {
 +      if (!frame || typeof frame.id !== 'string' || !/^f\d{1,12}$/.test(frame.id) ||
 +        !Number.isInteger(frame.width) || !Number.isInteger(frame.height) ||
@@ -399,7 +408,7 @@ index 0000000..02a18d9
 +        !(frame.rgba instanceof Uint8ClampedArray) || frame.rgba.byteLength !== frame.width * frame.height * 4) continue;
 +      packetBytes += frame.rgba.byteLength;
 +      if (packetBytes > 8 * 1024 * 1024) break;
-+      if (textures.has(frame.id)) continue;
++      if (textures.has(frame.id)) { capacityBlocked.delete(frame.id); continue; }
 +      while (textures.size >= MAX_TEXTURES || textureBytes + frame.rgba.byteLength > MAX_BYTES) {
 +        let oldest;
 +        for (const [id, candidate] of textures) if (!protectedFrames.has(id) && (!oldest || candidate.used < oldest[1].used)) oldest = [id, candidate];
@@ -410,7 +419,15 @@ index 0000000..02a18d9
 +        evicted.push(oldest[0]);
 +        if (evicted.length > MAX_LAYERS) evicted.shift();
 +      }
-+      if (textures.size >= MAX_TEXTURES || textureBytes + frame.rgba.byteLength > MAX_BYTES) continue;
++      if (textures.size >= MAX_TEXTURES || textureBytes + frame.rgba.byteLength > MAX_BYTES) {
++        // Uploads precede their pose message; remember denied warmups until
++        // the render pass can distinguish required frames from future images.
++        capacityBlocked.delete(frame.id);
++        capacityBlocked.set(frame.id, frame.rgba.byteLength);
++        if (capacityBlocked.size > MAX_TEXTURES) capacityBlocked.delete(capacityBlocked.keys().next().value);
++        continue;
++      }
++      capacityBlocked.delete(frame.id);
 +      const texture = gl.createTexture();
 +      if (!texture) throw new Error('Idle sprite texture unavailable');
 +      // Track ownership before uploads so the error boundary can release partial allocations.
@@ -453,6 +470,8 @@ index 0000000..02a18d9
 +  }
 +  sequence = data.sequence;
 +  actors = next;
++  const active = new Set(next.map(actor => actor.id));
++  for (const id of completeLayers.keys()) if (!active.has(id)) completeLayers.delete(id);
 +  stateAt = performance.now();
 +  return true;
 +}
@@ -524,16 +543,57 @@ index 0000000..02a18d9
 +  gl.disableVertexAttribArray(attribute);
 +}
 +
++function checkRequiredCapacity() {
++  if (!capacityBlocked.size) return;
++  const required = new Set(actors.flatMap(actor => actor.layers.map(layer => layer.frame)));
++  const protectedFrames = new Set([
++    ...required, ...[...completeLayers.values()].flatMap(layers => layers.map(layer => layer.frame))
++  ]);
++  let protectedCount = 0, protectedBytes = 0;
++  for (const [id, frame] of textures) if (protectedFrames.has(id)) {
++    protectedCount++;
++    protectedBytes += frame.bytes;
++  }
++  for (const id of required) {
++    const bytes = capacityBlocked.get(id);
++    if (bytes !== undefined && !textures.has(id) &&
++      (protectedCount >= MAX_TEXTURES || protectedBytes + bytes > MAX_BYTES)) {
++      throw new Error('Idle sprite required frame exceeds cache capacity');
++    }
++  }
++}
++
++function acknowledge(tick, drawn, missing = new Set()) {
++  const changed = drawn.length !== ownedActors.length || drawn.some((id, index) => id !== ownedActors[index]);
++  if (changed || tick - lastAck >= 50 || evicted.length) {
++    lastAck = tick;
++    ownedActors = drawn;
++    notify('ragidle-map-actors-rendered', { sequence, actors: drawn, frames: [...textures.keys()],
++      missing: [...missing], evicted: evicted.filter(id => !textures.has(id)) });
++    evicted = [];
++  }
++}
++
 +function renderPass(tick, gl, modelView, projection, fog) {
-+  if (failed || !session || !actors.length || performance.now() - stateAt > 350 || gl.isContextLost()) return;
++  if (failed || !session || gl.isContextLost()) return;
++  if (!actors.length || performance.now() - stateAt > 350) {
++    // Release ownership before dropping the draw, so the parent restores its fallback.
++    completeLayers.clear();
++    acknowledge(tick, []);
++    return;
++  }
 +  const drawn = [];
-+  const frames = new Set();
 +  const missing = new Set();
-+  const ready = actors.filter(actor => {
++  const ready = actors.flatMap(actor => {
 +    const available = actor.layers.every(layer => textures.has(layer.frame));
 +    if (!available) for (const layer of actor.layers) if (!textures.has(layer.frame)) missing.add(layer.frame);
-+    return available;
++    if (available) completeLayers.set(actor.id, actor.layers);
++    const layers = completeLayers.get(actor.id);
++    // A new action frame stays in this depth pass while its textures upload.
++    // Apply the latest world position to the last complete pose.
++    return layers && layers.every(layer => textures.has(layer.frame)) ? [{ ...actor, layers }] : [];
 +  });
++  checkRequiredCapacity();
 +  renderShadows(gl, modelView, projection, ready);
 +  gl.enable(gl.DEPTH_TEST);
 +  gl.depthMask(true);
@@ -558,7 +618,6 @@ index 0000000..02a18d9
 +        SpriteRenderer.angle = layer.angle;
 +        SpriteRenderer.color.set(layer.color);
 +        SpriteRenderer.render(false);
-+        frames.add(layer.frame);
 +      }
 +      drawn.push(actor.id);
 +    }
@@ -566,11 +625,7 @@ index 0000000..02a18d9
 +  SpriteRenderer.unbind(gl);
 +  // Failed/context-lost draws must keep the parent canvas fallback visible.
 +  if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite draw failed');
-+  if (tick - lastAck >= 50 || evicted.length || missing.size) {
-+    lastAck = tick;
-+    notify('ragidle-map-actors-rendered', { sequence, actors: drawn, frames: [...frames], missing: [...missing], evicted });
-+    evicted = [];
-+  }
++  acknowledge(tick, drawn, missing);
 +}
 +
 +function render(tick, gl, modelView, projection, fog) {

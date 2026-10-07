@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import type { AccountView } from "../shared/portal-types";
+import { useAuth } from "./portal/AuthProvider";
+import { Link, navigate } from "./portal/router";
 import type { Catalog, DerivedStats, GameState, Skill } from "../shared/types";
 import { isTownScene } from "../shared/worldScene";
 import { useGame } from "./api";
 import Scene from "./components/Scene";
+import CharacterSelect from "./components/CharacterSelect";
 import ChatJournal from "./components/ChatJournal";
 import RewardNotifications from "./components/RewardNotifications";
 import ShopScene from "./components/ShopScene";
@@ -29,18 +33,23 @@ import Build from "./panels/Build";
 import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges, { type ChallengeFilter } from "./panels/Challenges";
+import CityServices, { type CityService } from "./panels/CityServices";
+import Blacksmith from "./panels/Blacksmith";
+import Stylist from "./panels/Stylist";
 import { inventoryLoad } from "../engine/stats";
 import { offensiveSkill, skillTargetInRange } from "../shared/combatRange";
 import ClassicLoading from "./components/ClassicLoading";
 import type { MapStatus } from "./components/OriginalMap";
+import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
+  city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -50,14 +59,26 @@ const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file:
   { destination: "skills", label: "Habilidades", file: "btn_skill_off.bmp" },
 ];
 const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
-  { destination: "shop", label: "Loja" },
   { destination: "quests", label: "Missões" },
   { destination: "bestiary", label: "Bestiário" },
   { destination: "classes", label: "Classes" },
   { destination: "challenges", label: "Desafios" },
 ];
-const classicTexture = (file: string) =>
-  assetUrl(`data/texture/유저인터페이스/basic_interface/${file}`);
+function ClassicMenuIcon({ file }: { file: string }) {
+  const [source, setSource] = useState<string>();
+  useEffect(() => {
+    let active = true;
+    setSource(undefined);
+    void getBitmapUrl(`data/texture/유저인터페이스/basic_interface/${file}`).then(value => {
+      if (active) setSource(value === FALLBACK_ICON ? undefined : value);
+    });
+    return () => { active = false; };
+  }, [file]);
+  // The classic resources are complete 30×20 buttons, with magenta keyed out
+  // by the bitmap decoder. Resizing them as 22px icons distorts their letters.
+  return source ? <img src={source} width={30} height={20} alt="" />
+    : <span className="ro-book-entry-mark" aria-hidden="true">◇</span>;
+}
 
 function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
   const level = state.learnedSkills[skill.id] ?? 0;
@@ -342,13 +363,17 @@ function ClassicShortcuts({ catalog, snapshot, onSkills }: Pick<PanelProps, "cat
     </div>
   );
 }
-export default function App() {
-  const game = useGame();
+export default function App({ identity, onAuthRequired }: { identity: AccountView; onAuthRequired: () => void }) {
+  const game = useGame(identity, onAuthRequired);
+  const auth = useAuth();
   const [activeWindow, setActiveWindow] = useState<GameWindow | null>(null);
   const heroMovable = useDraggableWindow<HTMLElement>("hero-hud", "informações do personagem");
   const windowMovable = useDraggableWindow<HTMLElement>(`window-${activeWindow ?? "closed"}`, activeWindow ? windowTitles[activeWindow] : "janela");
   const [mapStatus, setMapStatus] = useState<MapStatus>({ map: "", phase: "loading", progress: 0 });
   const [mapReload, setMapReload] = useState(0);
+  const [enteredWorld, setEnteredWorld] = useState(false);
+  const connectedBefore = useRef(false);
+  const previousConnection = useRef(false);
   const [bookOpen, setBookOpen] = useState(false);
   const [challengeFilter, setChallengeFilter] = useState<ChallengeFilter>("all");
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 640px)").matches);
@@ -375,6 +400,16 @@ export default function App() {
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
+  useEffect(() => {
+    if (game.connected && connectedBefore.current && !previousConnection.current) {
+      setEnteredWorld(false);
+      setActiveWindow(null);
+      setBookOpen(false);
+      setMapStatus({ map: "", phase: "loading", progress: 0 });
+    }
+    if (game.connected) connectedBefore.current = true;
+    previousConnection.current = game.connected;
+  }, [game.connected]);
   useEffect(() => {
     if (!game.snapshot || !game.catalog) return;
     const current = Object.fromEntries(game.catalog.quests.map((quest) =>
@@ -410,6 +445,12 @@ export default function App() {
     windowClose.current?.focus();
   }, [activeWindow]);
   const openWindow = (destination: GameWindow, trigger?: HTMLElement) => {
+    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist";
+    if (cityOnly && game.snapshot?.state.status !== "town") {
+      setBookOpen(false);
+      if (game.snapshot) void game.command({ type: "stop" });
+      return;
+    }
     if (trigger) windowTrigger.current = trigger;
     setBookOpen(false);
     setPotionEditor(null);
@@ -461,14 +502,21 @@ export default function App() {
   const expectedMap = activeWindow === "shop" ? "prt_in" : isTownScene(snapshot?.state) ? "prontera"
     : catalog?.areas.find(area => area.id === snapshot?.state.areaId)?.map ?? "prontera";
   const mapMatches = mapStatus.map === expectedMap;
-  const loading = !catalog || !snapshot || !mapMatches || mapStatus.phase !== "ready";
+  const loading = !catalog || !snapshot || (enteredWorld && (!mapMatches || mapStatus.phase !== "ready"));
+  const selectingCharacter = !!catalog && !!snapshot && !enteredWorld;
   const loadingProgress = !catalog ? 0 : !snapshot ? 5 : mapMatches ? 10 + (mapStatus.progress ?? 0) * 0.9 : 10;
   const loadingError = !catalog || !snapshot ? game.error ?? undefined
-    : mapMatches && mapStatus.phase === "error" ? "O mapa não pôde ser carregado." : undefined;
+    : enteredWorld && mapMatches && mapStatus.phase === "error" ? "O mapa não pôde ser carregado." : undefined;
   const retryLoading = () => {
     if (!catalog || !snapshot) { void game.retry(); return; }
     setMapStatus({ map: expectedMap, phase: "loading", progress: 0 });
     setMapReload(value => value + 1);
+  };
+  const enterWorld = () => {
+    setActiveWindow(null);
+    setBookOpen(false);
+    setMapStatus({ map: "", phase: "loading", progress: 0 });
+    setEnteredWorld(true);
   };
   const saveStatus = game.sending
     ? "Salvando…"
@@ -478,7 +526,7 @@ export default function App() {
         ? "Reconectando"
         : "Conectando";
   return (
-    <div className={`game-shell${loading ? " is-loading" : ""}`}>
+    <div className={`game-shell${loading ? " is-loading" : ""}${selectingCharacter ? " is-character-selecting" : ""}`}>
       <a className="skip-link" href="#adventure" inert={isMobile && !!activeWindow}>
         Ir para a aventura
       </a>
@@ -556,6 +604,19 @@ export default function App() {
                     <div {...heroMovable.handleProps} className="ro-drag-handle hero-identity">
                       <h1>{state.name}</h1>
                       <span>· {currentClass.name}{state.reborn ? " · Transcendente" : ""}</span>
+                      <button type="button" className="hud-city-access" data-no-drag
+                        aria-label={state.status === "town" ? "Abrir serviços de Prontera" : "Voltar à cidade"}
+                        title={state.status === "town" ? "Serviços de Prontera" : "Voltar à cidade"}
+                        disabled={game.busy || (state.status === "resting" && state.restMode !== "field")}
+                        onClick={event => state.status === "town"
+                          ? openWindow("city", event.currentTarget)
+                          : void game.command({ type: "stop" })}>
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                          <path d="M3.5 10.2 12 4l8.5 6.2v9.3h-17z" />
+                          <path d="M8 19.5v-5.8h8v5.8M10 10h4M12 8v4M5.7 11h12.6" />
+                          <circle cx="12" cy="15" r="1.2" />
+                        </svg>
+                      </button>
                       <span className={`hud-save-indicator ${game.sending ? "is-saving" : game.connected ? "is-saved" : "is-reconnecting"}`}
                         role="img" aria-label={saveStatus} title={saveStatus} tabIndex={0} data-no-drag>
                         <i aria-hidden="true" />
@@ -679,7 +740,7 @@ export default function App() {
                               title={label}
                               aria-pressed={activeWindow === destination}
                               onClick={(event) => openWindow(destination, bookTrigger.current ?? event.currentTarget)}>
-                              <img src={classicTexture(file)} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+                              <ClassicMenuIcon file={file} />
                               <span>{label}</span>
                             </button>
                           ))}
@@ -698,21 +759,25 @@ export default function App() {
                             </button>
                           ))}
                           <button type="button" className="ro-book-entry" aria-pressed={journalOpen}
+                            aria-label="Diário de combate" title="Diário de combate"
                             onClick={() => {
                               setJournalOpen((value) => !value); setBookOpen(false);
                               window.setTimeout(() => bookTrigger.current?.focus(), 0);
                             }}>
-                            <img src={classicTexture("btn_dialog_off.bmp")} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
-                            <span>Diário de combate</span>
+                            <ClassicMenuIcon file="btn_dialog_off.bmp" />
+                            <span>Diário</span>
                           </button>
-                          <button type="button" className="ro-book-entry" onClick={() => {
+                          <button type="button" className="ro-book-entry"
+                            aria-label="Restaurar posições das janelas" title="Restaurar posições das janelas" onClick={() => {
                             resetWindowPositions();
                             setBookOpen(false);
                             window.setTimeout(() => bookTrigger.current?.focus(), 0);
                           }}>
                             <span className="ro-book-entry-mark" aria-hidden="true">↺</span>
-                            <span>Restaurar posições das janelas</span>
+                            <span>Restaurar HUD</span>
                           </button>
+                          <Link className="ro-book-entry" href="/painel">Painel da conta</Link>
+                          <button type="button" className="ro-book-entry" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}>Sair da conta</button>
                           <a className="ro-book-entry ro-book-classic-link" href="http://localhost:3338/"
                             target="_blank" rel="noreferrer" onClick={() => setBookOpen(false)}>
                             <span className="ro-book-entry-mark" aria-hidden="true">↗</span>
@@ -767,29 +832,32 @@ export default function App() {
                     }
                     aside={
                       <div className="scene-heading-tools">
-                        <AudioToggle map={activeWindow === "shop" ? "prt_in" : mapName} />
+                        {enteredWorld && <AudioToggle map={activeWindow === "shop" ? "prt_in" : mapName} />}
                       </div>
                     }
                     className="scene-panel"
                   >
                     <div className="classic-map-stage">
-                      {activeWindow === "shop" ? <ShopScene key={`shop-${mapReload}`} onMapStatusChange={setMapStatus} />
-                        : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} />}
-                      <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
-                        mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
-                      <ChatJournal {...props} isOpen={journalOpen} onOpenChange={setJournalOpen} />
-                      <RewardNotifications catalog={catalog} snapshot={snapshot} enabled={!loading && game.connected} />
-                      <ClassicShortcuts catalog={catalog} snapshot={snapshot}
-                        onSkills={trigger => openWindow("skills", trigger)} />
-                      <button
-                        type="button"
-                        className="classic-chat-toggle"
-                        aria-expanded={journalOpen}
-                        onClick={() => setJournalOpen(!journalOpen)}
-                      >
-                        {journalOpen ? "Recolher chat" : "Diário de combate"}
-                      </button>
-                      {!activeWindow && <HuntExplorer {...props}
+                      {enteredWorld && <>
+                        {activeWindow === "shop" ? <ShopScene key={`shop-${mapReload}`} onMapStatusChange={setMapStatus} />
+                          : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} />}
+                        <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
+                          mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
+                        <ChatJournal {...props} identity={identity} onAuthRequired={onAuthRequired} isOpen={journalOpen} onOpenChange={setJournalOpen} />
+                        <RewardNotifications catalog={catalog} snapshot={snapshot}
+                          enabled={!loading && game.connected && enteredWorld} />
+                        <ClassicShortcuts catalog={catalog} snapshot={snapshot}
+                          onSkills={trigger => openWindow("skills", trigger)} />
+                        <button
+                          type="button"
+                          className="classic-chat-toggle"
+                          aria-expanded={journalOpen}
+                          onClick={() => setJournalOpen(!journalOpen)}
+                        >
+                          {journalOpen ? "Recolher chat" : "Diário de combate"}
+                        </button>
+                      </>}
+                      {enteredWorld && !activeWindow && <HuntExplorer {...props}
                         areaId={areaId}
                         setAreaId={setAreaId}
                         readyQuest={!!readyQuest}
@@ -848,6 +916,9 @@ export default function App() {
                         {activeWindow === "classes" && <Classes {...props} />}
                         {activeWindow === "challenges" && <Challenges {...props} filter={challengeFilter} onFilterChange={setChallengeFilter} />}
                         {activeWindow === "shop" && <Shop {...props} />}
+                        {activeWindow === "city" && <CityServices onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
+                        {activeWindow === "blacksmith" && <Blacksmith {...props} />}
+                        {activeWindow === "stylist" && <Stylist {...props} />}
                       </div>
                       {rewardedQuest && <QuestReward quest={rewardedQuest}
                         catalog={catalog} onClose={dismissReward} />}
@@ -857,7 +928,7 @@ export default function App() {
                 {!activeWindow && rewardedQuest && <QuestReward quest={rewardedQuest}
                   catalog={catalog} onClose={dismissReward} />}
               </main>
-              {!loading && <Offline
+              {enteredWorld && !loading && <Offline
                 {...props}
                 error={game.error}
                 retryable={game.retryable}
@@ -868,6 +939,9 @@ export default function App() {
           );
         })()
       )}
+      {selectingCharacter && catalog && snapshot && <CharacterSelect catalog={catalog} snapshot={snapshot}
+        error={game.error} retrying={game.sending}
+        onRetry={() => void game.retry()} onEnter={enterWorld} />}
       {loading && <ClassicLoading progress={loadingProgress} error={loadingError} onRetry={retryLoading} />}
     </div>
   );

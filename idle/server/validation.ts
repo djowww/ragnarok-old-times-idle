@@ -14,6 +14,7 @@ const boolean: Rule = value => typeof value === 'boolean';
 const rules: Record<string, Record<string, Rule>> = {
   startHunt: { areaId: token }, setHuntFocus: { areaId: token, focus: huntFocus }, stop: {}, rest: {}, sellLoot: {}, rebirth: {}, dismissOffline: {},
   setGender: { gender: oneOf('male', 'female') },
+  changeAppearance: { hairStyle: integer(0, 27), hairColor: integer(0, 8), clothesColor: integer(0, 4) },
   allocate: { stat: oneOf('str', 'agi', 'vit', 'int', 'dex', 'luk'), amount: integer(1, 99) },
   learnSkill: { skillId: token },
   setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token) },

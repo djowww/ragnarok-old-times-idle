@@ -40,6 +40,7 @@ export default function ClassicEquipment({ catalog, snapshot, busy, command, onI
         <div className="classic-equipment-portrait">
           <ActorPreview asset={currentClass.sprite[state.gender]} size="natural"
             name={`${state.name}, ${currentClass.name}, ${state.gender === "female" ? "feminino" : "masculino"}`}
+            appearance={state.appearance}
             weapon={weaponType ? { type: weaponType, gender: state.gender, job: state.job } : undefined} />
         </div>
         {equipmentSlots.map(({ key, label, slot, side, row }) => {

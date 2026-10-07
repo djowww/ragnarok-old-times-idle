@@ -1,5 +1,5 @@
 import { useSyncExternalStore, type AnchorHTMLAttributes, type ReactElement } from 'react';
-const routes = new Set(['/', '/cadastro', '/login', '/painel', '/jogar', '/noticias', '/ranking']);
+const routes = new Set(['/', '/registro', '/cadastro', '/login', '/painel', '/jogar', '/noticias', '/ranking']);
 function internal(path: string): boolean {
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('\\')) return false;
   const url = new URL(path, window.location.href);

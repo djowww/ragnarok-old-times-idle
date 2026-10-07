@@ -1,29 +1,34 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { number, type PanelProps } from './common';
 import { useDraggableWindow } from '../hooks/useDraggableWindow';
+import type { AccountView } from '../../shared/portal-types';
 
 interface ChatMessage { id: number; name: string; text: string; at: number; }
 interface ChatPage { messages: ChatMessage[]; nextCursor: number; hasMore: boolean; }
 export interface ChatJournalProps extends PanelProps {
+  identity: AccountView;
+  onAuthRequired: () => void;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 class ChatFailure extends Error {
-  constructor(message: string, readonly status: number, readonly retryAfter = 0) { super(message); }
+  constructor(message: string, readonly status: number, readonly retryAfter = 0, readonly code?: string) { super(message); }
 }
-async function chatRequest<T>(path: string, controllers: Set<AbortController>, body?: unknown): Promise<T> {
+async function chatRequest<T>(path: string, controllers: Set<AbortController>, identity: AccountView, body?: unknown): Promise<T> {
   const controller = new AbortController();
   controllers.add(controller);
   const timer = window.setTimeout(() => controller.abort(), 10_000);
   try {
     const response = await fetch(path, {
       method: body === undefined ? 'GET' : 'POST',
-      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      headers: { 'X-Idle-Expected-Identity': JSON.stringify([identity.accountId, identity.profileId]), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       body: body === undefined ? undefined : JSON.stringify(body),
       cache: 'no-store', signal: controller.signal,
     });
     const value = await response.json();
-    if (!response.ok) throw new ChatFailure(value.error?.message ?? 'Não foi possível acessar o chat.', response.status, Number(response.headers.get('Retry-After')) || 0);
+    controller.signal.throwIfAborted();
+    if (!response.ok) throw new ChatFailure(value.error?.message ?? 'Não foi possível acessar o chat.', response.status, Number(response.headers.get('Retry-After')) || 0, value.error?.code);
     return value as T;
   } catch (error) {
     if (error instanceof ChatFailure) throw error;
@@ -38,7 +43,7 @@ function mergeMessages(previous: ChatMessage[], incoming: ChatMessage[]): ChatMe
   for (const message of incoming) messages.set(message.id, message);
   return [...messages.values()].sort((left, right) => left.id - right.id).slice(-100);
 }
-function useGlobalChat(viewing: boolean) {
+function useGlobalChat(viewing: boolean, identity: AccountView, onAuthRequired: () => void) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [connection, setConnection] = useState<'connecting' | 'online' | 'offline'>('connecting');
   const [readError, setReadError] = useState('');
@@ -53,6 +58,11 @@ function useGlobalChat(viewing: boolean) {
   const alive = useRef(false);
   const sendPending = useRef(false);
   const refresh = useRef<() => void>(() => {});
+  const generation = useRef(0);
+  const identityKey = JSON.stringify([identity.accountId, identity.profileId]);
+  const currentIdentity = useRef(identityKey); currentIdentity.current = identityKey;
+  const authRequired = useRef(onAuthRequired); authRequired.current = onAuthRequired;
+  const expire = useRef<() => void>(() => {});
   viewingRef.current = viewing;
   useEffect(() => { if (viewing) setUnread(0); }, [viewing]);
   useEffect(() => {
@@ -65,6 +75,16 @@ function useGlobalChat(viewing: boolean) {
     let pending = false;
     let timer = 0;
     alive.current = true;
+    const session = ++generation.current;
+    const current = () => !disposed && generation.current === session && currentIdentity.current === identityKey;
+    cursor.current = null; seenIds.current.clear(); sendPending.current = false;
+    setMessages([]); setConnection('connecting'); setReadError(''); setSendError(''); setSending(false); setCooldown(0); setUnread(0);
+    expire.current = () => {
+      if (!current()) return;
+      disposed = true; alive.current = false; window.clearTimeout(timer);
+      for (const controller of controllers.current) controller.abort();
+      authRequired.current();
+    };
     const poll = async () => {
       if (disposed || pending) return;
       window.clearTimeout(timer);
@@ -73,8 +93,8 @@ function useGlobalChat(viewing: boolean) {
       let delay = 3000;
       try {
         const initial = cursor.current === null;
-        const page = await chatRequest<ChatPage>(initial ? '/api/chat' : `/api/chat?after=${cursor.current}`, controllers.current);
-        if (disposed) return;
+        const page = await chatRequest<ChatPage>(initial ? '/api/chat' : `/api/chat?after=${cursor.current}`, controllers.current, identity);
+        if (!current()) return;
         const fresh = page.messages.filter(message => !seenIds.current.has(message.id));
         for (const message of page.messages) seenIds.current.add(message.id);
         // Bound memory together with the visible history.
@@ -86,11 +106,12 @@ function useGlobalChat(viewing: boolean) {
         setReadError('');
         if (page.hasMore) delay = 100;
       } catch (error) {
-        if (!disposed) { setConnection('offline'); setReadError((error as Error).message); }
+        if (current() && error instanceof ChatFailure && error.code === 'AUTH_REQUIRED') { expire.current(); return; }
+        if (current()) { setConnection('offline'); setReadError((error as Error).message); }
         delay = 5000;
       } finally {
         pending = false;
-        if (!disposed) timer = window.setTimeout(poll, delay);
+        if (current()) timer = window.setTimeout(poll, delay);
       }
     };
     const wake = () => { if (!document.hidden) void poll(); };
@@ -108,23 +129,26 @@ function useGlobalChat(viewing: boolean) {
       document.removeEventListener('visibilitychange', wake);
       window.removeEventListener('online', wake);
     };
-  }, []);
+  }, [identityKey]);
   const send = async (text: string): Promise<boolean> => {
     if (sendPending.current || !alive.current || connection !== 'online' || cooldown) return false;
     sendPending.current = true;
+    const session = generation.current;
+    const current = () => alive.current && generation.current === session && currentIdentity.current === identityKey;
     setSending(true);
     setSendError('');
     try {
-      const result = await chatRequest<{ message: ChatMessage }>('/api/chat', controllers.current, { text });
-      if (!alive.current) return false;
+      const result = await chatRequest<{ message: ChatMessage }>('/api/chat', controllers.current, identity, { text });
+      if (!current()) return false;
       setMessages(previous => mergeMessages(previous, [result.message]));
       seenIds.current.add(result.message.id);
       // Only GET advances the cursor: a concurrent POST must not skip others' messages.
       refresh.current();
       return true;
     } catch (error) {
-      if (alive.current) {
+      if (current()) {
         const failure = error as ChatFailure;
+        if (failure.code === 'AUTH_REQUIRED') { expire.current(); return false; }
         setSendError(failure.status === 0 || failure.status >= 500
           ? 'Envio não confirmado. Confira o histórico antes de tentar novamente.' : failure.message);
         if (failure.status === 429) setCooldown(Math.max(1, failure.retryAfter));
@@ -132,21 +156,20 @@ function useGlobalChat(viewing: boolean) {
       }
       return false;
     } finally {
-      sendPending.current = false;
-      if (alive.current) setSending(false);
+      if (current()) { sendPending.current = false; setSending(false); }
     }
   };
   return { messages, connection, error: sendError || readError, sending, cooldown, unread, send, retry: () => refresh.current() };
 }
 const timeLabel = (at: number) => new Date(at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-export default function ChatJournal({ snapshot, isOpen, onOpenChange }: ChatJournalProps) {
+export default function ChatJournal({ snapshot, isOpen, onOpenChange, identity, onAuthRequired }: ChatJournalProps) {
   const movable = useDraggableWindow<HTMLElement>('chat-journal', 'diário e chat');
   const [localOpen, setLocalOpen] = useState(true);
   const [tab, setTab] = useState<'combat' | 'global'>('combat');
   const [draft, setDraft] = useState('');
   const open = isOpen ?? localOpen;
-  const chat = useGlobalChat(open && tab === 'global');
+  const chat = useGlobalChat(open && tab === 'global', identity, onAuthRequired);
   const prefix = useId();
   const log = useRef<HTMLDivElement>(null);
   const followLatest = useRef(true);

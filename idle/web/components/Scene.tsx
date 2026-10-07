@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Area, BattleEnemy, GameEvent, GameState, Skill, SpriteAsset, WeaponType } from "../../shared/types";
+import type { Appearance, Area, BattleEnemy, GameEvent, GameState, Skill, SpriteAsset, WeaponType } from "../../shared/types";
 import { BATTLE_CELLS_PER_UNIT, BATTLE_HERO, battleHeroAt, enemyApproachProgress, enemyPositionAt, type BattlePoint } from "../../shared/battleSpatial";
 import {
   drawActor,
@@ -32,7 +32,7 @@ import { NativeActorsBridge } from "../assets/nativeActors";
 import "../styles/scene-polish-world.css";
 
 type EquippedWeapon = { type: WeaponType; gender: "male" | "female"; job: string };
-function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon) {
+function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon, appearance?: Appearance) {
   const [actor, setActor] = useState<DecodedActor | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -48,7 +48,7 @@ function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon) {
     };
     const load = () => {
       if (!asset || !live) return;
-      void loadActor(asset, weapon)
+      void loadActor(asset, weapon, appearance)
         .then((value) => {
           if (!live) return;
           const failed = value.fallback || !!value.error;
@@ -67,7 +67,8 @@ function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon) {
       live = false;
       window.clearTimeout(retryTimer);
     };
-  }, [asset, weapon?.type, weapon?.gender, weapon?.job]);
+  }, [asset, weapon?.type, weapon?.gender, weapon?.job,
+    appearance?.hairStyle, appearance?.hairColor, appearance?.clothesColor]);
   return { actor, error };
 }
 
@@ -75,6 +76,7 @@ export function ActorPreview({
   asset,
   name,
   weapon,
+  appearance,
   large = false,
   size = "default",
   displayScale = 1,
@@ -83,13 +85,14 @@ export function ActorPreview({
   asset: SpriteAsset;
   name: string;
   weapon?: EquippedWeapon;
+  appearance?: Appearance;
   large?: boolean;
   size?: "default" | "natural" | "world";
   displayScale?: number;
   direction?: number;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const { actor, error } = useActor(asset, weapon);
+  const { actor, error } = useActor(asset, weapon, appearance);
   const nativeBounds = actor ? actorBounds(actor, direction) : null;
   const width = size === "world" ? Math.max(92, Math.ceil((nativeBounds ? nativeBounds.right - nativeBounds.left : 76) + 16)) : size === "natural" ? 92 : 120;
   const height = size === "world" ? Math.max(92, Math.ceil((nativeBounds ? nativeBounds.bottom - nativeBounds.top : 76) + 16)) : size === "natural" ? 92 : 112;
@@ -648,6 +651,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const hero = useActor(
     catalog.classes[state.job].sprite[state.gender],
     equippedType ? { type: equippedType, gender: state.gender, job: state.job } : undefined,
+    state.appearance,
   );
   const enemy = useActor(monster?.sprite);
   const enemyAssetIds = [...new Set([...sceneEnemies(state).map((entry) => entry.monsterId),
@@ -1251,18 +1255,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       );
       const enemyVisualHeight = enemyHeight * enemyScale;
       const heroCue = groupHeroCue;
-      const attack = heroCue?.actorAction === "attack" ? heroCue : undefined;
       const enemySwing = actorActionCue(isArriving ? [] : combatCues.current, actionWatermarks.current, legacyOpponentId.current, time);
-      const attackProgress = attack ? Math.min(1, (time - attack.start) / attack.actionDuration) : 0;
-      const contactGap = ((heroBounds.right - heroBounds.left) * heroScale + (enemyBounds.right - enemyBounds.left) * enemyScale) * 0.46;
-      const lunge = Math.sin(Math.PI * attackProgress) ** 2;
-      const contactDirection = Math.sign(enemyX - heroBaseX);
-      const advance = attack?.melee && !motion.matches
-        ? contactDirection * lunge * Math.min(30, Math.max(0, Math.abs(enemyX - heroBaseX) - contactGap))
-        : 0;
-      const heroX = heroBaseX + advance;
-      const heroFeetWorld = camera && advance !== 0
-        ? screenGroundPoint(camera, { x: heroX / width, y: heroGround / height }) : heroPlacement?.world;
+      // Original ACT layers animate the swing around the standing map cell.
+      // A synthetic horizontal lunge broke diagonal facing and crossed walls.
+      const heroX = heroBaseX;
+      const heroFeetWorld = heroPlacement?.world;
       const recent = effects.current.filter((e) =>
         !(blockedTerminalId.current !== null && e.id > blockedTerminalId.current) &&
         time >= e.start && time - e.start < 1500,
@@ -1419,6 +1416,10 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       }), camera, width, height, time) ?? new Set<string>() : new Set<string>();
       canvas.current!.dataset.nativeActors = String(nativeIds.size);
       canvas.current!.dataset.canvasActors = String(actorPaints.length - nativeIds.size);
+      canvas.current!.dataset.heroRenderer = nativeIds.has(current.id) ? "native" : "canvas";
+      const nativeDiagnostics = nativeActors.current?.getDiagnostics();
+      canvas.current!.dataset.nativeTextureWaits = String(nativeDiagnostics?.textureWaits ?? 0);
+      canvas.current!.dataset.nativeOwnershipChanges = String(nativeDiagnostics?.ownershipChanges ?? 0);
       actorPaints.forEach((actorPaint) => {
         if (!nativeIds.has(actorPaint.id)) drawActorFootShadow(ctx, actorPaint, camera, width, height);
       });

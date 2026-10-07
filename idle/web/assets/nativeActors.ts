@@ -22,6 +22,8 @@ const MAX_ACTORS = 160;
 const MAX_LAYERS = 1024;
 const MAX_FRAME_BYTES = 4 * 1024 * 1024;
 const MAX_PACKET_BYTES = 8 * 1024 * 1024;
+const MAX_WARMUP_UPLOADS = 16;
+const MAX_WARMUP_BYTES = 512 * 1024;
 const ACK_TIMEOUT = 450;
 
 type NativeLayer = { frame: string; x: number; y: number; width: number; height: number; angle: number; color: number[] };
@@ -31,6 +33,8 @@ type NativePaint = { id: string; world: WorldPoint; layers: NativeLayer[]; shado
 export class NativeActorsBridge {
   private readonly session = crypto.randomUUID();
   private frameIds = new WeakMap<SpriteFrame, string>();
+  private warmFrames = new WeakMap<DecodedActor, SpriteFrame[]>();
+  private warmedFrames = new WeakSet<SpriteFrame>();
   private nextFrame = 0;
   private sequence = 0;
   private supported = false;
@@ -42,6 +46,7 @@ export class NativeActorsBridge {
   private lastAck = -Infinity;
   private lastSequence = -1;
   private lastSend = -Infinity;
+  private diagnostics = { ownershipChanges: 0, textureWaits: 0, warmupUploads: 0, acknowledgements: 0 };
 
   constructor(private readonly target: Window, private readonly origin: string, private readonly map: string) {
     this.post({ type: "ragidle-map-actors-init" });
@@ -61,7 +66,7 @@ export class NativeActorsBridge {
       return;
     }
     if (this.failed) return;
-    if (data.type === "ragidle-map-actors-ready" && data.version === 1) this.supported = true;
+    if (data.type === "ragidle-map-actors-ready" && data.version === 2) this.supported = true;
     if (data.type !== "ragidle-map-actors-rendered" || !Number.isInteger(data.sequence) ||
       Number(data.sequence) < this.lastSequence || !Array.isArray(data.actors) || !Array.isArray(data.frames)) return;
     if (data.actors.length > MAX_ACTORS || data.frames.length > MAX_LAYERS ||
@@ -69,7 +74,11 @@ export class NativeActorsBridge {
       !data.frames.every(id => typeof id === "string" && /^f\d+$/.test(id))) return;
     this.lastSequence = Number(data.sequence);
     this.lastAck = performance.now();
-    this.renderedActors = new Set(data.actors as string[]);
+    const rendered = new Set(data.actors as string[]);
+    for (const id of rendered) if (!this.renderedActors.has(id)) this.diagnostics.ownershipChanges++;
+    for (const id of this.renderedActors) if (!rendered.has(id)) this.diagnostics.ownershipChanges++;
+    this.renderedActors = rendered;
+    this.diagnostics.acknowledgements++;
     for (const id of data.frames as string[]) { this.readyFrames.add(id); this.pendingFrames.delete(id); }
     if (Array.isArray(data.missing)) for (const id of data.missing) if (typeof id === "string") {
       this.readyFrames.delete(id); this.pendingFrames.delete(id);
@@ -79,7 +88,27 @@ export class NativeActorsBridge {
     }
   }
 
-  /** Returns only actors whose current texture layers and previous native draw were acknowledged. */
+  getDiagnostics(): Readonly<{ ownershipChanges: number; textureWaits: number; warmupUploads: number; acknowledgements: number; pendingFrames: number }> {
+    return { ...this.diagnostics, pendingFrames: this.pendingFrames.size };
+  }
+
+  private referencedFrames(actor: DecodedActor): SpriteFrame[] {
+    let frames = this.warmFrames.get(actor);
+    if (frames) return frames;
+    const referenced = new Set<SpriteFrame>();
+    for (const part of [actor.body, actor.head, actor.weapon, actor.weaponTrail]) if (part) {
+      for (const action of part.action.actions) for (const pose of action.frames) for (const layer of pose.layers) {
+        if (layer.index < 0) continue;
+        const image = part.sprite.frames[layer.index + (layer.type === 1 ? part.sprite.indexedCount : 0)];
+        if (image) referenced.add(image);
+      }
+    }
+    frames = [...referenced];
+    this.warmFrames.set(actor, frames);
+    return frames;
+  }
+
+  /** Native ownership survives texture uploads; the iframe retains the last complete pose. */
   submit(paints: readonly NativeActorPaint[], camera: MapProjection, width: number, height: number, now: number): ReadonlySet<string> {
     const native = new Set<string>();
     if (this.disposed || this.failed || camera.map !== this.map || !Number.isFinite(now)) return native;
@@ -89,7 +118,27 @@ export class NativeActorsBridge {
     }
     const actors: NativePaint[] = [];
     const frames: Array<{ id: string; width: number; height: number; rgba: Uint8ClampedArray }> = [];
+    const queued = new Set<string>();
     let bytes = 0, layerCount = 0;
+    const frameId = (image: SpriteFrame) => {
+      let id = this.frameIds.get(image);
+      if (!id) { id = `f${++this.nextFrame}`; this.frameIds.set(image, id); }
+      return id;
+    };
+    const validFrame = (image: SpriteFrame) => image.width > 0 && image.height > 0 &&
+      image.width <= 1024 && image.height <= 1024 && image.rgba.byteLength <= MAX_FRAME_BYTES;
+    const queueFrame = (image: SpriteFrame, id: string): boolean => {
+      const pending = this.pendingFrames.get(id);
+      if (this.readyFrames.has(id) || queued.has(id) || (pending !== undefined && now - pending <= 500) ||
+        !validFrame(image) || frames.length >= 512 || bytes + image.rgba.byteLength > MAX_PACKET_BYTES) return false;
+      // Structured cloning preserves the pixels used by the existing canvas fallback.
+      frames.push({ id, width: image.width, height: image.height, rgba: image.rgba });
+      bytes += image.rgba.byteLength;
+      queued.add(id);
+      this.pendingFrames.set(id, now);
+      this.warmedFrames.add(image);
+      return true;
+    };
     for (const paint of paints.slice(0, MAX_ACTORS)) {
       if (!paint.world || paint.actor.fallback || !paint.id || paint.id.length > 160 ||
         !paint.world.every(Number.isFinite) || !Number.isFinite(paint.scale) || paint.scale <= 0) continue;
@@ -101,19 +150,11 @@ export class NativeActorsBridge {
       let available = true, valid = true;
       for (const layer of pose) {
         const image = layer.image;
-        if (image.width * image.height * 4 > MAX_FRAME_BYTES || image.width <= 0 || image.height <= 0 ||
-          image.width > 1024 || image.height > 1024) { valid = false; break; }
-        let id = this.frameIds.get(image);
-        if (!id) { id = `f${++this.nextFrame}`; this.frameIds.set(image, id); }
+        if (!validFrame(image)) { valid = false; break; }
+        const id = frameId(image);
         if (!this.readyFrames.has(id)) {
           available = false;
-          const pending = this.pendingFrames.get(id);
-          if ((pending === undefined || now - pending > 500) && frames.length < 512 && bytes + image.rgba.byteLength <= MAX_PACKET_BYTES) {
-            // Structured cloning preserves the pixels used by the existing canvas fallback.
-            frames.push({ id, width: image.width, height: image.height, rgba: image.rgba });
-            bytes += image.rgba.byteLength;
-            this.pendingFrames.set(id, now);
-          }
+          queueFrame(image, id);
         }
         layers.push({ frame: id, x: layer.x * factor, y: (layer.y - paint.bottom) * factor,
           width: image.width * layer.scaleX * (layer.mirror ? -1 : 1) * factor,
@@ -124,7 +165,23 @@ export class NativeActorsBridge {
         height: paint.shadow.height / projected, opacity: paint.shadow.opacity } : undefined;
       actors.push({ id: paint.id, world: paint.world, layers, ...(shadow ? { shadow } : {}) });
       layerCount += layers.length;
-      if (available && now - this.lastAck < ACK_TIMEOUT && this.renderedActors.has(paint.id)) native.add(paint.id);
+      if (!available) this.diagnostics.textureWaits++;
+      if (now - this.lastAck < ACK_TIMEOUT && this.renderedActors.has(paint.id)) native.add(paint.id);
+    }
+    // Current poses have priority. Warm each referenced image once; eviction is
+    // handled on demand so large actor collections cannot churn the native cache.
+    let warmed = 0, warmupBytes = 0;
+    for (const paint of paints.slice(0, MAX_ACTORS)) {
+      if (warmed >= MAX_WARMUP_UPLOADS) break;
+      if (paint.actor.fallback || !paint.world) continue;
+      for (const image of this.referencedFrames(paint.actor)) {
+        if (warmed >= MAX_WARMUP_UPLOADS) break;
+        if (!this.warmedFrames.has(image) && warmupBytes + image.rgba.byteLength <= MAX_WARMUP_BYTES && queueFrame(image, frameId(image))) {
+          warmed++;
+          warmupBytes += image.rgba.byteLength;
+          this.diagnostics.warmupUploads++;
+        }
+      }
     }
     if (frames.length) this.post({ type: "ragidle-map-actor-frames", frames });
     this.post({ type: "ragidle-map-actors", sequence: ++this.sequence, actors });

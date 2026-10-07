@@ -1,10 +1,10 @@
 /** Canvas composition of Gravity ACT layers, based on roBrowserLegacy layouts.
  * GPL-3.0-or-later. Keeps extracted client pixels in memory only. */
-import type { SpriteAsset } from '../../shared/types';
+import type { Appearance, SpriteAsset } from '../../shared/types';
 import { decodeSPR, type DecodedSprite, type SpriteFrame } from './sprite';
 import { decodeACT, type DecodedACT, type ActionLayer, type ActionFrame } from './action';
 import { assetUrl } from './items';
-import { weaponAssetPath, weaponAttackAction, type WeaponAppearance } from './weapon';
+import { weaponAssetPath, weaponTrailAssetPath, weaponAttackAction, type WeaponAppearance } from './weapon';
 export type { WeaponAppearance } from './weapon';
 /** Visual size of game characters; effects and loot keep their native scale. */
 export const GAME_ACTOR_SCALE = 1.1;
@@ -19,41 +19,111 @@ export interface DecodedActor {
     body?: ActorPart;
     head?: ActorPart;
     weapon?: ActorPart;
+    weaponTrail?: ActorPart;
     weaponVisual?: WeaponAppearance;
 }
 export interface PosedLayer extends ActionLayer {
     image: SpriteFrame;
 }
 const actorCache = new Map<string, Promise<DecodedActor>>();
+const ACTOR_CACHE_LIMIT = 64;
+const paletteCache = new Map<string, Promise<Uint8Array | undefined>>();
+class ActorResourceError extends Error {
+    constructor(readonly status: number, path: string) {
+        super(`Recurso indisponível (${status}): ${path}`);
+    }
+}
 async function binary(path: string) { const response = await fetch(assetUrl(path), { signal: AbortSignal.timeout(15000) }); if (!response.ok)
-    throw new Error(`Recurso indisponível (${response.status}): ${path}`); return response.arrayBuffer(); }
+    throw new ActorResourceError(response.status, path); return response.arrayBuffer(); }
 async function loadPart(spr: string, act: string): Promise<ActorPart> { const [s, a] = await Promise.all([binary(spr), binary(act)]); return { sprite: decodeSPR(s), action: decodeACT(a) }; }
-async function loadOptionalPart(spr?: string, act?: string): Promise<{ value?: ActorPart; error?: unknown }> {
+function assetWithAppearance(asset: SpriteAsset, appearance?: Appearance): SpriteAsset {
+    if (!appearance || !asset.headSpr) return asset;
+    const styledHead = asset.headSpr.replace(/(\/)\d+_(남|여)(\.spr)$/u, (_, separator: string, sex: string, extension: string) => `${separator}${appearance.hairStyle + 1}_${sex}${extension}`);
+    return styledHead === asset.headSpr ? asset : { ...asset, headSpr: styledHead };
+}
+function paletteAssetPaths(asset: SpriteAsset, appearance?: Appearance): { body?: string; head?: string } {
+    if (!appearance) return {};
+    const body = appearance.clothesColor > 0
+        ? asset.spr.replace(/\\/g, '/').match(/^(.*\/몸통\/(?:남|여)\/)([^/]+)_(남|여)\.spr$/u)
+        : null;
+    const head = appearance.hairColor > 0 && asset.headSpr
+        ? asset.headSpr.replace(/\\/g, '/').match(/\/머리통\/(?:남|여)\/(\d+)_(남|여)\.spr$/u)
+        : null;
+    return {
+        ...(body ? { body: `data/palette/몸/${body[2]}_${body[3]}_${appearance.clothesColor}.pal` } : {}),
+        ...(head ? { head: `data/palette/머리/머리${appearance.hairStyle + 1}_${head[2]}_${appearance.hairColor}.pal` } : {}),
+    };
+}
+function loadPalette(path?: string): Promise<Uint8Array | undefined> {
+    if (!path) return Promise.resolve(undefined);
+    const existing = paletteCache.get(path);
+    if (existing) return existing;
+    const promise = binary(path).then(bytes => bytes.byteLength >= 1024
+        ? new Uint8Array(bytes.slice(0, 1024)) : undefined).catch(() => undefined);
+    paletteCache.set(path, promise);
+    return promise;
+}
+function applyPalette(sprite: DecodedSprite, palette?: Uint8Array): DecodedSprite {
+    if (!palette || palette.length < 1024 || !sprite.indexedCount) return sprite;
+    const frames = sprite.frames.map(frame => {
+        if (frame.type !== 0 || !frame.indexedPixels) return frame;
+        const rgba = new Uint8ClampedArray(frame.rgba.length);
+        for (let pixel = 0; pixel < frame.indexedPixels.length; pixel++) {
+            const index = frame.indexedPixels[pixel], target = pixel * 4;
+            if (index === 0) continue;
+            const source = index * 4;
+            rgba[target] = palette[source];
+            rgba[target + 1] = palette[source + 1];
+            rgba[target + 2] = palette[source + 2];
+            rgba[target + 3] = 255;
+        }
+        return { ...frame, rgba };
+    });
+    return { ...sprite, palette: new Uint8Array(palette), frames };
+}
+async function loadOptionalPart(spr?: string, act?: string, allowMissing = false): Promise<{ value?: ActorPart; error?: unknown }> {
     if (!spr || !act) return {};
     try { return { value: await loadPart(spr, act) }; }
-    catch (error) { return { error }; }
+    catch (error) {
+        if (allowMissing && error instanceof ActorResourceError && error.status === 404) return {};
+        return { error };
+    }
 }
-export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance): Promise<DecodedActor> {
-    const kind: DecodedActor['kind'] = asset.headSpr || asset.headAct || asset.spr.replace(/\\/g, '/').includes('인간족/몸통/') ? 'character' : 'monster';
-    const key = JSON.stringify({ asset, weaponVisual });
+export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance, appearance?: Appearance): Promise<DecodedActor> {
+    const actorAsset = assetWithAppearance(asset, appearance);
+    const kind: DecodedActor['kind'] = actorAsset.headSpr || actorAsset.headAct || actorAsset.spr.replace(/\\/g, '/').includes('인간족/몸통/') ? 'character' : 'monster';
+    const key = JSON.stringify({ asset: actorAsset, weaponVisual, appearance });
     const cached = actorCache.get(key);
-    if (cached)
+    if (cached) {
+        actorCache.delete(key);
+        actorCache.set(key, cached);
         return cached;
+    }
     const promise = (async () => {
         try {
-            const body = await loadPart(asset.spr, asset.act);
-            const weaponFiles = weaponVisual ? weaponAssetPath(asset, weaponVisual) : null;
-            const [headResult, weaponResult] = await Promise.all([
-                loadOptionalPart(asset.headSpr, asset.headAct),
+            const body = await loadPart(actorAsset.spr, actorAsset.act);
+            const weaponFiles = weaponVisual ? weaponAssetPath(actorAsset, weaponVisual) : null;
+            const trailFiles = weaponVisual ? weaponTrailAssetPath(actorAsset, weaponVisual) : null;
+            const palettes = paletteAssetPaths(actorAsset, appearance);
+            const [headResult, weaponResult, trailResult, bodyPalette, headPalette] = await Promise.all([
+                loadOptionalPart(actorAsset.headSpr, actorAsset.headAct),
                 loadOptionalPart(weaponFiles?.spr, weaponFiles?.act),
+                // Some original weapon types have no trail resource. Its absence
+                // leaves the equipped weapon usable without retrying the actor.
+                loadOptionalPart(trailFiles?.spr, trailFiles?.act, true),
+                loadPalette(palettes.body),
+                loadPalette(palettes.head),
             ]);
-            const errors = [headResult.error, weaponResult.error]
+            body.sprite = applyPalette(body.sprite, bodyPalette);
+            if (headResult.value) headResult.value.sprite = applyPalette(headResult.value.sprite, headPalette);
+            const errors = [headResult.error, weaponResult.error, trailResult.error]
                 .filter(error => error !== undefined)
                 .map(error => error instanceof Error ? error.message : String(error));
             return {
                 kind, fallback: false, body,
                 head: headResult.value,
                 weapon: weaponResult.value,
+                weaponTrail: trailResult.value,
                 weaponVisual,
                 error: errors.length ? errors.join('; ') : undefined,
             };
@@ -63,6 +133,11 @@ export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance): 
         }
     })();
     actorCache.set(key, promise);
+    while (actorCache.size > ACTOR_CACHE_LIMIT) {
+        const oldest = actorCache.keys().next().value;
+        if (oldest === undefined) break;
+        actorCache.delete(oldest);
+    }
     void promise.then((actor) => {
         if ((actor.fallback || actor.error) && actorCache.get(key) === promise)
             actorCache.delete(key);
@@ -158,10 +233,14 @@ export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: 
         }
     }
     if (actor.weapon) {
-        // Weapon ACT coordinates are already relative to the body origin.
-        const selected = facingFrames(actor.weapon, index);
-        const weaponFrame = selected?.frames[selected.index < 8 ? 0 : Math.min(frameIndex, selected.frames.length - 1)];
-        if (weaponFrame) append(actor.weapon, weaponFrame);
+        // EntityRender draws weapon then weapon_trail as main parts: ACT
+        // coordinates use the body origin and ignore attachment anchors.
+        for (const part of [actor.weapon, actor.weaponTrail]) {
+            if (!part) continue;
+            const selected = facingFrames(part, index);
+            const weaponFrame = selected?.frames[selected.index < 8 ? 0 : Math.min(frameIndex, selected.frames.length - 1)];
+            if (weaponFrame) append(part, weaponFrame);
+        }
     }
     return result;
 }

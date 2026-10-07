@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
-import type { GameState } from '../shared/types.js';
+import { DEFAULT_APPEARANCE, type GameState } from '../shared/types.js';
 export interface StateRepository {
   transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint?: string): Promise<GameState>;
   transactCooperatively?(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint?: string): Promise<GameState>;
@@ -17,6 +17,13 @@ export async function migrate(pool: Pool): Promise<void> {
 function decode(value: unknown): GameState {
   const state = (typeof value === 'string' ? JSON.parse(value) : value) as GameState;
   if (state.schemaVersion !== 1) throw new Error('Unsupported idle state schema');
+  const appearance = state.appearance;
+  state.appearance = appearance &&
+    Number.isInteger(appearance.hairStyle) && appearance.hairStyle >= 0 && appearance.hairStyle <= 27 &&
+    Number.isInteger(appearance.hairColor) && appearance.hairColor >= 0 && appearance.hairColor <= 8 &&
+    Number.isInteger(appearance.clothesColor) && appearance.clothesColor >= 0 && appearance.clothesColor <= 4
+    ? { hairStyle: appearance.hairStyle, hairColor: appearance.hairColor, clothesColor: appearance.clothesColor }
+    : { ...DEFAULT_APPEARANCE };
   return structuredClone(state);
 }
 export class GameRepository implements StateRepository {

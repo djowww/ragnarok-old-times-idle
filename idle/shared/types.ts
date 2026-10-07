@@ -44,6 +44,19 @@ export type Effects = Partial<
     number
   >
 >;
+export interface Appearance {
+  /** Hercules hair style IDs: 0–27. Client hair assets start at 1. */
+  hairStyle: number;
+  /** Hercules hair palette IDs: 0 keeps the sprite's default palette. */
+  hairColor: number;
+  /** Hercules clothes palette IDs: 0 keeps the sprite's default palette. */
+  clothesColor: number;
+}
+export const DEFAULT_APPEARANCE: Appearance = Object.freeze({
+  hairStyle: 0,
+  hairColor: 0,
+  clothesColor: 0,
+});
 export interface SpriteAsset {
   spr: string;
   act: string;
@@ -409,6 +422,8 @@ export interface GameState {
   revision: number;
   name: string;
   gender: "male" | "female";
+  /** Optional only for profiles written before appearance customization existed. */
+  appearance?: Appearance;
   job: string;
   family: string | null;
   branch: string | null;
@@ -538,6 +553,7 @@ export type GameCommand =
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }
   | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" }
   | { type: "setGender"; gender: "male" | "female" }
+  | { type: "changeAppearance"; hairStyle: number; hairColor: number; clothesColor: number }
   | { type: "allocate"; stat: Stat; amount: number }
   | { type: "learnSkill"; skillId: string }
   | { type: "setRotation"; skillIds: string[] }

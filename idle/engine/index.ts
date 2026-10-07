@@ -53,6 +53,7 @@ export function createInitialState(
     revision: 0,
     name: name.trim().slice(0, 24) || "djow",
     gender: "male",
+    appearance: { hairStyle: 0, hairColor: 0, clothesColor: 0 },
     job: "novice",
     family: null,
     branch: null,
