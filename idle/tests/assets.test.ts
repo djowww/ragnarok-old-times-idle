@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { decodeSPR } from '../web/assets/sprite';
 import { decodeACT } from '../web/assets/action';
 import { decodeBMP } from '../web/assets/items';
@@ -68,6 +68,40 @@ describe.skipIf(!process.env.IDLE_ASSET_ORIGIN)('installed local client resource
             else
                 expect(decodeBMP(buffer).width, path).toBeGreaterThan(0);
         }
+    });
+    it('loads original non-default and final hairstyles with their matching ACT poses for both genders', async () => {
+        const { default: catalog } = await import('../content/catalog.json');
+        const { loadActor, getActorPose } = await import('../web/assets/renderer');
+        const nativeFetch = globalThis.fetch;
+        const origin = process.env.IDLE_ASSET_ORIGIN!;
+        const requests: string[] = [];
+        vi.stubGlobal('fetch', (url: string | URL | Request, options?: RequestInit) => {
+            const path = String(url).replace(/^\/assets\//, '/'); requests.push(decodeURIComponent(path));
+            return nativeFetch(origin + path, options);
+        });
+        try {
+            for (const gender of ['male', 'female'] as const) {
+                const asset = catalog.classes.novice.sprite[gender];
+                const sex = gender === 'male' ? '남' : '여';
+                for (const hairStyle of [5, 27]) {
+                    const headBase = `data/sprite/인간족/머리통/${sex}/${hairStyle + 1}_${sex}`;
+                    const actor = await loadActor(asset, undefined, { hairStyle, hairColor: 0, clothesColor: 0 });
+                    expect(actor.fallback, headBase).toBe(false);
+                    expect(actor.error, headBase).toBeUndefined();
+                    expect(actor.head, headBase).toBeDefined();
+                    expect(requests).toContain(`/${headBase}.spr`);
+                    expect(requests).toContain(`/${headBase}.act`);
+                    const reference = await nativeFetch(origin + '/' + `${headBase}.act`.split('/').map(encodeURIComponent).join('/'));
+                    expect(reference.status, headBase).toBe(200);
+                    expect(actor.head!.action).toEqual(decodeACT(await reference.arrayBuffer()));
+                    for (const direction of [0, 3, 7]) {
+                        const pose = getActorPose(actor, 'idle', 0, direction);
+                        expect(pose.some(layer => actor.head!.sprite.frames.includes(layer.image)), `${headBase} direction${direction}`).toBe(true);
+                        expect(pose.every(layer => Number.isFinite(layer.x) && Number.isFinite(layer.y))).toBe(true);
+                    }
+                }
+            }
+        } finally { vi.unstubAllGlobals(); }
     });
 });
 

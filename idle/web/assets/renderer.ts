@@ -38,8 +38,11 @@ async function binary(path: string) { const response = await fetch(assetUrl(path
 async function loadPart(spr: string, act: string): Promise<ActorPart> { const [s, a] = await Promise.all([binary(spr), binary(act)]); return { sprite: decodeSPR(s), action: decodeACT(a) }; }
 function assetWithAppearance(asset: SpriteAsset, appearance?: Appearance): SpriteAsset {
     if (!appearance || !asset.headSpr) return asset;
-    const styledHead = asset.headSpr.replace(/(\/)\d+_(남|여)(\.spr)$/u, (_, separator: string, sex: string, extension: string) => `${separator}${appearance.hairStyle + 1}_${sex}${extension}`);
-    return styledHead === asset.headSpr ? asset : { ...asset, headSpr: styledHead };
+    const selectedStyle = appearance.hairStyle + 1;
+    const styledHead = asset.headSpr.replace(/(\/)\d+_(남|여)(\.spr)$/u, (_, separator: string, sex: string, extension: string) => `${separator}${selectedStyle}_${sex}${extension}`);
+    const styledHeadAct = asset.headAct?.replace(/(\/)\d+_(남|여)(\.act)$/u, (_, separator: string, sex: string, extension: string) => `${separator}${selectedStyle}_${sex}${extension}`);
+    if (styledHead === asset.headSpr && styledHeadAct === asset.headAct) return asset;
+    return { ...asset, headSpr: styledHead, ...(styledHeadAct ? { headAct: styledHeadAct } : {}) };
 }
 function paletteAssetPaths(asset: SpriteAsset, appearance?: Appearance): { body?: string; head?: string } {
     if (!appearance) return {};
