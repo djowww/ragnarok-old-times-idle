@@ -152,4 +152,36 @@ describe('admin actions', () => {
     expect(repository.state.zeny).toBe(700);
     expect(repository.state.events.filter(event => event.kind === 'admin' && event.text.includes('500 zeny'))).toHaveLength(1);
   });
+
+  it('grants Base levels through the catalog EXP curve', async () => {
+    const { app, repository } = setup();
+    const cookie = await login(app);
+
+    const response = await app.inject({
+      method: 'POST', url: '/api/admin/action', headers: { cookie },
+      payload: { requestId: 'admin-base-levels-01', action: { type: 'baseLevels', amount: 2 } },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(repository.state.baseLevel).toBe(3);
+    expect(repository.state.baseExp).toBe(0);
+    expect(repository.state.events.at(-1)).toMatchObject({ kind: 'admin', text: 'Painel administrativo: +2 níveis Base.' });
+  });
+
+  it('adds requested equipment to inventory already identified', async () => {
+    const { app, repository } = setup();
+    const cookie = await login(app);
+    const existingIds = new Set(repository.state.inventory.map(item => item.uid));
+
+    const response = await app.inject({
+      method: 'POST', url: '/api/admin/action', headers: { cookie },
+      payload: { requestId: 'admin-item-grant-01', action: { type: 'item', itemId: 1201, quantity: 2 } },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const granted = repository.state.inventory.filter(item => item.itemId === 1201 && !existingIds.has(item.uid));
+    expect(granted).toHaveLength(2);
+    expect(granted.every(item => item.identified)).toBe(true);
+    expect(repository.state.events.at(-1)).toMatchObject({ kind: 'admin', itemId: 1201, quantity: 2 });
+  });
 });

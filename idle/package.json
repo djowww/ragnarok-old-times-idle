@@ -6,7 +6,7 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "test": "vitest run",
+    "test": "vitest run --maxWorkers=4",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.server.json && vite build",
     "start": "node dist/server/index.js",

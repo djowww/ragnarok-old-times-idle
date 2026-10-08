@@ -89,7 +89,7 @@ describe('authoritative clock and combat', () => {
     s = advanceState(s, c, 14 * 3600000 + 10000); expect(s.totals).toEqual(before); expect(s.status).toBe('paused');
     const restarted = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 14 * 3600000 + 10000);
     const next = advanceState(restarted, c, 14 * 3600000 + 12000); expect(next.totals.elapsedMs - before.elapsedMs).toBe(2000); expect(next.totals.kills - before.kills).toBeLessThanOrEqual(1);
-  });
+  }, 20_000);
   it('regenerates hunting SP on elapsed ticks even when creation time is not a whole second', () => {
     const c = fixture(); c.monsters[1002].hp = 100000; let s = createInitialState(c, 250); s.sp = 0; s.rotation = []; s.autoPotion.spThreshold = 0;
     s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 250);

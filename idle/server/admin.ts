@@ -125,7 +125,8 @@ function grantLevels(state: GameState, catalog: Catalog, amount: number, at: num
     granted += state.baseLevel - previous;
   }
   if (!granted) throw new GameError('BASE_LEVEL_CAP', 'O personagem já está no nível Base máximo.');
-  event(state, at, 'admin', `Painel administrativo: +${granted} nível${granted === 1 ? '' : 'is'} Base.`);
+  const levelLabel = granted === 1 ? 'nível' : 'níveis';
+  event(state, at, 'admin', `Painel administrativo: +${granted} ${levelLabel} Base.`);
   return granted;
 }
 
