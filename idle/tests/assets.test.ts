@@ -117,6 +117,19 @@ describe('additional sprite representations',()=>{
 });
 
 describe('actor action families', () => {
+    it('keeps the requested facing when the attack action has no directional frame', async () => {
+        const { getActorPose } = await import('../web/assets/renderer');
+        const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };
+        const layer = { x: 0, y: 0, index: 0, mirror: false, color: [255, 255, 255, 255] as [number, number, number, number], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 };
+        const actions = Array.from({ length: 48 }, (_, index) => ({ delayMs: 100, frames: index === 2 || index === 40
+            ? [{ layers: [{ ...layer, x: index }], anchors: [], sound: -1 }]
+            : [] }));
+        const actor: any = { kind: 'character', fallback: false, body: { sprite: { indexedCount: 1, frames: [image] }, action: { actions } } };
+
+        // West-facing attack (40 + 2) is absent; idle action 2 preserves facing.
+        expect(getActorPose(actor, 'attack', 0, 2)[0].x).toBe(2);
+    });
+
     it('selects character combat actions separately from monster combat actions', async () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };
