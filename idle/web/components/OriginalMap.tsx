@@ -17,6 +17,10 @@ const localMaps = new Set([
   "moc_pryd02",
   "gef_dun02",
   "gl_knt01",
+  "prt_sewb2",
+  "pay_dun01",
+  "iz_dun02",
+  "orcsdun01",
 ]);
 
 export type MapStatus = { map: string; phase: "loading" | "ready" | "error"; progress?: number };
