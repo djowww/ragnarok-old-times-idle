@@ -1,8 +1,15 @@
 diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
-index 4e3faeb..bc91d54 100644
+index 4e3faeb..6281733 100644
 --- a/src/App/MapViewer.js
 +++ b/src/App/MapViewer.js
-@@ -28,6 +28,54 @@ import Intro from 'UI/Components/Intro/Intro.js';
+@@ -22,12 +22,167 @@ import Entity from 'Renderer/Entity/Entity.js';
+ import Mouse from 'Controls/MouseEventHandler.js';
+ import MapControl from 'Controls/MapControl.js';
+ import Intro from 'UI/Components/Intro/Intro.js';
++import IdleActors from 'Renderer/IdleActors.js';
+ 
+ /**
+  * MapViewer namespace
   */
  const MapViewer = {};
  
@@ -10,9 +17,9 @@ index 4e3faeb..bc91d54 100644
 +// The source scene files remain in the user's local GRF mount.
 +const idleSceneMaps = Object.freeze({
 +	prontera: [155, 187],
-+	prt_in: [126, 76],
++	prt_in: [130, 76],
 +	prt_fild08: [199, 199],
-+	prt_sewb1: [169, 177],
++	prt_sewb1: [178, 186],
 +	prt_fild04: [243, 155],
 +	prt_fild03: [199, 149],
 +	pay_dun00: [127, 85],
@@ -20,7 +27,11 @@ index 4e3faeb..bc91d54 100644
 +	gef_fild10: [205, 211],
 +	moc_pryd02: [101, 77],
 +	gef_dun02: [125, 113],
-+	gl_knt01: [161, 157]
++	gl_knt01: [161, 157],
++	prt_sewb2: [178, 186],
++	pay_dun01: [127, 85],
++	iz_dun02: [143, 169],
++	orcsdun01: [100, 100]
 +});
 +const idleScene = Configs.get('idleScene', false);
 +let idleSceneName = '';
@@ -28,6 +39,108 @@ index 4e3faeb..bc91d54 100644
 +let idleSceneSettled = false;
 +let idleSceneFailed = false;
 +let idleSceneRendered = false;
++let idleSceneCameraTick = 0;
++let idleSceneGround = null;
++let idleSceneGroundSent = false;
++let idleSceneBaseSpot = null;
++let idleSceneWorldFocus = null;
++let idleSceneFollowWorld = null;
++let idleSceneFollowTick = 0;
++
++function idleSceneFollowMessage(event) {
++	if (event.source !== window.parent || window.parent === window || !idleSceneBaseSpot) return;
++	let parentOrigin;
++	try {
++		parentOrigin = new URL(document.referrer).origin;
++	} catch {
++		return;
++	}
++	if ((parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) || event.origin !== parentOrigin) return;
++	const data = event.data;
++	if (!data || typeof data !== 'object' || data.map !== idleSceneName) return;
++	if (IdleActors.receive(data, parentOrigin, idleSceneName, idleSceneBaseSpot, Renderer.getContext())) return;
++	if (data.type !== 'ragidle-map-follow') return;
++	if (data.world === null) {
++		idleSceneFollowWorld = null;
++		return;
++	}
++	const world = data.world;
++	if (!Array.isArray(world) || world.length !== 3 || !world.every(value => typeof value === 'number' && Number.isFinite(value))) return;
++	// Camera focuses on cell centers: mesh [x,height,y] maps to spot [x-.5,y-.5,-height].
++	if (Math.abs(world[0] - 0.5 - idleSceneBaseSpot[0]) > 24 || Math.abs(world[2] - 0.5 - idleSceneBaseSpot[1]) > 24) return;
++	idleSceneFollowWorld = world.slice();
++}
++
++function idleSceneFollow(tick) {
++	if (!idleSceneBaseSpot) return;
++	const target = idleSceneFollowWorld
++		? [idleSceneFollowWorld[0] - 0.5, idleSceneFollowWorld[2] - 0.5, -idleSceneFollowWorld[1]]
++		: idleSceneBaseSpot;
++	const elapsed = idleSceneFollowTick ? Math.max(0, Math.min(100, tick - idleSceneFollowTick)) : 16;
++	idleSceneFollowTick = tick;
++	const amount = 1 - Math.exp(-elapsed / 140);
++	for (let axis = 0; axis < 3; axis++) {
++		MapViewer.spot.position[axis] += (target[axis] - MapViewer.spot.position[axis]) * amount;
++	}
++}
++
++function idleSceneCameraZoom() {
++	// Native zoom: previous 20% plus another 15% preserves terrain/sprite ratio.
++	return (idleSceneName === 'prt_in'
++		? Math.max(78, Math.min(125, Renderer.height * 0.18))
++		: Math.max(125, Renderer.height * 0.42)) / (1.2 * 1.15);
++}
++
++function idleSceneCamera(tick) {
++	const following = idleSceneFollowWorld !== null || (idleSceneWorldFocus &&
++		Array.from(Camera.focus).some((value, axis) => Math.abs(value - idleSceneWorldFocus[axis]) > 0.001));
++	if (window.parent === window || tick - idleSceneCameraTick < (following ? 16 : 100)) return;
++	let parentOrigin;
++	try {
++		parentOrigin = new URL(document.referrer).origin;
++	} catch {
++		return;
++	}
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	idleSceneCameraTick = tick;
++	window.parent.postMessage({
++		type: 'ragidle-map-camera', map: idleSceneName,
++		modelView: Array.from(Camera.modelView), projection: Array.from(Camera.projection),
++		focus: Array.from(Camera.focus), viewport: { width: Renderer.width, height: Renderer.height },
++		// Stable formation origin; Camera.focus moves while following the hero.
++		sceneFocus: idleSceneWorldFocus,
++		direction: (Camera.direction + 8) % 8,
++		...(idleSceneGround && !idleSceneGroundSent ? { ground: idleSceneGround } : {})
++	}, parentOrigin);
++	if (idleSceneGround) idleSceneGroundSent = true;
++}
++
++function idleSceneSampleGround() {
++	const size = 65;
++	const x = Math.floor(MapViewer.spot.position[0]) - 32;
++	const y = Math.floor(MapViewer.spot.position[1]) - 32;
++	return { x, y, size,
++		heights: Array.from({ length: size * size }, (_, index) =>
++			-Altitude.getCellHeight(x + index % size, y + Math.floor(index / size))),
++		walkable: Array.from({ length: size * size }, (_, index) =>
++			(Altitude.getCellType(x + index % size, y + Math.floor(index / size)) & Altitude.TYPE.WALKABLE) ? 1 : 0)
++	};
++}
++
++function idleSceneProgress(progress) {
++	if (idleSceneSettled || window.parent === window || !Number.isFinite(progress)) return;
++	let parentOrigin;
++	try {
++		parentOrigin = new URL(document.referrer).origin;
++	} catch {
++		return;
++	}
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	window.parent.postMessage({
++		type: 'ragidle-map-progress', map: idleSceneName,
++		progress: Math.max(0, Math.min(99, progress))
++	}, parentOrigin);
++}
 +
 +function idleSceneNotify(type, detail) {
 +	if (type === 'ragidle-map-error') {
@@ -50,18 +163,21 @@ index 4e3faeb..bc91d54 100644
 +	} catch {
 +		return;
 +	}
-+	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
 +	window.parent.postMessage({ type, map: idleSceneName }, parentOrigin);
 +}
 +
  /**
   * @var {object} Entity to target
   */
-@@ -45,6 +93,39 @@ MapViewer.dropDown = null;
+@@ -45,6 +196,47 @@ MapViewer.dropDown = null;
  MapViewer.init = function Init() {
  	// Increase max intersection test (because of the max zoom)
  	Altitude.MAX_INTERSECT_COUNT = 500;
 +	if (idleScene) {
++		window.addEventListener('message', idleSceneFollowMessage, false);
++		MapRenderer.onIdleActors = IdleActors.render;
++		MapRenderer.onIdleActorsFree = IdleActors.release;
 +		try {
 +			idleSceneName = decodeURIComponent(location.hash.slice(1)).replace(/\.rsw$/i, '').toLowerCase();
 +		} catch {
@@ -76,18 +192,23 @@ index 4e3faeb..bc91d54 100644
 +			60000
 +		);
 +		MapRenderer.onError = error => idleSceneNotify('ragidle-map-error', String(error || 'Falha ao ler o mapa.'));
++		MapRenderer.onProgress = idleSceneProgress;
 +		const renderMap = MapRenderer.onRender;
 +		MapRenderer.onRender = function (tick, gl) {
 +			try {
++				idleSceneFollow(tick);
++				Camera.zoomFinal = idleSceneCameraZoom();
 +				renderMap.call(MapRenderer, tick, gl);
 +				if (gl.isContextLost()) {
 +					idleSceneNotify('ragidle-map-error', 'O contexto WebGL do mapa foi perdido.');
 +					return;
 +				}
 +				if (!idleSceneRendered) {
++					idleSceneCamera(tick);
 +					idleSceneRendered = true;
 +					idleSceneNotify('ragidle-map-ready');
 +				}
++				idleSceneCamera(tick);
 +			} catch (error) {
 +				idleSceneNotify('ragidle-map-error', String(error || 'Falha ao renderizar o mapa.'));
 +				throw error;
@@ -97,7 +218,7 @@ index 4e3faeb..bc91d54 100644
  
  	let ready = false;
  	let maptoload = '';
-@@ -111,12 +192,27 @@ MapViewer.init = function Init() {
+@@ -111,12 +303,27 @@ MapViewer.init = function Init() {
  
  		// Initialize renderer
  		q.add(function () {
@@ -127,7 +248,7 @@ index 4e3faeb..bc91d54 100644
  			Intro.onFilesSubmit = function (files) {
  				Client.onFilesLoaded = q.next;
  				Client.init(files);
-@@ -132,6 +228,14 @@ MapViewer.init = function Init() {
+@@ -132,6 +339,14 @@ MapViewer.init = function Init() {
  		MapRenderer.onLoad = MapViewer.onLoad;
  		MapControl.init();
  		MapControl.onRequestWalk = MapViewer.onMouseDown;
@@ -142,7 +263,7 @@ index 4e3faeb..bc91d54 100644
  
  		// Direct access from API
  		if (Configs.get('api')) {
-@@ -175,16 +279,22 @@ MapViewer.init = function Init() {
+@@ -175,16 +390,27 @@ MapViewer.init = function Init() {
  MapViewer.onLoad = function () {
  	BGM.stop();
  
@@ -161,15 +282,364 @@ index 4e3faeb..bc91d54 100644
  	Camera.setTarget(MapViewer.spot);
  	Camera.init();
 +	if (idleScene) {
-+		// The classic camera scale keeps the map legible in the 333px idle viewport.
-+		Camera.zoomFinal = 125;
++		idleSceneBaseSpot = Array.from(MapViewer.spot.position);
++		idleSceneWorldFocus = [idleSceneBaseSpot[0] + 0.5, -idleSceneBaseSpot[2], idleSceneBaseSpot[1] + 0.5];
++		idleSceneFollowWorld = null;
++		idleSceneFollowTick = 0;
++		Camera.zoom = Camera.zoomFinal = idleSceneCameraZoom();
++		idleSceneGround = idleSceneSampleGround();
++		idleSceneGroundSent = false;
 +		return;
 +	}
  
  	Camera.altitudeTo = -200;
  	Camera.zoomFinal = 200;
+diff --git a/src/Renderer/IdleActors.js b/src/Renderer/IdleActors.js
+new file mode 100644
+index 0000000..02a18d9
+--- /dev/null
++++ b/src/Renderer/IdleActors.js
+@@ -0,0 +1,338 @@
++/** RagIDLE presentation bridge. Simulation and animation poses stay in the parent. */
++import SpriteRenderer from 'Renderer/SpriteRenderer.js';
++import Ground from 'Renderer/Map/Ground.js';
++import Altitude from 'Renderer/Map/Altitude.js';
++import WebGL from 'Utils/WebGL.js';
++
++const MAX_TEXTURES = 512;
++const MAX_BYTES = 32 * 1024 * 1024;
++const MAX_ACTORS = 160;
++const MAX_LAYERS = 1024;
++const textures = new Map();
++const capacityBlocked = new Map();
++let textureBytes = 0;
++let session = '';
++let origin = '';
++let map = '';
++let sequence = -1;
++let actors = [];
++const completeLayers = new Map();
++let ownedActors = [];
++let stateAt = -Infinity;
++let lastAck = -Infinity;
++let evicted = [];
++let shadowProgram = null;
++let shadowBuffer = null;
++let failed = false;
++
++const finite = (value, max = 8192) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= max;
++const vector = (value, size, max = 8192) => Array.isArray(value) && value.length === size && value.every(v => finite(v, max));
++
++function notify(type, extra = {}) {
++  if (session && origin) window.parent.postMessage({ type, map, session, ...extra }, origin);
++}
++
++function clear(gl) {
++  for (const frame of textures.values()) {
++    try { gl.deleteTexture(frame.texture); } catch { /* Cache ownership must still be released. */ }
++  }
++  textures.clear();
++  capacityBlocked.clear();
++  textureBytes = 0;
++  actors = [];
++  completeLayers.clear();
++  ownedActors = [];
++  sequence = -1;
++  stateAt = lastAck = -Infinity;
++  evicted = [];
++  if (shadowProgram) { try { gl.deleteProgram(shadowProgram); } catch { /* Lost context. */ } }
++  if (shadowBuffer) { try { gl.deleteBuffer(shadowBuffer); } catch { /* Lost context. */ } }
++  shadowProgram = shadowBuffer = null;
++}
++
++function release(gl) {
++  clear(gl);
++  session = origin = map = '';
++  failed = false;
++}
++
++function disable(gl) {
++  failed = true;
++  // Restore the baseline used by the following map/entity passes, keeping their framebuffer.
++  const restore = [() => SpriteRenderer.unbind(gl),
++    () => shadowProgram && gl.disableVertexAttribArray(shadowProgram.attribute.aPosition),
++    () => gl.enable(gl.DEPTH_TEST), () => gl.depthMask(true), () => gl.enable(gl.BLEND),
++    () => gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA),
++    () => gl.colorMask(true, true, true, true), () => gl.activeTexture(gl.TEXTURE0),
++    () => gl.bindTexture(gl.TEXTURE_2D, null), () => gl.bindBuffer(gl.ARRAY_BUFFER, null), () => gl.useProgram(null)];
++  for (const reset of restore) { try { reset(); } catch { /* A lost context cannot be restored. */ } }
++  SpriteRenderer.image.texture = SpriteRenderer.image.palette = null;
++  SpriteRenderer.sprite = null;
++  SpriteRenderer.depth = 0;
++  SpriteRenderer.shadow = 1;
++  SpriteRenderer.zIndex = 1;
++  SpriteRenderer.disableDepthCorrection = false;
++  clear(gl);
++  try { notify('ragidle-map-actors-error'); } catch { /* Parent freshness timeout also restores fallback. */ }
++}
++
++function receiveMessage(data, parentOrigin, mapName, baseSpot, gl) {
++  if (!gl || !data || typeof data !== 'object' || data.map !== mapName ||
++    typeof data.session !== 'string' || !/^[a-f\d-]{36}$/i.test(data.session)) return false;
++  if (data.type === 'ragidle-map-actors-init') {
++    if (session !== data.session) { clear(gl); failed = false; }
++    session = data.session;
++    origin = parentOrigin;
++    map = mapName;
++    if (failed) { notify('ragidle-map-actors-error'); return true; }
++    notify('ragidle-map-actors-ready', { version: 2 });
++    return true;
++  }
++  if (data.session !== session || mapName !== map || parentOrigin !== origin) return false;
++  if (data.type === 'ragidle-map-actors-clear') {
++    release(gl);
++    return true;
++  }
++  if (failed) return true;
++  if (data.type === 'ragidle-map-actor-frames') {
++    if (!Array.isArray(data.frames) || data.frames.length > MAX_TEXTURES) return true;
++    let packetBytes = 0;
++    const flipY = gl.getParameter(gl.UNPACK_FLIP_Y_WEBGL);
++    const premultiply = gl.getParameter(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
++    const protectedFrames = new Set([
++      ...actors.flatMap(actor => actor.layers.map(layer => layer.frame)),
++      ...[...completeLayers.values()].flatMap(layers => layers.map(layer => layer.frame))
++    ]);
++    try { for (const frame of data.frames) {
++      if (!frame || typeof frame.id !== 'string' || !/^f\d{1,12}$/.test(frame.id) ||
++        !Number.isInteger(frame.width) || !Number.isInteger(frame.height) ||
++        frame.width < 1 || frame.height < 1 || frame.width > 1024 || frame.height > 1024 ||
++        !(frame.rgba instanceof Uint8ClampedArray) || frame.rgba.byteLength !== frame.width * frame.height * 4) continue;
++      packetBytes += frame.rgba.byteLength;
++      if (packetBytes > 8 * 1024 * 1024) break;
++      if (textures.has(frame.id)) { capacityBlocked.delete(frame.id); continue; }
++      while (textures.size >= MAX_TEXTURES || textureBytes + frame.rgba.byteLength > MAX_BYTES) {
++        let oldest;
++        for (const [id, candidate] of textures) if (!protectedFrames.has(id) && (!oldest || candidate.used < oldest[1].used)) oldest = [id, candidate];
++        if (!oldest) break;
++        gl.deleteTexture(oldest[1].texture);
++        textureBytes -= oldest[1].bytes;
++        textures.delete(oldest[0]);
++        evicted.push(oldest[0]);
++        if (evicted.length > MAX_LAYERS) evicted.shift();
++      }
++      if (textures.size >= MAX_TEXTURES || textureBytes + frame.rgba.byteLength > MAX_BYTES) {
++        // Uploads precede their pose message; remember denied warmups until
++        // the render pass can distinguish required frames from future images.
++        capacityBlocked.delete(frame.id);
++        capacityBlocked.set(frame.id, frame.rgba.byteLength);
++        if (capacityBlocked.size > MAX_TEXTURES) capacityBlocked.delete(capacityBlocked.keys().next().value);
++        continue;
++      }
++      capacityBlocked.delete(frame.id);
++      const texture = gl.createTexture();
++      if (!texture) throw new Error('Idle sprite texture unavailable');
++      // Track ownership before uploads so the error boundary can release partial allocations.
++      textures.set(frame.id, { texture, bytes: frame.rgba.byteLength, used: performance.now() });
++      textureBytes += frame.rgba.byteLength;
++      gl.activeTexture(gl.TEXTURE0);
++      gl.bindTexture(gl.TEXTURE_2D, texture);
++      // The parent decoder has already converted both palette and RGBA sprites to top-first RGBA.
++      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
++      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
++      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, frame.width, frame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, frame.rgba);
++      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
++      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
++      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
++      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
++      if (gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite upload failed');
++    } } finally {
++      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
++      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiply);
++    }
++    return true;
++  }
++  if (data.type !== 'ragidle-map-actors') return false;
++  if (!Number.isSafeInteger(data.sequence) || data.sequence <= sequence ||
++    !Array.isArray(data.actors) || data.actors.length > MAX_ACTORS) return true;
++  let layers = 0;
++  const next = [];
++  for (const actor of data.actors) {
++    if (!actor || typeof actor.id !== 'string' || !actor.id || actor.id.length > 160 || !vector(actor.world, 3, 2048) ||
++      Math.abs(actor.world[0] - .5 - baseSpot[0]) > 24 || Math.abs(actor.world[2] - .5 - baseSpot[1]) > 24 ||
++      !Array.isArray(actor.layers) || !actor.layers.length || actor.layers.length > 128) continue;
++    if (!actor.layers.every(layer => layer && typeof layer.frame === 'string' && /^f\d{1,12}$/.test(layer.frame) &&
++      finite(layer.x) && finite(layer.y) && finite(layer.width) && finite(layer.height) && finite(layer.angle, 360000) &&
++      vector(layer.color, 4, 1) && layer.color.every(value => value >= 0))) continue;
++    layers += actor.layers.length;
++    if (layers > MAX_LAYERS) break;
++    const shadow = actor.shadow;
++    next.push({ id: actor.id, world: actor.world, layers: actor.layers,
++      shadow: shadow && finite(shadow.radius, 128) && shadow.radius > 0 && finite(shadow.opacity, 1) && shadow.opacity >= 0 ? shadow : null });
++  }
++  sequence = data.sequence;
++  actors = next;
++  const active = new Set(next.map(actor => actor.id));
++  for (const id of completeLayers.keys()) if (!active.has(id)) completeLayers.delete(id);
++  stateAt = performance.now();
++  return true;
++}
++
++function receive(data, parentOrigin, mapName, baseSpot, gl) {
++  try { return receiveMessage(data, parentOrigin, mapName, baseSpot, gl); }
++  catch { disable(gl); return true; }
++}
++
++function renderShadows(gl, modelView, projection, ready) {
++  if (!ready.some(actor => actor.shadow)) return;
++  if (!shadowProgram) {
++    shadowProgram = WebGL.createShaderProgram(gl, `#version 300 es
++      precision highp float;
++      in vec2 aPosition;
++      uniform mat4 uModelViewMat;
++      uniform mat4 uProjectionMat;
++      uniform vec3 uCenter;
++      uniform float uRadius;
++      uniform vec4 uHeights;
++      out vec2 vPosition;
++      void main() {
++        vPosition = aPosition;
++        vec2 uv = (aPosition + 1.0) * 0.5;
++        float height = mix(mix(uHeights.x, uHeights.y, uv.x), mix(uHeights.z, uHeights.w, uv.x), uv.y);
++        vec3 world = uCenter + vec3(aPosition.x * uRadius, height + 0.025, aPosition.y * uRadius);
++        gl_Position = uProjectionMat * uModelViewMat * vec4(world, 1.0);
++      }`, `#version 300 es
++      precision highp float;
++      in vec2 vPosition;
++      uniform float uOpacity;
++      out vec4 fragColor;
++      void main() {
++        float radius = dot(vPosition, vPosition);
++        if (radius >= 1.0) discard;
++        float alpha = exp(-3.5 * radius) * (1.0 - smoothstep(0.55, 1.0, radius)) * uOpacity;
++        fragColor = vec4(0.12, 0.14, 0.16, alpha);
++      }`);
++    shadowBuffer = gl.createBuffer();
++    if (!shadowBuffer) throw new Error('Idle shadow buffer unavailable');
++    gl.bindBuffer(gl.ARRAY_BUFFER, shadowBuffer);
++    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
++  }
++  const attribute = shadowProgram.attribute.aPosition;
++  const uniform = shadowProgram.uniform;
++  gl.useProgram(shadowProgram);
++  gl.uniformMatrix4fv(uniform.uModelViewMat, false, modelView);
++  gl.uniformMatrix4fv(uniform.uProjectionMat, false, projection);
++  gl.bindBuffer(gl.ARRAY_BUFFER, shadowBuffer);
++  gl.enableVertexAttribArray(attribute);
++  gl.vertexAttribPointer(attribute, 2, gl.FLOAT, false, 8, 0);
++  gl.enable(gl.DEPTH_TEST);
++  gl.depthMask(false);
++  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
++  for (const actor of ready) if (actor.shadow) {
++    const radius = actor.shadow.radius / 35;
++    const x = actor.world[0] - .5, y = actor.world[2] - .5;
++    const center = Altitude.getCellHeight(x, y);
++    gl.uniform4fv(uniform.uHeights, [center - Altitude.getCellHeight(x - radius, y - radius),
++      center - Altitude.getCellHeight(x + radius, y - radius),
++      center - Altitude.getCellHeight(x - radius, y + radius),
++      center - Altitude.getCellHeight(x + radius, y + radius)]);
++    gl.uniform3fv(uniform.uCenter, actor.world);
++    gl.uniform1f(uniform.uRadius, radius);
++    gl.uniform1f(uniform.uOpacity, actor.shadow.opacity);
++    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
++  }
++  gl.depthMask(true);
++  gl.disableVertexAttribArray(attribute);
++}
++
++function checkRequiredCapacity() {
++  if (!capacityBlocked.size) return;
++  const required = new Set(actors.flatMap(actor => actor.layers.map(layer => layer.frame)));
++  const protectedFrames = new Set([
++    ...required, ...[...completeLayers.values()].flatMap(layers => layers.map(layer => layer.frame))
++  ]);
++  let protectedCount = 0, protectedBytes = 0;
++  for (const [id, frame] of textures) if (protectedFrames.has(id)) {
++    protectedCount++;
++    protectedBytes += frame.bytes;
++  }
++  for (const id of required) {
++    const bytes = capacityBlocked.get(id);
++    if (bytes !== undefined && !textures.has(id) &&
++      (protectedCount >= MAX_TEXTURES || protectedBytes + bytes > MAX_BYTES)) {
++      throw new Error('Idle sprite required frame exceeds cache capacity');
++    }
++  }
++}
++
++function acknowledge(tick, drawn, missing = new Set()) {
++  const changed = drawn.length !== ownedActors.length || drawn.some((id, index) => id !== ownedActors[index]);
++  if (changed || tick - lastAck >= 50 || evicted.length) {
++    lastAck = tick;
++    ownedActors = drawn;
++    notify('ragidle-map-actors-rendered', { sequence, actors: drawn, frames: [...textures.keys()],
++      missing: [...missing], evicted: evicted.filter(id => !textures.has(id)) });
++    evicted = [];
++  }
++}
++
++function renderPass(tick, gl, modelView, projection, fog) {
++  if (failed || !session || gl.isContextLost()) return;
++  if (!actors.length || performance.now() - stateAt > 350) {
++    // Release ownership before dropping the draw, so the parent restores its fallback.
++    completeLayers.clear();
++    acknowledge(tick, []);
++    return;
++  }
++  const drawn = [];
++  const missing = new Set();
++  const ready = actors.flatMap(actor => {
++    const available = actor.layers.every(layer => textures.has(layer.frame));
++    if (!available) for (const layer of actor.layers) if (!textures.has(layer.frame)) missing.add(layer.frame);
++    if (available) completeLayers.set(actor.id, actor.layers);
++    const layers = completeLayers.get(actor.id);
++    // A new action frame stays in this depth pass while its textures upload.
++    // Apply the latest world position to the last complete pose.
++    return layers && layers.every(layer => textures.has(layer.frame)) ? [{ ...actor, layers }] : [];
++  });
++  checkRequiredCapacity();
++  renderShadows(gl, modelView, projection, ready);
++  gl.enable(gl.DEPTH_TEST);
++  gl.depthMask(true);
++  SpriteRenderer.bind3DContext(gl, modelView, projection, fog);
++  SpriteRenderer.image.palette = null;
++  SpriteRenderer.sprite = { type: 1 };
++  SpriteRenderer.depth = 0;
++  SpriteRenderer.xSize = SpriteRenderer.ySize = 5;
++  SpriteRenderer.runWithDepth(true, true, false, () => {
++    for (const actor of ready) {
++      const [x, height, z] = actor.world;
++      SpriteRenderer.position.set([x - .5, z - .5, -height]);
++      const shadow = Ground.getShadowFactor(x - .5, z - .5);
++      SpriteRenderer.shadow = Number.isFinite(shadow) ? Math.max(.25, Math.min(1, shadow)) : 1;
++      SpriteRenderer.zIndex = 1;
++      for (const layer of actor.layers) {
++        const frame = textures.get(layer.frame);
++        frame.used = performance.now();
++        SpriteRenderer.image.texture = frame.texture;
++        SpriteRenderer.offset.set([layer.x, layer.y]);
++        SpriteRenderer.size.set([layer.width, layer.height]);
++        SpriteRenderer.angle = layer.angle;
++        SpriteRenderer.color.set(layer.color);
++        SpriteRenderer.render(false);
++      }
++      drawn.push(actor.id);
++    }
++  });
++  SpriteRenderer.unbind(gl);
++  // Failed/context-lost draws must keep the parent canvas fallback visible.
++  if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite draw failed');
++  acknowledge(tick, drawn, missing);
++}
++
++function render(tick, gl, modelView, projection, fog) {
++  try { renderPass(tick, gl, modelView, projection, fog); }
++  catch { disable(gl); }
++}
++
++export default { receive, render, release };
 diff --git a/src/Renderer/MapRenderer.js b/src/Renderer/MapRenderer.js
-index be5fd21..aab8567 100644
+index be5fd21..d1f1b99 100644
 --- a/src/Renderer/MapRenderer.js
 +++ b/src/Renderer/MapRenderer.js
 @@ -9,6 +9,7 @@
@@ -180,17 +650,47 @@ index be5fd21..aab8567 100644
  import SoundManager from 'Audio/SoundManager.js';
  import BGM from 'Audio/BGM.js';
  import DB from 'DB/DBManager.js';
-@@ -352,6 +353,9 @@ class MapRenderer {
+@@ -194,6 +195,7 @@ class MapRenderer {
+ 	 */
+ 	static free() {
+ 		const gl = Renderer.getContext();
++		this.onIdleActorsFree(gl);
+ 
+ 		EntityManager.free();
+ 		EntityManager.clearLifeCache();
+@@ -307,6 +309,9 @@ class MapRenderer {
+ 
+ 		EffectManager.render(gl, modelView, projection, fog, tick, true);
+ 
++		// Parent-owned idle poses share the live terrain/model depth buffer.
++		MapRenderer.onIdleActors(tick, gl, modelView, projection, fog);
++
+ 		//Render Entities (no effects)
+ 		EntityManager.render(gl, modelView, projection, fog, false);
+ 
+@@ -352,6 +357,13 @@ class MapRenderer {
  	 * Callback to execute once the map is loaded
  	 */
  	static onLoad() {}
++	static onProgress() {}
 +
 +	/** Callback for a failed map load; the classic client keeps its existing UI. */
 +	static onError() {}
++
++	static onIdleActors() {}
++	static onIdleActorsFree() {}
  }
  
  /**
-@@ -492,12 +496,15 @@ function onMapComplete(success, error) {
+@@ -361,6 +373,7 @@ class MapRenderer {
+  */
+ function onProgressUpdate(percent) {
+ 	Background.setPercent(percent);
++	MapRenderer.onProgress(percent);
+ }
+ 
+ /**
+@@ -492,12 +505,15 @@ function onMapComplete(success, error) {
  
  	// Problem during loading ?
  	if (!success) {

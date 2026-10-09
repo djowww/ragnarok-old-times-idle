@@ -12,7 +12,7 @@ export function fixture(): Catalog {
     skills: { firstaid: { id: 'firstaid', name: 'Primeiros Socorros', description: '', kind: 'heal', maxLevel: 1, spCost: [3], power: [20], cooldownMs: 3000 }, firebolt: { id: 'firebolt', name: 'Lanças de Fogo', description: '', kind: 'magical', maxLevel: 10, spCost: Array(10).fill(5), power: Array(10).fill(150), cooldownMs: 3000, element: 'Fire' } },
     areas: [{ id: 'prontera', name: 'Prontera', map: 'prt_fild08', minLevel: 1, description: '', monsters: [1002], scene: 'field' }, { id: 'locked', name: 'Locked', map: '', minLevel: 65, description: '', monsters: [1002], scene: 'castle' }],
     quests: [{ id: 'firstkill', name: 'Primeiro abate', description: '', kind: 'kills', target: 1002, amount: 1, reward: { zeny: 100, baseExp: 0, jobExp: 0, items: [] } }],
-    challenges: [{ id: 'mastering', name: 'Mastering', monsterId: 1002, minLevel: 15, cooldownMs: 3600000, timeoutMs: 600000, firstReward: { zeny: 1000, baseExp: 0, jobExp: 0, items: [] } }],
+    challenges: [{ id: 'mastering', name: 'Mastering', monsterId: 1002, category: 'miniboss', minLevel: 15, cooldownMs: 3600000, timeoutMs: 600000, firstReward: { zeny: 1000, baseExp: 0, jobExp: 0, items: [] } }],
     exp: { base: [0, ...Array(99).fill(100)], job: { normal: [0, ...Array(70).fill(40)] } },
   };
 }

@@ -1,0 +1,219 @@
+.city-services,
+.blacksmith-service,
+.stylist-service {
+  color: #344b52;
+  font: 13px/1.45 Tahoma, "Segoe UI", sans-serif;
+}
+
+.city-services-intro,
+.service-panel-intro {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 14px 16px;
+  border: 1px solid #c9c5ad;
+  border-radius: 9px;
+  background: linear-gradient(125deg, #f5f2e4, #e5e9dd 72%, #d9e2db);
+  box-shadow: inset 0 1px #fff, 0 2px 8px #354b4820;
+}
+
+.city-services-crest,
+.service-panel-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #9c936e;
+  border-radius: 50%;
+  color: #826d3f;
+  background: radial-gradient(circle at 34% 29%, #fffde7, #d8d4b6 72%);
+  box-shadow: inset 0 1px #fff, 0 2px 4px #52655a30;
+  font: 22px Georgia, serif;
+}
+
+.city-services-intro h3,
+.service-panel-intro h3 {
+  margin: 0;
+  color: #42594f;
+  font: 700 20px Georgia, "Times New Roman", serif;
+}
+
+.city-services-intro p,
+.service-panel-intro p {
+  margin: 3px 0 0;
+  color: #66756b;
+  font-size: 12px;
+}
+
+.city-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.city-service-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 78px;
+  padding: 12px 14px;
+  border: 1px solid #bdc4ad;
+  border-radius: 7px;
+  color: #394e4a;
+  text-align: left;
+  text-decoration: none;
+  background: linear-gradient(140deg, #f6f3e6, #e3e8db);
+  box-shadow: inset 0 1px #fff, 0 2px 4px #243d3020;
+  transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+
+button.city-service-card { cursor: pointer; }
+
+button.city-service-card:hover,
+button.city-service-card:focus-visible {
+  border-color: #aa914e;
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px #fff, 0 3px 8px #243d3033, 0 0 0 2px #d8c17a66;
+}
+
+.city-service-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #c4c5ad;
+  border-radius: 6px;
+  color: #725f3e;
+  background: linear-gradient(#fffdec, #e1e3d5);
+  box-shadow: inset 0 1px #fff;
+  font: 23px/1 Georgia, serif;
+}
+
+.city-service-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.city-service-copy b { color: #354a43; font: 700 14px Georgia, serif; }
+.city-service-copy small { color: #727d70; font-size: 11px; }
+.city-service-arrow { margin-left: auto; color: #947b42; font: 26px/1 Georgia, serif; }
+
+.city-service-unavailable {
+  border-style: dashed;
+  color: #72776b;
+  background: linear-gradient(140deg, #eeede3, #e3e4db);
+}
+
+.city-service-unavailable .city-service-icon { color: #8d917f; }
+.city-service-unavailable .city-service-copy b { color: #72776b; }
+.city-service-soon {
+  margin-left: auto;
+  padding: 3px 7px;
+  border: 1px solid #c4c5af;
+  border-radius: 10px;
+  color: #788071;
+  background: #f6f5ea;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.city-services-footnote,
+.service-empty-note,
+.service-town-note,
+.stylist-note {
+  color: #72796d;
+  font-size: 11px;
+}
+
+.city-services-footnote { margin: 12px 2px 0; }
+.service-panel-intro { margin-bottom: 15px; }
+.service-panel-mark { font-size: 23px; }
+.blacksmith-service section + section { margin-top: 17px; }
+
+.service-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+}
+
+.service-section-heading h4 { margin: 0; color: #4e624f; font: 700 16px Georgia, serif; }
+.service-section-heading p { margin: 3px 0 0; color: #798072; font-size: 11px; }
+.service-section-heading > span { color: #70796c; font-size: 10px; text-align: right; }
+
+.blacksmith-ore-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.blacksmith-ore-card,
+.blacksmith-refine-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px;
+  border: 1px solid #c4c8b5;
+  border-radius: 6px;
+  background: linear-gradient(#f6f3e7, #e9ebdf);
+  box-shadow: inset 0 1px #fff;
+}
+
+.blacksmith-ore-card > .item-icon,
+.blacksmith-refine-card > .item-icon { width: 32px; height: 32px; }
+.blacksmith-ore-copy,
+.blacksmith-refine-copy { display: grid; gap: 2px; min-width: 0; }
+.blacksmith-ore-copy b,
+.blacksmith-refine-copy b { overflow: hidden; color: #3f5648; text-overflow: ellipsis; white-space: nowrap; }
+.blacksmith-ore-copy small,
+.blacksmith-refine-copy small,
+.blacksmith-refine-cost small { color: #798071; font-size: 10px; }
+.blacksmith-ore-price { color: #89703a; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.blacksmith-buy-actions { display: flex; grid-column: 2 / -1; gap: 5px; }
+.blacksmith-buy-actions button { min-height: 28px; padding: 4px 9px; border: 1px solid #aab5a9; border-radius: 3px; font-size: 10px; }
+.blacksmith-buy-actions button:disabled { opacity: .48; cursor: not-allowed; }
+.blacksmith-refine-list { display: grid; gap: 7px; }
+.blacksmith-refine-card { grid-template-columns: 34px minmax(120px, 1fr) minmax(150px, auto) auto; }
+.blacksmith-refine-cost { display: grid; gap: 2px; color: #78643b; font-size: 10px; text-align: right; }
+.blacksmith-refine-card > button { min-height: 31px; padding: 5px 9px; font-size: 10px; white-space: nowrap; }
+.service-empty-note { padding: 12px; border: 1px dashed #c6c6b3; background: #f2f0e4; }
+.service-town-note { margin: 10px 0 0; }
+
+.stylist-layout { display: grid; grid-template-columns: minmax(165px, .75fr) minmax(250px, 1.25fr); gap: 15px; align-items: stretch; }
+.stylist-preview-card {
+  display: flex;
+  min-height: 245px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  overflow: hidden;
+  border: 1px solid #c4c8b5;
+  border-radius: 6px;
+  color: #5e6d5e;
+  background: radial-gradient(ellipse at 50% 42%, #fffdf0, #e8eadf 72%);
+  box-shadow: inset 0 1px #fff;
+  font-size: 11px;
+}
+.stylist-preview-card .actor-preview { flex: 0 0 auto; }
+.stylist-preview-card > span { padding: 0 8px; text-align: center; }
+.stylist-controls { display: grid; align-content: start; gap: 10px; }
+.stylist-field { display: grid; gap: 4px; color: #596a5e; font-size: 11px; font-weight: 700; }
+.stylist-field select { min-height: 34px; padding: 5px 9px; border: 1px solid #b8bea9; border-radius: 4px; color: #374f4b; background: #fffef5; font: 12px Tahoma, sans-serif; }
+.stylist-note { margin: 0; }
+.stylist-actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: auto; padding-top: 5px; }
+.stylist-actions button { min-height: 34px; padding: 6px 11px; }
+
+@media (max-width: 640px) {
+  .city-service-grid,
+  .blacksmith-ore-grid,
+  .stylist-layout { grid-template-columns: minmax(0, 1fr); }
+  .blacksmith-refine-card { grid-template-columns: 32px minmax(0, 1fr) auto; }
+  .blacksmith-refine-cost { grid-column: 2; grid-row: 2; text-align: left; }
+  .blacksmith-refine-card > button { grid-column: 3; grid-row: 1 / 3; }
+  .service-section-heading { align-items: start; flex-direction: column; }
+  .service-section-heading > span { text-align: left; }
+  .stylist-preview-card { min-height: 210px; }
+}

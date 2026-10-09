@@ -3,6 +3,8 @@ import type { Area, AreaActivityBucket, Catalog, GameState, HuntFocus } from './
 const MINUTE_MS = 60_000;
 const ACTIVITY_MINUTES = 15;
 
+export const POST_WAVE_SEARCH_MS = 6_000;
+
 export function focusForArea(state: GameState, areaId: string): HuntFocus {
   return state.huntFocus?.[areaId] ?? 'any';
 }

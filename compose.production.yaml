@@ -1,0 +1,107 @@
+services:
+  idle-game:
+    image: ragidle-idle-game:vps-20261007-city-gate1
+    restart: unless-stopped
+    environment:
+      PORT: 3339
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:?Defina DB_NAME no ambiente de produção}
+      DB_USER: ${DB_USER:?Defina DB_USER no ambiente de produção}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente de produção}
+      RAGIDLE_ADMIN_TOKEN: ${RAGIDLE_ADMIN_TOKEN:-}
+      ASSET_ORIGIN: http://asset-service:8080
+      RAGIDLE_ALLOWED_ORIGINS: ${RAGIDLE_ALLOWED_ORIGINS:?Defina RAGIDLE_ALLOWED_ORIGINS}
+    depends_on:
+      database:
+        condition: service_healthy
+      asset-service:
+        condition: service_started
+    ports:
+      - "127.0.0.1:3339:3339"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3339/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - ragidle_prod
+
+  database:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:?Defina DB_NAME no ambiente de produção}
+      MARIADB_USER: ${DB_USER:?Defina DB_USER no ambiente de produção}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente de produção}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Defina DB_ROOT_PASSWORD no ambiente de produção}
+    volumes:
+      - ragidle_prod_database:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mariadb-admin ping --host=127.0.0.1 --user=root --password="$${MARIADB_ROOT_PASSWORD}" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - ragidle_prod
+
+  hercules:
+    image: ragidle-hercules:vps-20261007
+    restart: unless-stopped
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:?Defina DB_NAME no ambiente de produção}
+      DB_USER: ${DB_USER:?Defina DB_USER no ambiente de produção}
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente de produção}
+    depends_on:
+      database:
+        condition: service_healthy
+    expose:
+      - "6900"
+      - "6121"
+      - "5121"
+    networks:
+      - ragidle_prod
+
+  web-client:
+    image: ragidle-web-client:vps-20261007
+    restart: unless-stopped
+    environment:
+      PACKETVER: ${PACKETVER:?Defina PACKETVER no ambiente de produção}
+    ports:
+      - "127.0.0.1:3338:80"
+    networks:
+      - ragidle_prod
+
+  websocket-proxy:
+    image: ragidle-websocket-proxy:vps-20261007
+    restart: unless-stopped
+    depends_on:
+      hercules:
+        condition: service_started
+    environment:
+      WS_ALLOWED_ORIGINS: ${WS_ALLOWED_ORIGINS:?Defina WS_ALLOWED_ORIGINS}
+    ports:
+      - "127.0.0.1:5999:5999"
+    networks:
+      - ragidle_prod
+
+  asset-service:
+    image: ragidle-asset-service:vps-20261007
+    restart: unless-stopped
+    volumes:
+      - ./client-data:/app/resources:ro
+    networks:
+      - ragidle_prod
+
+volumes:
+  ragidle_prod_database:
+
+networks:
+  ragidle_prod:
+    driver: bridge

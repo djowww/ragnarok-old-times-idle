@@ -1,0 +1,164 @@
+.admin-panel {
+  color: #304650;
+  padding: 14px;
+  background:
+    radial-gradient(ellipse at 10% 0%, #fff9dd8c, transparent 44%),
+    linear-gradient(140deg, #f2eddd, #e7e7d8 56%, #f5f1e4);
+}
+.admin-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 2px 2px 13px;
+  border-bottom: 1px solid #b9b79f;
+}
+.admin-panel-heading h3 {
+  margin: 0;
+  color: #385d62;
+  font: 700 19px Georgia, serif;
+}
+.admin-panel-heading p {
+  margin: 4px 0 0;
+  color: #66766c;
+  font-size: 11px;
+}
+.admin-seal {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid #b39a60;
+  border-radius: 50%;
+  color: #d8c17f;
+  background: radial-gradient(circle, #426477, #233f53 72%);
+  box-shadow: inset 0 0 0 3px #273f4d, 0 1px 3px #1d343044;
+  font: 700 21px Georgia, serif;
+}
+.admin-logout {
+  margin-left: auto;
+  border-radius: 18px;
+  color: #54675f;
+  font-size: 11px;
+}
+.admin-notice {
+  margin: 11px 0 13px;
+  padding: 9px 11px;
+  border-left: 3px solid #a88d51;
+  background: #dfe3d5;
+  color: #53655c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.admin-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.admin-action-card,
+.admin-gate {
+  position: relative;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #b9c3ad;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #faf7eb, #e9ebdc);
+  box-shadow: inset 0 1px #fff9, 0 2px 5px #263f3020;
+}
+.admin-action-card h4 {
+  margin: 0 0 4px;
+  color: #3d6268;
+  font: 700 15px Georgia, serif;
+}
+.admin-action-card p {
+  min-height: 29px;
+  margin: 0 0 10px;
+  color: #718075;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.admin-step {
+  float: right;
+  color: #a28c58;
+  font: 700 10px Georgia, serif;
+  letter-spacing: .12em;
+}
+.admin-inline-form {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+.admin-inline-form label,
+.admin-item-card > label,
+.admin-login label {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+  color: #56685f;
+  font-size: 10px;
+  font-weight: 700;
+}
+.admin-inline-form input,
+.admin-inline-form select,
+.admin-item-card input,
+.admin-login input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 31px;
+  padding: 5px 8px;
+  border: 1px solid #abb9ae;
+  border-radius: 4px;
+  background: #fffdf4;
+  color: #344d51;
+  font-size: 11px;
+}
+.admin-inline-form button,
+.admin-login button {
+  min-height: 31px;
+  padding: 6px 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 10px;
+}
+.admin-class-form label:first-child { flex: 1 1 70%; }
+.admin-item-card > label { margin-bottom: 9px; }
+.admin-item-card { grid-column: 1 / -1; }
+.admin-item-card .admin-inline-form { align-items: end; }
+.admin-item-card .admin-inline-form label:first-child { flex: 1 1 65%; }
+.admin-item-card .admin-inline-form label:nth-child(2) { flex: 0 0 78px; }
+.admin-gate {
+  margin-top: 14px;
+  border-left: 3px solid #ad8c48;
+}
+.admin-gate strong { color: #455e61; font: 700 15px Georgia, serif; }
+.admin-gate p { margin: 7px 0 0; color: #68766d; font-size: 11px; line-height: 1.55; }
+.admin-gate code { color: #785f2e; font-size: 10px; }
+.admin-login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 9px;
+  max-width: 560px;
+  margin: 18px auto 10px;
+}
+.admin-login button { min-height: 34px; padding-inline: 16px; }
+.admin-message {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border: 1px solid #b9c7b1;
+  border-radius: 4px;
+  background: #e2eadc;
+  color: #45634e;
+  font-size: 11px;
+}
+.admin-action-card small { display: block; margin-top: 7px; color: #8a7145; font-size: 10px; }
+@media (max-width: 620px) {
+  .admin-panel { padding: 10px; }
+  .admin-actions { grid-template-columns: 1fr; }
+  .admin-item-card { grid-column: auto; }
+  .admin-action-card p { min-height: auto; }
+  .admin-login { grid-template-columns: 1fr; }
+  .admin-login button { width: 100%; }
+}

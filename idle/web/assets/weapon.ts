@@ -48,6 +48,12 @@ export function weaponAssetPath(asset: SpriteAsset, visual: WeaponAppearance): {
     return { spr: `${base}.spr`, act: `${base}.act` };
 }
 
+/** DB/Items/WeaponTrailTable.js uses the weapon's job path plus _검광. */
+export function weaponTrailAssetPath(asset: SpriteAsset, visual: WeaponAppearance): { spr: string; act: string } | null {
+    const weapon = weaponAssetPath(asset, visual);
+    return weapon ? { spr: weapon.spr.replace(/\.spr$/, '_검광.spr'), act: weapon.act.replace(/\.act$/, '_검광.act') } : null;
+}
+
 /** ATTACK1/2/3 correspond to ACT direction groups 5/10/11. */
 export function weaponAttackAction(visual?: WeaponAppearance): number {
     if (!visual) return 40;

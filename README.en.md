@@ -13,10 +13,15 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 ## Game features
 
 - Server-authoritative idle combat with persisted progress and summaries for up to 12 hours offline.
-- Ten explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
+- Fourteen explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
 - Classic class progression, rebirth, stats, skills, equipment, cards, refining, consumables and loot.
 - Browser scenes using assets from the locally supplied client; background music follows the selected area when enabled.
 - A classic roBrowserLegacy client connected to a local Hercules server.
+- A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
+- Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
+- Forty class trees with 348 imported skills. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Chronological combat deadlines with separate attack, action motion, casting and cooldown clocks. Each actor has independent action and hit animations; automatic healing alternates with offensive actions.
+- Equipment drops require a Magnifier. Special idle rarity tiers reveal their color and a random +1 to +5 stat bonus after identification.
 
 The idle mode adapts progression and rewards for shorter sessions. It does not execute item scripts and does not aim to reproduce every system of the original emulator.
 
@@ -29,13 +34,11 @@ The idle mode adapts progression and rewards for shorter sessions. It does not e
 
 ### Start the stack
 
-From the repository root, copy the example environment file:
+From the repository root, create the local environment file and replace its sample passwords:
 
 ```powershell
 Copy-Item .env.example .env
 ```
-
-On macOS or Linux, use `cp .env.example .env`. Replace the sample passwords in `.env`.
 
 Then build and start the services:
 
@@ -43,6 +46,14 @@ Then build and start the services:
 docker compose up --build -d
 docker compose ps
 ```
+
+The admin panel is optional and stays disabled until a private key is configured. Generate one with `openssl rand -base64 32`, add `RAGIDLE_ADMIN_TOKEN=<key>` to `.env`, then recreate only the idle game service:
+
+```powershell
+docker compose up -d --force-recreate idle-game
+```
+
+In the game, open **Adventurer's Book → Administration** and enter the key. The session uses an `HttpOnly` cookie that expires after eight hours. The panel can grant Base levels, change class, add zeny and grant catalog items; it does not modify Hercules accounts or characters.
 
 Open the idle game at **http://localhost:3339/**. The classic client is at **http://localhost:3338/applications/pwa/index.html**. The first build compiles the services and may take several minutes.
 

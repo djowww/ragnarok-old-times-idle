@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { decodeSPR } from '../web/assets/sprite';
 import { decodeACT } from '../web/assets/action';
 import { decodeBMP } from '../web/assets/items';
@@ -41,13 +41,15 @@ describe('actor composition', () => {
         expect(pose[0].image.type).toBe(1);
         expect(pose[1]).toMatchObject({ x: 2, y: -18 });
     });
-    it('uses elapsed milliseconds and gracefully falls back from unavailable attack actions', async () => {
+    it('loops idle frames but holds the final frame of unavailable combat actions', async () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const images = [0, 1].map(n => ({ width: 1, height: 1, type: 0, rgba: new Uint8ClampedArray([n, 0, 0, 255]) }));
         const layers = images.map((_, index) => ({ x: 0, y: 0, index, mirror: false, color: [255, 255, 255, 255], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 }));
-        const actor: any = { fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
+        const actor: any = { kind: 'monster', fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
+        expect(getActorPose(actor, 'idle', 200)[0].image.rgba[0]).toBe(0);
         expect(getActorPose(actor, 'attack', 100)[0].image.rgba[0]).toBe(1);
-        expect(getActorPose(actor, 'dead', 200)[0].image.rgba[0]).toBe(0);
+        expect(getActorPose(actor, 'attack', 200)[0].image.rgba[0]).toBe(1);
+        expect(getActorPose(actor, 'dead', 200)[0].image.rgba[0]).toBe(1);
     });
 });
 // Opt-in local integration: client binaries are fetched, never written to the repository.
@@ -67,6 +69,40 @@ describe.skipIf(!process.env.IDLE_ASSET_ORIGIN)('installed local client resource
                 expect(decodeBMP(buffer).width, path).toBeGreaterThan(0);
         }
     });
+    it('loads original non-default and final hairstyles with their matching ACT poses for both genders', async () => {
+        const { default: catalog } = await import('../content/catalog.json');
+        const { loadActor, getActorPose } = await import('../web/assets/renderer');
+        const nativeFetch = globalThis.fetch;
+        const origin = process.env.IDLE_ASSET_ORIGIN!;
+        const requests: string[] = [];
+        vi.stubGlobal('fetch', (url: string | URL | Request, options?: RequestInit) => {
+            const path = String(url).replace(/^\/assets\//, '/'); requests.push(decodeURIComponent(path));
+            return nativeFetch(origin + path, options);
+        });
+        try {
+            for (const gender of ['male', 'female'] as const) {
+                const asset = catalog.classes.novice.sprite[gender];
+                const sex = gender === 'male' ? '남' : '여';
+                for (const hairStyle of [5, 27]) {
+                    const headBase = `data/sprite/인간족/머리통/${sex}/${hairStyle + 1}_${sex}`;
+                    const actor = await loadActor(asset, undefined, { hairStyle, hairColor: 0, clothesColor: 0 });
+                    expect(actor.fallback, headBase).toBe(false);
+                    expect(actor.error, headBase).toBeUndefined();
+                    expect(actor.head, headBase).toBeDefined();
+                    expect(requests).toContain(`/${headBase}.spr`);
+                    expect(requests).toContain(`/${headBase}.act`);
+                    const reference = await nativeFetch(origin + '/' + `${headBase}.act`.split('/').map(encodeURIComponent).join('/'));
+                    expect(reference.status, headBase).toBe(200);
+                    expect(actor.head!.action).toEqual(decodeACT(await reference.arrayBuffer()));
+                    for (const direction of [0, 3, 7]) {
+                        const pose = getActorPose(actor, 'idle', 0, direction);
+                        expect(pose.some(layer => actor.head!.sprite.frames.includes(layer.image)), `${headBase} direction${direction}`).toBe(true);
+                        expect(pose.every(layer => Number.isFinite(layer.x) && Number.isFinite(layer.y))).toBe(true);
+                    }
+                }
+            }
+        } finally { vi.unstubAllGlobals(); }
+    });
 });
 
 describe('additional sprite representations',()=>{
@@ -81,6 +117,19 @@ describe('additional sprite representations',()=>{
 });
 
 describe('actor action families', () => {
+    it('keeps the requested facing when the attack action has no directional frame', async () => {
+        const { getActorPose } = await import('../web/assets/renderer');
+        const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };
+        const layer = { x: 0, y: 0, index: 0, mirror: false, color: [255, 255, 255, 255] as [number, number, number, number], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 };
+        const actions = Array.from({ length: 48 }, (_, index) => ({ delayMs: 100, frames: index === 2 || index === 40
+            ? [{ layers: [{ ...layer, x: index }], anchors: [], sound: -1 }]
+            : [] }));
+        const actor: any = { kind: 'character', fallback: false, body: { sprite: { indexedCount: 1, frames: [image] }, action: { actions } } };
+
+        // West-facing attack (40 + 2) is absent; idle action 2 preserves facing.
+        expect(getActorPose(actor, 'attack', 0, 2)[0].x).toBe(2);
+    });
+
     it('selects character combat actions separately from monster combat actions', async () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };

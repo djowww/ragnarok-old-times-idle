@@ -1,23 +1,38 @@
 import { readFile } from 'node:fs/promises';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
-import type { GameState } from '../shared/types.js';
+import { DEFAULT_APPEARANCE, type GameState } from '../shared/types.js';
 export interface StateRepository {
   transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint?: string): Promise<GameState>;
+  transactCooperatively?(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint?: string): Promise<GameState>;
   read(): Promise<GameState>;
   health(): Promise<boolean>;
+}
+export const LEGACY_PROFILE_IDS = ['local-djow', 'local-default'] as const;
+export async function resolveLegacyProfileId(pool: Pool): Promise<string> {
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT id FROM idle_profiles WHERE id IN (?, ?)', [...LEGACY_PROFILE_IDS]);
+  return LEGACY_PROFILE_IDS.find(id => rows.some(row => String(row.id) === id)) ?? LEGACY_PROFILE_IDS[0];
 }
 export async function migrate(pool: Pool): Promise<void> {
   const schema = await readFile(new URL('./schema.sql', import.meta.url), 'utf8')
     .catch(() => readFile(new URL('../../server/schema.sql', import.meta.url), 'utf8'));
   for (const statement of schema.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(statement);
+  // Reserve the legacy identity without rewriting its state, timestamps or receipts.
+  await pool.execute("UPDATE idle_profiles SET character_name_key = 'djow', updated_at = updated_at WHERE id = 'local-djow' AND character_name_key IS NULL");
 }
 function decode(value: unknown): GameState {
   const state = (typeof value === 'string' ? JSON.parse(value) : value) as GameState;
   if (state.schemaVersion !== 1) throw new Error('Unsupported idle state schema');
+  const appearance = state.appearance;
+  state.appearance = appearance &&
+    Number.isInteger(appearance.hairStyle) && appearance.hairStyle >= 0 && appearance.hairStyle <= 27 &&
+    Number.isInteger(appearance.hairColor) && appearance.hairColor >= 0 && appearance.hairColor <= 8 &&
+    Number.isInteger(appearance.clothesColor) && appearance.clothesColor >= 0 && appearance.clothesColor <= 4
+    ? { hairStyle: appearance.hairStyle, hairColor: appearance.hairColor, clothesColor: appearance.clothesColor }
+    : { ...DEFAULT_APPEARANCE };
   return structuredClone(state);
 }
 export class GameRepository implements StateRepository {
-  constructor(private pool: Pool, private createState: () => GameState, readonly profileId = 'local-default') {}
+  constructor(private pool: Pool, private createState: () => GameState, readonly profileId = 'local-djow') {}
   private async initialize(): Promise<void> {
     const [rows] = await this.pool.query<RowDataPacket[]>('SELECT id FROM idle_profiles WHERE id = ?', [this.profileId]);
     if (rows.length) return;
@@ -26,6 +41,12 @@ export class GameRepository implements StateRepository {
     await this.pool.execute('INSERT IGNORE INTO idle_profiles (id, state_json) VALUES (?, ?)', [this.profileId, JSON.stringify(initial)]);
   }
   async transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint = ''): Promise<GameState> {
+    return this.runTransaction(requestId, action, fingerprint);
+  }
+  async transactCooperatively(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint = ''): Promise<GameState> {
+    return this.runTransaction(requestId, action, fingerprint);
+  }
+  private async runTransaction(requestId: string | null, action: (state: GameState) => GameState | Promise<GameState>, fingerprint = ''): Promise<GameState> {
     await this.initialize();
     const connection = await this.pool.getConnection();
     try {
@@ -39,7 +60,7 @@ export class GameRepository implements StateRepository {
           await connection.commit(); return previous;
         }
       }
-      const next = action(structuredClone(previous));
+      const next = await action(structuredClone(previous));
       if (next.id !== previous.id || next.schemaVersion !== 1) throw new Error('Invalid idle state identity');
       next.revision = previous.revision + 1;
       await connection.execute('UPDATE idle_profiles SET state_json = ? WHERE id = ?', [JSON.stringify(next), this.profileId]);

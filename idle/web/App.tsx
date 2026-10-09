@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import type { Catalog, DerivedStats, GameEvent, GameState, Skill, Slot } from "../shared/types";
+import type { AccountView } from "../shared/portal-types";
+import { useAuth } from "./portal/AuthProvider";
+import { Link, navigate } from "./portal/router";
+import type { Catalog, DerivedStats, GameState, Skill } from "../shared/types";
+import { isTownScene } from "../shared/worldScene";
 import { useGame } from "./api";
+import { getClassicClientPaths } from "./public-client-routing";
 import Scene from "./components/Scene";
+import CharacterSelect from "./components/CharacterSelect";
+import ChatJournal from "./components/ChatJournal";
+import RewardNotifications from "./components/RewardNotifications";
 import ShopScene from "./components/ShopScene";
 import SkillIcon from "./components/SkillIcon";
+import ClassicEquipment from "./components/ClassicEquipment";
+import { resetWindowPositions, useDraggableWindow } from "./hooks/useDraggableWindow";
+import "./styles/draggable-windows.css";
 import QuestReward from "./components/QuestReward";
 import { assetUrl, FALLBACK_ICON, getBitmapUrl } from "./assets/items";
 import Offline from "./components/Offline";
@@ -11,12 +22,10 @@ import AudioToggle from "./components/AudioToggle";
 import {
   duration,
   ItemIcon,
-  itemName,
   Meter,
   number,
   Panel,
   slots,
-  statusNames,
   type PanelProps,
 } from "./components/common";
 import Inventory from "./panels/Inventory";
@@ -25,14 +34,25 @@ import Build from "./panels/Build";
 import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges, { type ChallengeFilter } from "./panels/Challenges";
+import CityServices, { type CityService } from "./panels/CityServices";
+import Blacksmith from "./panels/Blacksmith";
+import Stylist from "./panels/Stylist";
+import Admin from "./panels/Admin";
+import { inventoryLoad } from "../engine/stats";
+import { offensiveSkill, skillTargetInRange } from "../shared/combatRange";
+import ClassicLoading from "./components/ClassicLoading";
+import type { MapStatus } from "./components/OriginalMap";
+import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "admin";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
+  city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
+  admin: "Administração",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -42,19 +62,32 @@ const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file:
   { destination: "skills", label: "Habilidades", file: "btn_skill_off.bmp" },
 ];
 const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
-  { destination: "shop", label: "Loja" },
   { destination: "quests", label: "Missões" },
   { destination: "bestiary", label: "Bestiário" },
   { destination: "classes", label: "Classes" },
   { destination: "challenges", label: "Desafios" },
+  { destination: "admin", label: "Administração" },
 ];
-const classicTexture = (file: string) =>
-  assetUrl(`data/texture/유저인터페이스/basic_interface/${file}`);
+function ClassicMenuIcon({ file }: { file: string }) {
+  const [source, setSource] = useState<string>();
+  useEffect(() => {
+    let active = true;
+    setSource(undefined);
+    void getBitmapUrl(`data/texture/유저인터페이스/basic_interface/${file}`).then(value => {
+      if (active) setSource(value === FALLBACK_ICON ? undefined : value);
+    });
+    return () => { active = false; };
+  }, [file]);
+  // The classic resources are complete 30×20 buttons, with magenta keyed out
+  // by the bitmap decoder. Resizing them as 22px icons distorts their letters.
+  return source ? <img src={source} width={30} height={20} alt="" />
+    : <span className="ro-book-entry-mark" aria-hidden="true">◇</span>;
+}
 
 function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
   const level = state.learnedSkills[skill.id] ?? 0;
   const index = Math.max(0, level - 1);
-  const sp = skill.spCost[index] ?? skill.spCost.at(-1) ?? 0;
+  const sp = Math.max(0, Math.floor((skill.spCost[index] ?? skill.spCost.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.spCostReductionPct ?? 0) / 100)));
   const zeny = skill.zenyCost?.[index] ?? skill.zenyCost?.at(-1) ?? 0;
   const reasons: string[] = [];
   const cooldown = (state.skillReadyAt[skill.id] ?? 0) - now;
@@ -67,24 +100,42 @@ function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, cat
     reasons.push("arma incompatível");
   if (skill.requiredSlot && !state.equipment[skill.requiredSlot])
     reasons.push(`${slots[skill.requiredSlot].toLowerCase()} necessário`);
-  const itemCost = skill.itemCost;
-  if (itemCost && !state.inventory.some((entry) =>
-    entry.itemId === itemCost.itemId && entry.quantity >= itemCost.quantity,
-  )) reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
+  const itemCosts = skill.itemCostByLevel?.[index] ?? (skill.itemCost ? [skill.itemCost] : []);
+  for (const itemCost of itemCosts)
+    if (state.inventory.filter(entry => entry.itemId === itemCost.itemId).reduce((amount, entry) => amount + entry.quantity, 0) < itemCost.quantity)
+      reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
+  if (skill.sourceName === "AS_CLOAKING" && level < 3) reasons.push("níveis 1–2 exigem paredes do mapa; disponível aqui a partir do nível 3");
   if (skill.kind === "heal" && state.hp > stats.maxHp * 0.7)
     reasons.push("aguardando HP abaixo de 70%");
   if (skill.kind === "buff" && (state.buffs[skill.id]?.expiresAt ?? 0) > now)
     reasons.push("efeito ainda ativo");
-  if (!state.battle) reasons.push("aguardando combate");
-  const detail = [`${sp} SP`, ...(zeny ? [`${zeny} zeny`] : []), `intervalo ${Math.ceil(skill.cooldownMs / 1000)} s`].join(" · ");
+  const battle = state.battle;
+  if (!battle) reasons.push("aguardando combate");
+  else {
+    if (battle.cast && battle.cast.endsAt > now) reasons.push("conjuração em andamento");
+    else if ((battle.playerActionReadyAt ?? battle.playerNextAttackAt) > now)
+      reasons.push("movimento ou pós conjuração em andamento");
+    if (!offensiveSkill(skill) && battle.supportNeedsOffense)
+      reasons.push("aguardando ação ofensiva entre habilidades de suporte");
+    const target = battle.enemies?.find(enemy => enemy.id === battle.targetId) ?? battle.enemies?.[0];
+    if (target && !skillTargetInRange(state, catalog, skill, level, target, now))
+      reasons.push("alvo fora do alcance");
+  }
+  const baseCast = skill.castTimeMs?.[index] ?? skill.castTimeMs?.at(-1) ?? 0;
+  const cast = Math.max(0, baseCast * (skill.ignoresDex ? 1 : 1 - (stats.attributes?.dex ?? state.stats.dex) / 150) * (1 - Math.min(100, stats.effects.castReductionPct ?? 0) / 100));
+  const afterCast = (skill.afterCastDelayMs?.[index] ?? skill.afterCastDelayMs?.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.afterCastReductionPct ?? 0) / 100);
+  const detail = [`${sp} SP`, ...(zeny ? [`${zeny} zeny`] : []), ...(cast ? [`conjuração ${(cast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : ["instantânea"]), ...(afterCast ? [`pós conjuração ${(afterCast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : []), ...(skill.cooldownMs ? [`recarga ${(skill.cooldownMs / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : [])].join(" · ");
   return {
     ready: reasons.length === 0,
+    cooldownRemaining: Math.max(0, cooldown),
+    cooldownFraction: Math.min(1, Math.max(0, cooldown) / Math.max(1, skill.cooldownMs)),
     label: `${skill.name} Nv. ${level} · rotação automática · ${detail} · ${reasons.length ? reasons.join("; ") : "pronta para uso automático"}`,
   };
 }
 
 function ClassicMinimap({ mapName, mapLabel }: { mapName: string; mapLabel: string }) {
   const [image, setImage] = useState<string | null>(null);
+  const movable = useDraggableWindow<HTMLDivElement>("minimap", "minimapa");
   useEffect(() => {
     let active = true;
     setImage(null);
@@ -94,8 +145,9 @@ function ClassicMinimap({ mapName, mapLabel }: { mapName: string; mapLabel: stri
     return () => { active = false; };
   }, [mapName]);
   return (
-    <div className="classic-minimap" role="img" aria-label={`Minimapa de ${mapLabel}`}>
-      <div className="classic-minimap-image">
+    <div ref={movable.ref} style={movable.style} className="classic-minimap" aria-label={`Minimapa de ${mapLabel}`}>
+      <div {...movable.handleProps} className="ro-drag-handle classic-minimap-title">{mapLabel}</div>
+      <div className="classic-minimap-image" role="img" aria-label={`Minimapa de ${mapLabel}`}>
         {image && <img src={image} alt="" />}
         <span className="classic-minimap-marker" aria-hidden="true" />
       </div>
@@ -104,6 +156,19 @@ function ClassicMinimap({ mapName, mapLabel }: { mapName: string; mapLabel: stri
 }
 
 type HuntSection = "hunt" | "quests" | "mvp" | "miniboss";
+
+function huntActivityLabel(state: GameState, catalog: Catalog): string {
+  const fieldHero = state.fieldHero?.areaId === state.areaId ? state.fieldHero : undefined;
+  const phase = fieldHero?.phase ?? (state.battle ? "fighting" : "seeking");
+  if (phase === "waiting") return "Aguardando respawn";
+  if (phase === "seeking") return "Procurando monstros";
+  if (phase === "chasing") {
+    const target = state.fieldPopulation?.enemies.find(enemy => enemy.id === fieldHero?.targetId);
+    const name = target ? catalog.monsters[target.monsterId]?.name : undefined;
+    return `Caminhando até ${name ?? "o monstro"}`;
+  }
+  return "Combatendo";
+}
 
 function HuntExplorer({
   catalog,
@@ -126,7 +191,11 @@ function HuntExplorer({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [section, setSection] = useState<HuntSection>("hunt");
+  const movable = useDraggableWindow<HTMLElement>("hunt-explorer", "exploração");
   const { state, stats, serverTime } = snapshot;
+  const recovering = state.status === "resting" && (state.restMode !== "field" || state.restUntil > serverTime);
+  const fieldRest = state.status === "resting" && state.restMode === "field";
+  const sitting = fieldRest && !recovering;
   const selectedArea = catalog.areas.find((candidate) => candidate.id === areaId) ?? catalog.areas[0];
   const currentArea = catalog.areas.find((candidate) => candidate.id === state.areaId);
   const pendingArea = catalog.areas.find((candidate) => candidate.id === state.pendingAreaId);
@@ -142,17 +211,22 @@ function HuntExplorer({
     ? catalog.challenges.filter((challenge) => challenge.category === challengeFilter)
     : [];
   const currentLabel = state.status === "hunting" && currentArea
-    ? `${state.battle ? "Combatendo em" : "Procurando monstros em"} ${currentArea.name}`
+    ? `${huntActivityLabel(state, catalog)} · ${currentArea.name}`
     : state.status === "challenge" ? "Desafio em andamento"
-    : state.status === "resting" ? "Recuperando forças"
-    : currentArea ? currentArea.name : "Escolha seu próximo destino";
+    : state.status === "resting" ? recovering
+      ? `Recuperando forças${state.restUntil > serverTime ? ` · ${duration(state.restUntil - serverTime)}` : ""}`
+      : `Sentado${currentArea ? ` em ${currentArea.name}` : ""}`
+    : state.status === "paused" ? `Caça pausada${currentArea ? ` · ${currentArea.name}` : ""}`
+    : "Na cidade · Prontera";
 
   return (
-    <section className={`hunt-explorer ${expanded ? "is-expanded" : ""}`}>
+    <section ref={movable.ref} style={movable.style} className={`hunt-explorer ${expanded ? "is-expanded" : ""}`}>
+      <div {...movable.handleProps} className="ro-drag-handle hunt-drag-handle"><span aria-hidden="true">⋮⋮</span></div>
       <button ref={launcherRef} type="button" className="hunt-launcher" aria-expanded={expanded}
+        aria-label={`Explorar Rune-Midgard · ${currentLabel}`} title="Explorar Rune-Midgard"
         aria-controls="hunt-explorer-content" onClick={() => setExpanded((value) => !value)}>
         <span className="hunt-launcher-glyph" aria-hidden="true"><i /><i /></span>
-        <span className="hunt-launcher-copy"><strong>Explorar Rune-Midgard</strong><small>{currentLabel}</small></span>
+        <span className="hunt-launcher-copy"><strong>Exploração</strong><small>{currentLabel}</small></span>
         <span className="hunt-launcher-action">{expanded ? "Fechar" : "Escolher destino"}</span>
         <span className="hunt-launcher-chevron" aria-hidden="true">{expanded ? "−" : "+"}</span>
       </button>
@@ -180,33 +254,34 @@ function HuntExplorer({
             </select>
           </label>
           <button className="primary hunt-button" disabled={
-            busy || state.baseLevel < selectedArea.minLevel || state.status === "resting" ||
+            busy || state.baseLevel < selectedArea.minLevel || recovering ||
             state.status === "challenge" || state.pendingAreaId === selectedArea.id ||
             (state.status === "hunting" && state.areaId === selectedArea.id && !cancellingPendingArea)
           } onClick={() => void command({ type: "startHunt", areaId: selectedArea.id })}>
             {cancellingPendingArea ? "Cancelar troca"
               : state.pendingAreaId === selectedArea.id ? "Troca agendada"
-              : state.status === "resting" ? "Recuperando"
+              : recovering ? "Recuperando"
               : state.status === "hunting" && state.areaId === selectedArea.id ? "Caçando"
               : state.status === "hunting" && state.battle ? "Trocar após combate"
-              : state.areaId === selectedArea.id && state.status === "paused" ? "Retomar caça"
+              : state.areaId === selectedArea.id && (state.status === "paused" || sitting) ? "Retomar caça"
               : "Iniciar caça"}
           </button>
-          <button type="button" disabled={busy || state.status === "town" || (state.status === "resting" && !state.autoResume)}
+          <button type="button" disabled={busy || state.status === "town" || (state.status === "resting" && !fieldRest && !state.autoResume)}
             onClick={() => void command({ type: "stop" })}>
             {state.status === "challenge" ? "Desistir"
-              : state.status === "resting" ? "Cancelar retomada"
+              : state.status === "resting" && !fieldRest ? "Cancelar retomada"
               : state.status === "hunting" && state.battle ? "Recuar · 10 s" : "Cidade"}
           </button>
           <button type="button" disabled={busy || state.status === "challenge" || state.status === "resting" ||
-            (state.hp >= stats.maxHp && state.sp >= stats.maxSp)}
+            (state.status !== "hunting" && state.hp >= stats.maxHp && state.sp >= stats.maxSp)}
             onClick={() => void command({ type: "rest" })}>Descansar</button>
           {state.areaId && <div className="hunt-detail-line">
             Foco em {currentArea?.name ?? "área atual"}: <b>{huntFocusLabel(focus, catalog)}</b>
             {pendingArea && <span>Próxima área: <b>{pendingArea.name}</b> após o combate atual.</span>}
           </div>}
           {state.status === "resting" && <div className="hunt-detail-line" role="status">
-            Recuperando forças{state.restUntil > serverTime ? ` · ${duration(state.restUntil - serverTime)}` : ""}.
+            {recovering ? <>Recuperando forças{state.restUntil > serverTime ? ` · ${duration(state.restUntil - serverTime)}` : ""}.</>
+              : "Sentado. Retome a caça ou volte à cidade quando desejar."}
           </div>}
           {state.battle?.deadlineAt && <div className="hunt-detail-line">
             Tempo do desafio: {duration(state.battle.deadlineAt - serverTime)}.
@@ -236,66 +311,73 @@ function HuntExplorer({
     </section>
   );
 }
-function CombatJournal({ events, open }: { events: GameEvent[]; open: boolean }) {
+function ClassicShortcuts({ catalog, snapshot, onSkills }: Pick<PanelProps, "catalog" | "snapshot"> & { onSkills: (trigger: HTMLElement) => void }) {
+  const { state, stats, serverTime } = snapshot;
+  const movable = useDraggableWindow<HTMLDivElement>("skill-shortcuts", "atalhos de habilidades");
+  const [collapseEmpty, setCollapseEmpty] = useState(() => {
+    try { return localStorage.getItem("ragidle:shortcuts:collapse-empty:v1") === "1"; }
+    catch { return false; }
+  });
+  const [clock, setClock] = useState(() => performance.now());
+  const anchor = useRef({ serverTime, receivedAt: performance.now() });
+  if (anchor.current.serverTime !== serverTime) anchor.current = { serverTime, receivedAt: performance.now() };
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(performance.now()), 100);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("ragidle:shortcuts:collapse-empty:v1", collapseEmpty ? "1" : "0"); }
+    catch { /* The current choice still works when storage is unavailable. */ }
+  }, [collapseEmpty]);
+  const now = serverTime + Math.max(0, clock - anchor.current.receivedAt);
   return (
-    <Panel
-      title="Diário de combate"
-      aside={<span className="tiny-label">Recentes</span>}
-      className={`journal-panel ${open ? "mobile-open" : ""}`}
-    >
-      <div className="event-list" role="log" aria-live="off">
-        {[...events].reverse().slice(0, 30).map((event) => (
-          <div className={`event event-${event.kind}`} key={event.id}>
-            <time>
-              {new Date(event.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-            </time>
-            <span>
-              {event.text}
-              {event.amount !== undefined && <b className="event-amount"> · {number(event.amount)}</b>}
-            </span>
-          </div>
-        ))}
-        {events.length === 0 && (
-          <p className="journal-empty">
-            Seu diário aguarda a primeira aventura. Escolha uma área e comece a caçar.
-          </p>
-        )}
-      </div>
-    </Panel>
-  );
-}
-function EquipmentWindow({ catalog, snapshot, busy, command, onInventory }: PanelProps & { onInventory: () => void }) {
-  const { state } = snapshot;
-  return (
-    <div className="equipment-window">
-      <p className="ro-window-intro">Seu equipamento atual acompanha o personagem em toda caçada.</p>
-      <div className="equipment-list">
-        {(Object.keys(slots) as Slot[]).map((slot) => {
-          const entry = state.inventory.find((item) => item.uid === state.equipment[slot]);
-          const item = entry ? catalog.items[entry.itemId] : null;
-          return (
-            <div className={`equipment-row ${entry ? "" : "empty"}`} key={slot}>
-              <span className="slot-label">{slots[slot]}</span>
-              {entry && item ? (
-                <>
-                  <ItemIcon item={item} />
-                  <b title={itemName(item, entry)}>{itemName(item, entry)}</b>
-                  <button className="icon-button" title={`Desequipar ${slots[slot]}`}
-                    aria-label={`Desequipar ${slots[slot]}`} disabled={busy}
-                    onClick={() => void command({ type: "unequip", slot })}>×</button>
-                </>
-              ) : <span className="slot-empty">—</span>}
-            </div>
-          );
-        })}
-      </div>
-      <button className="ro-window-link" onClick={onInventory}>Abrir mochila</button>
+    <div ref={movable.ref} style={movable.style ? { ...movable.style, width: undefined } : undefined}
+      className={`classic-shortcuts${collapseEmpty ? " is-compact" : ""}`} role="group" aria-label="Atalhos de habilidades automáticas">
+      <span {...movable.handleProps} className="ro-drag-handle shortcut-drag-handle" aria-label="Mover atalhos de habilidades"><span aria-hidden="true">⋮</span></span>
+      {Array.from({ length: Math.max(9, state.rotation.length + 1) }, (_, index) => {
+        const skillId = state.rotation[index];
+        const skill = skillId ? catalog.skills[skillId] : undefined;
+        const readiness = skill ? skillReadiness(skill, state, stats, catalog, now) : null;
+        return skill ? (
+          <button type="button" className={`classic-shortcut ${readiness?.ready ? "is-ready" : "is-waiting"}`}
+            key={index} title={readiness?.label} aria-label={`Ver habilidades: ${readiness?.label}`}
+            onClick={event => onSkills(event.currentTarget)}>
+            <SkillIcon skill={skill} />
+            {!!readiness?.cooldownRemaining && <>
+              <span className="shortcut-cooldown-mask" style={{ height: `${readiness.cooldownFraction * 100}%` }} aria-hidden="true" />
+              <span className="shortcut-cooldown-seconds" aria-hidden="true">{Math.ceil(readiness.cooldownRemaining / 1000)}</span>
+            </>}
+            <span className="shortcut-readiness" aria-hidden="true" />
+          </button>
+        ) : skillId ? (
+          <button type="button" className="classic-shortcut" key={index}
+            title="Habilidade indisponível no catálogo · ver habilidades" aria-label="Ver habilidade indisponível"
+            onClick={event => onSkills(event.currentTarget)}><span aria-hidden="true">?</span></button>
+        ) : index === state.rotation.length ? (
+          <span className="classic-shortcut basic-attack" key={index} role="img"
+            aria-label="Ataque básico automático" title="Ataque básico automático">
+            <ItemIcon item={catalog.items[1101]} />
+          </span>
+        ) : collapseEmpty ? null : <span className="classic-shortcut empty" key={index} aria-hidden="true" />;
+      })}
+      <button type="button" className="shortcut-fold" aria-pressed={collapseEmpty}
+        aria-label={collapseEmpty ? "Expandir slots vazios dos atalhos" : "Recolher slots vazios dos atalhos"}
+        title={collapseEmpty ? "Expandir slots vazios" : "Recolher slots vazios"}
+        onClick={() => setCollapseEmpty(value => !value)}><span aria-hidden="true">{collapseEmpty ? "+" : "−"}</span></button>
     </div>
   );
 }
-export default function App() {
-  const game = useGame();
+export default function App({ identity, onAuthRequired }: { identity: AccountView; onAuthRequired: () => void }) {
+  const game = useGame(identity, onAuthRequired);
+  const auth = useAuth();
   const [activeWindow, setActiveWindow] = useState<GameWindow | null>(null);
+  const heroMovable = useDraggableWindow<HTMLElement>("hero-hud", "informações do personagem");
+  const windowMovable = useDraggableWindow<HTMLElement>(`window-${activeWindow ?? "closed"}`, activeWindow ? windowTitles[activeWindow] : "janela");
+  const [mapStatus, setMapStatus] = useState<MapStatus>({ map: "", phase: "loading", progress: 0 });
+  const [mapReload, setMapReload] = useState(0);
+  const [enteredWorld, setEnteredWorld] = useState(false);
+  const connectedBefore = useRef(false);
+  const previousConnection = useRef(false);
   const [bookOpen, setBookOpen] = useState(false);
   const [challengeFilter, setChallengeFilter] = useState<ChallengeFilter>("all");
   const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 640px)").matches);
@@ -322,6 +404,16 @@ export default function App() {
     query.addEventListener("change", update);
     return () => query.removeEventListener("change", update);
   }, []);
+  useEffect(() => {
+    if (game.connected && connectedBefore.current && !previousConnection.current) {
+      setEnteredWorld(false);
+      setActiveWindow(null);
+      setBookOpen(false);
+      setMapStatus({ map: "", phase: "loading", progress: 0 });
+    }
+    if (game.connected) connectedBefore.current = true;
+    previousConnection.current = game.connected;
+  }, [game.connected]);
   useEffect(() => {
     if (!game.snapshot || !game.catalog) return;
     const current = Object.fromEntries(game.catalog.quests.map((quest) =>
@@ -357,6 +449,12 @@ export default function App() {
     windowClose.current?.focus();
   }, [activeWindow]);
   const openWindow = (destination: GameWindow, trigger?: HTMLElement) => {
+    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist";
+    if (cityOnly && game.snapshot?.state.status !== "town") {
+      setBookOpen(false);
+      if (game.snapshot) void game.command({ type: "stop" });
+      return;
+    }
     if (trigger) windowTrigger.current = trigger;
     setBookOpen(false);
     setPotionEditor(null);
@@ -393,6 +491,7 @@ export default function App() {
     if (game.snapshot?.state.areaId) setAreaId(game.snapshot.state.areaId);
   }, [game.snapshot?.state.areaId]);
   useEffect(() => {
+    if (!game.snapshot) return;
     if (lastLootId.current === undefined) {
       lastLootId.current = newestLootId;
       return;
@@ -402,66 +501,39 @@ export default function App() {
     setLootPulse(true);
     const timeout = window.setTimeout(() => setLootPulse(false), 1500);
     return () => window.clearTimeout(timeout);
-  }, [newestLootId]);
+  }, [newestLootId, !!game.snapshot]);
   const { catalog, snapshot } = game;
+  const expectedMap = activeWindow === "shop" ? "prt_in" : isTownScene(snapshot?.state) ? "prontera"
+    : catalog?.areas.find(area => area.id === snapshot?.state.areaId)?.map ?? "prontera";
+  const mapMatches = mapStatus.map === expectedMap;
+  const loading = !catalog || !snapshot || (enteredWorld && (!mapMatches || mapStatus.phase !== "ready"));
+  const selectingCharacter = !!catalog && !!snapshot && !enteredWorld;
+  const loadingProgress = !catalog ? 0 : !snapshot ? 5 : mapMatches ? 10 + (mapStatus.progress ?? 0) * 0.9 : 10;
+  const loadingError = !catalog || !snapshot ? game.error ?? undefined
+    : enteredWorld && mapMatches && mapStatus.phase === "error" ? "O mapa não pôde ser carregado." : undefined;
+  const retryLoading = () => {
+    if (!catalog || !snapshot) { void game.retry(); return; }
+    setMapStatus({ map: expectedMap, phase: "loading", progress: 0 });
+    setMapReload(value => value + 1);
+  };
+  const enterWorld = () => {
+    setActiveWindow(null);
+    setBookOpen(false);
+    setMapStatus({ map: "", phase: "loading", progress: 0 });
+    setEnteredWorld(true);
+  };
+  const saveStatus = game.sending
+    ? "Salvando…"
+    : game.connected
+      ? "Progresso salvo"
+      : snapshot
+        ? "Reconectando"
+        : "Conectando";
   return (
-    <div className="game-shell">
+    <div className={`game-shell${loading ? " is-loading" : ""}${selectingCharacter ? " is-character-selecting" : ""}`}>
       <a className="skip-link" href="#adventure" inert={isMobile && !!activeWindow}>
         Ir para a aventura
       </a>
-      <header className="masthead" inert={isMobile && !!activeWindow}>
-        <a className="brand" href="/" aria-label="Ragnarok Old Times Idle">
-          <span className="brand-name">Ragnarok</span>
-          <span className="brand-subtitle">
-            Old Times <b>Idle</b>
-          </span>
-        </a>
-        <div className="header-divider" />
-        <div className="header-character">
-          {snapshot && catalog ? (
-            <>
-              <b>{snapshot.state.name}</b>
-              <span>{catalog.classes[snapshot.state.job].name}</span>
-            </>
-          ) : (
-            <>
-              <b>Rune-Midgard</b>
-              <span>Seu próximo capítulo</span>
-            </>
-          )}
-        </div>
-        {snapshot && catalog && (
-          <div className="header-levels">
-            <span>
-              BASE <b>{snapshot.state.baseLevel}</b>
-            </span>
-            <span>
-              JOB <b>{snapshot.state.jobLevel}</b>
-            </span>
-            <span className="zeny">
-              <i aria-hidden="true">Z</i>
-              <b>{number(snapshot.state.zeny)}</b> zeny
-            </span>
-          </div>
-        )}
-        <a className="classic-mode-link" href="http://localhost:3338/" target="_blank" rel="noreferrer">
-          RO clássico ↗
-        </a>
-        <div className="connection">
-          <span
-            className={`connection-light ${game.connected ? "online" : ""}`}
-          />
-          <span>
-            {game.sending
-              ? "Salvando…"
-              : game.connected
-                ? "Progresso salvo"
-                : snapshot
-                  ? "Reconectando"
-                  : "Conectando"}
-          </span>
-        </div>
-      </header>
       {game.error && (
         <div className="error-banner" role="alert">
           <div>
@@ -510,20 +582,15 @@ export default function App() {
           };
           const currentClass = catalog.classes[state.job];
           const area = catalog.areas.find((a) => a.id === state.areaId);
-          const mapName = state.status === "town" ? "prontera" : (area?.map ?? "prontera");
-          const mapLabel = state.status === "town" ? "Prontera" : (area?.name ?? "Prontera");
-          const carriedWeight = state.inventory.reduce(
-            (total, entry) => total + (catalog.items[entry.itemId]?.weight ?? 0) * entry.quantity,
-            0,
-          );
+          const mapName = isTownScene(state) ? "prontera" : (area?.map ?? "prontera");
+          const mapLabel = isTownScene(state) ? "Prontera" : (area?.name ?? "Prontera");
+          const load = inventoryLoad(state, catalog);
           const readyQuest = catalog.quests.find((quest) =>
             !state.quests[quest.id]?.claimed && (state.quests[quest.id]?.progress ?? 0) >= quest.amount,
           );
           const rewardedQuest = rewardQuestId
             ? catalog.quests.find((quest) => quest.id === rewardQuestId)
             : undefined;
-          const active =
-            state.status === "hunting" || state.status === "challenge";
           const baseGoal =
             (state.reborn
               ? (catalog.exp.baseTrans ?? catalog.exp.base)
@@ -533,14 +600,32 @@ export default function App() {
           return (
             <>
               <main id="adventure" className="cockpit">
-                <aside className="hero-column" inert={isMobile && !!activeWindow}>
+                <aside ref={heroMovable.ref} style={heroMovable.style} className="hero-column" inert={isMobile && !!activeWindow}>
                   <Panel
                     title=""
                     className="hero-panel"
                   >
-                    <div className="hero-identity" aria-label={`${state.name}, ${currentClass.name}`}>
+                    <div {...heroMovable.handleProps} className="ro-drag-handle hero-identity">
                       <h1>{state.name}</h1>
                       <span>· {currentClass.name}{state.reborn ? " · Transcendente" : ""}</span>
+                      <button type="button" className="hud-city-access" data-no-drag
+                        aria-label={state.status === "town" ? "Abrir serviços de Prontera" : "Voltar à cidade"}
+                        title={state.status === "town" ? "Serviços de Prontera" : "Voltar à cidade"}
+                        disabled={game.busy || (state.status === "resting" && state.restMode !== "field")}
+                        onClick={event => state.status === "town"
+                          ? openWindow("city", event.currentTarget)
+                          : void game.command({ type: "stop" })}>
+                        <svg className="hud-city-gate" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                          <path className="hud-city-gate-wall" d="M3.5 20V8.8l3.4-2.4v3.2L12 5.8l5.1 3.8V6.4l3.4 2.4V20H3.5Z" />
+                          <path className="hud-city-gate-door" d="M8.8 20v-5a3.2 3.2 0 0 1 6.4 0v5" />
+                          <path className="hud-city-gate-detail" d="M3.8 11.4h4m8.4 0h4M5.1 15h2.7m8.4 0h2.7M6.9 6.6v3m10.2-3v3M2.7 20h18.6" />
+                          <path className="hud-city-gate-emblem" d="m12 6.8 1.1 1.4L12 9.7l-1.1-1.5L12 6.8Z" />
+                        </svg>
+                      </button>
+                      <span className={`hud-save-indicator ${game.sending ? "is-saving" : game.connected ? "is-saved" : "is-reconnecting"}`}
+                        role="img" aria-label={saveStatus} title={saveStatus} tabIndex={0} data-no-drag>
+                        <i aria-hidden="true" />
+                      </span>
                     </div>
                     <div className="hero-vitals">
                       <div className="vital-row">
@@ -631,8 +716,15 @@ export default function App() {
                       />
                     </div>
                     <div className="classic-basic-resources">
-                      <span>Peso <b>{number(carriedWeight)}</b></span>
-                      <span>Zeny <b>{number(state.zeny)}</b></span>
+                      <span title={load.recoveryBlocked
+                        ? "Peso acima de 50%: recuperação natural de HP/SP bloqueada. Na cidade, abra a Mochila e venda loot comum para aliviar o peso."
+                        : "A recuperação natural de HP/SP é bloqueada a partir de 50% do peso máximo."}>
+                        Peso <b>{number(load.weight)} / {number(load.maxWeight)}</b>
+                        {load.recoveryBlocked && <b aria-label="Recuperação bloqueada pelo peso"> · 50%+</b>}
+                      </span>
+                      <span className="hud-zeny" title={`${number(state.zeny)} zeny`} aria-label={`${number(state.zeny)} zeny`}>
+                        <i aria-hidden="true">Z</i><b>{number(state.zeny)}</b>
+                      </span>
                     </div>
                     <nav className="classic-basic-menu" aria-label="Livro do aventureiro">
                       <button ref={bookTrigger} type="button" className="book-trigger" aria-expanded={bookOpen}
@@ -653,7 +745,7 @@ export default function App() {
                               title={label}
                               aria-pressed={activeWindow === destination}
                               onClick={(event) => openWindow(destination, bookTrigger.current ?? event.currentTarget)}>
-                              <img src={classicTexture(file)} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+                              <ClassicMenuIcon file={file} />
                               <span>{label}</span>
                             </button>
                           ))}
@@ -672,13 +764,30 @@ export default function App() {
                             </button>
                           ))}
                           <button type="button" className="ro-book-entry" aria-pressed={journalOpen}
+                            aria-label="Diário de combate" title="Diário de combate"
                             onClick={() => {
                               setJournalOpen((value) => !value); setBookOpen(false);
                               window.setTimeout(() => bookTrigger.current?.focus(), 0);
                             }}>
-                            <img src={classicTexture("btn_dialog_off.bmp")} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
-                            <span>Diário de combate</span>
+                            <ClassicMenuIcon file="btn_dialog_off.bmp" />
+                            <span>Diário</span>
                           </button>
+                          <button type="button" className="ro-book-entry"
+                            aria-label="Restaurar posições das janelas" title="Restaurar posições das janelas" onClick={() => {
+                            resetWindowPositions();
+                            setBookOpen(false);
+                            window.setTimeout(() => bookTrigger.current?.focus(), 0);
+                          }}>
+                            <span className="ro-book-entry-mark" aria-hidden="true">↺</span>
+                            <span>Restaurar HUD</span>
+                          </button>
+                          <Link className="ro-book-entry" href="/painel">Painel da conta</Link>
+                          <button type="button" className="ro-book-entry" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}>Sair da conta</button>
+                          <a className="ro-book-entry ro-book-classic-link" href={getClassicClientPaths(window.location).entry}
+                            target="_blank" rel="noreferrer" onClick={() => setBookOpen(false)}>
+                            <span className="ro-book-entry-mark" aria-hidden="true">↗</span>
+                            <span>RO clássico</span>
+                          </a>
                         </div>
                       </div>}
                     </nav>
@@ -722,76 +831,45 @@ export default function App() {
                         ? "Loja de poções de Prontera"
                         : state.status === "challenge"
                         ? "Arena de desafios"
-                        : state.status === "town"
+                        : isTownScene(state)
                           ? "Praça de Prontera"
                           : (area?.name ?? "Campos de Prontera")
                     }
                     aside={
                       <div className="scene-heading-tools">
-                        <span className={`hunt-indicator ${active ? "active" : ""}`}>
-                          {active ? "Em combate" : statusNames[state.status]}
-                        </span>
-                        <span className="scene-rates">
-                          EXP {catalog.rates.baseExp}× · Job {catalog.rates.jobExp}× · Drop {catalog.rates.drop}×
-                        </span>
-                        <AudioToggle map={mapName} />
+                        {enteredWorld && <AudioToggle map={activeWindow === "shop" ? "prt_in" : mapName} />}
                       </div>
                     }
                     className="scene-panel"
                   >
                     <div className="classic-map-stage">
-                      {activeWindow === "shop" ? <ShopScene /> : <Scene {...props} />}
-                      <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
-                        mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
-                      {activeWindow !== "shop" && <CombatJournal events={state.events} open={journalOpen} />}
-                      <div className="classic-shortcuts" role="group" aria-label="Atalhos de habilidades automáticas">
-                        {Array.from({ length: 9 }, (_, index) => {
-                          const skillId = index < 3 ? state.rotation[index] : undefined;
-                          const skill = skillId ? catalog.skills[skillId] : undefined;
-                          const readiness = skill ? skillReadiness(skill, state, stats, catalog, serverTime) : null;
-                          return skill ? (
-                            <button
-                              type="button"
-                              className={`classic-shortcut ${readiness?.ready ? "is-ready" : "is-waiting"}`}
-                              key={index}
-                              title={readiness?.label}
-                              aria-label={`Ver habilidades: ${readiness?.label}`}
-                              onClick={(event) => openWindow("skills", event.currentTarget)}
-                            >
-                              <small>F{index + 1}</small>
-                              <SkillIcon skill={skill} />
-                              <span className="shortcut-readiness" aria-hidden="true" />
-                            </button>
-                          ) : index === 3 ? (
-                            <span className="classic-shortcut basic-attack" key={index}
-                              role="img" aria-label="F4: ataque básico automático"
-                              title="Ataque básico automático">
-                              <small>F4</small>
-                              <ItemIcon item={catalog.items[1101]} />
-                            </span>
-                          ) : (
-                            <span className="classic-shortcut empty" key={index} aria-hidden="true">
-                              <small>F{index + 1}</small>
-                            </span>
-                          );
-                        })}
-                      </div>
-                      <button
-                        type="button"
-                        className="classic-chat-toggle"
-                        aria-expanded={journalOpen}
-                        onClick={() => setJournalOpen(!journalOpen)}
-                      >
-                        {journalOpen ? "Recolher chat" : "Diário de combate"}
-                      </button>
-                      <HuntExplorer {...props}
+                      {enteredWorld && <>
+                        {activeWindow === "shop" ? <ShopScene key={`shop-${mapReload}`} onMapStatusChange={setMapStatus} />
+                          : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} />}
+                        <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
+                          mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
+                        <ChatJournal {...props} identity={identity} onAuthRequired={onAuthRequired} isOpen={journalOpen} onOpenChange={setJournalOpen} />
+                        <RewardNotifications catalog={catalog} snapshot={snapshot}
+                          enabled={!loading && game.connected && enteredWorld} />
+                        <ClassicShortcuts catalog={catalog} snapshot={snapshot}
+                          onSkills={trigger => openWindow("skills", trigger)} />
+                        <button
+                          type="button"
+                          className="classic-chat-toggle"
+                          aria-expanded={journalOpen}
+                          onClick={() => setJournalOpen(!journalOpen)}
+                        >
+                          {journalOpen ? "Recolher chat" : "Diário de combate"}
+                        </button>
+                      </>}
+                      {enteredWorld && !activeWindow && <HuntExplorer {...props}
                         areaId={areaId}
                         setAreaId={setAreaId}
                         readyQuest={!!readyQuest}
                         launcherRef={huntTrigger}
                         openWindow={openWindow}
                         openChallenges={openChallenges}
-                      />
+                      />}
                     </div>
                   </Panel>
                 </section>
@@ -799,7 +877,7 @@ export default function App() {
                   <div className="ro-window-layer">
                     <button type="button" className="ro-window-backdrop"
                       aria-label="Fechar janela" onClick={closeWindow} />
-                    <section className={`ro-window ro-window-${activeWindow}`}
+                    <section ref={windowMovable.ref} style={windowMovable.style} className={`ro-window ro-window-${activeWindow}`}
                       role="dialog" aria-label={windowTitles[activeWindow]}
                       aria-modal={isMobile}
                       onKeyDown={(event) => {
@@ -818,7 +896,7 @@ export default function App() {
                           first.focus();
                         }
                       }}>
-                      <div className="ro-window-titlebar">
+                      <div {...windowMovable.handleProps} className="ro-drag-handle ro-window-titlebar">
                         <h2>{windowTitles[activeWindow]}</h2>
                         <button type="button" className="ro-window-close"
                           ref={windowClose} aria-label="Fechar janela"
@@ -827,7 +905,7 @@ export default function App() {
                       <div className="ro-window-content">
                         {activeWindow === "stats" && <Build {...props} mode="stats" />}
                         {activeWindow === "equipment" &&
-                          <EquipmentWindow {...props} onInventory={() => setActiveWindow("inventory")} />}
+                          <ClassicEquipment {...props} onInventory={() => setActiveWindow("inventory")} />}
                         {activeWindow === "inventory" && <Inventory {...props} />}
                         {activeWindow === "skills" && <Build {...props} mode="skills" />}
                         {activeWindow === "world" && <>
@@ -843,6 +921,10 @@ export default function App() {
                         {activeWindow === "classes" && <Classes {...props} />}
                         {activeWindow === "challenges" && <Challenges {...props} filter={challengeFilter} onFilterChange={setChallengeFilter} />}
                         {activeWindow === "shop" && <Shop {...props} />}
+                        {activeWindow === "city" && <CityServices onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
+                        {activeWindow === "blacksmith" && <Blacksmith {...props} />}
+                        {activeWindow === "stylist" && <Stylist {...props} />}
+                        {activeWindow === "admin" && <Admin {...props} onChanged={() => void game.retry()} />}
                       </div>
                       {rewardedQuest && <QuestReward quest={rewardedQuest}
                         catalog={catalog} onClose={dismissReward} />}
@@ -852,17 +934,21 @@ export default function App() {
                 {!activeWindow && rewardedQuest && <QuestReward quest={rewardedQuest}
                   catalog={catalog} onClose={dismissReward} />}
               </main>
-              <Offline
+              {enteredWorld && !loading && <Offline
                 {...props}
                 error={game.error}
                 retryable={game.retryable}
                 sending={game.sending}
                 retry={game.retry}
-              />
+              />}
             </>
           );
         })()
       )}
+      {selectingCharacter && catalog && snapshot && <CharacterSelect catalog={catalog} snapshot={snapshot}
+        error={game.error} retrying={game.sending}
+        onRetry={() => void game.retry()} onEnter={enterWorld} />}
+      {loading && <ClassicLoading progress={loadingProgress} error={loadingError} onRetry={retryLoading} />}
     </div>
   );
 }

@@ -14,9 +14,10 @@
       }
     </style>
     <script>
+      const localHost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
       window.ROConfig = {
         idleScene: true,
-        remoteClient: 'http://127.0.0.1:8080/',
+        remoteClient: localHost ? 'http://127.0.0.1:8080/' : '/assets/',
         saveFiles: false
       };
     </script>
@@ -24,12 +25,13 @@
   <body>
     <div id="map-idle-status" role="status">Carregando mapa original…</div>
     <script type="module">
-      import('./MapViewer.js').catch(() => {
+      import('./MapViewer.js?v=20261007-areas14').catch(() => {
         const status = document.getElementById('map-idle-status');
         status.textContent = 'O visualizador do mapa original não pôde iniciar.';
         let parentOrigin;
         try { parentOrigin = new URL(document.referrer).origin; } catch { return; }
-        if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
+        const localParent = /^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin);
+        if (parentOrigin !== window.location.origin && !localParent) return;
         const map = decodeURIComponent(location.hash.slice(1)).replace(/\.rsw$/i, '').toLowerCase();
         window.parent.postMessage({ type: 'ragidle-map-error', map }, parentOrigin);
       });
