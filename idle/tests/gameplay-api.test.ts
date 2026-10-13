@@ -13,7 +13,10 @@ const catalog = catalogJSON as unknown as Catalog;
 class MemoryRepository implements StateRepository {
   constructor(public state: GameState) {}
   receipts = new Map<string, string>();
+  readCount = 0;
+  transactionCount = 0;
   async transact(id: string | null, action: (s: GameState) => GameState, fingerprint = '') {
+    this.transactionCount++;
     if (id && this.receipts.has(id)) {
       if (this.receipts.get(id) !== fingerprint) throw Object.assign(new Error('retry identifier reused'), { code: 'REQUEST_REUSED' });
       return structuredClone(this.state);
@@ -24,15 +27,18 @@ class MemoryRepository implements StateRepository {
     if (id) this.receipts.set(id, fingerprint);
     return structuredClone(next);
   }
-  async read() { return structuredClone(this.state); }
+  async read() { this.readCount++; return structuredClone(this.state); }
   async health() { return true; }
 }
 const apps: ReturnType<typeof buildApp>[] = [];
 afterEach(async () => { for (const app of apps.splice(0)) await app.close(); });
-function setup(allowedOrigins?: readonly string[]) {
+function setup(allowedOrigins?: readonly string[], options: { navigationReady?: boolean; status?: GameState['status']; adminToken?: string } = {}) {
   let now = 1000;
   const repository = new MemoryRepository(createInitialState(catalog, now));
-  const app = buildApp({ catalog, repository, now: () => now, ...(allowedOrigins ? { allowedOrigins } : {}) });
+  repository.state.status = options.status ?? 'town';
+  const app = buildApp({ catalog, repository, now: () => now, ...(allowedOrigins ? { allowedOrigins } : {}),
+    ...(options.navigationReady === undefined ? {} : { navigationReady: options.navigationReady }),
+    ...(options.adminToken ? { adminToken: options.adminToken } : {}) });
   apps.push(app);
   return { app, repository, advance: (ms: number) => { now += ms; } };
 }
@@ -160,4 +166,38 @@ describe('idle HTTP intentions', () => {
     expect(back.json().offlineSummary.elapsedMs).toBe(12 * 60 * 60 * 1000);
     expect(back.json().state.lastSeenAt).toBe(13 * 60 * 60 * 1000 + 1000);
   });
+
+  it.each(['town', 'challenge', 'hunting'] as const)(
+    'keeps profile and command receipts untouched when navigation is unavailable in %s', async status => {
+      const adminToken = 'admin-test-token-with-at-least-thirty-two-characters';
+      const { app, repository } = setup(undefined, { navigationReady: false, status, adminToken });
+      await app.ready();
+      const login = await app.inject({ method: 'POST', url: '/api/admin/session', payload: { token: adminToken } });
+      expect(login.statusCode).toBe(200);
+      const adminCookieHeader = login.headers['set-cookie'];
+      const adminCookie = (Array.isArray(adminCookieHeader) ? adminCookieHeader[0] : adminCookieHeader)!.split(';', 1)[0];
+      repository.readCount = 0;
+      repository.transactionCount = 0;
+      const before = JSON.stringify(repository.state);
+
+      const writes = [
+        { method: 'POST', url: '/api/session/open', payload: { connectionId: '12345678-1234-1234-1234-123456789abc' } },
+        { method: 'POST', url: '/api/session', payload: {} },
+        { method: 'POST', url: '/api/command', payload: { requestId: `blocked-${status}-0001`, command: { type: 'buy', itemId: 501, quantity: 1 } } },
+        { method: 'POST', url: '/api/admin/action', headers: { cookie: adminCookie },
+          payload: { requestId: `admin-block-${status}-01`, action: { type: 'zeny', amount: 500 } } },
+      ] as const;
+      for (const write of writes) {
+        const response = await app.inject(write);
+        expect(response.statusCode).toBe(503);
+        expect(response.json().error).toMatchObject({ code: 'FIELD_NAVIGATION_UNAVAILABLE', message: expect.any(String) });
+      }
+      expect(repository.readCount).toBe(0);
+      expect(repository.transactionCount).toBe(0);
+      expect(repository.receipts.size).toBe(0);
+      expect(JSON.stringify(repository.state)).toBe(before);
+      expect((await app.inject('/api/catalog')).statusCode).toBe(200);
+      expect((await app.inject('/api/health')).statusCode).toBe(503);
+      expect((await app.inject('/api/auth/me')).statusCode).toBe(200);
+    });
 });

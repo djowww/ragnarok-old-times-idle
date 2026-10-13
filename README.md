@@ -18,6 +18,7 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
 - Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.
+- Personagem e monstros seguem rotas calculadas pelas células transitáveis dos 29 mapas. Servidor e cena compartilham o caminho e o tempo de chegada, respeitando paredes e cantos das diagonais.
 - Árvores de 40 classes: 348 habilidades importadas, com 252 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
 - Livros, Perícia com Livro e os quatro encantamentos elementais do Sábio, com conjuração, reagentes, chance de falha e quebra de arma. O ferreiro repara equipamentos quebrados sem perder refino, cartas ou raridade.
 - Ghostring, Moonlight Flower, Orc Lord e Thanatos lançam as magias selecionadas de suas tabelas clássicas. Sábios e Professores podem interceptá-las com Magic Rod, por ativação manual ou pela rotação automática.
@@ -137,7 +138,13 @@ docker compose restart asset-service
 docker compose logs -f asset-service
 ```
 
-Sem os recursos locais, a aplicação ainda pode iniciar, mas mapas, sprites, ícones e música originais não estarão disponíveis. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
+Depois que o serviço de assets estiver pronto, reinicie o Idle para carregar as células transitáveis dos mapas:
+
+```powershell
+docker compose restart idle-game
+```
+
+O portal pode iniciar sem recursos locais, mas a aventura depende dos arquivos GAT dos 29 mapas ou de seu cache validado. Se esse carregamento falhar, o jogo fica indisponível e o progresso permanece preservado. Mapas, sprites, ícones e música também dependem do cliente local. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
 
 A associação entre mapas e músicas é gerada de `data/mp3nametable.txt` do cliente, incluindo fields, dungeons e interiores. Para atualizar os metadados ao trocar de cliente, execute `node idle/tools/export-map-bgm.mjs --asset-origin http://localhost:8080`. A tabela gerada registra o hash da fonte e não contém áudio.
 

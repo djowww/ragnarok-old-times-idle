@@ -1,7 +1,7 @@
 import type { Catalog, GameState, Skill } from "../shared/types.js";
 import { derivedStats, inventoryLoad } from "./stats.js";
 import { classicBuffActive, cancelClassicBuff } from "./classicBuffs.js";
-import { fieldHeroWalking, battleHeroAt } from "../shared/battleSpatial.js";
+import { fieldHeroWalking, battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
 import { soloRecoveryBlocked } from './soloStanceRuntime.js';
 
 import { playerRecoveryBlocked } from './playerStatuses.js';
@@ -35,7 +35,7 @@ export function endFieldRest(s: GameState, c: Catalog) {
 export function sitInField(s: GameState, at: number) {
   if (s.fieldHero?.areaId === s.areaId) {
     const position = battleHeroAt(s, at);
-    Object.assign(s.fieldHero, { from: position, position, startedAt: at, arrivedAt: at, phase: 'waiting' });
+    stopHeroMovement(s.fieldHero, position, at); s.fieldHero.phase = 'waiting';
     delete s.fieldHero.targetId; delete s.fieldHero.moveBlockedUntil;
   }
   s.status = 'resting'; s.restMode = 'field'; s.restUntil = 0;

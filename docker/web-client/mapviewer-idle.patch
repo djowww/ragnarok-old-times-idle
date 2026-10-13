@@ -2,7 +2,7 @@ diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
 index 4e3faeb..6281733 100644
 --- a/src/App/MapViewer.js
 +++ b/src/App/MapViewer.js
-@@ -22,12 +22,182 @@ import Entity from 'Renderer/Entity/Entity.js';
+@@ -22,12 +22,188 @@ import Entity from 'Renderer/Entity/Entity.js';
  import Mouse from 'Controls/MouseEventHandler.js';
  import MapControl from 'Controls/MapControl.js';
  import Intro from 'UI/Components/Intro/Intro.js';
@@ -16,37 +16,37 @@ index 4e3faeb..6281733 100644
 +// RagIDLE uses the pinned MapViewer as a read-only backdrop for its idle scene.
 +// The source scene files remain in the user's local GRF mount.
 +const idleSceneMaps = Object.freeze({
-+	prontera: [155, 187],
-+	prt_in: [130, 76],
-+	prt_fild00: [199, 199],
-+	prt_fild01: [199, 199],
-+	prt_fild02: [199, 199],
-+	prt_fild08: [199, 199],
-+	prt_sewb1: [178, 186],
-+	prt_fild04: [243, 155],
-+	prt_fild03: [199, 149],
-+	prt_fild05: [199, 199],
-+	prt_fild06: [199, 199],
-+	prt_fild07: [225, 200],
-+	prt_fild09: [200, 200],
-+	prt_fild10: [200, 200],
-+	prt_fild11: [200, 200],
-+	gef_fild00: [200, 200],
-+	gef_fild02: [227, 209],
-+	gef_fild09: [200, 200],
-+	pay_fild01: [200, 200],
-+	pay_fild04: [200, 200],
-+	pay_fild09: [200, 200],
-+	pay_dun00: [127, 85],
-+	iz_dun01: [143, 169],
-+	gef_fild10: [205, 211],
-+	moc_pryd02: [101, 77],
-+	gef_dun02: [125, 113],
-+	gl_knt01: [161, 157],
-+	prt_sewb2: [178, 186],
-+	pay_dun01: [127, 85],
-+	iz_dun02: [143, 169],
-+	orcsdun01: [100, 100]
++	prontera: true,
++	prt_in: true,
++	prt_fild00: true,
++	prt_fild01: true,
++	prt_fild02: true,
++	prt_fild08: true,
++	prt_sewb1: true,
++	prt_fild04: true,
++	prt_fild03: true,
++	prt_fild05: true,
++	prt_fild06: true,
++	prt_fild07: true,
++	prt_fild09: true,
++	prt_fild10: true,
++	prt_fild11: true,
++	gef_fild00: true,
++	gef_fild02: true,
++	gef_fild09: true,
++	pay_fild01: true,
++	pay_fild04: true,
++	pay_fild09: true,
++	pay_dun00: true,
++	iz_dun01: true,
++	gef_fild10: true,
++	moc_pryd02: true,
++	gef_dun02: true,
++	gl_knt01: true,
++	prt_sewb2: true,
++	pay_dun01: true,
++	iz_dun02: true,
++	orcsdun01: true
 +});
 +const idleScene = Configs.get('idleScene', false);
 +let idleSceneName = '';
@@ -73,7 +73,7 @@ index 4e3faeb..6281733 100644
 +	if ((parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) || event.origin !== parentOrigin) return;
 +	const data = event.data;
 +	if (!data || typeof data !== 'object' || data.map !== idleSceneName) return;
-+	if (IdleActors.receive(data, parentOrigin, idleSceneName, idleSceneBaseSpot, Renderer.getContext())) return;
++	if (IdleActors.receive(data, parentOrigin, idleSceneName, Renderer.getContext())) return;
 +	if (data.type !== 'ragidle-map-follow') return;
 +	if (data.world === null) {
 +		idleSceneFollowWorld = null;
@@ -82,7 +82,7 @@ index 4e3faeb..6281733 100644
 +	const world = data.world;
 +	if (!Array.isArray(world) || world.length !== 3 || !world.every(value => typeof value === 'number' && Number.isFinite(value))) return;
 +	// Camera focuses on cell centers: mesh [x,height,y] maps to spot [x-.5,y-.5,-height].
-+	if (Math.abs(world[0] - 0.5 - idleSceneBaseSpot[0]) > 24 || Math.abs(world[2] - 0.5 - idleSceneBaseSpot[1]) > 24) return;
++	if (!IdleActors.isMapWorldInBounds(world)) return;
 +	idleSceneFollowWorld = world.slice();
 +}
 +
@@ -110,6 +110,12 @@ index 4e3faeb..6281733 100644
 +	const following = idleSceneFollowWorld !== null || (idleSceneWorldFocus &&
 +		Array.from(Camera.focus).some((value, axis) => Math.abs(value - idleSceneWorldFocus[axis]) > 0.001));
 +	if (window.parent === window || tick - idleSceneCameraTick < (following ? 16 : 100)) return;
++	const sampleX = Math.floor(MapViewer.spot.position[0]) - 32;
++	const sampleY = Math.floor(MapViewer.spot.position[1]) - 32;
++	if (idleSceneGround && (Math.abs(sampleX - idleSceneGround.x) >= 8 || Math.abs(sampleY - idleSceneGround.y) >= 8)) {
++		idleSceneGround = idleSceneSampleGround();
++		idleSceneGroundSent = false;
++	}
 +	let parentOrigin;
 +	try {
 +		parentOrigin = new URL(document.referrer).origin;
@@ -185,7 +191,7 @@ index 4e3faeb..6281733 100644
  /**
   * @var {object} Entity to target
   */
-@@ -45,6 +211,47 @@ MapViewer.dropDown = null;
+@@ -45,6 +217,47 @@ MapViewer.dropDown = null;
  MapViewer.init = function Init() {
  	// Increase max intersection test (because of the max zoom)
  	Altitude.MAX_INTERSECT_COUNT = 500;
@@ -233,7 +239,7 @@ index 4e3faeb..6281733 100644
  
  	let ready = false;
  	let maptoload = '';
-@@ -111,12 +318,27 @@ MapViewer.init = function Init() {
+@@ -111,12 +324,27 @@ MapViewer.init = function Init() {
  
  		// Initialize renderer
  		q.add(function () {
@@ -263,7 +269,7 @@ index 4e3faeb..6281733 100644
  			Intro.onFilesSubmit = function (files) {
  				Client.onFilesLoaded = q.next;
  				Client.init(files);
-@@ -132,6 +354,14 @@ MapViewer.init = function Init() {
+@@ -132,6 +360,14 @@ MapViewer.init = function Init() {
  		MapRenderer.onLoad = MapViewer.onLoad;
  		MapControl.init();
  		MapControl.onRequestWalk = MapViewer.onMouseDown;
@@ -278,7 +284,7 @@ index 4e3faeb..6281733 100644
  
  		// Direct access from API
  		if (Configs.get('api')) {
-@@ -175,16 +405,27 @@ MapViewer.init = function Init() {
+@@ -175,16 +405,37 @@ MapViewer.init = function Init() {
  MapViewer.onLoad = function () {
  	BGM.stop();
  
@@ -289,7 +295,17 @@ index 4e3faeb..6281733 100644
  
 -	MapViewer.spot.position[0] = Altitude.width >> 1;
 -	MapViewer.spot.position[1] = Altitude.height >> 1;
-+	const idleFocus = idleScene ? idleSceneMaps[idleSceneName] : null;
++	const params = new URLSearchParams(location.search);
++	const rawOriginX = params.get('originX'), rawOriginY = params.get('originY');
++	const hasIdleOrigin = rawOriginX !== null || rawOriginY !== null;
++	const originX = rawOriginX !== null && /^\d+$/.test(rawOriginX) ? Number(rawOriginX) : NaN;
++	const originY = rawOriginY !== null && /^\d+$/.test(rawOriginY) ? Number(rawOriginY) : NaN;
++	if (idleScene && hasIdleOrigin && (!Number.isSafeInteger(originX) || !Number.isSafeInteger(originY) ||
++		originX < 0 || originY < 0 || originX >= Altitude.width || originY >= Altitude.height)) {
++		idleSceneNotify('ragidle-map-error', 'A origem GAT deste mapa é inválida.');
++		return;
++	}
++	const idleFocus = idleScene && hasIdleOrigin ? [originX, originY] : null;
 +	MapViewer.spot.position[0] = idleFocus ? idleFocus[0] : Altitude.width >> 1;
 +	MapViewer.spot.position[1] = idleFocus ? idleFocus[1] : Altitude.height >> 1;
  	MapViewer.spot.position[2] = Altitude.getCellHeight(MapViewer.spot.position[0], MapViewer.spot.position[1]);
@@ -314,7 +330,7 @@ new file mode 100644
 index 0000000..02a18d9
 --- /dev/null
 +++ b/src/Renderer/IdleActors.js
-@@ -0,0 +1,349 @@
+@@ -0,0 +1,356 @@
 +/** RagIDLE presentation bridge. Simulation and animation poses stay in the parent. */
 +import SpriteRenderer from 'Renderer/SpriteRenderer.js';
 +import Ground from 'Renderer/Map/Ground.js';
@@ -346,6 +362,13 @@ index 0000000..02a18d9
 +
 +const finite = (value, max = 8192) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= max;
 +const vector = (value, size, max = 8192) => Array.isArray(value) && value.length === size && value.every(v => finite(v, max));
++function isMapWorldInBounds(world) {
++  return Array.isArray(world) && world.length === 3 &&
++    Number.isSafeInteger(Altitude.width) && Altitude.width > 0 &&
++    Number.isSafeInteger(Altitude.height) && Altitude.height > 0 &&
++    world.every(value => typeof value === 'number' && Number.isFinite(value)) &&
++    world[0] >= 0 && world[0] < Altitude.width && world[2] >= 0 && world[2] < Altitude.height;
++}
 +
 +function notify(type, extra = {}) {
 +  if (session && origin) window.parent.postMessage({ type, map, session, ...extra }, origin);
@@ -397,7 +420,7 @@ index 0000000..02a18d9
 +  try { notify('ragidle-map-actors-error'); } catch { /* Parent freshness timeout also restores fallback. */ }
 +}
 +
-+function receiveMessage(data, parentOrigin, mapName, baseSpot, gl) {
++function receiveMessage(data, parentOrigin, mapName, gl) {
 +  if (!gl || !data || typeof data !== 'object' || data.map !== mapName ||
 +    typeof data.session !== 'string' || !/^[a-f\d-]{36}$/i.test(data.session)) return false;
 +  if (data.type === 'ragidle-map-actors-init') {
@@ -480,7 +503,7 @@ index 0000000..02a18d9
 +  const next = [];
 +  for (const actor of data.actors) {
 +    if (!actor || typeof actor.id !== 'string' || !actor.id || actor.id.length > 160 || !vector(actor.world, 3, 2048) ||
-+      Math.abs(actor.world[0] - .5 - baseSpot[0]) > 24 || Math.abs(actor.world[2] - .5 - baseSpot[1]) > 24 ||
++      !isMapWorldInBounds(actor.world) ||
 +      !Array.isArray(actor.layers) || !actor.layers.length || actor.layers.length > 128) continue;
 +    if (!actor.layers.every(layer => layer && typeof layer.frame === 'string' && /^f\d{1,12}$/.test(layer.frame) &&
 +      finite(layer.x) && finite(layer.y) && finite(layer.width) && finite(layer.height) && finite(layer.angle, 360000) &&
@@ -500,8 +523,8 @@ index 0000000..02a18d9
 +  return true;
 +}
 +
-+function receive(data, parentOrigin, mapName, baseSpot, gl) {
-+  try { return receiveMessage(data, parentOrigin, mapName, baseSpot, gl); }
++function receive(data, parentOrigin, mapName, gl) {
++  try { return receiveMessage(data, parentOrigin, mapName, gl); }
 +  catch { disable(gl); return true; }
 +}
 +
@@ -663,7 +686,7 @@ index 0000000..02a18d9
 +  catch { disable(gl); }
 +}
 +
-+export default { receive, render, release };
++export default { receive, render, release, isMapWorldInBounds };
 diff --git a/src/Renderer/MapRenderer.js b/src/Renderer/MapRenderer.js
 index be5fd21..d1f1b99 100644
 --- a/src/Renderer/MapRenderer.js

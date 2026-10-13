@@ -257,6 +257,8 @@ export interface Area {
   monsters: number[];
   scene:
     "field" | "forest" | "sewer" | "cave" | "sea" | "orc" | "desert" | "castle";
+  /** Safe rendering metadata; source GAT cells and masks stay server-private. */
+  fieldNavigation?: { map: string; origin: { x: number; y: number }; homeOffsets: readonly { x: number; y: number }[] };
 }
 export type HuntFocus = "any" | `monster:${number}` | `element:${string}`;
 export interface AreaActivityBucket {
@@ -350,6 +352,12 @@ export interface BattleEnemy {
   engaged?: boolean;
   /** Arrival starts here; position is its contact destination until arrivedAt. */
   approachFrom?: { x: number; y: number };
+  /** Optional schemaVersion 1 movement waypoints; absent on legacy saves. */
+  movementRoute?: { x: number; y: number }[];
+  movementTargetKey?: string;
+  movementTargetWithinRange?: boolean;
+  /** Cached source cell speed for retiming an active route after a speed change. */
+  movementSpeedMs?: number;
   /** Immobilization freezes the shared server/client arrival interpolation. */
   approachPausedAt?: number;
   /** Next movement decision while the source SC_CONFUSION is active. */
@@ -636,6 +644,12 @@ export interface GameState {
     startedAt: number;
     arrivedAt: number;
     routeIndex: number;
+    /** Optional schemaVersion 1 movement waypoints; absent on legacy saves. */
+    movementRoute?: { x: number; y: number }[];
+    movementTargetKey?: string;
+    movementTargetWithinRange?: boolean;
+    /** Cached source cell speed for retiming an active route after a speed change. */
+    movementSpeedMs?: number;
     phase?: "seeking" | "chasing" | "fighting" | "waiting";
     targetId?: string;
     moveBlockedUntil?: number;

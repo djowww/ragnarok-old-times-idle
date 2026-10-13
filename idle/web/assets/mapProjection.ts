@@ -1,3 +1,6 @@
+import { BATTLE_CELLS_PER_UNIT, BATTLE_HERO } from '../../shared/battleSpatial.js';
+import { gridRouteLength, type GridPoint } from '../../shared/fieldNavigation.js';
+
 /** Camera and terrain data from the pinned roBrowser map renderer. */
 export interface MapProjection {
   map: string;
@@ -12,6 +15,7 @@ export interface MapProjection {
 }
 
 export type WorldPoint = [number, number, number];
+export type FieldMapOrigin = { x: number; y: number };
 const finiteArray = (value: unknown, length: number): value is number[] =>
   Array.isArray(value) && value.length === length && value.every((entry) => typeof entry === "number" && Number.isFinite(entry));
 
@@ -70,6 +74,27 @@ export function mapGroundWalkable(camera: MapProjection, x: number, y: number): 
 
 export function mapCellPoint(camera: MapProjection, x: number, y: number): WorldPoint {
   return [x + 0.5, mapGroundHeight(camera, x, y), y + 0.5];
+}
+
+/** Convert an authoritative battle coordinate to its native GAT world position. */
+export function projectBattlePoint(camera: MapProjection, point: { x: number; y: number }, origin: FieldMapOrigin): WorldPoint {
+  const x = origin.x + 0.5 + (point.x - BATTLE_HERO.x) * BATTLE_CELLS_PER_UNIT;
+  const y = origin.y + 0.5 + (point.y - BATTLE_HERO.y) * BATTLE_CELLS_PER_UNIT;
+  return [x, mapGroundHeight(camera, x - 0.5, y - 0.5), y];
+}
+
+/** Return the next shared route waypoint for tangent facing, with terrain height sampled by the viewer. */
+export function battleRouteTangent(camera: MapProjection, route: readonly GridPoint[], fraction: number, origin: FieldMapOrigin): WorldPoint {
+  if (!route.length) return camera.focus as WorldPoint;
+  const length = gridRouteLength(route) * BATTLE_CELLS_PER_UNIT;
+  let distance = Math.max(0, Math.min(1, fraction)) * length;
+  for (let index = 1; index < route.length; index++) {
+    const previous = route[index - 1], next = route[index];
+    const segment = Math.hypot(next.x - previous.x, next.y - previous.y) * BATTLE_CELLS_PER_UNIT;
+    if (segment > 0 && distance < segment) return projectBattlePoint(camera, next, origin);
+    distance -= segment;
+  }
+  return projectBattlePoint(camera, route.at(-1)!, origin);
 }
 
 /** Engine formation coordinates become local map cell offsets around the focus. */
