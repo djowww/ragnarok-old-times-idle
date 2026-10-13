@@ -10,6 +10,7 @@ import { isIP } from 'node:net';
 import type { StateRepository } from './repository.js';
 import { ValidationError } from './validation.js';
 import type { SimulationContext } from '../engine/fieldNavigation.js';
+import { canReceiveItem } from '../engine/itemCapacity.js';
 
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
@@ -214,6 +215,8 @@ function applyAction(state: GameState, catalog: Catalog, action: AdminAction, at
       if (!item) throw new GameError('INVALID_ITEM', 'Esse item não existe no catálogo.');
       if (item.type === 'equipment' && action.quantity > 20)
         throw new GameError('INVALID_QUANTITY', 'Conceda no máximo 20 equipamentos por operação.');
+      if (!canReceiveItem(state, catalog, action.itemId, action.quantity))
+        throw new GameError('WEIGHT_LIMIT', 'A quantidade ultrapassaria o limite de peso da mochila.');
       addItem(state, catalog, action.itemId, action.quantity);
       event(state, at, 'admin', `Painel administrativo: ${action.quantity}× ${item.name}.`, undefined, undefined,
         { itemId: action.itemId, quantity: action.quantity });

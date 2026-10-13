@@ -42,6 +42,9 @@ import { clearCloseConfine } from './rgCloseConfine.js';
 import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
 import { magicRodWindow } from './monsterMagic.js';
 import { activePlayerStatus } from './playerStatuses.js';
+import { collectPendingLoot } from './lootPickup.js';
+import { canReceiveItem, overweightForCombat } from './itemCapacity.js';
+import { returnForCarry } from './carryReturn.js';
 import { isEquipmentBroken } from './equipmentCondition.js';
 import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { interruptSageEnchantCast } from './sageEnchantments.js';
@@ -87,6 +90,11 @@ export function executeCommand(
       'Trick Dead impede movimento, itens e outras habilidades.');
   }
   switch (command.type) {
+    case 'collectPendingLoot': {
+      town(s);
+      collectPendingLoot(s, c, now);
+      break;
+    }
     case 'setMount': {
       requireRule(typeof command.mounted === 'boolean', 'INVALID_MOUNT', 'Escolha montar ou desmontar.');
       requireRule(!command.mounted || canPecoMount(s, c), 'MOUNT_UNAVAILABLE',
@@ -105,6 +113,7 @@ export function executeCommand(
         applyBacksliding(s, c, skill, level, now, context);
         break;
       }
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de usar habilidades.');
       if (skill?.sourceName && ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
         requireRule(sageEnchantCanStart(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
           'Equipe uma arma intacta, tenha 40 SP e o reagente correto; uma propriedade incompatível impede o encantamento.');
@@ -230,6 +239,7 @@ export function executeCommand(
             sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
           break;
         }
+        requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de ativar habilidades.');
         const inField = !!s.areaId && (s.status === 'hunting' || isFieldSitting(s)) ||
           s.status === 'challenge' && !!s.battle;
         requireRule(inField && s.hp > 0, 'FIELD_REQUIRED',
@@ -263,6 +273,7 @@ export function executeCommand(
       requireRule(shrink || !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'KN_AUTOCOUNTER'].some(source => classicBuffActive(s, c, source, now)),
         'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar esta habilidade.');
       if (toggleClassicBuff(s, c, skill, s.learnedSkills[skill.id], now)) break;
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de ativar habilidades.');
       if (shrink) {
         requireRule(guardianShieldEquipped(s, c), 'SHIELD_REQUIRED', 'Equipe um escudo para ativar Shrink.');
         requireRule(s.hp > 0 && paySkillResources(s, c, skill, s.learnedSkills[skill.id], now),
@@ -327,6 +338,7 @@ export function executeCommand(
         "Encerre o desafio antes de caçar.",
       );
       requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP na cidade.");
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de iniciar uma caça.');
       if (s.status === "hunting" && s.areaId === area.id) {
         s.pendingAreaId = null;
         break;
@@ -552,6 +564,7 @@ export function executeCommand(
         "INVALID_QUANTITY",
         "Quantidade inválida.",
       );
+      requireRule(canReceiveItem(s, c, item.id, command.quantity), 'WEIGHT_LIMIT', 'A compra excede a capacidade da mochila.');
       spend(s, merchantPrice(s, c, item.buyPrice, "buy") * command.quantity);
       addItem(s, c, item.id, command.quantity);
       break;
@@ -844,7 +857,7 @@ export function executeCommand(
         "Missão incompleta ou recompensa já resgatada.",
       );
       saved.claimed = true;
-      grantReward(s, c, q.reward, now);
+      grantReward(s, c, q.reward, now, { source: 'quest', questId: q.id, areaId: s.areaId ?? undefined });
       event(s, now, "quest", `Missão concluída: ${q.name}.`);
       break;
     }
@@ -862,6 +875,7 @@ export function executeCommand(
         "Aguarde o intervalo de uma hora do desafio.",
       );
       requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP primeiro.");
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de iniciar um desafio.');
       interruptSageEnchantCast(s, c, now);
       s.status = "challenge";
       beginBattle(s, c, ch.monsterId, now, ch.id, context);
@@ -873,6 +887,8 @@ export function executeCommand(
     default:
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
+  if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
+    returnForCarry(s, c, now);
   if (classicGroundSceneKey(s) !== previousScene) clearClassicGrounds(s, c);
   clampResources(s, c);
   updateQuests(s, c);

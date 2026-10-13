@@ -19,7 +19,8 @@ function setup(source: 'ALL_RESURRECTION' | 'PF_SOULCHANGE', level = source === 
     ...(source === 'ALL_RESURRECTION' && { kind: 'magical', damageType: 'magic', targetType: 'enemy', ignoreDefense: false }) };
   c.skills[skill.id] = skill;
   c.classes[jobId] = { ...structuredClone(catalog.classes[jobId]), hp: Array(99).fill(2000),
-    sp: Array(99).fill(1000), jobBonuses: {}, baseWeight: 1, skills: [skill.id] };
+    // Keep the fixture above the 50% regeneration limit, below the 90% attack limit.
+    sp: Array(99).fill(1000), jobBonuses: {}, baseWeight: 45, skills: [skill.id] };
   c.items[717] = structuredClone(catalog.items[717]);
   c.elementModifiers = { holy: { undead: [100] } };
   Object.assign(c.monsters[1002], { hp: 2000, attack: [0, 0], baseExp: 0, jobExp: 0,
