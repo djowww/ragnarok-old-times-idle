@@ -81,7 +81,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 252, unsupported: 96 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
         expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 41, unsupported: 8 });
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_MINDBREAKER');
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_FOGWALL');
@@ -117,7 +117,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 252, unsupported: 96 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
         expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 29, unsupported: 5 });
         expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 33, unsupported: 5 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
@@ -286,7 +286,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(707);
         expect(data.areas).toHaveLength(29);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 252, unsupported: 96 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 253, unsupported: 95 });
         expect(manifest.sources).toHaveLength(28);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',

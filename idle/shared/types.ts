@@ -551,6 +551,10 @@ export interface GameEvent {
   actionMotionMs?: number;
   /** Source position at the action deadline, before subsequent route replans. */
   actionSourcePosition?: { x: number; y: number };
+  /** Optional immediate movement endpoint for native skill actions; old events omit it. */
+  movementDestination?: { x: number; y: number };
+  /** Facing captured at action time for movements whose presentation spans later server ticks. */
+  actionFacing?: { x: number; y: number };
   hitMotionMs?: number;
   /** Exact health before resolving this hit; optional for older saved events. */
   targetHpBefore?: number;

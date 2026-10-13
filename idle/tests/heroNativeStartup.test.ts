@@ -17,7 +17,11 @@ function seam(source: string, result = '') {
 }
 const oldDebut = scene.includes('      if (!isArriving && actorsRef.current.hero')
   ? between('      if (!isArriving && actorsRef.current.hero', '      const groupEnemies') : '';
+// The Back Slide gate shares this binding before map placement; retain its real local scope.
+const heroFrameDeclaration = between('      let heroFrame:', '      if (backslidingCue');
+if (!heroFrameDeclaration.includes('let heroFrame:')) throw new Error('Scene hero frame binding moved outside the fixture seam');
 const prepareHero = seam(oldDebut + between('      const soloPosture = soloPostureAt(', '      const camera =') +
+  heroFrameDeclaration +
   between('      const heroCue = groupHeroCue;', '      // Prepare incoming offense'),
   'return { cue: heroCue, frame: typeof heroFrame === "undefined" ? undefined : heroFrame, posture: soloPosture };');
 const heroPaint = seam(between('      if (heroActor)\n        paint(', '      const opponentDead ='));

@@ -30,6 +30,7 @@ import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroun
 import { automaticSpellChoices } from "./sageCasting.js";
 import { inventoryLoad } from './stats.js';
 import { paySkillResources } from './skillResources.js';
+import { applyBacksliding } from './backsliding.js';
 import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
 import { craftConverter } from "./converterCraft.js";
 import { cancelActorCast, useCastCancel } from './castControl.js';
@@ -99,6 +100,10 @@ export function executeCommand(
     }
     case 'useSkill': {
       const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+      if (skill?.sourceName === 'TF_BACKSLIDING') {
+        applyBacksliding(s, c, skill, level, now, context);
+        break;
+      }
       if (skill?.sourceName && ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
         requireRule(sageEnchantCanStart(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
           'Equipe uma arma intacta, tenha 40 SP e o reagente correto; uma propriedade incompatível impede o encantamento.');

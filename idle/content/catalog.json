@@ -32,7 +32,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "6f567b6f6e0808024b6d11d8d4a0c94f758ad1e5ec18c26a50d94653e039de08"
+    "hash": "9d3c7b631091674a448b115b8fba10642319e3bd8a14dc7dd927758ace6eb133"
   },
   "rates": {
     "baseExp": 4,
@@ -80933,9 +80933,9 @@
       "herculesId": 150,
       "sourceName": "TF_BACKSLIDING",
       "mechanic": "TF_BACKSLIDING",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Back Slide. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Desliza imediatamente até cinco células para trás, na direção oposta ao seu olhar, parando na primeira parede ou borda do mapa. Custa 7 SP; não conjura, não interrompe uma conjuração em andamento e não tem recarga. Use manualmente durante uma caça em mapa com navegação carregada.",
       "iconResource": "data/texture/유저인터페이스/item/tf_backsliding.bmp",
       "spCost": [
         7
