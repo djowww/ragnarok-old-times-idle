@@ -90,6 +90,7 @@ import { canSteal, attemptSteal, attemptGank } from "./steal.js";
 import { isHunterTrapSkill, hunterTrapSpec, hunterTrapStatus, hunterTrapWithinRange } from "./hunterTraps.js";
 import { enchantPoisonProc, enchantPoisonCastBlocked, elementalEnchantReplacements } from "./enchantPoison.js";
 import { automaticSpellChoices, hindsightProc, doubleCastingRepeat, memorizeCastStart } from "./sageCasting.js";
+import { energyCoatMagicDamage, magicRodAcceptsCast, magicRodRefund, magicRodWindow, monsterMagicAttack, monsterMagicDamage, monsterMagicElementRate } from "./monsterMagic.js";
 import { createPneuma, pneumaBlocks, defenderDamage, defenderStats, createEndure, endureHit, defenseHitMotion } from "./classicDefenses.js";
 import { autoGuardChance, autoGuardWalkDelayMs, sacrificeBaseDamage, sacrificeHpCost, shrinkRollAccepted } from './guardianSacrificeRules.js';
 import { activeSacrifice, applyGuardianStatus, consumeSacrificeCharge, guardianShieldEquipped, guardianSkillEligible, guardianStatusActive } from './guardianSacrifice.js';
@@ -918,6 +919,113 @@ function elementMultiplier(c: Catalog, element: string, monster: Monster) {
   return (levels?.[monster.elementLevel - 1] ?? 100) / 100;
 }
 
+function magicRodTarget(s: GameState, c: Catalog, level: number, at: number) {
+  const window = magicRodWindow(level);
+  return enemies(s).find(enemy => {
+    const cast = enemy.npcCombat?.cast;
+    const skill = cast && c.monsters[enemy.monsterId].npcStatusSkills?.find(candidate => candidate.skillId === cast.skillId && candidate.sourceRowIndex === cast.sourceRowIndex);
+    return !!cast && skill?.damageType === 'magic' && cast.areaId === s.areaId && cast.targetActorId === s.id &&
+      cast.startedAt <= at && cast.endsAt >= at && cast.endsAt < at + window && enemy.hp > 0 && enemy.hostile !== false &&
+      (enemy.fieldSlot === undefined || enemy.engaged) && enemyDistanceAt(enemy, at, battleHeroAt(s, at)) <= skill.range;
+  });
+}
+
+function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, monster: Monster,
+  d: ReturnType<typeof derivedStats>, skill: MonsterStatusSkill, cast: NonNullable<NonNullable<BattleEnemy['npcCombat']>['cast']>, at: number, action: ActionMetadata) {
+  const sourceSkill = c.skills[skill.sourceName.toLowerCase()] ?? Object.values(c.skills).find(candidate =>
+    candidate.sourceName === skill.sourceName && candidate.herculesId === skill.skillId);
+  const fogWallActive = classicBuffActive(s, c, 'PF_FOGWALL', at);
+  // skill.c:6557..6563 checks PF_FOGWALL before battle_calc_magic_attack.
+  if (fogWallActive && random(s) * 100 < 75) {
+    event(s, at, 'miss', 'Miss!', undefined, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
+      skillLevel: skill.level, enemyId: enemy.id, monsterId: monster.id, targetActorId: s.id, hitMotionMs: 0 });
+    enemy.enemyNextAttackAt = at + monsterAttackInterval(monster);
+    return;
+  }
+  const [matkMin, matkMax] = monsterMagicAttack(monster.stats.int, enemy.statuses?.SC_MINDBREAKER?.magicAttackPct ?? 0);
+  const matk = matkMin + (matkMax > matkMin ? Math.floor(random(s) * (matkMax - matkMin)) : 0);
+  const ratio = sourceSkill?.power[skill.level - 1] ?? 100;
+  // Player race/element is not modeled yet; the current player body is neutral.
+  // Hercules' Soul Strike bonus depends on the target, so an undead caster grants none.
+  const targetBodyRace: string = 'normal';
+  const undeadBonus = skill.sourceName === 'MG_SOULSTRIKE' && targetBodyRace === 'undead' ? 5 * skill.level : 0;
+  const raw = Math.floor(matk * (ratio + undeadBonus) / 100);
+  const spellElement = skill.element ?? sourceSkill?.element ?? 'neutral';
+  const perHitDamage = monsterMagicDamage({ matk: raw, hardMdef: d.hardMdef ?? 0, softMdef: d.softMdef ?? 0,
+    elementRate: monsterMagicElementRate(c, spellElement) });
+  const passiveReduction = classicIncomingSkillReduction(learnedBySource(s, c), monster.race, spellElement,
+    spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0);
+  let damage = Math.floor(perHitDamage * passiveReduction) * Math.max(1, skill.hitCount ?? 1);
+  // battle.c:3472..3475 uses `damage -= 25 * damage / 100` for direct BF_SKILL.
+  if (fogWallActive) damage = Math.max(0, damage - Math.floor(damage * 25 / 100));
+  if (s.combatEffects?.energyCoat && damage > 0) {
+    const coat = energyCoatMagicDamage(damage, s.sp, d.maxSp);
+    damage = coat.damage;
+    if (coat.spCost > s.sp) {
+      s.combatEffects.energyCoat = false;
+      const coatId = Object.keys(s.buffs).find(id => c.skills[id]?.sourceName === 'MG_ENERGYCOAT');
+      cancelClassicBuff(s, c, 'MG_ENERGYCOAT');
+      event(s, at, 'status-end', 'Energy Coat terminou por falta de SP.', undefined, 'player',
+        { skillId: coatId ?? 'mg_energycoat', sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+    } else {
+      s.sp -= coat.spCost;
+    }
+  }
+  const rodEntry = Object.entries(s.buffs).find(([id, buff]) => buff.expiresAt > at && c.skills[id]?.sourceName === 'SA_MAGICROD');
+  if (rodEntry) {
+    const [id, buff] = rodEntry;
+    const level = s.combatEffects?.buffLevels?.[id] ?? s.learnedSkills[id] ?? 1;
+    const window = magicRodWindow(level), armedAt = buff.expiresAt - window;
+    if (magicRodAcceptsCast({ startsAt: cast.startedAt, endsAt: at, armedAt, expiresAt: buff.expiresAt })) {
+      const baseSp = skill.baseSp ?? sourceSkill?.spCost[skill.level - 1] ?? sourceSkill?.spCost.at(-1) ?? 0;
+      const refund = magicRodRefund(baseSp, level);
+      damage = 0;
+      s.sp = Math.min(d.maxSp, s.sp + refund);
+      event(s, at, 'skill', 'Magic Rod', refund, 'player', { skillId: id, skillLevel: level,
+        sourceActorId: s.id, targetActorId: s.id, enemyId: enemy.id, monsterId: monster.id,
+        actionId: cast.actionId, actorAction: 'none', castMs: 0 });
+    }
+  }
+  // Hercules battle.c:3590 decrements Kyrie's pool and hit count for any
+  // positive hit, but only BF_WEAPON (or Throw Stone) is absorbed by it.
+  if (damage > 0 && (s.combatEffects?.kyrieHp ?? 0) > 0 && (s.combatEffects?.kyrieHits ?? 0) > 0) {
+    s.combatEffects!.kyrieHp! -= Math.floor(damage);
+    s.combatEffects!.kyrieHits!--;
+    if (s.combatEffects!.kyrieHp! <= 0 || s.combatEffects!.kyrieHits! <= 0) {
+      for (const id of Object.keys(s.buffs))
+        if (c.skills[id]?.sourceName === 'PR_KYRIE') delete s.buffs[id];
+    }
+  }
+  const berserkActive = classicBuffActive(s, c, 'LK_BERSERK', at);
+  const hitMotionMs = berserkActive ? 0 : defenseHitMotion(
+    Math.min(800, Math.max(400, 800 - (d.attributes?.agi ?? s.stats.agi) * 4)), s.combatEffects?.endure, at);
+  if (damage > 0 && s.combatEffects?.endure) {
+    s.combatEffects.endure = endureHit(s.combatEffects.endure, at, { damage });
+    if (!s.combatEffects.endure) cancelClassicBuff(s, c, 'SM_ENDURE');
+  }
+  const hpBefore = s.hp;
+  s.hp = Math.max(0, s.hp - damage);
+  event(s, at, 'damage', monster.name, damage, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
+    skillLevel: skill.level, enemyId: enemy.id, monsterId: monster.id, targetActorId: s.id,
+    targetHpBefore: hpBefore, hitCount: skill.hitCount ?? 1, hitMotionMs: damage > 0 ? hitMotionMs : 0 });
+  if (damage > 0) {
+    cancelClassicBuff(s, c, 'TF_HIDING');
+    cancelClassicBuff(s, c, 'AS_CLOAKING');
+  }
+  if (!s.battle?.challengeId && s.areaId) recordAreaActivity(s, s.areaId, at, { damageTaken: damage });
+  const activeCast = s.battle?.cast;
+  if (activeCast && damage > 0 && c.skills[activeCast.skillId]?.interruptCast) {
+    event(s, at, 'cast-interrupted', 'Conjuração interrompida.', undefined, 'player', {
+      skillId: activeCast.skillId, sourceActorId: s.id, actorAction: 'none', actionId: activeCast.actionId });
+    s.battle!.cast = undefined;
+    s.battle!.playerActionReadyAt = at + 1000;
+    s.battle!.playerNextSkillAt = at + 1000;
+    if (!s.battle?.challengeId && s.fieldHero?.areaId === s.areaId) s.fieldHero.moveBlockedUntil = at + 1000;
+  }
+  enemy.enemyNextAttackAt = at + monsterAttackInterval(monster);
+  if (s.hp <= 0) defeatPlayer(s, c, at, !!s.battle?.challengeId);
+}
+
 /** Auto posture is useful only when its later linked action survives its own cost. */
 function bladeStopAutoHasUsefulFollowup(s: GameState, c: Catalog, blade: Skill, level: number, at: number) {
   const incoming = bladeStopIncomingEnemy(s, c, level, at);
@@ -986,11 +1094,13 @@ function chooseSkill(
       skill.kind === "passive" ||
       skill.manualUse && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
-        !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') ||
+        !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
+        !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') ||
       skill.implementation === "unsupported" ||
       (s.skillReadyAt[id] ?? 0) > at
     )
       continue;
+    if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
       !bladeStopAutoHasUsefulFollowup(s, c, skill, level, at))) continue;
@@ -1015,8 +1125,10 @@ function chooseSkill(
       ? findInterruptibleNpcCast(s,c,at,spellBreakerCastMs(s,c,skill,level,at)) : undefined;
     if (breaker && !breakerTarget) continue;
     const treatment = treatmentSources.has(skill.sourceName ?? '');
+    const targetMonster = c.monsters[target.monsterId];
+    const hasMagicThreat = targetMonster.npcStatusSkills?.some(row => row.damageType === 'magic' && row.range > 3) ?? false;
     const fogWall = skill.sourceName === 'PF_FOGWALL' &&
-      !classicBuffActive(s, c, 'PF_FOGWALL', at) && (c.monsters[target.monsterId].attackRange ?? 1) > 3;
+      !classicBuffActive(s, c, 'PF_FOGWALL', at) && ((targetMonster.attackRange ?? 1) > 3 || hasMagicThreat);
     if (skill.sourceName === 'PF_FOGWALL' && !fogWall) continue;
     if (treatment && !statusTreatmentEligible(s, c, skill, level, at)) continue;
     if (offenseOnly && !offensiveSkill(skill) && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation) continue;
@@ -1475,7 +1587,11 @@ function damageEnemies(
   const mounted = isPecoMounted(s, c);
   const brandishAreas = skill?.sourceName === 'KN_BRANDISHSPEAR' ? brandishTargetAreas(s, target, level, at) : undefined;
   // Engage the whole splash before any kill can finish the current wave.
-  for (const enemy of hitTargets) provokeEnemy(s, c, enemy, at);
+  for (const enemy of hitTargets) {
+    provokeEnemy(s, c, enemy, at);
+    if (skill?.herculesId !== undefined && c.monsters[enemy.monsterId].npcStatusSkills?.some(row => row.condition === 'MSC_SKILLUSED'))
+      (enemy.npcCombat ??= { firstAttackDone: false, readyAt: {} }).lastReceivedSkillId = skill.herculesId;
+  }
   const bySource = Object.fromEntries(
     Object.entries(s.learnedSkills).map(([id, l]) => [
       c.skills[id]?.sourceName ?? id,
@@ -1873,6 +1989,19 @@ function resolveSkill(
       { skillId: skill.id },
     );
     return false;
+  }
+  if (!groundTick && mechanic === 'SA_MAGICROD') {
+    const duration = val(skill.statusDurationMs, level, magicRodWindow(level));
+    s.buffs[skill.id] = { expiresAt: at + duration, effects: {} };
+    (s.combatEffects ??= {}).buffLevels ??= {};
+    s.combatEffects.buffLevels[skill.id] = level;
+    random(s); // status_start's guaranteed source roll.
+    event(s, at, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+      statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id,
+      ...action, actorAction: 'none', actionMotionMs: 0, castMs: 0 });
+    event(s, at, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+      statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id, actionId: action.actionId });
+    return true;
   }
   if (!groundTick && mechanic === 'MO_BLADESTOP') {
     startBladeStopWait(s, level, at);
@@ -2285,7 +2414,9 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     monster = enemyStatus.monster,
     d = derivedStats(s, c);
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
-  if (enemyDistanceAt(enemy, at, battleHeroAt(s, at)) > (npcSkill?.range ?? monster.attackRange ?? 1) + 1e-9) return;
+  const npcDecisionRange = npcSkill?.range ?? Math.max(monster.attackRange ?? 1,
+    ...(monster.npcStatusSkills?.filter(skill => skill.damageType === 'magic').map(skill => skill.range) ?? [1]));
+  if (enemyDistanceAt(enemy, at, battleHeroAt(s, at)) > npcDecisionRange + 1e-9) return;
   if (trickDeadActive(s, c, at)) {
     // SC_TRICKDEAD rejects basic and skill damage before the attack RNG/status path.
     enemy.enemyNextAttackAt = at + monsterAttackInterval(monster, enemyStatus.attackDelayPct);
@@ -2316,16 +2447,26 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     }
     return;
   }
+  if (!npcSkill && enemyDistanceAt(enemy, at, battleHeroAt(s, at)) > (monster.attackRange ?? 1) + 1e-9) {
+    enemy.enemyNextAttackAt = at + monsterAttackInterval(monster, enemyStatus.attackDelayPct);
+    return;
+  }
   rememberEnemyFacing(enemy, battleHeroAt(s, at), at);
   const action: ActionMetadata = {
     sourceActorId: enemy.id,
     actionId: npcCast?.actionId ?? `action-${enemy.id}-${at}-${s.nextEventId}`,
-    actorAction: "attack",
-    actionStartedAt: at,
-    actionMotionMs: Math.min(2000, Math.max(10, monster.attackMotionMs ?? monster.attackDelay / 2)),
-    actionSourcePosition: { ...enemyPositionAt(enemy, at) },
+    actorAction: npcSkill?.damageType === 'magic' ? 'skill' : 'attack',
+    actionStartedAt: npcSkill?.damageType === 'magic' ? npcCast?.endsAt ?? at : at,
+    actionMotionMs: npcSkill?.damageType === 'magic'
+      ? Math.min(2000, Math.max(10, monster.attackMotionMs ?? monster.attackDelay / 2))
+      : Math.min(2000, Math.max(10, monster.attackMotionMs ?? monster.attackDelay / 2)),
+    actionSourcePosition: { ...(npcCast?.sourcePosition ?? enemyPositionAt(enemy, at)) },
     areaId: s.areaId ?? undefined,
   };
+  if (npcSkill?.damageType === 'magic' && npcCast) {
+    resolveNpcMagicAttack(s, c, enemy, monster, d, npcSkill, npcCast, at, action);
+    return;
+  }
   const counterId = Object.keys(s.buffs).find(id => s.buffs[id].expiresAt > at && c.skills[id]?.sourceName === 'KN_AUTOCOUNTER');
   if (counterId && !npcSkill && !classicBuffActive(s, c, 'TF_HIDING', at) &&
     (enemy.statuses?.SC_HIDING?.expiresAt ?? 0) <= at && autoCounterBlocks({
@@ -2601,6 +2742,7 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
     resetResourceRecovery(s);
     cancelClassicBuff(s, c, 'KN_AUTOCOUNTER');
     cancelClassicBuff(s, c, 'AS_POISONREACT');
+    cancelClassicBuff(s, c, 'SA_MAGICROD');
     cancelClassicBuff(s, c, 'PA_SACRIFICE');
     clearTrickDead(s, c, at); // SC_TRICKDEAD lacks NoDeathReset.
     s.hp = 0;
@@ -2625,7 +2767,9 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
 function nextEnemyAttackAt(s: GameState, c: Catalog, enemy: BattleEnemy, from: number, until: number) {
   if(monsterAttackTarget(s,enemy)!==s.id)return;
   if (enemy.fieldSlot !== undefined && (!enemy.engaged || enemy.hostile === false)) return;
-  const range = c.monsters[enemy.monsterId].attackRange ?? 1;
+  const monster = c.monsters[enemy.monsterId];
+  const range = Math.max(monster.attackRange ?? 1,
+    ...(monster.npcStatusSkills?.filter(skill => skill.damageType === 'magic').map(skill => skill.range) ?? [1]));
   const attackAt = Math.max(from, enemy.startedAt, enemy.enemyNextAttackAt);
   if (attackAt > until) return;
   return nextBattleContactAt(s, enemy, attackAt, until, range);
@@ -2752,6 +2896,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
     if (skill.sourceName === 'MO_BLADESTOP') target = bladeStopIncomingEnemy(s, c, s.learnedSkills[skill.id], at) ?? target;
     else if (bladeLinkedTarget) target = bladeLinkedTarget;
     if (skill.sourceName === 'SA_SPELLBREAKER') target = findInterruptibleNpcCast(s,c,at,spellBreakerCastMs(s,c,skill,s.learnedSkills[skill.id],at)) ?? target;
+    if (skill.sourceName === 'SA_MAGICROD') target = magicRodTarget(s,c,s.learnedSkills[skill.id],at) ?? target;
     if(conversionSpec(skill.sourceName??''))target=elementalConversionTarget(s,c,skill,at)??target;
     if(priestControlSources.has(skill.sourceName??''))target=priestControlTarget(s,c,skill.sourceName!,at)??target;
     if(skill.sourceName==='BA_PANGVOICE')target=pangVoiceTarget(s,c,at)??target;
@@ -3227,7 +3372,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
   }
 }
 export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000) {
-  cancelInvalidMonsterStatusCasts(s);
+  cancelInvalidMonsterStatusCasts(s,at);
   const diseaseTiming = !!Object.keys(s.playerStatuses ?? {}).length || (s.battle?.enemies ?? []).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
   if (!s.battle && diseaseTiming) {
     let cursor = at - elapsedMs;

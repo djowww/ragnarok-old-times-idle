@@ -72,6 +72,9 @@ export default function Build({
               (!trickDeadSkill || state.hp > 0 &&
                 (state.status === 'hunting' || state.status === 'resting' && state.restMode === 'field')) &&
               canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
+            const magicRodActivationBlocked = !!state.battle?.cast ||
+              ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
+                .some(source => classicBuffActive(state, catalog, source, snapshot.serverTime));
             const itemCosts = skill.itemCostByLevel?.[costAt] ?? (skill.itemCost ? [skill.itemCost] : []);
             const sacrificeActive = skill.sourceName === 'PA_SACRIFICE' &&
               (state.combatEffects?.sacrifice?.charges ?? 0) > 0 && classicBuffActive(state, catalog, 'PA_SACRIFICE', snapshot.serverTime);
@@ -214,6 +217,14 @@ export default function Build({
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
                       Ativar Parada da Lâmina
                     </button>}
+                    {skill.manualUse === 'activate' && skill.sourceName === 'SA_MAGICROD' && <button
+                      disabled={busy || unsupported || level === 0 || !ids.has(skill.id) || missingPrerequisites || missingJobLevel ||
+                        state.hp <= 0 || (state.status !== 'hunting' && state.status !== 'challenge') || !state.battle?.enemies?.length ||
+                        magicRodActivationBlocked ||
+                        !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
+                      onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                      Ativar Magic Rod
+                    </button>}
                     {skill.manualUse === "toggle" && <button disabled={busy || unsupported || level === 0 ||
                       !toggleAvailable}
                       aria-pressed={toggleActive}
@@ -221,7 +232,8 @@ export default function Build({
                       {trickDeadSkill ? toggleActive ? 'Levantar' : 'Fingir de morto' : toggleActive ? 'Desativar' : 'Ativar'}
                     </button>}
                     {skill.kind !== "passive" && skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||
-                      skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') && (
+                      skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate' ||
+                      skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && (
                       <button
                         disabled={
                           busy ||

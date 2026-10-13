@@ -266,6 +266,7 @@ function resumePausedState(s: GameState, now: number) {
       enemy.npcCombat.nextWanderAt=optional(enemy.npcCombat.nextWanderAt);
       enemy.npcCombat.pendingAttackerAt=optional(enemy.npcCombat.pendingAttackerAt);
       for (const id of Object.keys(enemy.npcCombat.readyAt)) enemy.npcCombat.readyAt[Number(id)] = shift(enemy.npcCombat.readyAt[Number(id)]);
+      for (const id of Object.keys(enemy.npcCombat.lastUsedAt ?? {})) enemy.npcCombat.lastUsedAt![Number(id)] = shift(enemy.npcCombat.lastUsedAt![Number(id)]);
       if (enemy.npcCombat.cast) { enemy.npcCombat.cast.startedAt = shift(enemy.npcCombat.cast.startedAt); enemy.npcCombat.cast.endsAt = shift(enemy.npcCombat.cast.endsAt);
         const ownership=enemy.npcCombat.cast.clockOwnership;
         if(ownership){ownership.attackReadyAt=shift(ownership.attackReadyAt);ownership.previousAttackReadyAt=shift(ownership.previousAttackReadyAt);}

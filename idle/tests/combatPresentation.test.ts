@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { presentLatestActorActions as presentActions, presentedActorActionAt, movementAtAction, projectStrikeContact, targetHealthAt, movementIsWalking, autoCounterPostureAt, postureFacingPoint } from '../web/assets/combatPresentation';
+import { presentLatestActorActions as presentActions, presentedActorActionAt, movementAtAction, projectStrikeContact, targetHealthAt, movementIsWalking, autoCounterPostureAt, postureFacingPoint, resolveEffectActors } from '../web/assets/combatPresentation';
 import { fixture } from './engine-fixture';
 import { applyCommand, createInitialState } from '../engine/index';
 import { ConnectedMapMovement, type MapProjection, type WorldPoint } from '../web/assets/mapProjection';
@@ -11,6 +11,11 @@ function cue(age = 240, motion = 300, id = 1, actionId = 'swing') {
 }
 
 describe('combat presentation', () => {
+  it('resolves incoming skill effects from the NPC caster to the player target', () => {
+    const hero={x:100,ground:240,visualHeight:60},npc={x:280,ground:220,visualHeight:70};
+    const endpoints=resolveEffectActors('player','ghostring','player',hero,new Map([['ghostring',npc]]),npc,hero);
+    expect(endpoints).toEqual({caster:npc,target:hero});
+  });
   it('projects a posture facing through the same 22x18 scene cells as battle actors', () => {
     const point = postureFacingPoint({ x: .5, y: .5 }, { x: 1, y: 1 });
     expect(point.x).toBeCloseTo(.5454545454545);

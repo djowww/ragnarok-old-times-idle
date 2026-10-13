@@ -1,7 +1,29 @@
 import { type ConnectedMapMovement, type MapProjection, type WorldPoint } from './mapProjection';
-import type { Catalog, GameState } from '../../shared/types';
+import type { Catalog, GameEvent, GameState, Skill } from '../../shared/types';
 import { activeFreeCastLevel } from '../../engine/stats';
 import { trickDeadActive } from '../../engine/trickDead';
+
+export function resolveEffectActors<T extends { x: number; ground: number; visualHeight: number }>(
+  heroId: string,
+  sourceActorId: string,
+  targetActorId: string,
+  hero: T,
+  actors: ReadonlyMap<string, T>,
+  fallbackSource: T,
+  fallbackTarget: T,
+) {
+  return {
+    caster: sourceActorId === heroId ? hero : actors.get(sourceActorId) ?? fallbackSource,
+    target: targetActorId === heroId ? hero : actors.get(targetActorId) ?? fallbackTarget,
+  };
+}
+
+/** NPC events store Hercules source names; resolve those to exported Idle skill aliases for FX. */
+export function sceneEventSkill(event: GameEvent, skills: Record<string, Skill>): Skill | undefined {
+  if (!event.skillId) return undefined;
+  return skills[event.skillId] ?? Object.values(skills).find(skill =>
+    skill.sourceName?.toLowerCase() === event.skillId!.toLowerCase());
+}
 
 export function soloPostureAt(state: GameState, catalog: Catalog, at: number) {
   const time = state.status === 'paused' ? state.pausedAt ?? state.lastSimulatedAt : at;

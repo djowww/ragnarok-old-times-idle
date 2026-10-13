@@ -20,8 +20,8 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     const names = Object.values(candidate.skills).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!).sort();
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
-    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_FREECAST', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 246, unsupported: 102, classes: 40, skills: 348 });
+    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_FREECAST', 'SA_MAGICROD', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+    expect(manifest.skillCoverage).toMatchObject({ supported: 247, unsupported: 101, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();
@@ -43,7 +43,16 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     }
     expect(digest(priorClasses)).toBe(baseline.classesSha256);
     expect(digest(candidate.items)).toBe(baseline.itemsSha256);
-    expect(digest(candidate.monsters)).toBe(baseline.monstersSha256);
+    const historicalMonsters = structuredClone(candidate.monsters);
+    for (const monster of Object.values(historicalMonsters)) {
+      if (!monster.npcStatusSkills) continue;
+      monster.npcStatusSkills = monster.npcStatusSkills.filter(row => row.damageType !== 'magic');
+      for (const row of monster.npcStatusSkills) {
+        delete row.state; delete row.condition; delete row.sourceRowIndex;
+      }
+      if (!monster.npcStatusSkills.length) delete monster.npcStatusSkills;
+    }
+    expect(digest(historicalMonsters)).toBe(baseline.monstersSha256);
     expect(digest(candidate.areas)).toBe(baseline.areasSha256);
     // The subsequent source-closed Sense feature remains exclusively manual.
     expect(Object.values(candidate.skills).find(skill => skill.sourceName === 'WZ_ESTIMATION')).toMatchObject({ implementation: 'supported', manualUse: 'inspect' });

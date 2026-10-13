@@ -4,6 +4,10 @@ import catalog from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import baseline from './fixtures/sense234Baseline.json';
+import magicRodBaseline from './fixtures/magicRodUnsupportedBaseline.json';
+import type { Catalog } from '../shared/types';
+
+const typedCatalog = catalog as unknown as Catalog;
 
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
@@ -55,11 +59,15 @@ describe('source-closed manual Sense catalog', () => {
     // The frozen source baseline predates the explicit Idle balance layer.
     // Its independent coverage/hash tests validate those new vectors.
     for (const skill of Object.values(otherSkills)) delete skill.idleDamageMultiplierPct;
+    // Restore Magic Rod's pre-promotion export row so the frozen digest continues
+    // to verify every unrelated skill value.
+    otherSkills.sa_magicrod = structuredClone(magicRodBaseline) as unknown as Record<string, unknown>;
+    otherSkills.sa_spellbreaker.description = 'Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro. Tarou não concede SP; o ramo de Magic Rod e PvP não é simulado.';
     expect(digest(otherSkills)).toBe('e38aa4357b76e6ec1b3cd2b9a7337e963e4d944ad7779371d04e20ab59db75ae');
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 246, unsupported: 102 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 247, unsupported: 101 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });
@@ -74,7 +82,17 @@ describe('source-closed manual Sense catalog', () => {
       senseType: 3, senseTypeSource: 'src/map/battle.c:7872', currentHp: true,
       elementalOrder: ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'], manualOnly: true });
     expect(catalog.source.commit).toBe(baseline.commit);
-    for (const key of ['classes', 'items', 'monsters', 'areas'] as const)
-      expect(digest(catalog[key])).toBe(baseline[key + 'Sha256' as keyof typeof baseline]);
+    for (const key of ['classes', 'items', 'monsters', 'areas'] as const) {
+      const historical = key === 'monsters' ? structuredClone(typedCatalog.monsters) : catalog[key];
+      if (key === 'monsters') for (const monster of Object.values(historical)) {
+        if (!monster.npcStatusSkills) continue;
+        monster.npcStatusSkills = monster.npcStatusSkills.filter((row: { damageType?: string }) => row.damageType !== 'magic');
+        for (const row of monster.npcStatusSkills) {
+          delete row.state; delete row.condition; delete row.sourceRowIndex;
+        }
+        if (!monster.npcStatusSkills.length) delete monster.npcStatusSkills;
+      }
+      expect(digest(historical)).toBe(baseline[key + 'Sha256' as keyof typeof baseline]);
+    }
   });
 });

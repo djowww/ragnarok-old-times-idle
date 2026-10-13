@@ -7,7 +7,7 @@ export const GROUND_TRAP_ASSET = {
 };
 const HUNTER_CONTROL_TRAPS = new Set(['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER']);
 export function hasSceneAction(kind: string, hasSkill: boolean): boolean {
-  return ['damage', 'miss', 'dodge'].includes(kind) || hasSkill && ['skill', 'treatment', 'trap-placed', 'trap-trigger', 'ground-placed'].includes(kind);
+  return ['damage', 'miss', 'dodge'].includes(kind) || hasSkill && ['cast', 'skill', 'treatment', 'trap-placed', 'trap-trigger', 'ground-placed'].includes(kind);
 }
 export function trapCueAction(kind: string): 'skill' | 'none' | undefined {
   return ['trap-placed', 'ground-placed'].includes(kind) ? 'skill' : kind === 'trap-trigger' ? 'none' : undefined;

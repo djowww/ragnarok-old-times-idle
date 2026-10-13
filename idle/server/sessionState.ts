@@ -4,7 +4,8 @@ import type { StateRepository } from './repository.js';
 
 export const TRICK_DEAD_BUFF_ID = 'nv_trickdead';
 export const SIGHT_BLASTER_BUFF_ID = 'sight_blaster';
-const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID] as const;
+export const MAGIC_ROD_BUFF_ID = 'sa_magicrod';
+const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID, MAGIC_ROD_BUFF_ID] as const;
 const MAX_REMEMBERED_OPEN_CONNECTIONS = 256;
 type VolatileBuffs = Record<string, GameState['buffs'][string]>;
 type BladeStopStatus = NonNullable<NonNullable<BattleEnemy['statuses']>['SC_BLADESTOP']>;
