@@ -32,6 +32,14 @@ for (const file of files) {
         parsed[file] = parseConfig(buffer.toString('utf8'));
 }
 const mapSpawnMonsterIds = new Map();
+const repairPath = 'npc/merchants/refine.txt';
+const repairUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${repairPath}`;
+const repairBuffer = source ? await readFile(resolve(source, repairPath)) : Buffer.from(await (await fetch(repairUrl)).arrayBuffer());
+if (sha(repairBuffer) !== rules.sourceHashes[repairPath]) throw new Error('Pinned source hash mismatch: ' + repairPath);
+manifest.sources.push({ path: repairPath, url: repairUrl, sha256: sha(repairBuffer) });
+if (!/function\s+script\s+repairmain/i.test(repairBuffer.toString('utf8')) || !/\.\@repairprice\s*=\s*5000/.test(repairBuffer.toString('utf8')))
+    throw new Error('Pinned NPC repair service changed');
+manifest.npcRepair = { source: 'npc/merchants/refine.txt:1145..1229', pricePerEquipment: 5000, repairs: 'all broken equipment in one NPC transaction', discount: false };
 for (const path of rules.mapSpawnSources ?? []) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
     const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
@@ -97,7 +105,7 @@ function sourceTree(name, trail = []) {
     if (!['Novice', 'Novice_High'].includes(name)) delete result.NV_TRICKDEAD;
     return result;
 }
-const sourceAliases = { ...rules.skillAliases, ...Object.fromEntries(rules.skills.map(s => [s.source, s.id])) };
+const sourceAliases = { ...rules.skillAliases, ...Object.fromEntries(rules.skills.map(s => [s.source, s.id])), ...rules.skillIdOverrides };
 const skillId = name => sourceAliases[name] ?? name.toLowerCase();
 const familySkills = Object.keys(skillByName).filter(name => name.startsWith('WE_'));
 const treeByClass = Object.fromEntries(rules.classes.map(r => {
@@ -129,6 +137,14 @@ const resolvedParameterGroups = Object.fromEntries(Object.keys(parameterGroups).
 const allItems = parsed['item_db.conf'].item_db;
 const itemByName = Object.fromEntries(allItems.map(i => [i.AegisName, i]));
 const itemById = Object.fromEntries(allItems.map(i => [i.Id, i]));
+manifest.bookWeapon = {
+    source: 'db/pre-re/item_db.conf:1550..1582 + job_db.conf:BaseASPD + size_fix.txt:Book',
+    classes: ['Sage', 'Professor', 'Priest', 'High Priest'],
+    shopItem: { id: 1550, sourceBuyPrice: itemById[1550]?.Buy, acquisition: 'Idle aggregated shop; npc/merchants/shops.txt contains no Book sale' },
+    advancedBook: { masteryAttackPerLevel: 3, masterySource: 'src/map/battle.c:804..806', aspdRatePerLevel: -5, aspdRateScale: 1000, aspdSource: 'src/map/status.c:2141..2142', hitBonus: false },
+    actorSource: 'roBrowserLegacy d88a3cd4 DB/Items/WeaponTable.js:28, DB/Items/WeaponType.js:25',
+    attackActionSource: 'roBrowserLegacy d88a3cd4 DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; direction-group offset 8*11=88',
+};
 function inheritedItem(item, trail = []) { if (!item.CloneItem)
     return item; if (trail.includes(item.Id))
     throw new Error('CloneItem cycle'); const parent = typeof item.CloneItem === 'number' ? itemById[item.CloneItem] : itemByName[item.CloneItem]; if (!parent)
@@ -148,7 +164,7 @@ for (const rule of rules.classes) {
     const bonus = Object.fromEntries(statKeys.map(k => [k, 0]));
     const jobBonuses = Array.from({ length: jobCap }, (_, index) => { const stat = statKeys[(bonusRows[jobIds[source]]?.[index] ?? 0) - 1]; if (stat) bonus[stat]++; return { ...bonus }; });
     const attackMotion = Object.fromEntries(Object.entries(job.BaseASPD ?? {}).map(([k, v]) => [motionKeys[k] ?? k, v]));
-    const weaponAspd = { ...Object.fromEntries(Object.entries(attackMotion).filter(([k]) => ['dagger', 'sword', 'spear', 'axe', 'mace', 'staff', 'bow', 'instrument', 'whip', 'katar'].includes(k))), unarmed: attackMotion.fist ?? 2000 };
+    const weaponAspd = { ...Object.fromEntries(Object.entries(attackMotion).filter(([k]) => ['dagger', 'sword', 'spear', 'axe', 'mace', 'staff', 'book', 'bow', 'instrument', 'whip', 'katar'].includes(k))), unarmed: attackMotion.fist ?? 2000 };
     catalog.classes[rule.id] = { ...rest, skills: Object.keys(treeByClass[rule.id]).map(skillId), jobCap, expGroup: job.JobExpGroup, hp: job.HPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), sp: job.SPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), jobBonuses: Object.fromEntries(statKeys.map(k => [k, jobBonuses.map(row => row[k])])), attackMotion, weaponAspd, minimumAttackMotionMs: 2000 - 10 * maxAspd, baseWeight: (job.Weight ?? 20000) / 10, sprite: { male: actorSprite(spriteJob, rule.gender ?? 'male'), female: actorSprite(spriteJob, rule.gender ?? 'female') } };
     if (mountedSpriteJob) catalog.classes[rule.id].mountedSprite = {
         male: actorSprite(mountedSpriteJob, 'male'), female: actorSprite(mountedSpriteJob, 'female'),
@@ -199,8 +215,8 @@ const spellBalanceSources = new Set(['PR_TURNUNDEAD', 'CR_GRANDCROSS', 'HW_GRAVI
 const healSkills = new Set(['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER']);
 // A source row alone is not an implementation. Every supported non-damage
 // skill must have an Effects translation or an explicit engine dispatcher.
-const effectSkills = new Set(['AL_BLESSING', 'AL_INCAGI', 'MC_LOUD', 'PR_IMPOSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN', 'BS_ADRENALINE', 'CR_SPEARQUICKEN', 'BS_OVERTHRUST', 'WS_OVERTHRUSTMAX', 'LK_CONCENTRATION', 'SN_SIGHT', 'SN_WINDWALK', 'MO_EXPLOSIONSPIRITS', 'BA_WHISTLE', 'BA_ASSASSINCROSS', 'BA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISS', 'DC_SERVICEFORYOU', 'AL_ANGELUS', 'CR_AUTOGUARD', 'CR_REFLECTSHIELD', 'LK_PARRYING', 'HP_ASSUMPTIO']);
-const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER']);
+const effectSkills = new Set(['AL_BLESSING', 'AL_INCAGI', 'MC_LOUD', 'PR_IMPOSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN', 'BS_ADRENALINE', 'CR_SPEARQUICKEN', 'BS_OVERTHRUST', 'WS_OVERTHRUSTMAX', 'LK_CONCENTRATION', 'SN_SIGHT', 'SN_WINDWALK', 'MO_EXPLOSIONSPIRITS', 'BA_WHISTLE', 'BA_ASSASSINCROSS', 'BA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISS', 'DC_SERVICEFORYOU', 'AL_ANGELUS', 'CR_AUTOGUARD', 'CR_REFLECTSHIELD', 'LK_PARRYING', 'HP_ASSUMPTIO', 'SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON']);
+const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER', 'SA_ADVANCEDBOOK']);
 for (const name of ['BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE', 'MO_SPIRITSRECOVERY']) passiveSkills.add(name);
 for (const name of ['KN_RIDING', 'KN_CAVALIERMASTERY']) passiveSkills.add(name);
 const activeSpecial = new Set(['MG_SIGHT', 'MG_SAFETYWALL', 'MG_STONECURSE', 'MG_ENERGYCOAT', 'WZ_QUAGMIRE', 'HW_MAGICPOWER', 'TF_STEAL', 'RG_STEALCOIN', 'TF_HIDING', 'AS_CLOAKING', 'BS_HAMMERFALL', 'BA_FROSTJOKE', 'BA_PANGVOICE', 'DC_SCREAM', 'MO_CALLSPIRITS', 'MO_ABSORBSPIRITS', 'MO_BLADESTOP', 'CH_SOULCOLLECT', 'PR_KYRIE', 'PR_MAGNIFICAT', 'WS_CARTBOOST', 'SM_PROVOKE', 'AL_DECAGI', 'AL_CRUCIS', 'LK_AURABLADE', 'LK_JOINTBEAT', 'PR_LEXDIVINA', 'PR_LEXAETERNA', 'BS_WEAPONPERFECT', 'BS_MAXIMIZE', 'PR_ASPERSIO', 'RG_STRIPWEAPON', 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', 'RG_STRIPSHIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY']);
@@ -238,11 +254,11 @@ const unsupported = {
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.', RG_PLAGIARISM: 'Requer habilidades inimigas copiáveis.', ST_PRESERVE: 'Depende de Intimidate/copiar habilidades.',
     CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', PA_GOSPEL: 'Requer efeitos aleatórios de grupo.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.', HT_SHOCKWAVE: 'Requer SP do alvo; monstros não têm SP no catálogo.',
     SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.',
-    SA_ADVANCEDBOOK: 'Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis.', PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
+    BS_REPAIRWEAPON: 'O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.',
+    PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
     CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.', CG_TAROTCARD: 'Requer baralho aleatório com efeitos de combate entre personagens.',
     WZ_ICEWALL: 'Requer edição de células bloqueadas do mapa.', HW_GANBANTEIN: 'Requer remoção de unidades de habilidades em células do mapa.',
-    SA_FROSTWEAPON: 'A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.', SA_SEISMICWEAPON: 'A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.', SA_FLAMELAUNCHER: 'A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.', SA_LIGHTNINGLOADER: 'A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.',
     AM_POTIONPITCHER: 'Requer cura específica do item lançado e seus modificadores.', CR_SLIMPITCHER: 'Requer cura específica da poção compacta e seus modificadores.',
 };
 const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
@@ -300,7 +316,7 @@ for (const name of skillNames) {
     const rule = rules.skills.find(s => s.source === name);
     const maxLevel = Math.min(src.MaxLevel, Math.max(...Object.values(treeByClass).map(tree => typeof tree[name] === 'number' ? tree[name] : tree[name]?.MaxLevel ?? 0)));
     const prerequisitesByClass = Object.fromEntries(Object.entries(treeByClass).filter(([, tree]) => tree[name]).map(([job, tree]) => [job, Object.entries(typeof tree[name] === 'number' ? {} : tree[name]).filter(([key]) => !['MaxLevel', 'MinJobLevel'].includes(key)).map(([key, level]) => ({ skillId: skillId(key), level }))]));
-    const targetType = name === 'ALL_RESURRECTION' ? 'enemy' : !src.SkillType ? 'passive' : src.SkillType.Place ? 'ground' : src.SkillType.Enemy ? 'enemy' : src.SkillType.Self ? 'self' : 'support';
+    const targetType = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) ? 'self' : name === 'ALL_RESURRECTION' ? 'enemy' : !src.SkillType ? 'passive' : src.SkillType.Place ? 'ground' : src.SkillType.Enemy ? 'enemy' : src.SkillType.Self ? 'self' : 'support';
     let kind = targetType === 'passive' ? 'passive' : healSkills.has(name) ? 'heal' : ['TF_STEAL', 'RG_STEALCOIN'].includes(name) ? 'steal' : magicRatios[name] ? 'magical' : weaponRatios[name] || miscSkills.has(name) ? 'physical' : 'buff';
     if (name === 'AS_POISONREACT') kind = 'buff';
     if (name === 'ALL_RESURRECTION') kind = 'magical';
@@ -338,6 +354,7 @@ for (const name of skillNames) {
         ...(name === 'PA_SACRIFICE' && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
+        ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -471,7 +488,7 @@ manifest.formulaEvidence = {
 };
 const slotFromLoc = loc => { if (Array.isArray(loc))
     loc = loc.join('|'); return /EQP_ARMS|EQP_WEAPON/.test(loc ?? '') ? 'weapon' : /EQP_ARMOR/.test(loc ?? '') ? 'armor' : /EQP_SHIELD/.test(loc ?? '') ? 'shield' : /EQP_HEAD/.test(loc ?? '') ? 'head' : /EQP_GARMENT/.test(loc ?? '') ? 'garment' : /EQP_SHOES/.test(loc ?? '') ? 'shoes' : /EQP_ACC/.test(loc ?? '') ? 'accessory' : undefined; };
-const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
+const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_BOOK: 'book', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
 function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);
     if (catalog.items[i.Id]) {
@@ -648,7 +665,7 @@ for (const [defender, levels] of Object.entries(parsed['attr_fix.conf']))
             catalog.elementModifiers[atk][def][Number(level.slice(2)) - 1] = value;
         }
 const sizeRows = buffers['size_fix.txt'].toString('utf8').split(/\r?\n/).map(l => l.split('//')[0].trim()).filter(Boolean).map(l => l.split(',').map(Number));
-for (const [weapon, col] of Object.entries({ dagger: 1, sword: 2, spear: 4, axe: 6, mace: 8, staff: 10, bow: 11, instrument: 13, whip: 14, katar: 16 }))
+for (const [weapon, col] of Object.entries({ dagger: 1, sword: 2, spear: 4, axe: 6, mace: 8, staff: 10, bow: 11, instrument: 13, whip: 14, book: 15, katar: 16 }))
     catalog.sizeModifiers[weapon] = Object.fromEntries(['small', 'medium', 'large'].map((s, i) => [s, sizeRows[i][col]]));
 const reward = (zeny, baseExp, jobExp, items = []) => ({ zeny, baseExp, jobExp, items });
 catalog.quests = [{ id: 'first_hunt', name: 'Primeira caçada', description: 'Derrote 10 Porings.', kind: 'kills', target: 1002, amount: 10, reward: reward(200, 50, 30, [{ itemId: 501, quantity: 10 }]) }, { id: 'base_10', name: 'Rumo à aventura', description: 'Alcance Base 10.', kind: 'baseLevel', target: 10, amount: 10, reward: reward(500, 0, 0, [{ itemId: 505, quantity: 5 }]) }, { id: 'job_10', name: 'Profissão', description: 'Alcance Job 10.', kind: 'jobLevel', target: 10, amount: 10, reward: reward(500, 0, 0) }, { id: 'payon', name: 'Além dos campos', description: 'Visite a caverna de Payon.', kind: 'area', target: 'payon_cave', amount: 1, reward: reward(1200, 1000, 500) }, { id: 'base_40', name: 'Veterano', description: 'Alcance Base 40.', kind: 'baseLevel', target: 40, amount: 40, reward: reward(5000, 0, 0, [{ itemId: 984, quantity: 3 }, { itemId: 985, quantity: 3 }]) }, { id: 'refine_4', name: 'Artesão', description: 'Obtenha um equipamento +4.', kind: 'refine', target: 4, amount: 4, reward: reward(3000, 0, 0) }, { id: 'mastering_win', name: 'O rei dos Porings', description: 'Vença o desafio Mastering.', kind: 'challenge', target: 'mastering', amount: 1, reward: reward(2000, 0, 0) }, { id: 'base_99', name: 'Lenda de Rune-Midgard', description: 'Alcance Base 99.', kind: 'baseLevel', target: 99, amount: 99, reward: reward(50000, 0, 0) }];

@@ -10,6 +10,7 @@ export type WeaponType =
   | "spear"
   | "bow"
   | "staff"
+  | "book"
   | "mace"
   | "axe"
   | "katar"
@@ -330,6 +331,8 @@ export interface InventoryEntry {
   identified?: boolean;
   rarity?: ItemRarity;
   rarityBonus?: { stat: Stat; value: number };
+  /** Hercules ATTR_BROKEN; absent means intact for existing schemaVersion 1 profiles. */
+  broken?: boolean;
 }
 export type JointBeatPart = 'ankle' | 'wrist' | 'knee' | 'shoulder' | 'waist' | 'neck';
 export interface BattleEnemy {
@@ -645,6 +648,11 @@ export interface GameState {
     respawns: Array<{ slot: number; at: number }>;
   };
   battle: Battle | null;
+  /** Own Sage endow cast; unlike Battle.cast this also works in Prontera. */
+  supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
+    battleClockOwnership?: { actionReadyAt?: number; nextSkillAt?: number; nextAttackAt?: number;
+      ownedActionReadyAt?: number; ownedNextSkillAt?: number;
+      battleIdentity?: { startedAt: number; attemptId?: string; challengeId?: string; areaId: string | null } } };
   /** One immutable, actor-bound WZ_ESTIMATION result; absent in older saves. */
   senseInspection?: SenseInspectionResult;
   /** Offline cap suspends this intent without discarding the active encounter. */
@@ -717,7 +725,7 @@ export interface GameSnapshot {
 export type GameCommand =
   | { type: "startHunt"; areaId: string }
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }
-  | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" }
+  | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" | "repairAll" }
   | { type: "setGender"; gender: "male" | "female" }
   | { type: "changeAppearance"; hairStyle: number; hairColor: number; clothesColor: number }
   | { type: "allocate"; stat: Stat; amount: number }

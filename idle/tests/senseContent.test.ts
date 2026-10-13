@@ -16,6 +16,7 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 const digest = (value: unknown) => createHash('sha256').update(canonical(value)).digest('hex');
+const sagePacketSkillSources = new Set(['SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON']);
 
 describe('source-closed manual Sense catalog', () => {
   it('promotes Sense and retains every non-Sight Blaster source skill value', () => {
@@ -63,17 +64,24 @@ describe('source-closed manual Sense catalog', () => {
     // to verify every unrelated skill value.
     otherSkills.sa_magicrod = structuredClone(magicRodBaseline) as unknown as Record<string, unknown>;
     otherSkills.sa_spellbreaker.description = 'Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro. Tarou não concede SP; o ramo de Magic Rod e PvP não é simulado.';
-    expect(digest(otherSkills)).toBe('e38aa4357b76e6ec1b3cd2b9a7337e963e4d944ad7779371d04e20ab59db75ae');
+    // The repair service has its own NPC flow; keep the prior unsupported skill row in this older catalog projection.
+    otherSkills.bs_repairweapon.unsupportedReason = 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.';
+    otherSkills.bs_repairweapon.description = 'Weapon Repair. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.';
+    const excludedPacketSkills = Object.entries(otherSkills).filter(([, skill]) => sagePacketSkillSources.has(skill.sourceName as string));
+    expect(excludedPacketSkills.map(([, skill]) => skill.sourceName).sort()).toEqual([...sagePacketSkillSources].sort());
+    const sourceClosedSkills = Object.fromEntries(Object.entries(otherSkills).filter(([, skill]) => !sagePacketSkillSources.has(skill.sourceName as string)));
+    expect(digest(sourceClosedSkills)).toBe('0f484dcbd22e865195342964976dd94717049f903e1358d20e3a8051221d48ee');
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 247, unsupported: 101 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 252, unsupported: 96 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });
   it('pins the real monster-info packet and source sense_type default without changing other content', () => {
     for (const row of baseline.sources) expect(manifest.sources).toContainEqual(row);
-    expect(manifest.sources).toHaveLength(27);
+    expect(manifest.sources).toHaveLength(28);
+    expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1' }));
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/clif.c',
       sha256: 'ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42' }));
     expect((rules.sourceHashes as Record<string, string>)['src/map/clif.c']).toBe('ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42');
@@ -83,8 +91,23 @@ describe('source-closed manual Sense catalog', () => {
       elementalOrder: ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'], manualOnly: true });
     expect(catalog.source.commit).toBe(baseline.commit);
     for (const key of ['classes', 'items', 'monsters', 'areas'] as const) {
-      const historical = key === 'monsters' ? structuredClone(typedCatalog.monsters) : catalog[key];
-      if (key === 'monsters') for (const monster of Object.values(historical)) {
+      const historical = structuredClone(typedCatalog[key]);
+      if (key === 'classes') for (const id of ['sage', 'professor', 'priest', 'high_priest']) {
+        const rows = historical as Catalog['classes'];
+        rows[id].weapons = rows[id].weapons.filter(weapon => weapon !== 'book');
+        if (rows[id].weaponAspd) delete rows[id].weaponAspd.book;
+      }
+      if (key === 'items') {
+        const rows = historical as Catalog['items'];
+        delete rows[1550];
+        for (const id of [1552, 1557, 1559, 1560, 1565]) {
+          expect(typedCatalog.items[id]).toMatchObject({ type: 'equipment', weaponType: 'book', refinable: true, equipSupported: true });
+          delete rows[id].weaponType;
+          rows[id].refinable = false;
+          rows[id].equipSupported = false;
+        }
+      }
+      if (key === 'monsters') for (const monster of Object.values(historical as Catalog['monsters'])) {
         if (!monster.npcStatusSkills) continue;
         monster.npcStatusSkills = monster.npcStatusSkills.filter((row: { damageType?: string }) => row.damageType !== 'magic');
         for (const row of monster.npcStatusSkills) {

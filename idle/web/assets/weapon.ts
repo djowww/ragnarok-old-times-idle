@@ -39,7 +39,7 @@ export function weaponSpriteForClass(job: string, mounted = false): string | und
 
 // DB/Items/WeaponTable.js; the spellings are CP949-decoded client names.
 const weaponSuffix: Record<WeaponType, string> = {
-    dagger: '단검', sword: '검', spear: '창', bow: '활', staff: '롯드',
+    dagger: '단검', sword: '검', spear: '창', bow: '활', staff: '롯드', book: '책',
     mace: '클럽', axe: '도끼', katar: '카타르_카타르',
     instrument: '악기', whip: '채찍',
 };
@@ -84,7 +84,7 @@ export function weaponAttackAction(visual?: WeaponAppearance): number {
             variant = type === 'bow' ? 1 : type === 'dagger' ? 2 : 0;
             break;
         case 'acolyte': case 'priest': case 'monk':
-            variant = ['staff', 'mace'].includes(type) ? 1 : 0;
+            variant = type === 'book' ? 2 : ['staff', 'mace'].includes(type) ? 1 : 0;
             break;
         case 'merchant':
             variant = type === 'dagger' ? 2 : ['mace', 'axe', 'sword'].includes(type) ? 1 : 0;
@@ -107,7 +107,7 @@ export function weaponAttackAction(visual?: WeaponAppearance): number {
             variant = type === 'katar' ? 2 : ['axe', 'sword', 'dagger'].includes(type) ? 1 : 0;
             break;
         case 'sage':
-            variant = type === 'dagger' ? 1 : type === 'staff' ? 2 : 0;
+            variant = type === 'dagger' ? 1 : ['staff', 'book'].includes(type) ? 2 : 0;
             break;
         case 'alchemist':
             variant = type === 'dagger' ? 1 : ['sword', 'axe', 'mace'].includes(type) ? 2 : 0;
