@@ -249,6 +249,7 @@ activeSpecial.add('PF_MINDBREAKER');
 activeSpecial.add('PF_FOGWALL');
 activeSpecial.add('MO_BODYRELOCATION');
 activeSpecial.add('ST_PRESERVE');
+activeSpecial.add('ST_CHASEWALK');
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
@@ -278,6 +279,7 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    ST_CHASEWALK: 'Oculta você dos monstros comuns e permite caminhar, com atraso de 35−5×nível%. Consome 10+2×nível SP a cada 10s; o primeiro pulso concede STR 2^(nível−1) por 30s, sem renovar um bônus ativo. Impede atacar ou usar outras habilidades; chefes, detectores e magia já conjurada ainda podem atingir você. Desativar é imediato e gratuito.',
     RG_PLAGIARISM: 'Copia uma magia de monstro que causar dano sem derrotar você. O nível fica limitado pelo Plágio, sem consumir pontos. Uma nova magia substitui a anterior; receber a mesma não melhora a cópia. As quatro magias de Mago presentes nos ataques NPC são copiáveis; outras fontes ainda não estão simuladas.',
     ST_PRESERVE: 'Protege a magia copiada contra substituição por dez minutos. Conjuração base de um segundo e custo de 30 SP. A caça automática só ativa após obter uma cópia. O efeito termina na morte, ao sair da conta ou reconectar; a magia copiada continua salva.',
     TF_BACKSLIDING: 'Desliza imediatamente até cinco células para trás, na direção oposta ao seu olhar, parando na primeira parede ou borda do mapa. Custa 7 SP; não conjura, não interrompe uma conjuração em andamento e não tem recarga. Use manualmente durante uma caça em mapa com navegação carregada.',
@@ -364,12 +366,13 @@ for (const name of skillNames) {
     const requiredWeapon = [...new Set(weaponRequirements.map(k => ({ Daggers: 'dagger', '1HSwords': 'sword', '2HSwords': 'sword', '1HSpears': 'spear', '2HSpears': 'spear', '1HAxes': 'axe', '2HAxes': 'axe', Maces: 'mace', '2HMaces': 'mace', Staves: 'staff', '2HStaves': 'staff', Bows: 'bow', Katars: 'katar', Instruments: 'instrument', Whips: 'whip' })[k]).filter(Boolean))];
     const onlyTwoHanded = weaponRequirements.length && weaponRequirements.every(k => ['2HSwords', '2HSpears', '2HAxes', '2HMaces', '2HStaves'].includes(k));
     catalog.skills[skillId(name)] = {
-        id: skillId(name), name: ({ RG_PLAGIARISM: 'Plágio', ST_PRESERVE: 'Preservar' })[name] ?? rule?.name ?? rules.skillNames?.[name] ?? src.Description, kind, maxLevel,
+        id: skillId(name), name: ({ RG_PLAGIARISM: 'Plágio', ST_PRESERVE: 'Preservar', ST_CHASEWALK: 'Furtividade' })[name] ?? rule?.name ?? rules.skillNames?.[name] ?? src.Description, kind, maxLevel,
         herculesId: src.Id, sourceName: name, mechanic: name, implementation, ...(unsupportedReason && { unsupportedReason }),
         ...(name === 'MC_IDENTIFY' && { manualUse: 'inventory' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
+        ...(name === 'ST_CHASEWALK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'PA_SACRIFICE' && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
@@ -434,6 +437,7 @@ manifest.rogueCopy = {
         adaptation: 'AFK arms only after acquiring a valid copy. Per-profile process-memory status clears on new connection, explicit logout and process restart; browser disconnect alone keeps AFK simulation running.' },
 };
 manifest.skillSources.rg_plagiarism.adaptation = 'Separate durable copied slot learned only through real modeled NPC magical damage, without points or RNG. Current incoming scope has four Mage spells; other incoming spells and PvP are not modeled. Actual job changes clear the slot; death retains it. Started casts keep their ID and level snapshot after replacement.';
+manifest.skillSources.st_chasewalk.adaptation = 'Manual self cast:1200ms modified by DEX,10SP; active recast ends immediately for no SP. Main status persists, drains10+2*level SP each10s and adds35-5*level percent walking delay. Only when absent, a paid pulse grants2^(level-1) STR for30s without refresh. Child survives main ending but has NoSave; death clears both. Ordinary mobs stop acquisition, bosses/detectors and already-started targeted NPC casts may hit; positive HP damage ends main. No Soul Link/GvG adaptation or AFK auto-toggle.';
 manifest.skillSources.st_preserve.adaptation = 'Normal self-buff with source 1000 ms cast,30 SP and600 s duration. Protects the copied slot from replacement while active; death and NoSave session boundaries clear it. AFK waits for a valid copy before arming it. Uses original icon and existing generic native cast; no unsupported official VFX ID is invented.';
 manifest.skillSources.mo_bladestop.adaptation = 'Waits 500/700/900/1100/1300 ms for a basic attack by a non-boss within two cells, after Auto Counter; spends 10 SP and one sphere only when AFK has such an attack due in the window. Links the actual attacker reciprocally for 20/30/40/50/60 seconds, blocking pair movement and basic attacks while other monsters act. The four source skill-level gates are checked against Blade Stop level. Chain Combo bypasses only the Triple Attack prerequisite in this linked state; Asura spends four spheres. Source SC_BLADESTOP has NoSave and is cleared on a new connection. SC_BLADESTOP_WAIT has no NoSave flag in this source; clearing the short Idle wait on a new connection is an explicit Idle lifecycle adaptation. Both states release on death, partner loss, map exit or expiry; movement clocks resume when volatile state is removed.';
 manifest.skillSources.dc_winkcharm.adaptation = 'Single-target no-damage cast at range 9 during field hunting; 70% chance to charm a lower-level common Demon, Demi-human, or Angel monster for 10 s. Auto-casts only when an NPC special skill is modeled. Blocks new NPC special skills while preserving committed casts and normal attacks; hunting movement already tracks the player, so separate walk-to-range-3 pathing is not modeled.';

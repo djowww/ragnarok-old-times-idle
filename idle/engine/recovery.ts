@@ -91,7 +91,7 @@ export function recoverResources(
   if (
     classicBuffActive(s, c, "TF_HIDING", at) ||
     classicBuffActive(s, c, "AS_CLOAKING", at) ||
-    classicBuffActive(s, c, "RG_CHASEWALK", at) ||
+    classicBuffActive(s, c, "ST_CHASEWALK", at) ||
     classicBuffActive(s, c, "ST_INVISIBILITY", at) ||
     classicBuffActive(s, c, "NV_TRICKDEAD", at)
   )

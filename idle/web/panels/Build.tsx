@@ -1,3 +1,4 @@
+import { chasewalkCanStart } from '../../engine/chasewalk';
 import { number, type PanelProps } from "../components/common";
 import ClassicStatus from "../components/ClassicStatus";
 import SkillIcon from "../components/SkillIcon";
@@ -79,7 +80,8 @@ export default function Build({
               (1 - Math.min(100, stats.effects.spCostReductionPct ?? 0) / 100)));
             const toggleActive = (state.buffs[skill.id]?.expiresAt ?? 0) > snapshot.serverTime;
             const trickDeadSkill = skill.sourceName === 'NV_TRICKDEAD';
-            const toggleAvailable = toggleActive ||
+            const chasewalkSkill = skill.sourceName === 'ST_CHASEWALK';
+            const toggleAvailable = chasewalkSkill ? chasewalkCanStart(state, catalog, skill, level, snapshot.serverTime) : toggleActive ||
               (!trickDeadSkill || state.hp > 0 &&
                 (state.status === 'hunting' || state.status === 'resting' && state.restMode === 'field')) &&
               canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
@@ -268,10 +270,11 @@ export default function Build({
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
                       Usar Back Slide · 7 SP
                     </button>}
+                    {chasewalkSkill && level > 0 && <small>Manutenção: {10 + 2 * level} SP / 10 s · uso manual</small>}
                     {skill.manualUse === "toggle" && <button disabled={busy || unsupported || level === 0 ||
                       !toggleAvailable}
                       aria-pressed={toggleActive}
-                      onClick={() => void command({ type: 'toggleBuff', skillId: skill.id })}>
+                      onClick={() => void command({ type: chasewalkSkill ? 'useSkill' : 'toggleBuff', skillId: skill.id })}>
                       {trickDeadSkill ? toggleActive ? 'Levantar' : 'Fingir de morto' : toggleActive ? 'Desativar' : 'Ativar'}
                     </button>}
                     {skill.kind !== "passive" && skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||

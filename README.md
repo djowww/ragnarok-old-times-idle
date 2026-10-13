@@ -20,7 +20,7 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
 - Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.
 - Personagem e monstros seguem rotas calculadas pelas células transitáveis dos 29 mapas. Servidor e cena compartilham o caminho e o tempo de chegada, respeitando paredes e cantos das diagonais.
-- Árvores de 40 classes: 348 habilidades importadas, com 255 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
+- Árvores de 40 classes: 348 habilidades importadas, com 256 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
 - Plágio copia as quatro magias de Mago presentes nos ataques dos monstros, sem gastar pontos; a cópia pode entrar na rotação. Preservar protege essa magia por dez minutos. Reconectar mantém a cópia e encerra a proteção, seguindo o estado NoSave do Hercules.
 - Back Slide manual para a linha de Gatuno: recuo de até cinco células com colisão do terreno, custo de 7 SP e orientação preservada. A apresentação usa o relógio da animação nativa.
 - Livros, Perícia com Livro e os quatro encantamentos elementais do Sábio, com conjuração, reagentes, chance de falha e quebra de arma. O ferreiro repara equipamentos quebrados sem perder refino, cartas ou raridade.
@@ -226,3 +226,5 @@ pnpm export-content
 O código do projeto e os componentes adaptados sob GPL são distribuídos sob **GNU GPL v3 ou posterior**. Consulte [`LICENSE`](LICENSE) e [`idle/THIRD_PARTY_NOTICES.md`](idle/THIRD_PARTY_NOTICES.md) para os créditos, fontes e limites de redistribuição.
 
 Ragnarok Online e seus materiais visuais e sonoros pertencem a seus respectivos titulares. A licença do código não concede direitos sobre esses materiais; forneça somente arquivos do cliente que você esteja autorizado a usar.
+
+Furtividade do Desordeiro usa conjuração, consumo periódico de SP e bônus de força com prazo independente. É uma habilidade manual: monstros comuns perdem o alvo oculto, enquanto chefes, detectores e magias já conjuradas continuam perigosos.

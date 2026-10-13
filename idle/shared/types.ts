@@ -690,7 +690,7 @@ export interface GameState {
     respawns: Array<{ slot: number; at: number }>;
   };
   battle: Battle | null;
-  /** Own Sage endow cast; unlike Battle.cast this also works in Prontera. */
+  /** Own self-target skill cast; unlike Battle.cast this also works in Prontera. */
   supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
     battleClockOwnership?: { actionReadyAt?: number; nextSkillAt?: number; nextAttackAt?: number;
       ownedActionReadyAt?: number; ownedNextSkillAt?: number;

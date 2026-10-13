@@ -13,6 +13,7 @@ export interface NativeActorPaint {
   direction: number;
   elapsed: number;
   motionMs?: number;
+  opacity?: number;
   bottom: number;
   /** Contact shadow dimensions in the parent canvas' CSS pixels. */
   shadow?: { radius: number; height: number; opacity: number };
@@ -248,13 +249,13 @@ export class NativeActorsBridge {
         }
         layers.push({ frame: id, x: layer.x * factor, y: (layer.y - paint.bottom) * factor,
           width: image.width * layer.scaleX * (layer.mirror ? -1 : 1) * factor,
-          height: image.height * layer.scaleY * factor, angle: layer.rotation, color: layer.color.map(channel => channel / 255) });
+          height: image.height * layer.scaleY * factor, angle: layer.rotation, color: layer.color.map((channel, index) => channel / 255 * (index === 3 ? paint.opacity ?? 1 : 1)) });
       }
       if (!valid) continue;
       let actorId = this.actorIds.get(paint.actor);
       if (!actorId) { actorId = ++this.nextActor; this.actorIds.set(paint.actor, actorId); }
       // Hash unprojected pose geometry: camera/world movement must not change identity.
-      const signature = pose.map(layer => [frameId(layer.image), layer.x, layer.y, layer.scaleX, layer.scaleY, layer.mirror, layer.rotation, ...layer.color].join(",")).join(";");
+      const signature = `${paint.opacity ?? 1}:` + pose.map(layer => [frameId(layer.image), layer.x, layer.y, layer.scaleX, layer.scaleY, layer.mirror, layer.rotation, ...layer.color].join(",")).join(";");
       let hash = 2166136261;
       for (let i = 0; i < signature.length; i++) hash = Math.imul(hash ^ signature.charCodeAt(i), 16777619);
       const poseToken = `${actorId}:${paint.action}:${paint.direction}:${hash >>> 0}`;

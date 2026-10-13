@@ -7,7 +7,7 @@ import { event, random } from './state.js';
 import { cancelClassicBuff } from './classicBuffs.js';
 import { elementalEnchantReplacements } from './enchantPoison.js';
 import { activePlayerStatus } from './playerStatuses.js';
-import { battleHeroAt, stopHeroMovement } from '../shared/battleSpatial.js';
+import { startOwnCast, clearOwnCast } from './ownCast.js';
 
 const SAGE_ENCHANTS = {
   SA_FLAMELAUNCHER: { element: 'fire', reagentId: 990 },
@@ -59,42 +59,14 @@ export function sageEnchantCastTimeMs(s: GameState, c: Catalog, skill: Skill, le
 
 export function startSageEnchantCast(s: GameState, c: Catalog, skill: Skill, level: number, at: number): boolean {
   if (!sageEnchantCanStart(s, c, skill, level, at)) return false;
-  const castMs = sageEnchantCastTimeMs(s, c, skill, level, at);
-  const actionId = `sage-enchant-${s.id}-${at}-${s.nextEventId}`;
-  const battle = s.battle;
-  const motion = derivedStats(s, c).attackMotionMs;
-  const sourceDelay = skill.afterCastDelayMs?.[level - 1] ?? 0;
-  const delay = sourceDelay < 0 ? -sourceDelay + motion : sourceDelay;
-  const afterCastDelay = Math.max(0, Math.floor(delay *
-    (1 - Math.min(100, derivedStats(s, c).effects.afterCastReductionPct ?? 0) / 100)));
-  const actionReadyAt = at + castMs + Math.max(motion, afterCastDelay);
-  const freeCast = learnedFreeCastLevel(s, c) > 0;
-  s.supportCast = { skillId: skill.id, level, startedAt: at, endsAt: at + castMs, actionId,
-    ...(battle && { battleClockOwnership: {
-      actionReadyAt: battle.playerActionReadyAt,
-      nextSkillAt: battle.playerNextSkillAt,
-      nextAttackAt: battle.playerNextAttackAt,
-      ownedActionReadyAt: actionReadyAt,
-      ownedNextSkillAt: actionReadyAt,
-      battleIdentity: { startedAt: battle.startedAt, attemptId: battle.attemptId,
-        challengeId: battle.challengeId, areaId: s.areaId },
-    } }) };
-  if (battle) {
-    battle.playerActionReadyAt = actionReadyAt;
-    battle.playerNextSkillAt = actionReadyAt;
-  }
-  if (!freeCast && s.status === 'hunting' && s.fieldHero?.areaId === s.areaId) {
-    const point = battleHeroAt(s, at);
-    stopHeroMovement(s.fieldHero, point, at); s.fieldHero.phase = 'fighting';
-  }
-  event(s, at, 'cast', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
-    sourceActorId: s.id, targetActorId: s.id, actionId, actorAction: 'none', castMs });
+  startOwnCast(s, c, skill, level, at);
   return true;
 }
 
 export function interruptSageEnchantCast(s: GameState, c: Catalog, at: number, reason = 'Conjuração interrompida.'): boolean {
   const cast = s.supportCast;
-  if (!cast || cast.startedAt > at || cast.endsAt <= at) return false;
+  if (!cast || cast.startedAt > at || cast.endsAt <= at || reason === 'Conjuração interrompida.' &&
+      c.skills[cast.skillId]?.sourceName === 'ST_CHASEWALK' && !c.skills[cast.skillId].interruptCast) return false;
   return clearSageEnchantCast(s, c, at, cast, reason);
 }
 
@@ -107,26 +79,7 @@ export function cancelSageEnchantCast(s: GameState, c: Catalog, at: number, reas
 
 function clearSageEnchantCast(s: GameState, c: Catalog, at: number,
   cast: NonNullable<GameState['supportCast']>, reason: string): boolean {
-  delete s.supportCast;
-  const identity = cast.battleClockOwnership?.battleIdentity;
-  const battleMatches = !!identity && !!s.battle && identity.startedAt === s.battle.startedAt &&
-    identity.attemptId === s.battle.attemptId && identity.challengeId === s.battle.challengeId && identity.areaId === s.areaId;
-  if (battleMatches && s.battle && cast.battleClockOwnership) {
-    if (cast.battleClockOwnership.ownedActionReadyAt !== undefined &&
-        s.battle.playerActionReadyAt === cast.battleClockOwnership.ownedActionReadyAt) {
-      if (cast.battleClockOwnership.actionReadyAt === undefined) delete s.battle.playerActionReadyAt;
-      else s.battle.playerActionReadyAt = cast.battleClockOwnership.actionReadyAt;
-    }
-    if (cast.battleClockOwnership.ownedNextSkillAt !== undefined &&
-        s.battle.playerNextSkillAt === cast.battleClockOwnership.ownedNextSkillAt) {
-      if (cast.battleClockOwnership.nextSkillAt === undefined) delete s.battle.playerNextSkillAt;
-      else s.battle.playerNextSkillAt = cast.battleClockOwnership.nextSkillAt;
-    }
-    s.battle.supportNeedsOffense = true;
-  }
-  event(s, at, 'cast-interrupted', reason, undefined, 'player', { skillId: cast.skillId,
-    skillLevel: cast.level, sourceActorId: s.id, targetActorId: s.id, actionId: cast.actionId, actorAction: 'none' });
-  return true;
+  return clearOwnCast(s, c, at, reason);
 }
 
 /** Resolve a persisted own cast once its authoritative deadline has elapsed. */
