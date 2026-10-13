@@ -3,6 +3,9 @@ import type { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import type { AccountView } from '../../shared/portal-types.js';
 import { PortalError, type AccountRecord, type AccountSeed, type AccountStore, type SessionSeed } from './types.js';
 
+const SESSION_CLEANUP_INTERVAL_MS = 60_000;
+const SESSION_CLEANUP_BATCH_SIZE = 250;
+
 const projection = `a.id AS accountId, a.username, a.profile_id AS profileId,
   JSON_UNQUOTE(JSON_EXTRACT(p.state_json, '$.name')) AS characterName`;
 function view(row: RowDataPacket): AccountView {
@@ -16,6 +19,7 @@ function duplicate(error: unknown, field: 'username' | 'characterName'): never {
   throw error;
 }
 export class SqlAccountStore implements AccountStore {
+  private lastSessionCleanupAt: number | undefined;
   constructor(private readonly pool: Pool) {}
   private async transaction<T>(action: (connection: PoolConnection) => Promise<T>): Promise<T> {
     const connection = await this.pool.getConnection();
@@ -27,7 +31,18 @@ export class SqlAccountStore implements AccountStore {
     await connection.execute('INSERT INTO idle_sessions (token_hash, account_id, credential_version, created_at_ms, expires_at_ms) VALUES (?, ?, ?, ?, ?)',
       [session.tokenHash, accountId, version, session.createdAt, session.expiresAt]);
   }
+  private async cleanupExpiredSessions(now: number): Promise<void> {
+    if (this.lastSessionCleanupAt !== undefined && now - this.lastSessionCleanupAt < SESSION_CLEANUP_INTERVAL_MS) return;
+    this.lastSessionCleanupAt = now;
+    try {
+      await this.pool.execute(`DELETE FROM idle_sessions WHERE expires_at_ms <= ? ORDER BY expires_at_ms LIMIT ${SESSION_CLEANUP_BATCH_SIZE}`, [now]);
+    } catch (error) {
+      this.lastSessionCleanupAt = undefined;
+      throw error;
+    }
+  }
   async register(seed: AccountSeed, session: SessionSeed): Promise<AccountView> {
+    await this.cleanupExpiredSessions(session.createdAt);
     return this.transaction(async connection => {
       const accountId = randomUUID(); const username = seed.username.toLowerCase();
       try {
@@ -48,6 +63,7 @@ export class SqlAccountStore implements AccountStore {
     return rows.length ? { ...view(rows[0]), passwordHash: rows[0].passwordHash, credentialVersion: Number(rows[0].credentialVersion) } : null;
   }
   async getSession(tokenHash: string, now: number): Promise<AccountView | null> {
+    await this.cleanupExpiredSessions(now);
     const [rows] = await this.pool.query<RowDataPacket[]>(`SELECT ${projection} FROM idle_sessions s
       JOIN idle_accounts a ON a.id = s.account_id AND a.credential_version = s.credential_version
       JOIN idle_profiles p ON p.id = a.profile_id WHERE s.token_hash = ? AND s.expires_at_ms > ?`, [tokenHash, now]);
@@ -61,12 +77,14 @@ export class SqlAccountStore implements AccountStore {
     return view(rows[0]);
   }
   async issueSession(accountId: string, expectedVersion: number, session: SessionSeed): Promise<AccountView> {
+    await this.cleanupExpiredSessions(session.createdAt);
     return this.transaction(async connection => {
       const account = await this.lockedAccount(connection, accountId, expectedVersion);
       await this.insertSession(connection, accountId, expectedVersion, session); return account;
     });
   }
   async changePassword(accountId: string, expectedVersion: number, passwordHash: string, session: SessionSeed): Promise<AccountView> {
+    await this.cleanupExpiredSessions(session.createdAt);
     return this.transaction(async connection => {
       const account = await this.lockedAccount(connection, accountId, expectedVersion);
       await connection.execute('UPDATE idle_accounts SET password_hash = ?, credential_version = credential_version + 1 WHERE id = ?', [passwordHash, accountId]);

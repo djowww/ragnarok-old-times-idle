@@ -15,9 +15,10 @@ const learnedBySource = (s: GameState, c: Catalog) =>
   ]));
 
 export function offensiveSkill(skill: Skill): boolean {
+  if(["SA_ELEMENTWATER","SA_ELEMENTGROUND","SA_ELEMENTFIRE","SA_ELEMENTWIND"].includes(skill.sourceName??""))return false;
   return ['physical', 'magical', 'steal'].includes(skill.kind) ||
     (!!skill.statusEffect && ['enemy', 'ground'].includes(skill.targetType ?? '')) ||
-    ['WZ_QUAGMIRE', 'BA_FROSTJOKE', 'DC_SCREAM'].includes(skill.sourceName ?? '');
+    ['WZ_QUAGMIRE', 'BA_FROSTJOKE', 'DC_SCREAM', 'HT_SKIDTRAP'].includes(skill.sourceName ?? '');
 }
 
 export function basicAttackRange(s: GameState, c: Catalog): number {
@@ -37,7 +38,22 @@ export function skillAttackRange(s: GameState, c: Catalog, skill: Skill, level: 
 }
 
 export function skillTargetInRange(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy, at: number): boolean {
-  if (!offensiveSkill(skill)) return true;
+  if (skill.sourceName === 'MO_BODYRELOCATION') {
+    const battle = s.battle;
+    const isSelectedLivingTarget = battle?.targetId === target.id &&
+      battle.enemies?.some(enemy => enemy.id === target.id && enemy.hp > 0);
+    if (s.status !== 'hunting' || battle?.challengeId || !isSelectedLivingTarget ||
+      s.fieldHero?.areaId !== s.areaId) return false;
+    const distance = playerBattleDistance(battleHeroAt(s, at), enemyPositionAt(target, at));
+    // Snap is an approach action. Do not spend a sphere when a normal attack can
+    // already reach this target, and do not treat the ground-target skill as
+    // globally in range like ordinary self buffs.
+    return distance > basicAttackRange(s, c) && distance <= skillAttackRange(s, c, skill, level);
+  }
+  // Hunter traps target a free nearby cell, independently of the enemy's range.
+  // The authoritative placer validates the chosen cell at start and cast end.
+  if (['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER'].includes(skill.sourceName ?? '')) return true;
+  if (!offensiveSkill(skill) && !['PF_SOULCHANGE','SA_SPELLBREAKER','PR_STRECOVERY','PR_LEXDIVINA','SA_ELEMENTWATER','SA_ELEMENTGROUND','SA_ELEMENTFIRE','SA_ELEMENTWIND'].includes(skill.sourceName ?? '')) return true;
   const point = enemyPositionAt(target, at);
   const hero = battleHeroAt(s, at);
   const range = skillAttackRange(s, c, skill, level);

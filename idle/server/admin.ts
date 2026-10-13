@@ -5,6 +5,8 @@ import { classSkills, healFull } from '../engine/stats.js';
 import { removeIneligible } from '../engine/commands.js';
 import { addItem, event, GameError } from '../engine/state.js';
 import { gainExp } from '../engine/progression.js';
+import { advanceState, advanceStateCooperatively } from '../engine/index.js';
+import { isIP } from 'node:net';
 import type { StateRepository } from './repository.js';
 import { ValidationError } from './validation.js';
 
@@ -17,6 +19,7 @@ const ZENY_CAP = 2_147_483_647;
 
 type AdminAction =
   | { type: 'baseLevels'; amount: number }
+  | { type: 'jobLevels'; amount: number }
   | { type: 'class'; classId: string }
   | { type: 'zeny'; amount: number }
   | { type: 'item'; itemId: number; quantity: number };
@@ -43,6 +46,9 @@ function parseAction(value: unknown): AdminAction {
     case 'baseLevels':
       exactKeys('amount');
       return { type: 'baseLevels', amount: integer('amount', 1, 20) };
+    case 'jobLevels':
+      exactKeys('amount');
+      return { type: 'jobLevels', amount: integer('amount', 1, 20) };
     case 'class':
       exactKeys('classId');
       if (typeof value.classId !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(value.classId)) throw new ValidationError();
@@ -125,8 +131,7 @@ function grantLevels(state: GameState, catalog: Catalog, amount: number, at: num
     granted += state.baseLevel - previous;
   }
   if (!granted) throw new GameError('BASE_LEVEL_CAP', 'O personagem já está no nível Base máximo.');
-  const levelLabel = granted === 1 ? 'nível' : 'níveis';
-  event(state, at, 'admin', `Painel administrativo: +${granted} ${levelLabel} Base.`);
+  event(state, at, 'admin', `Painel administrativo: +${granted} ${granted === 1 ? 'nível' : 'níveis'} Base.`);
   return granted;
 }
 
@@ -135,6 +140,8 @@ function setClass(state: GameState, catalog: Catalog, classId: string, at: numbe
     throw new GameError('TOWN_REQUIRED', 'Retorne à cidade antes de alterar a classe pelo painel administrativo.');
   const next = catalog.classes[classId];
   if (!next) throw new GameError('INVALID_CLASS', 'Essa classe não existe no catálogo.');
+  if (next.gender && next.gender !== state.gender)
+    throw new GameError('CLASS_GENDER_MISMATCH', 'Essa classe não é compatível com o avatar do personagem.');
 
   const compatibleSkills = new Set(classSkills(catalog, next.id));
   let refunded = 0;
@@ -165,10 +172,31 @@ function setClass(state: GameState, catalog: Catalog, classId: string, at: numbe
   event(state, at, 'admin', `Painel administrativo: classe alterada para ${next.name}.`);
 }
 
+function grantJobLevels(state: GameState, catalog: Catalog, amount: number, at: number): number {
+  const jobClass = catalog.classes[state.job];
+  const curve = catalog.exp.job[jobClass.expGroup];
+  let granted = 0;
+  for (let index = 0; index < amount && state.jobLevel < jobClass.jobCap; index++) {
+    const required = curve?.[state.jobLevel];
+    if (!(required > 0)) break;
+    const previous = state.jobLevel;
+    // Grant a full level's EXP so existing partial progress carries forward.
+    gainExp(state, catalog, 0, required, at);
+    if (state.jobLevel === previous) break;
+    granted += state.jobLevel - previous;
+  }
+  if (!granted) throw new GameError('JOB_LEVEL_CAP', 'O personagem já está no nível Job máximo para esta classe.');
+  event(state, at, 'admin', `Painel administrativo: +${granted} ${granted === 1 ? 'nível' : 'níveis'} Job.`);
+  return granted;
+}
+
 function applyAction(state: GameState, catalog: Catalog, action: AdminAction, at: number): void {
   switch (action.type) {
     case 'baseLevels':
       grantLevels(state, catalog, action.amount, at);
+      return;
+    case 'jobLevels':
+      grantJobLevels(state, catalog, action.amount, at);
       return;
     case 'class':
       setClass(state, catalog, action.classId, at);
@@ -194,26 +222,43 @@ function applyAction(state: GameState, catalog: Catalog, action: AdminAction, at
 
 export function registerAdminRoutes(
   app: FastifyInstance,
-  resolveRepository: (request: FastifyRequest) => Promise<StateRepository>,
+  resolveRepository: StateRepository | ((request: FastifyRequest) => Promise<StateRepository>),
   catalog: Catalog,
   now: () => number,
   configuredToken?: string,
+  trustedProxyAddresses: readonly string[] = [],
 ): void {
   const expected = configuredToken && configuredToken.length >= 32 && configuredToken.length <= 256
     ? digest(configuredToken)
     : undefined;
   const sessions = new Map<string, number>();
   const failures = new Map<string, LoginAttempts>();
+  const trustedProxies = new Set(trustedProxyAddresses.filter(address => isIP(address)));
 
-  app.get('/api/admin/session', async (request) => ({
-    enabled: !!expected,
-    authenticated: !!expected && authenticated(request, sessions, now()),
-  }));
+  // The admin cookie is shared by tabs. Validate the browser's account scope
+  // before reading or changing it, using the same cookie-selected resolver as
+  // actions. Resolving a repository does not simulate or mutate the profile.
+  const assertCallerIdentity = async (request: FastifyRequest): Promise<void> => {
+    if (typeof resolveRepository === 'function') await resolveRepository(request);
+  };
+  app.get('/api/admin/session', async (request) => {
+    await assertCallerIdentity(request);
+    return {
+      enabled: !!expected,
+      authenticated: !!expected && authenticated(request, sessions, now()),
+    };
+  });
 
   app.post('/api/admin/session', async (request, reply) => {
+    await assertCallerIdentity(request);
     if (!expected) return reply.code(503).send({ error: { code: 'ADMIN_DISABLED', message: 'O painel administrativo não está configurado no servidor.' } });
     const at = now();
-    const ip = request.ip;
+    // Only the explicitly trusted immediate peer may supply a sanitized client IP.
+    // Never consume the user-controlled X-Forwarded-For chain here.
+    const forwardedIp = request.headers['x-real-ip'];
+    const ip = trustedProxies.has(request.socket.remoteAddress ?? '') &&
+      typeof forwardedIp === 'string' && isIP(forwardedIp)
+      ? forwardedIp : request.ip;
     pruneLoginFailures(failures, at, ip);
     const prior = failures.get(ip);
     if (prior?.lockedUntil && prior.lockedUntil > at) {
@@ -243,6 +288,7 @@ export function registerAdminRoutes(
   });
 
   app.post('/api/admin/logout', async (request, reply) => {
+    await assertCallerIdentity(request);
     const token = parseCookie(request);
     if (token) sessions.delete(digest(token).toString('hex'));
     reply.header('Set-Cookie', cookieHeader(request, '', 0));
@@ -253,14 +299,25 @@ export function registerAdminRoutes(
     if (!expected) return reply.code(503).send({ error: { code: 'ADMIN_DISABLED', message: 'O painel administrativo não está configurado no servidor.' } });
     if (!authenticated(request, sessions, now()))
       return reply.code(401).send({ error: { code: 'ADMIN_SESSION_REQUIRED', message: 'Entre novamente no painel administrativo.' } });
+    const repository = typeof resolveRepository === 'function' ? await resolveRepository(request) : resolveRepository;
     const { requestId, action } = parseAdminActionRequest(request.body);
     const at = now();
     const fingerprint = createHash('sha256').update(`admin:${JSON.stringify(action)}`).digest('hex');
-    const repository = await resolveRepository(request);
-    await repository.transact(requestId, state => {
-      applyAction(state, catalog, action, at);
-      return state;
-    }, fingerprint);
+    // Preserve lastSeenAt/contactTotals: admin access must not consume the
+    // next player's offline summary. Settle elapsed simulation before grants.
+    if (repository.transactCooperatively) {
+      await repository.transactCooperatively(requestId, async state => {
+        const settled = await advanceStateCooperatively(state, catalog, at);
+        applyAction(settled, catalog, action, at);
+        return settled;
+      }, fingerprint);
+    } else {
+      await repository.transact(requestId, state => {
+        const settled = advanceState(state, catalog, at);
+        applyAction(settled, catalog, action, at);
+        return settled;
+      }, fingerprint);
+    }
     return { ok: true };
   });
 }

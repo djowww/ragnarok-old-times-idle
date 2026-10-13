@@ -1,0 +1,190 @@
+{
+  "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+  "archiveSha256": "61e091146048d01ead9c33e4740370ccfbd2bd9fe4ee4eece05cc6cc077f99a7",
+  "sources": [
+    {
+      "path": "db/pre-re/mob_skill_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_skill_db.conf",
+      "sha256": "a7752d8f4bdd1ea12191e70cb53bd5fb335ba3de855adaf30a7d362c3708b21b"
+    },
+    {
+      "path": "db/pre-re/mob_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_db.conf",
+      "sha256": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43"
+    },
+    {
+      "path": "db/pre-re/item_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf",
+      "sha256": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30"
+    },
+    {
+      "path": "db/pre-re/job_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/job_db.conf",
+      "sha256": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc"
+    },
+    {
+      "path": "db/pre-re/exp_group_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/exp_group_db.conf",
+      "sha256": "6e959dcfdebc489d1c7d4714fe2bbf88d437b44ec7bd215fe2bb104aae5a7ced"
+    },
+    {
+      "path": "db/pre-re/skill_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_db.conf",
+      "sha256": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11"
+    },
+    {
+      "path": "db/pre-re/skill_tree.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_tree.conf",
+      "sha256": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37"
+    },
+    {
+      "path": "db/pre-re/attr_fix.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/attr_fix.conf",
+      "sha256": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c"
+    },
+    {
+      "path": "db/pre-re/size_fix.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/size_fix.txt",
+      "sha256": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+    },
+    {
+      "path": "db/pre-re/autospell_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/autospell_db.conf",
+      "sha256": "835b806ad0aaaab221c8bcd9a358982081d0bb9220bde0ae4e1a60e6d395612f"
+    },
+    {
+      "path": "db/pre-re/unit_parameters_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/unit_parameters_db.conf",
+      "sha256": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/geffen.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
+      "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/payon.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/payon.txt",
+      "sha256": "f448e15667f770b0eef3592652b814cf94ff1b5dda0f6c4abe88cc025c7189fa"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/prontera.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/prontera.txt",
+      "sha256": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791"
+    },
+    {
+      "path": "db/job_db2.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/job_db2.txt",
+      "sha256": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56"
+    },
+    {
+      "path": "db/pre-re/sc_config.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/sc_config.conf",
+      "sha256": "614102c89301968ba2292f682eb46802b2e27f6c22e8f4d8b6709993b0ab713e"
+    },
+    {
+      "path": "src/map/battle.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/battle.c",
+      "sha256": "7c4916a043223e39ec35fdcb040c62f274d312a1d5ccd4802e5a60f7a5076d78"
+    },
+    {
+      "path": "src/map/status.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/status.c",
+      "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
+    },
+    {
+      "path": "src/map/skill.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/skill.c",
+      "sha256": "1987348fa5003e6e6b4e74700ff44c5bb10cf60247d29872ad269f74c3b0e0e3"
+    },
+    {
+      "path": "src/map/pc.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.c",
+      "sha256": "822bdba23749049fac8eab6044ad21f6409d9c81027757761e6efc26a1c07ded"
+    },
+    {
+      "path": "src/map/pc.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.h",
+      "sha256": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f"
+    },
+    {
+      "path": "src/map/unit.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/unit.c",
+      "sha256": "2af74d2cf42ab274d394d2e7e43ff05feb2629a65991692fd0f8d77fbd5bdf7b"
+    },
+    {
+      "path": "src/map/mob.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.c",
+      "sha256": "a30af793eb5328ef7787638da5a22458f651b2c0cc5e8f533b3449d7acf6174d"
+    },
+    {
+      "path": "src/map/mob.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.h",
+      "sha256": "bb971d72be5a2345438360d8a9004eefd4f34839d4e51ce89a1b05bce1fb9a74"
+    },
+    {
+      "path": "db/produce_db.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/produce_db.txt",
+      "sha256": "122d6ebc9a9451cb731643118bfff99f3a3c9ec2e5fe58d99129dc48c6f2fc2d"
+    },
+    {
+      "path": "npc/merchants/shops.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/shops.txt",
+      "sha256": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5"
+    }
+  ],
+  "sense": {
+    "id": "sense",
+    "name": "Sentido Sobrenatural",
+    "kind": "buff",
+    "maxLevel": 1,
+    "herculesId": 93,
+    "sourceName": "WZ_ESTIMATION",
+    "mechanic": "WZ_ESTIMATION",
+    "implementation": "unsupported",
+    "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+    "description": "Inspeciona HP, defesa, propriedade e outras informações do inimigo. Não causa dano.",
+    "iconResource": "data/texture/유저인터페이스/item/wz_estimation.bmp",
+    "spCost": [
+      10
+    ],
+    "power": [
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      0
+    ],
+    "afterCastDelayMs": [
+      0
+    ],
+    "interruptCast": true,
+    "hitCount": [
+      1
+    ],
+    "sourceHitCount": [
+      1
+    ],
+    "aoeRadius": [
+      0
+    ],
+    "range": [
+      9
+    ],
+    "targetType": "enemy",
+    "damageType": "none",
+    "prerequisites": [],
+    "prerequisitesByClass": {
+      "wizard": [],
+      "high_wizard": [],
+      "sage": [],
+      "professor": []
+    },
+    "minimumJobLevel": 1
+  },
+  "otherSkillsSha256": "120ef8232f5836a83ce92a0cd784d0f2b33181a4afce4b2b817431cda7569a10",
+  "classesSha256": "52190928d656198d03073f4059437da118833bac5b1d6c55be3286cd1f64d183",
+  "itemsSha256": "2bb0a886a16d1c3ebfaa328c5e56f99bd60f818244dc93e90e30affe7c682d5e",
+  "monstersSha256": "b080d81f340faab3560bb96a42fc2b318d72d86b94f0c75709011ac138988462",
+  "areasSha256": "13f277880ea30b125123a3009dd0a3bd441670ac183fcab519df72235c8d60aa"
+}

@@ -17,17 +17,51 @@ const registration = { username: 'Hero', characterName: 'Éowyn', gender: 'femal
 const fastPasswords: PasswordHasher = { async hash(password) { return `test:${password}`; }, async verify(password, encoded) { return encoded === `test:${password}`; } };
 const apps: FastifyInstance[] = [];
 afterEach(async () => { await Promise.all(apps.splice(0).map(app => app.close())); });
-async function fixture(secureCookie = false, passwords = fastPasswords) {
+async function fixture(secureCookie = false, passwords = fastPasswords, trustedProxyAddresses: readonly string[] = []) {
   let at = 1000;
   const accounts = new MemoryAccountStore();
   const auth = createAuthService({ accounts, catalog: catalogJSON as unknown as Catalog, now: () => at, secureCookie, passwords });
   const app = Fastify({ logger: false }); apps.push(app);
-  await registerAuthRoutes(app, auth);
+  await registerAuthRoutes(app, auth, trustedProxyAddresses);
   return { app, accounts, auth, setTime(time: number) { at = time; } };
 }
 function cookie(response: { headers: Record<string, unknown> }): string { return String(response.headers['set-cookie']).split(';')[0]; }
 
 describe('account auth routes', () => {
+  it('uses X-Real-IP only when the immediate peer is an explicitly trusted proxy', async () => {
+    const { app } = await fixture(false, fastPasswords, ['127.0.0.1']);
+    const register = (index: number, forwardedIp: string) => app.inject({
+      method: 'POST', url: '/api/auth/register', remoteAddress: '127.0.0.1',
+      headers: { 'x-real-ip': forwardedIp },
+      payload: { ...registration, username: `trusted${index}`, characterName: `Trusted ${index}` },
+    });
+    for (let i = 0; i < 5; i++) expect((await register(i, '192.0.2.10')).statusCode).toBe(201);
+    for (let i = 5; i < 10; i++) expect((await register(i, '198.51.100.20')).statusCode).toBe(201);
+    expect((await register(10, '192.0.2.10')).statusCode).toBe(429);
+  });
+
+  it('ignores forged X-Real-IP when the immediate peer is not trusted', async () => {
+    const { app } = await fixture();
+    const register = (index: number, forwardedIp: string) => app.inject({
+      method: 'POST', url: '/api/auth/register', remoteAddress: '127.0.0.1',
+      headers: { 'x-real-ip': forwardedIp },
+      payload: { ...registration, username: `untrusted${index}`, characterName: `Untrusted ${index}` },
+    });
+    for (let i = 0; i < 5; i++) expect((await register(i, `192.0.2.${i + 1}`)).statusCode).toBe(201);
+    expect((await register(5, '198.51.100.42')).statusCode).toBe(429);
+  });
+
+  it('applies the trusted client IP to login attempt limits too', async () => {
+    const { app } = await fixture(false, fastPasswords, ['127.0.0.1']);
+    const login = (index: number, forwardedIp: string) => app.inject({
+      method: 'POST', url: '/api/auth/login', remoteAddress: '127.0.0.1',
+      headers: { 'x-real-ip': forwardedIp }, payload: { username: `missing${index}`, password: 'wrong password' },
+    });
+    for (let i = 0; i < 10; i++) expect((await login(i, '192.0.2.10')).statusCode).toBe(401);
+    for (let i = 10; i < 20; i++) expect((await login(i, '198.51.100.20')).statusCode).toBe(401);
+    expect((await login(20, '192.0.2.10')).statusCode).toBe(429);
+  });
+
   it('rejects stale-panel password and logout under another shared-password account without side effects', async () => {
     const { app, accounts } = await fixture(false, { hash: (await import('../server/identity/password.js')).hashPassword, verify: (await import('../server/identity/password.js')).verifyPassword });
     const a = await app.inject({ method: 'POST', url: '/api/auth/register', payload: registration });

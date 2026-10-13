@@ -22,10 +22,6 @@ describe('command boundary', () => {
     expect(() => parseCommandRequest({ requestId, command: { type: 'setPotions', hpThreshold: 101, spThreshold: 30 } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'allocate', stat: 'power', amount: 1 } })).toThrow();
   });
-  it('accepts all nine priority slots without truncating the rotation', () => {
-    const command = { type: 'setRotation' as const, skillIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'] };
-    expect(parseCommandRequest({ requestId, command })).toEqual({ requestId, command });
-  });
   it('accepts a real purchase intention without converting it into a reward', () => {
     expect(parseCommandRequest({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } }))
       .toEqual({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } });

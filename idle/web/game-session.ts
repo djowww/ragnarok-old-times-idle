@@ -3,6 +3,7 @@ import type { AccountView } from '../shared/portal-types';
 import type { Catalog, CommandRequest, GameCommand, GameSnapshot } from '../shared/types';
 import { ApiFailure, request } from './http';
 import { PendingCommands } from './pending-command';
+import { GameplayConnection } from './gameplayConnection';
 
 type View = { key: string; catalog: Catalog | null; snapshot: GameSnapshot | null; sending: boolean; error: string | null; connected: boolean; retryable: boolean };
 type Session = { dispose(): void; command(value: GameCommand): Promise<boolean>; retry(): Promise<boolean | void> };
@@ -19,6 +20,7 @@ export function useGame(identity: AccountView, onAuthRequired: () => void) {
   useEffect(() => {
     // All mutable work belongs to this effect generation, including StrictMode remounts.
     const abort = new AbortController(); let disposed = false; let stopped = false; let timer: ReturnType<typeof setTimeout> | undefined;
+    const connection = new GameplayConnection();
     let active: Promise<void> | null = null; let queued = false; let starting = true;
     let catalog: Catalog | null = null; let lastSnapshot: GameSnapshot | null = null;
     let receipt: CommandRequest | null = null; let pending: PendingCommands | null = null; let storageBlocked = false;
@@ -56,7 +58,7 @@ export function useGame(identity: AccountView, onAuthRequired: () => void) {
             if (!current()) return; catalog = value; publish({ catalog: value });
           }
           if (!current()) return;
-          const value = await request<GameSnapshot>('/api/session', { method: 'POST', body: {}, signal: abort.signal, identity });
+          const value = await connection.snapshot((path, body) => request<GameSnapshot>(path, { method: 'POST', body, signal: abort.signal, identity }));
           if (!current() || !verifyIdentity(value)) return; accept(value); publish({ connected: true });
           if (!receipt && errorSource === 'connection') { publish({ error: null }); errorSource = null; }
         } catch (error) {

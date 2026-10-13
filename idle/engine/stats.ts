@@ -6,10 +6,32 @@ import type {
   JobClass,
   Stat,
 } from "../shared/types.js";
-import { classicAttackInterval, classicSkillEffects } from "./classic.js";
+import { classicBaseAttackAmotion, classicSkillEffects } from "./classic.js";
+import { capPlayerAmotion, freeCastAmotionAfterAspdRate, playerAttackDelayFromAmotion } from './freeCastRules.js';
 import { isItemIdentified, rarityBonus } from "../shared/loot.js";
+import { defenderStats } from "./classicDefenses.js";
+import { stanceStatModifiers } from "./soloStances.js";
+import { autoBerserkModifiers } from "./reactiveSolo.js";
+import { isPecoMounted, mountedCavalierPenalty } from './mountedPeco.js';
+import { playerDiseaseModifiers } from './playerStatusRules.js';
+import { activePlayerStatus } from './playerStatuses.js';
 export const statNames: Stat[] = ["str", "agi", "vit", "int", "dex", "luk"];
 export const MAX_BASE_STAT = 99;
+export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
+  for (const [id, learnedLevel] of Object.entries(s.learnedSkills)) {
+    const skill = c.skills[id];
+    if (skill?.sourceName !== 'SA_FREECAST') continue;
+    if (skill.implementation === 'unsupported' || !classSkills(c, s.job).includes(id) ||
+        !Number.isSafeInteger(learnedLevel) || learnedLevel < 1 || learnedLevel > skill.maxLevel)
+      return 0;
+    return learnedLevel;
+  }
+  return 0;
+}
+export function activeFreeCastLevel(s: GameState, c: Catalog, at: number): number {
+  const cast = s.battle?.cast;
+  return cast && cast.startedAt <= at && at < cast.endsAt ? learnedFreeCastLevel(s, c) : 0;
+}
 /** Hercules pc.c:7161..7185, pre-renewal point cost from the current base stat. */
 export function statPointCost(value: number, amount = 1): number {
   if (!Number.isSafeInteger(value) || value < 1 || value >= MAX_BASE_STAT ||
@@ -54,7 +76,8 @@ export function inventoryLoad(s: GameState, c: Catalog) {
       carryLevel += Math.max(0, Math.min(skill.maxLevel, Math.floor(level)));
   }
   // Exported item and job weights use Hercules Weight / 10.
-  const maxWeight = (c.classes[s.job]?.baseWeight ?? 2000) + s.stats.str * 30 + 200 * carryLevel;
+  const maxWeight = (c.classes[s.job]?.baseWeight ?? 2000) + s.stats.str * 30 + 200 * carryLevel +
+    (isPecoMounted(s, c) ? 1000 : 0);
   return { weight, maxWeight, recoveryBlocked: weight * 2 >= maxWeight };
 }
 export function derivedStats(s: GameState, c: Catalog): DerivedStats {
@@ -103,6 +126,18 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   }
   for (const buff of Object.values(s.buffs))
     if (buff.expiresAt > s.lastSimulatedAt) merge(effects, buff.effects);
+  const defender = Object.entries(s.buffs).find(([id, buff]) =>
+    c.skills[id]?.sourceName === "CR_DEFENDER" && buff.expiresAt > s.lastSimulatedAt);
+  if (defender) effects.aspd = (effects.aspd ?? 0) - defenderStats(
+    s.combatEffects?.buffLevels?.[defender[0]] ?? s.learnedSkills[defender[0]] ?? 1, 150, 0).aspdRate / 10;
+  const stance = (source: 'MO_STEELBODY' | 'LK_BERSERK') => Object.entries(s.buffs)
+    .some(([id, buff]) => c.skills[id]?.sourceName === source && buff.expiresAt > s.lastSimulatedAt);
+  const steel = stance('MO_STEELBODY'), berserk = stance('LK_BERSERK');
+  if (steel) effects.aspd = (effects.aspd ?? 0) - stanceStatModifiers('MO_STEELBODY').aspdRateDelta / 10;
+  if (berserk) effects.aspd = (effects.aspd ?? 0) - stanceStatModifiers('LK_BERSERK').aspdRateDelta / 10;
+  // status.c:2148,3398..3401: mount adds to the combined rate before motion multiplication.
+  const mountPenalty = mountedCavalierPenalty(s, c);
+  if (mountPenalty) effects.aspd = (effects.aspd ?? 0) - mountPenalty;
   const a = Object.fromEntries(
     statNames.map((stat) => [stat, s.stats[stat] + (effects[stat] ?? 0)]),
   ) as Record<Stat, number>;
@@ -115,22 +150,35 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   // status.c:3782..3839: bows, instruments and whips use DEX as primary ATK.
   const baseAttack = main + Math.floor(main / 10) ** 2 +
     Math.floor(secondary / 5) + Math.floor(a.luk / 5) + (effects.atk ?? 0);
-  const attackIntervalMs = classicAttackInterval(
-    job.weaponAspd?.[weaponType as keyof typeof job.weaponAspd] ??
-      job.weaponAspd?.unarmed ?? 1000,
+  const baseAttackAmotion = classicBaseAttackAmotion(
+    job.weaponAspd?.[weaponType as keyof typeof job.weaponAspd] ?? job.weaponAspd?.unarmed ?? 1000,
     a.agi,
     a.dex,
-    effects.aspd ?? 0,
   );
+  const sourceAspdRate = Math.max(0, Math.min(32767, Math.trunc((100 - (effects.aspd ?? 0)) * 10)));
+  const freeCastLevel = activeFreeCastLevel(s, c, s.lastSimulatedAt);
+  const amotionAfterFreeCast = freeCastAmotionAfterAspdRate(
+    baseAttackAmotion, sourceAspdRate, freeCastLevel, freeCastLevel > 0,
+  );
+  // The supported runtime folds current fixed ASPD effects into effects.aspd;
+  // apply the remaining source calc_fix_aspd bounds before the PC-specific cap.
+  const amotionAfterFixedAspd = Math.max(0, Math.min(2000, amotionAfterFreeCast));
+  const attackMotionMs = capPlayerAmotion(amotionAfterFixedAspd, job.minimumAttackMotionMs ?? 100);
+  const attackIntervalMs = playerAttackDelayFromAmotion(attackMotionMs);
   const softMdef = a.int + Math.floor(a.vit / 2);
+  const maxHp = (berserk ? 3 : 1) * Math.max(1, Math.floor(
+    (Math.floor(hpBase * (1 + a.vit / 100)) + (effects.hp ?? 0)) * (1 + (effects.hpPct ?? 0) / 100)));
+  // A pure projection reconciles every HP/maxHP change, without saved stale bonuses.
+  const reactive = autoBerserkModifiers({ enabled: Object.entries(s.buffs).some(([id, buff]) =>
+    c.skills[id]?.sourceName === 'SM_AUTOBERSERK' && buff.expiresAt > s.lastSimulatedAt), hp: s.hp, maxHp });
+  const poisoned = activePlayerStatus(s, 'SC_POISON', s.lastSimulatedAt) || activePlayerStatus(s, 'SC_DPOISON', s.lastSimulatedAt);
+  const blind = activePlayerStatus(s, 'SC_BLIND', s.lastSimulatedAt);
+  const disease = playerDiseaseModifiers({ poison: poisoned, blind });
+  const sourceDefensePercent = Math.max(0, reactive.sourceDefensePercent + (effects.softDefPct ?? 0) - disease.defReductionPercent);
   return {
-    maxHp: Math.max(
-      1,
-      Math.floor(
-        (Math.floor(hpBase * (1 + a.vit / 100)) + (effects.hp ?? 0)) *
-          (1 + (effects.hpPct ?? 0) / 100),
-      ),
-    ),
+    maxHp,
+    sourceAttackPercent: reactive.sourceAttackPercent,
+    sourceDefensePercent,
     maxSp: Math.max(
       1,
       Math.floor(
@@ -143,15 +191,18 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
       a.int + Math.floor(a.int / 7) ** 2 + (effects.matk ?? 0),
       a.int + Math.floor(a.int / 5) ** 2 + (effects.matk ?? 0),
     ],
-    def: Math.floor(
+    def: berserk ? 0 : steel ? 90 : Math.floor(
       (armorDef + (effects.def ?? 0)) * (1 + (effects.defPct ?? 0) / 100),
     ),
-    mdef: softMdef + (effects.mdef ?? 0),
-    hit: s.baseLevel + a.dex + (effects.hit ?? 0),
-    flee: s.baseLevel + a.agi + (effects.flee ?? 0),
+    mdef: berserk ? 0 : softMdef + (steel ? 90 : (effects.mdef ?? 0)),
+    hit: (() => { const value = s.baseLevel + a.dex + (effects.hit ?? 0); return value - Math.trunc(value * disease.hitReductionPercent / 100); })(),
+    flee: (() => { const value = s.baseLevel + a.agi + (effects.flee ?? 0);
+      const reduced = berserk ? value - Math.trunc(value * .5) : value;
+      return reduced - Math.trunc(reduced * disease.fleeReductionPercent / 100); })(),
     // status.c:3941,3946 retain tenths; clif truncates only the displayed value.
     crit: (10 + Math.floor(a.luk * 10 / 3)) / 10 + (effects.crit ?? 0),
     perfectDodge: (a.luk + 10) / 10 + (effects.perfectDodge ?? 0),
+    attackMotionMs,
     attackIntervalMs,
     aspd: 200 - attackIntervalMs / 20,
     effects,
@@ -159,9 +210,9 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     baseAttack,
     weaponAttack,
     weaponRefineAttack,
-    softDef: Math.floor(a.vit * (1 + (effects.softDefPct ?? 0) / 100)),
-    hardMdef: effects.mdef ?? 0,
-    softMdef,
+    softDef: berserk ? 0 : Math.floor(a.vit * sourceDefensePercent / 100),
+    hardMdef: berserk ? 0 : steel ? 90 : effects.mdef ?? 0,
+    softMdef: berserk ? 0 : softMdef,
   };
 }
 export function clampResources(s: GameState, c: Catalog) {

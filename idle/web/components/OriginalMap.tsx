@@ -7,10 +7,25 @@ export type { MapProjection } from "../assets/mapProjection";
 const localMaps = new Set([
   "prontera",
   "prt_in",
+  "prt_fild00",
+  "prt_fild01",
+  "prt_fild02",
   "prt_fild08",
   "prt_sewb1",
   "prt_fild04",
   "prt_fild03",
+  "prt_fild05",
+  "prt_fild06",
+  "prt_fild07",
+  "prt_fild09",
+  "prt_fild10",
+  "prt_fild11",
+  "gef_fild00",
+  "gef_fild02",
+  "gef_fild09",
+  "pay_fild01",
+  "pay_fild04",
+  "pay_fild09",
   "pay_dun00",
   "iz_dun01",
   "gef_fild10",
@@ -151,7 +166,7 @@ export default function OriginalMap({
         <iframe
           key={`${map}:${attempt}`}
           ref={frame}
-          src={`${mapViewer}?attempt=${attempt}#${map}.rsw`}
+          src={`${mapViewer}?v=20261012-cloudsync&attempt=${attempt}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
           onLoad={() => resetActors(true)}

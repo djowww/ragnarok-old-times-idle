@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Slot } from "../../shared/types";
 import { isItemIdentified } from "../../shared/loot";
+import { isPecoMounted } from "../../engine/mountedPeco";
 import { FALLBACK_ICON, getBitmapUrl } from "../assets/items";
 import { ActorPreview } from "./Scene";
 import { ItemIcon, itemName, itemRarityBonus, itemRarityClass, itemRarityLabel, type PanelProps } from "./common";
@@ -23,6 +24,8 @@ const equipmentSlots: ReadonlyArray<{ key: string; label: string; slot?: Slot; s
 export default function ClassicEquipment({ catalog, snapshot, busy, command, onInventory }: PanelProps & { onInventory: () => void }) {
   const { state } = snapshot;
   const currentClass = catalog.classes[state.job];
+  const mounted = isPecoMounted(state, catalog);
+  const sprite = (mounted ? currentClass.mountedSprite?.[state.gender] : undefined) ?? currentClass.sprite[state.gender];
   const weaponEntry = state.inventory.find(entry => entry.uid === state.equipment.weapon);
   const weaponType = weaponEntry && isItemIdentified(weaponEntry) ? catalog.items[weaponEntry.itemId]?.weaponType : undefined;
   const [background, setBackground] = useState<string | null>(null);
@@ -38,10 +41,10 @@ export default function ClassicEquipment({ catalog, snapshot, busy, command, onI
     <div className="classic-equipment-window">
       <div className="classic-equipment-layout" style={style} aria-label="Equipamentos do personagem">
         <div className="classic-equipment-portrait">
-          <ActorPreview asset={currentClass.sprite[state.gender]} size="natural"
+          <ActorPreview asset={sprite} size="natural"
             name={`${state.name}, ${currentClass.name}, ${state.gender === "female" ? "feminino" : "masculino"}`}
             appearance={state.appearance}
-            weapon={weaponType ? { type: weaponType, gender: state.gender, job: state.job } : undefined} />
+            weapon={weaponType ? { type: weaponType, gender: state.gender, job: state.job, mounted } : undefined} />
         </div>
         {equipmentSlots.map(({ key, label, slot, side, row }) => {
           const entry = slot ? state.inventory.find(item => item.uid === state.equipment[slot]) : undefined;

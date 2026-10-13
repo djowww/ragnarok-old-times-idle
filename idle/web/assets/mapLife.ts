@@ -14,6 +14,8 @@ export interface MapLifeActor {
   asset: SpriteAsset;
   /** Preferred viewport ground position; prepareMapLife converts it to map cells. */
   point: MapLifePoint;
+  /** Fixed native map cell for NPCs whose location should not follow the viewport layout. */
+  mapCell?: MapLifePoint;
   roamCells: number;
   speed: number;
   direction: number;
@@ -48,7 +50,7 @@ const SOLDIER = npcAsset("8w_soldier");
 const GUIDE = npcAsset("4_f_kafra1");
 const TRAVELER = npcAsset("4_m_01");
 const EXPLORER = npcAsset("4_m_04");
-const TOWN_POINTS = [{ x: 0.22, y: 0.54 }, { x: 0.75, y: 0.48 }, { x: 0.35, y: 0.32 }, { x: 0.83, y: 0.34 }];
+const TOWN_POINTS = [{ x: 0.22, y: 0.54 }, { x: 0.67, y: 0.5 }, { x: 0.35, y: 0.32 }, { x: 0.83, y: 0.34 }];
 const DUNGEON_MAPS = new Set(["prt_sewb1", "pay_dun00", "iz_dun01", "moc_pryd02", "gef_dun02", "gl_knt01"]);
 const walkActionCache = new WeakMap<DecodedActor, boolean>();
 
@@ -71,10 +73,10 @@ function seedOf(value: string): number {
   for (let index = 0; index < value.length; index++) seed = (seed * 31 + value.charCodeAt(index)) >>> 0;
   return seed;
 }
-function npc(map: string, role: string, label: string, asset: SpriteAsset, point: MapLifePoint, roamCells = 0): MapLifeActor {
+function npc(map: string, role: string, label: string, asset: SpriteAsset, point: MapLifePoint, roamCells = 0, mapCell?: MapLifePoint): MapLifeActor {
   const seed = seedOf(`${map}:${role}`);
   return { id: `life:${map}:${role}`, kind: "npc", label, asset, point,
-    roamCells, speed: 0.7, direction: seed % 8, phaseMs: seed % 23000 };
+    ...(mapCell ? { mapCell } : {}), roamCells, speed: 0.7, direction: seed % 8, phaseMs: seed % 23000 };
 }
 
 /** Descriptors are stable for a map/catalog and share loadActor's existing cache. */
@@ -166,12 +168,22 @@ export function prepareMapLife(actors: readonly MapLifeActor[], camera: MapProje
   }
   const routes: MapLifeRoute[] = [];
   for (const actor of actors.slice(0, 8)) {
-    const preferred = screenGroundPoint(camera, actor.point);
+    const fixedHome = actor.mapCell && mapGroundWalkable(camera, actor.mapCell.x, actor.mapCell.y)
+      ? mapCellPoint(camera, actor.mapCell.x, actor.mapCell.y) : undefined;
+    const preferred = fixedHome ?? screenGroundPoint(camera, actor.point);
     const minimumDistance = actor.kind === "monster" ? 9 : 5;
     const available = candidates.filter(({ world }) =>
       Math.hypot(world[0] - camera.focus[0], world[2] - camera.focus[2]) >= minimumDistance &&
       occupied.every(point => Math.hypot(world[0] - point[0], world[2] - point[2]) >= 3));
-    const home = available.reduce<WorldPoint | undefined>((best, candidate) => {
+    const fixedPlacement = fixedHome && projectMapPoint(camera, fixedHome, width, height);
+    const fixedCellAvailable = !!fixedHome && !!fixedPlacement &&
+      fixedPlacement.x >= width * 0.13 && fixedPlacement.x <= width * 0.9 &&
+      fixedPlacement.y >= height * 0.24 && fixedPlacement.y <= height * 0.63 &&
+      Math.hypot(fixedHome[0] - camera.focus[0], fixedHome[2] - camera.focus[2]) >= minimumDistance &&
+      occupied.every(point => Math.hypot(fixedHome[0] - point[0], fixedHome[2] - point[2]) >= 3);
+    const home = actor.mapCell
+      ? (fixedCellAvailable ? fixedHome : undefined)
+      : available.reduce<WorldPoint | undefined>((best, candidate) => {
       const distance = (point: WorldPoint) => Math.hypot(point[0] - preferred[0], point[2] - preferred[2]);
       return !best || distance(candidate.world) < distance(best) ? candidate.world : best;
     }, undefined);

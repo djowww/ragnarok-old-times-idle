@@ -22,6 +22,20 @@ async function setup() {
   return { app, accounts, token, profileId, repository, advance: (ms: number) => { now += ms; } };
 }
 describe('idle HTTP intentions', () => {
+  it('forwards the explicit trusted proxy allowlist to auth rate limiting', async () => {
+    const accounts = new MemoryAccountStore();
+    const app = await buildApp({ catalog, accounts, profiles: accounts.profiles, now: () => 1000, trustedProxyAddresses: ['127.0.0.1'] });
+    apps.push(app);
+    const register = (index: number, forwardedIp: string) => app.inject({
+      method: 'POST', url: '/api/auth/register', remoteAddress: '127.0.0.1',
+      headers: { 'x-real-ip': forwardedIp },
+      payload: { username: `proxy${index}`, characterName: `Proxy ${index}`, gender: 'male', password: 'valid-password', confirmation: 'valid-password' },
+    });
+    for (let i = 0; i < 5; i++) expect((await register(i, '192.0.2.10')).statusCode).toBe(201);
+    for (let i = 5; i < 10; i++) expect((await register(i, '198.51.100.20')).statusCode).toBe(201);
+    expect((await register(10, '192.0.2.10')).statusCode).toBe(429);
+  });
+
   it('scopes an admin grant to the currently authenticated game profile', async () => {
     const accounts = new MemoryAccountStore();
     const app = await buildApp({ catalog, accounts, profiles: accounts.profiles, now: () => 1000, adminToken });
@@ -29,7 +43,10 @@ describe('idle HTTP intentions', () => {
     const registered = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { username: 'admin_scope', characterName: 'Admin Scope', gender: 'male', password: 'valid-password', confirmation: 'valid-password' } });
     expect(registered.statusCode).toBe(201);
     const gameCookie = registered.cookies.find(cookie => cookie.name === 'idle_session')!.value;
-    const adminLogin = await app.inject({ method: 'POST', url: '/api/admin/session', payload: { token: adminToken } });
+    const anonymousLogin = await app.inject({ method: 'POST', url: '/api/admin/session', payload: { token: adminToken } });
+    expect(anonymousLogin.statusCode).toBe(401);
+    expect(anonymousLogin.headers['set-cookie']).toBeUndefined();
+    const adminLogin = await app.inject({ method: 'POST', url: '/api/admin/session', cookies: { idle_session: gameCookie }, payload: { token: adminToken } });
     expect(adminLogin.statusCode).toBe(200);
     const adminCookie = adminLogin.cookies.find(cookie => cookie.name === 'ragidle_admin')!.value;
     const payload = { requestId: 'admin-scope-action-01', action: { type: 'zeny', amount: 500 } };

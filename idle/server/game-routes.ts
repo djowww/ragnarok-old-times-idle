@@ -8,6 +8,7 @@ import type { AuthService } from './identity/service.js';
 import type { AccountView } from '../shared/portal-types.js';
 import { advanceState, advanceStateCooperatively, applyCommand, getSnapshot } from '../engine/index.js';
 import { parseCommandRequest } from './validation.js';
+import { parseSessionOpenRequest, SessionStateRepository } from './sessionState.js';
 
 const callerRepositories = new WeakMap<FastifyRequest, StateRepository>();
 export function callerRepository(request: FastifyRequest): StateRepository | undefined { return callerRepositories.get(request); }
@@ -60,6 +61,16 @@ async function contactCooperatively(state: GameState, catalog: Catalog, now: num
   return recordContact(state, await advanceStateCooperatively(state, catalog, now), now);
 }
 export async function registerGameRoutes(app: FastifyInstance, { auth, profiles, catalog, now }: { auth: AuthService; profiles: GameProfiles; catalog: Catalog; now: () => number }): Promise<void> {
+  app.post('/api/session/open', async request => {
+    const repository = await resolveGameRepository(request, auth, profiles);
+    const connectionId = parseSessionOpenRequest(request.body);
+    if (!(repository instanceof SessionStateRepository)) throw new Error('Profile session repository is unavailable');
+    const at = now();
+    const state = repository.openSessionCooperatively
+      ? await repository.openSessionCooperatively(connectionId, old => contactCooperatively(old, catalog, at))
+      : await repository.openSession(connectionId, old => contact(old, catalog, at));
+    return getSnapshot(state, catalog, at);
+  });
   app.post('/api/session', async request => {
     const repository = await resolveGameRepository(request, auth, profiles);
     const at = now();

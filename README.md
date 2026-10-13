@@ -13,12 +13,12 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 ## O jogo
 
 - Combate idle autoritativo no servidor, com progresso persistido e resumo de até 12 horas offline.
-- Quatorze áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
+- 29 áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
 - Evolução de classes clássicas, renascimento, atributos, habilidades, equipamentos, cartas, refino, consumíveis e loot.
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
 - Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.
-- Árvores de 40 classes: 348 habilidades importadas, com habilidades de família removidas e Increase Weight Limit restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
+- Árvores de 40 classes: 348 habilidades importadas, com 246 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
 - Prioridade circular de nove habilidades, loja compacta e diário com chat persistente entre as sessões locais.
 - HUD e janelas reposicionáveis, equipamento e atributos com interface clássica, cooldowns discretos e descanso sentado no campo.
 - Combate com prazos ordenados, relógios separados para ataque, movimento, conjuração e recarga, além de ações e reações animadas por ator. A cura automática intercala ações ofensivas.
@@ -26,7 +26,7 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 
 O modo idle adapta regras e recompensas para sessões curtas. Ele não executa scripts de itens nem pretende reproduzir integralmente todos os sistemas do emulador oficial.
 
-Custos, pré-requisitos, tempos e fórmulas têm suas fontes registradas em [`idle/content/source-manifest.json`](idle/content/source-manifest.json). Produção, homúnculos, efeitos sobre grupos e mecânicas que exigem conjuração inimiga ou quebra/reparo de equipamentos ainda têm limitações explícitas. Os sprites acompanham a câmera e as alturas do mapa, mas ainda não recebem ocultação por árvores e paredes; os efeitos visuais são composições 2D dos recursos locais, sem execução integral dos efeitos STR do cliente.
+Custos, pré-requisitos, tempos e fórmulas têm suas fontes registradas em [`idle/content/source-manifest.json`](idle/content/source-manifest.json). Habilidades que dependem de sistemas ainda ausentes permanecem marcadas como indisponíveis. O renderizador nativo integra os sprites à geometria do mapa; os efeitos visuais ainda incluem composições 2D dos recursos locais, sem execução integral dos efeitos STR do cliente.
 
 ## Começar
 
@@ -57,7 +57,7 @@ O painel administrativo é opcional e fica desativado até receber uma chave pri
 docker compose up -d --force-recreate idle-game
 ```
 
-No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas. O painel pode conceder níveis Base, trocar a classe, adicionar zeny e entregar itens do catálogo; ele não altera a conta nem os personagens do Hercules.
+No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas. O painel pode conceder níveis Base e Job, trocar a classe, adicionar zeny e entregar itens do catálogo ao personagem da conta autenticada; ele não altera os personagens do Hercules.
 
 Abra o idle em **http://localhost:3339/**. O cliente clássico fica em **http://localhost:3338/applications/pwa/index.html**. O primeiro build compila os serviços e pode levar alguns minutos.
 
@@ -78,7 +78,6 @@ Os links diretos e o reload dessas páginas são servidos pelo mesmo servidor.
 Os comunicados em `/noticias` vêm de `idle/content/news.json`, versionado com
 parágrafos de texto e incluído na imagem; editar o conteúdo exige novo build.
 
-As contas e personagens do Idle são independentes das contas do Hercules.
 Perfis legados existentes não são associados automaticamente: qualquer
 associação exige uma ação explícita. As migrações do portal são aditivas e
 preservam o progresso salvo no volume do banco.
@@ -88,6 +87,10 @@ preservam o progresso salvo no volume do banco.
 Ao publicar o site, configure `PUBLIC_ORIGIN` e `RAGIDLE_ALLOWED_ORIGINS` com
 a origem HTTPS exata do portal. Defina `WS_ALLOWED_ORIGINS` com a origem exata
 do cliente clássico, por exemplo `https://jogo.example.com`. Não use curingas.
+Para distinguir clientes nos limites de login, configure
+`RAGIDLE_TRUSTED_PROXY_ADDRESSES` com os IPs exatos do proxy que conecta ao
+container. Esse proxy deve sobrescrever `X-Real-IP` com `$remote_addr`;
+cabeçalhos de um peer não confiável são ignorados. Sem proxy, deixe a lista vazia.
 O proxy reverso também precisa encaminhar `/ro/` ao cliente clássico, `/assets/`
 ao serviço de assets e `/ws/` ao serviço WebSocket. Para `/ws/`, use HTTP/1.1
 e os cabeçalhos `Upgrade` e `Connection: upgrade`; remova somente o prefixo

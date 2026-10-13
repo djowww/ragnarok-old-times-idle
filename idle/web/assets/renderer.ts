@@ -21,6 +21,7 @@ export interface DecodedActor {
     weapon?: ActorPart;
     weaponTrail?: ActorPart;
     weaponVisual?: WeaponAppearance;
+    identity?: { job: string; gender: 'male' | 'female' };
 }
 export interface PosedLayer extends ActionLayer {
     image: SpriteFrame;
@@ -92,10 +93,10 @@ async function loadOptionalPart(spr?: string, act?: string, allowMissing = false
         return { error };
     }
 }
-export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance, appearance?: Appearance): Promise<DecodedActor> {
+export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance, appearance?: Appearance, identity?: DecodedActor['identity']): Promise<DecodedActor> {
     const actorAsset = assetWithAppearance(asset, appearance);
     const kind: DecodedActor['kind'] = actorAsset.headSpr || actorAsset.headAct || actorAsset.spr.replace(/\\/g, '/').includes('인간족/몸통/') ? 'character' : 'monster';
-    const key = JSON.stringify({ asset: actorAsset, weaponVisual, appearance });
+    const key = JSON.stringify({ asset: actorAsset, weaponVisual, appearance, identity });
     const cached = actorCache.get(key);
     if (cached) {
         actorCache.delete(key);
@@ -128,6 +129,7 @@ export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance, a
                 weapon: weaponResult.value,
                 weaponTrail: trailResult.value,
                 weaponVisual,
+                identity: identity ?? weaponVisual,
                 error: errors.length ? errors.join('; ') : undefined,
             };
         }
@@ -172,6 +174,14 @@ function facingFrames(part: ActorPart, preferred: number): { index: number; fram
 
 export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'skill' | 'hurt' | 'dead';
 
+export function getCombatActorAction(actorAction: 'attack' | 'skill' | 'none', skillSourceName?: string): ActorAction {
+    if (actorAction === 'none') return 'idle';
+    // Pinned SkillAction.js:143 uses the equipped attack for Brandish; mounted
+    // Knight spear group96 has no visible weapon layers, unlike attack88.
+    if (actorAction === 'attack' || skillSourceName === 'SM_BASH' || skillSourceName === 'KN_BRANDISHSPEAR') return 'attack';
+    return 'skill';
+}
+
 function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: number) {
     if (!actor.body || actor.fallback)
         return undefined;
@@ -184,37 +194,59 @@ function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: nu
     const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
     // Keep the requested body direction whenever its ACT provides it. Optional
     // head and weapon layers independently choose a same-facing fallback.
-    const candidates = [...new Set([base + dir, dir, base, 0])];
+    const candidates = [...new Set([base + dir, base, dir, 0])];
     const index = candidates.find((candidate) => actionFrames(actor.body!, candidate));
     if (index === undefined) return undefined;
     const bodyFrames = actionFrames(actor.body, index);
     if (!bodyFrames)
         return undefined;
     const delay = Math.max(25, actor.body.action.actions[index]?.delayMs ?? actor.body.action.actions[0]?.delayMs ?? 150);
-    return { index, bodyFrames, delay };
+    return { index, bodyFrames, delay, fallbackAction: Math.floor(index / 8) !== Math.floor(base / 8) };
 }
 
 export function getActorActionDuration(actor: DecodedActor, action: ActorAction, direction = 0, fallback = 500): number {
     const selected = actorBodyAction(actor, action, direction);
-    return selected ? selected.bodyFrames.length * selected.delay : fallback;
+    return selected ? actorPlayback(actor, action, selected).duration : fallback;
+}
+
+/** roBrowser d88a3cd4 DBManager1472..1517/2237..2259 and Entity632..642.
+ * amotion is a divisor input, not the duration of an arbitrary ACT sheet. */
+function actorPlayback(actor: DecodedActor, action: ActorAction, selected: NonNullable<ReturnType<typeof actorBodyAction>>, motionMs?: number) {
+    const identity = actor.identity ?? actor.weaponVisual;
+    const type = actor.weaponVisual?.type;
+    const attack = actor.kind === 'character' && action === 'attack' && !selected.fallbackAction;
+    const job = identity?.job;
+    const monkSlice = attack && ['monk', 'champion'].includes(job ?? '') && !type;
+    const frames = monkSlice ? Math.min(5, selected.bodyFrames.length) : selected.bodyFrames.length;
+    const divisor = attack && ['novice', 'high_novice', 'super_novice', 'baby_novice', 'baby_super_novice'].includes(job ?? '') && identity?.gender === 'male' ? 5.85
+        : attack && ['assassin', 'assassin_cross', 'baby_assassin'].includes(job ?? '') && type === 'katar' ? 3 : 6;
+    const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
+    const delay = !looping && Number.isFinite(motionMs) && motionMs! > 0
+        ? Math.max(1, motionMs! / (attack ? divisor : frames)) : selected.delay;
+    return { frames, delay, duration: frames * delay };
+}
+export function getActorPlaybackDuration(actor: DecodedActor, action: ActorAction, motionMs: number, direction = 0): number {
+    const selected = actorBodyAction(actor, action, direction);
+    return selected ? actorPlayback(actor, action, selected, motionMs).duration : motionMs;
 }
 
 export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: number, direction = 0, motionMs?: number): PosedLayer[] {
     const selected = actorBodyAction(actor, action, direction);
     if (!selected || !actor.body) return [];
-    const { index, bodyFrames, delay } = selected;
+    const { index, bodyFrames, delay, fallbackAction } = selected;
     // PC idle's three ACT frames are head-direction/doridori variants. The
     // original renderer holds the first direction until a head turn is asked for.
     const staticIdle = actor.kind === 'character' && index < 8;
+    const staticFallbackDeath = action === 'dead' && fallbackAction;
     const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
     // The server movement controls a one-shot's pace; every optional layer
     // follows the body's frame index instead of advancing on a separate clock.
-    const playbackDelay = !looping && Number.isFinite(motionMs) && motionMs! > 0
-        ? Math.max(1, motionMs! / bodyFrames.length) : delay;
+    const playback = actorPlayback(actor, action, selected, motionMs);
+    const playbackDelay = playback.delay;
     const elapsedFrame = Math.floor(Math.max(0, elapsed) / playbackDelay);
-    const frameIndex = staticIdle ? 0 : looping
-        ? elapsedFrame % bodyFrames.length
-        : Math.min(elapsedFrame, bodyFrames.length - 1);
+    const frameIndex = staticIdle || staticFallbackDeath ? 0 : looping
+        ? elapsedFrame % playback.frames
+        : Math.min(elapsedFrame, playback.frames - 1);
     const bodyFrame = bodyFrames[frameIndex];
     if (!bodyFrame)
         return [];
