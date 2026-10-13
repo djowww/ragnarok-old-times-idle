@@ -12,6 +12,8 @@ import { consume, event, random } from "./state.js";
 import { pickupItem } from './lootPickup.js';
 import { overweightForCombat } from './itemCapacity.js';
 import { returnForCarry } from './carryReturn.js';
+import { copiedSpell, effectiveSkillLevel } from '../shared/copiedSkills.js';
+import { captureNpcSpell } from './plagiarism.js';
 import { castControlEligible,spellBreakerCastMs,findInterruptibleNpcCast,resolveSpellBreaker } from './castControl.js';
 import {conversionSpec} from './elementalConversionRules.js';
 import {elementalConversionEligible,elementalConversionTarget,resolveElementalConversion,expireElementalConversion} from './elementalConversion.js';
@@ -724,14 +726,14 @@ function updateFieldActors(s: GameState, c: Catalog, at: number, context?: Simul
   const offensive = !activeCast && at >= (b.playerNextSkillAt ?? 0) ? chooseSkill(s, c, at, target, true, true, context) : undefined;
   const movementTarget = offensive?.sourceName === 'BA_PANGVOICE' ? pangVoiceTarget(s, c, at) ?? target
     : offensive?.sourceName === 'DC_WINKCHARM' ? winkCharmTarget(s, c, at) ?? target : target;
-  const inRange = offensive ? skillTargetInRange(s, c, offensive, s.learnedSkills[offensive.id], movementTarget, at)
+  const inRange = offensive ? skillTargetInRange(s, c, offensive, effectiveSkillLevel(s, c, offensive.id), movementTarget, at)
     : playerBattleDistance(heroPoint, enemyPositionAt(movementTarget, at)) <= basicAttackRange(s, c);
   if (inRange) {
     freezeFieldHero(s, at); hero.phase = "fighting";
   } else if (classicBuffActive(s, c, "TF_HIDING", at) && !(learnedBySource(s, c).RG_TUNNELDRIVE > 0)) {
     freezeFieldHero(s, at); hero.phase = "waiting";
   } else {
-    const range = offensive ? skillAttackRange(s, c, offensive, s.learnedSkills[offensive.id]) : basicAttackRange(s, c);
+    const range = offensive ? skillAttackRange(s, c, offensive, effectiveSkillLevel(s, c, offensive.id)) : basicAttackRange(s, c);
     const enemyPoint = enemyPositionAt(movementTarget, at);
     const routed = moveOnFieldRoute(hero, context, s.areaId!, heroPoint, enemyPoint, `enemy:${movementTarget.id}`,
       range, 'player', playerWalkSpeed(s, c, at), at);
@@ -1118,6 +1120,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
     if (!s.combatEffects.endure) cancelClassicBuff(s, c, 'SM_ENDURE');
   }
   const hpBefore = s.hp;
+  if (sourceSkill) captureNpcSpell(s, c, sourceSkill, skill.level, damage, hpBefore, at, enemy);
   s.hp = Math.max(0, s.hp - damage);
   if (damage > 0) interruptSageEnchantCast(s, c, at);
   event(s, at, 'damage', monster.name, damage, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
@@ -1213,7 +1216,7 @@ function chooseSkill(
   const type = entry ? c.items[entry.itemId]?.weaponType : undefined;
   for (const id of s.rotation) {
     const skill = c.skills[id],
-      level = s.learnedSkills[id];
+      level = effectiveSkillLevel(s, c, id);
     if (skill?.sourceName === 'KN_AUTOCOUNTER' && type === 'bow') continue;
     if (skill?.sourceName === 'CR_SHRINK') {
       const autoGuard = Object.values(c.skills).find(candidate => candidate.sourceName === 'CR_AUTOGUARD');
@@ -1245,6 +1248,7 @@ function chooseSkill(
     )
       continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
+    if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
       !bladeStopAutoHasUsefulFollowup(s, c, skill, level, at))) continue;
@@ -2416,6 +2420,10 @@ function resolveSkill(
       s.buffs[skill.id].startsAt = at;
       random(s); // status_start's 100% application still draws RNG.
     }
+    if (mechanic === 'ST_PRESERVE') {
+      s.buffs[skill.id].startsAt = at;
+      random(s); // status.c:7177 draws even at 100% application rate.
+    }
     startSoloStance(s, skill, at, d.maxHp);
     if (mechanic === "SA_AUTOSPELL" && autoChoice)
       combat.autospell = { skillId: autoChoice.skillId, level: autoChoice.maxLevel };
@@ -2907,6 +2915,7 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
     cancelClassicBuff(s, c, 'KN_AUTOCOUNTER');
     cancelClassicBuff(s, c, 'AS_POISONREACT');
     cancelClassicBuff(s, c, 'SA_MAGICROD');
+    cancelClassicBuff(s, c, 'ST_PRESERVE');
     cancelClassicBuff(s, c, 'PA_SACRIFICE');
     clearTrickDead(s, c, at); // SC_TRICKDEAD lacks NoDeathReset.
     s.hp = 0;
@@ -3082,7 +3091,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       ['BA_PANGVOICE', 'DC_WINKCHARM'].includes(skill.sourceName ?? ''))
       provokeEnemy(s, c, target, at);
     if (skill.sourceName !== "AS_CLOAKING") cancelClassicBuff(s, c, "AS_CLOAKING");
-    const level = s.learnedSkills[skill.id];
+    const level = effectiveSkillLevel(s, c, skill.id);
     const base = val(skill.castTimeMs, level) *
       (skill.sourceName === "MO_FINGEROFFENSIVE" ? 1 + Math.min(level, s.combatEffects?.spiritSpheres ?? 0) : 1);
     let castMs = skill.sourceName === "MO_EXTREMITYFIST" && s.combatEffects?.combo &&

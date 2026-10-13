@@ -12753,10 +12753,10 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer habilidades inimigas copiáveis.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Separate durable copied slot learned only through real modeled NPC magical damage, without points or RNG. Current incoming scope has four Mage spells; other incoming spells and PvP are not modeled. Actual job changes clear the slot; death retains it. Started casts keep their ID and level snapshot after replacement."
     },
     "rg_closeconfine": {
       "id": 1005,
@@ -12849,10 +12849,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Depende de Intimidate/copiar habilidades.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Normal self-buff with source 1000 ms cast,30 SP and600 s duration. Protects the copied slot from replacement while active; death and NoSave session boundaries clear it. AFK waits for a valid copy before arming it. Uses original icon and existing generic native cast; no unsupported official VFX ID is invented."
     },
     "st_fullstrip": {
       "id": 476,
@@ -13624,6 +13624,31 @@
     "actorSource": "roBrowserLegacy d88a3cd4 DB/Items/WeaponTable.js:28, DB/Items/WeaponType.js:25",
     "attackActionSource": "roBrowserLegacy d88a3cd4 DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; direction-group offset 8*11=88"
   },
+  "rogueCopy": {
+    "maxCopiedSlots": 1,
+    "incomingScope": "modeled NPC magic",
+    "sourceNames": [
+      "MG_FIREBOLT",
+      "MG_COLDBOLT",
+      "MG_LIGHTNINGBOLT",
+      "MG_SOULSTRIKE"
+    ],
+    "source": "src/map/skill.c:1260..1279,3670..3737; src/map/pc.c:1522..1535,8893..8918,12830..12853",
+    "flag": "SkillInfo.AllowPlagiarism",
+    "level": "min(incoming level, known Plagiarism level)",
+    "damageGate": "positive final skill damage strictly below target HP before application",
+    "permanentSkills": "paid levels and points remain separate; same copied ID cannot upgrade",
+    "committedCastSurvivesReplacement": true,
+    "preserve": {
+      "noSave": true,
+      "clearedOnDeath": true,
+      "durationMs": 600000,
+      "sp": 30,
+      "baseCastMs": 1000,
+      "source": "db/pre-re/skill_db.conf:14688..14705; db/pre-re/sc_config.conf:1175..1182",
+      "adaptation": "AFK arms only after acquiring a valid copy. Per-profile process-memory status clears on new connection, explicit logout and process restart; browser disconnect alone keeps AFK simulation running."
+    }
+  },
   "elementalConversion": {
     "sources": [
       "skill.c:8996..9017",
@@ -13885,8 +13910,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 253,
-    "unsupported": 95,
+    "supported": 255,
+    "unsupported": 93,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14080,13 +14105,13 @@
       },
       "rogue": {
         "sourceTree": 33,
-        "supported": 26,
-        "unsupported": 7
+        "supported": 27,
+        "unsupported": 6
       },
       "stalker": {
         "sourceTree": 37,
-        "supported": 28,
-        "unsupported": 9
+        "supported": 30,
+        "unsupported": 7
       }
     },
     "supportedSourceNames": [
@@ -14340,8 +14365,10 @@
       "RG_STRIPHELM",
       "RG_INTIMIDATE",
       "RG_COMPULSION",
+      "RG_PLAGIARISM",
       "RG_CLOSECONFINE",
       "ST_REJECTSWORD",
+      "ST_PRESERVE",
       "ST_FULLSTRIP"
     ],
     "unavailable": [
@@ -14806,19 +14833,9 @@
         "reason": "Requer aliados da mesma classe."
       },
       {
-        "skillId": "rg_plagiarism",
-        "sourceName": "RG_PLAGIARISM",
-        "reason": "Requer habilidades inimigas copiáveis."
-      },
-      {
         "skillId": "st_chasewalk",
         "sourceName": "ST_CHASEWALK",
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "st_preserve",
-        "sourceName": "ST_PRESERVE",
-        "reason": "Depende de Intimidate/copiar habilidades."
       }
     ],
     "combatExpansion": [
@@ -15390,6 +15407,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "f7434d38e2521508711477250c62f047c6978b86806041713905a5b675adc460",
+  "catalogSha256": "cd5840e8c5508e0903d1e6627942c54da7b9ddeb720305dd9084572c03dbfe75",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

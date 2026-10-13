@@ -16,7 +16,9 @@ import { sageEnchantCanStart } from '../../engine/sageEnchantments';
 import { backslidingStatusBlocked } from '../../engine/backsliding';
 import { activePlayerStatus } from '../../engine/playerStatuses';
 import type { GameCommand } from '../../shared/types';
+import { copiedSpell, effectiveSkillLevel } from '../../shared/copiedSkills';
 import '../styles/sage-enchant.css';
+import '../styles/rogue-copy.css';
 
 export function senseInspectCommand(skillId: string, expectedEnemyId: string): GameCommand {
   return { type: 'useSkill', skillId, expectedEnemyId };
@@ -33,7 +35,9 @@ export default function Build({
   const { state, stats } = snapshot;
   const manualSilenced = activePlayerStatus(state, 'SC_SILENCE', snapshot.serverTime);
   const ids = new Set(classSkills(catalog, state.job));
+  const copy = copiedSpell(state, catalog);
   const skills = [...ids].map((id) => catalog.skills[id]).filter(Boolean);
+  if (copy && !ids.has(copy.skill.id)) skills.unshift(copy.skill);
   const rotation = state.rotation;
   const autospellChoices = automaticSpellChoices(state, catalog);
   const mounted = isPecoMounted(state, catalog);
@@ -49,7 +53,8 @@ export default function Build({
           onChange={(skillIds) => void command({ type: "setRotation", skillIds })} />
         <div className="skill-list">
           {skills.map((skill) => {
-            const level = state.learnedSkills[skill.id] ?? 0;
+            const isCopy = copy?.skill.id === skill.id;
+            const level = effectiveSkillLevel(state, catalog, skill.id);
             const costAt = Math.max(0, level - 1);
             const active = rotation.includes(skill.id);
             const unsupported = skill.implementation === "unsupported";
@@ -120,11 +125,16 @@ export default function Build({
                 <div className="skill-description">
                   <h4>
                     {skill.name}{" "}
+                    {isCopy && <b className="copied-skill-badge">Copiada</b>}{" "}
                     <span>
                       {level} / {skill.maxLevel}
                     </span>
                   </h4>
                   <p>{skill.description}</p>
+                  {isCopy && <small className="copied-skill-note">Obtida por Plágio. Não consome pontos; uma nova magia recebida pode substituí-la.</small>}
+                  {skill.sourceName === 'ST_PRESERVE' && toggleActive && <small role="status">
+                    Preservar ativo · {Math.ceil((state.buffs[skill.id].expiresAt - snapshot.serverTime) / 1000)} s
+                  </small>}
                   {skill.sourceName === "SA_AUTOSPELL" && <div>
                     <label htmlFor="autospell-choice">Magia automática</label>{" "}
                     <select id="autospell-choice" disabled={busy || unsupported || level === 0}
@@ -163,7 +173,7 @@ export default function Build({
                       ? `Aguardando ataque · ${remaining}s` : `Vínculo ativo · ${remaining}s`}</small>;
                   })()}
                   {mechanics.length > 0 && <small className="skill-mechanics">{mechanics.join(" · ")}</small>}
-                  {prerequisites.length > 0 && (
+                  {!isCopy && prerequisites.length > 0 && (
                     <p className={`skill-prerequisites ${missingPrerequisites ? "missing" : "met"}`}>
                       Requer {prerequisites.map((required) =>
                         `${catalog.skills[required.skillId]?.name ?? required.skillId} Nv. ${required.level}`,
@@ -171,7 +181,7 @@ export default function Build({
                       {!missingPrerequisites && <span> ✓</span>}
                     </p>
                   )}
-                  {(skill.minimumJobLevel ?? 0) > 0 && (
+                  {!isCopy && (skill.minimumJobLevel ?? 0) > 0 && (
                     <p className={`skill-prerequisites ${missingJobLevel ? "missing" : "met"}`}>
                       Requer nível de classe {skill.minimumJobLevel}{!missingJobLevel && " ✓"}
                     </p>
@@ -181,7 +191,7 @@ export default function Build({
                     {" "}Estudar esta habilidade permite cumprir os pré-requisitos da árvore.
                   </p>}
                   <div className="action-row">
-                    <button
+                    {!isCopy && <button
                       disabled={
                         busy || missingPrerequisites || missingJobLevel || state.skillPoints < 1 || level >= skill.maxLevel
                       }
@@ -197,7 +207,7 @@ export default function Build({
                             ? "Aprender"
                             : "Melhorar"}{" "}
                       · 1 pt
-                    </button>
+                    </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "inventory" && <small>Use na mochila para identificar equipamentos.</small>}
                     {skill.manualUse === "mount" && <button disabled={busy || unsupported || level === 0}

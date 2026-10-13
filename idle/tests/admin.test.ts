@@ -62,6 +62,28 @@ async function login(app: FastifyInstance) {
 }
 
 describe('admin actions', () => {
+  it.each(['swordsman', 'rogue'])('keeps temporary copy separate from refunds on admin class %s', async classId => {
+    const state = createInitialState(catalog, 1000);
+    state.job = 'rogue'; state.learnedSkills = { rg_plagiarism: 5 };
+    state.copiedSkill = { skillId: 'fire_bolt', level: 3 }; state.rotation = ['fire_bolt'];
+    const copyCatalog = structuredClone(catalog);
+    copyCatalog.skills.rg_plagiarism.implementation = 'supported';
+    copyCatalog.skills.fire_bolt.allowPlagiarism = true;
+    const repository = new MemoryRepository(state), app = Fastify({ logger: false }); apps.push(app);
+    registerAdminRoutes(app, async () => repository, copyCatalog, () => 1000, adminToken);
+    const cookie = await login(app);
+    const response = await app.inject({ method: 'POST', url: '/api/admin/action', headers: { cookie },
+      payload: { requestId: `rogue-copy-class-${classId}`, action: { type: 'class', classId } } });
+    expect(response.statusCode).toBe(200);
+    if (classId === 'swordsman') {
+      expect(repository.state.copiedSkill).toBeUndefined(); expect(repository.state.rotation).toEqual([]);
+      expect(repository.state.skillPoints).toBe(state.skillPoints + 5); // Only paid Plagiarism refunded.
+    } else {
+      expect(repository.state.copiedSkill).toEqual(state.copiedSkill);
+      expect(repository.state.rotation).toEqual(['fire_bolt']); expect(repository.state.skillPoints).toBe(state.skillPoints);
+    }
+    expect(repository.state.learnedSkills.fire_bolt).toBeUndefined();
+  });
   it('requires an authenticated admin session before changing the profile', async () => {
     const { app, repository } = setup();
     const response = await app.inject({

@@ -11,6 +11,8 @@ import type { StateRepository } from './repository.js';
 import { ValidationError } from './validation.js';
 import type { SimulationContext } from '../engine/fieldNavigation.js';
 import { canReceiveItem } from '../engine/itemCapacity.js';
+import { clearCopiedSpell } from '../engine/plagiarism.js';
+import { copiedSpell } from '../shared/copiedSkills.js';
 
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
@@ -146,6 +148,7 @@ function setClass(state: GameState, catalog: Catalog, classId: string, at: numbe
     throw new GameError('CLASS_GENDER_MISMATCH', 'Essa classe não é compatível com o avatar do personagem.');
 
   const compatibleSkills = new Set(classSkills(catalog, next.id));
+  if (state.job !== next.id) clearCopiedSpell(state, catalog);
   let refunded = 0;
   for (const [skillId, level] of Object.entries(state.learnedSkills)) {
     if (compatibleSkills.has(skillId)) continue;
@@ -153,7 +156,8 @@ function setClass(state: GameState, catalog: Catalog, classId: string, at: numbe
     delete state.learnedSkills[skillId];
   }
   state.skillPoints += refunded;
-  state.rotation = state.rotation.filter(skillId => compatibleSkills.has(skillId) && (state.learnedSkills[skillId] ?? 0) > 0);
+  const copyId = copiedSpell(state, catalog)?.skill.id;
+  state.rotation = state.rotation.filter(skillId => skillId === copyId || compatibleSkills.has(skillId) && (state.learnedSkills[skillId] ?? 0) > 0);
   state.skillReadyAt = Object.fromEntries(Object.entries(state.skillReadyAt).filter(([skillId]) => compatibleSkills.has(skillId)));
   state.job = next.id;
   state.jobLevel = 1;

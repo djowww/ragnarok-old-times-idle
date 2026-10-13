@@ -18,7 +18,8 @@ export function assertAllowedMutation(headers: { origin?: string; secFetchSite?:
 }
 
 /** Task 3 applies assertAllowedMutation globally with its configured origins. */
-export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService, trustedProxyAddresses: readonly string[] = []): Promise<void> {
+export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService, trustedProxyAddresses: readonly string[] = [],
+  endGameSession?: (profileId: string) => Promise<void>): Promise<void> {
   const limits = new AttemptLimiter(auth.now);
   const trustedProxies = new Set(trustedProxyAddresses.filter(address => isIP(address)));
   const requestIp = (request: import('fastify').FastifyRequest): string => {
@@ -65,6 +66,7 @@ export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService
       const account = await auth.resolve(request.cookies.idle_session);
       assertExpectedIdentity(request.headers, account);
       await auth.logout(request.cookies.idle_session);
+      if (account) await endGameSession?.(account.profileId);
       reply.clearCookie('idle_session', { ...cookieOptions, maxAge: 0 });
       return { ok: true };
     });

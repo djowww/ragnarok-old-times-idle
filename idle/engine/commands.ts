@@ -1,4 +1,6 @@
 import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
+import { effectiveSkillLevel } from '../shared/copiedSkills.js';
+import { clearCopiedSpell } from './plagiarism.js';
 import {
   addItem,
   consume,
@@ -529,7 +531,7 @@ export function executeCommand(
       );
       for (const id of command.skillIds)
         requireRule(
-          s.learnedSkills[id] &&
+          effectiveSkillLevel(s, c, id) &&
             c.skills[id] &&
             c.skills[id].kind !== "passive" &&
             (!c.skills[id].manualUse ||
@@ -766,6 +768,7 @@ export function executeCommand(
       );
       interruptSageEnchantCast(s, c, now);
       const next = c.classes[command.classId];
+      if (s.job !== next.id) clearCopiedSpell(s, c);
       s.job = next.id;
       if (!canPecoMount(s, c)) s.mounted = false;
       if (next.tier === 1 && !s.family) s.family = next.family;
@@ -800,6 +803,7 @@ export function executeCommand(
       s.branch ??= s.job;
       s.family ??= c.classes[s.job].family;
       s.reborn = true;
+      clearCopiedSpell(s, c);
       s.job = "high_novice";
       s.mounted = false;
       s.baseLevel = 1;

@@ -42,7 +42,7 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
   });
   const secureCookie = (publicOrigin ? new URL(publicOrigin).protocol === 'https:' : false) || configuredOrigins.some(origin => new URL(origin).protocol === 'https:');
   const auth = createAuthService({ accounts, catalog, now, secureCookie });
-  await registerAuthRoutes(app, auth, trustedProxyAddresses);
+  await registerAuthRoutes(app, auth, trustedProxyAddresses, profileId => gameProfiles.endSession(profileId));
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
   await registerGameRoutes(app, { auth, profiles: gameProfiles, catalog, now, context: simulationContext });
   registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, gameProfiles), now);

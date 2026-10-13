@@ -245,6 +245,8 @@ export interface Skill {
   ignoreFlee?: boolean;
   interruptCast?: boolean;
   castDefenseReductionPct?: number;
+  /** Pinned Hercules SkillInfo.AllowPlagiarism; absent means not copyable. */
+  allowPlagiarism?: boolean;
 }
 export interface Area {
   id: string;
@@ -599,6 +601,8 @@ export interface GameState {
   statPoints: number;
   skillPoints: number;
   learnedSkills: Record<string, number>;
+  /** Temporary Plagiarism overlay, independent of paid skill levels and points. */
+  copiedSkill?: { skillId: string; level: number };
   rotation: string[];
   autospellSkillId?: string;
   skillReadyAt: Record<string, number>;
