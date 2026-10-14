@@ -100,7 +100,10 @@ describe('manual source Teleport', () => {
     applyTeleport(s, c, 'random', 500, ctx); expect(s.battle).toBeNull(); expect(s.sp).toBe(91);
   });
   it('retains its own source action lock through warp and rejects immediate repeated escapes', () => {
-    const s = player(); applyTeleport(s, c, 'random', 100, ctx);
+    const s = player();
+    // The fixture changed jobs directly; remove its novice Knife and use Acolyte's source Fist cadence.
+    delete s.equipment.weapon;
+    applyTeleport(s, c, 'random', 100, ctx);
     expect(teleportAvailable(s, c, 'random', 101)).toBe(false);
     const before = structuredClone(s);
     expect(() => applyTeleport(s, c, 'random', 101, ctx)).toThrow(); expect(s).toEqual(before);

@@ -196,6 +196,8 @@ describe('Blade Stop combat flow', () => {
 
   it('allows cumulative source follow-ups only against the linked actor and releases both sides', () => {
     const { c, s, enemy, skill } = setup(), blade = skill('MO_BLADESTOP');
+    // Synthetic Fist cadence releases the cast clock within this follow-up scenario.
+    c.classes.novice.weaponAspd = { unarmed: 1000 };
     const chain = skill('MO_CHAINCOMBO');
     s.learnedSkills[blade.id] = 4; s.learnedSkills[chain.id] = 1;
     s.rotation = [blade.id, chain.id]; s.combatEffects = { spiritSpheres: 1 };

@@ -83,6 +83,8 @@ describe('Auto Counter source combat lifecycle', () => {
   });
   it('blocks before dodge/barriers/React, consumes posture, then emits a critical weapon counter at half motion', () => {
     const { c, s, counter, skill } = waiting(), react = skill('AS_POISONREACT');
+    // Synthetic 1 s Fist base makes the existing half-motion assertion explicit.
+    c.classes.novice.weaponAspd = { unarmed: 1000 };
     s.buffs[react.id] = { expiresAt: 999999, effects: { reflectPct: 50, perfectDodge: 100 } };
     Object.assign(s.combatEffects!, { poisonReact: { charges: 6 }, endure: { level: 10, charges: 7, expiresAt: 999999 },
       kyrieHp: 1000, kyrieHits: 10, safetyWallHits: 5 });

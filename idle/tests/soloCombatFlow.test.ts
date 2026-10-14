@@ -91,6 +91,8 @@ describe('solo skill combat integration', () => {
   });
   it('casts Enchant Poison, replaces Aspersio and poisons the next basic hit', () => {
     const { c, s, skill } = setup(['AS_ENCHANTPOISON', 'PR_ASPERSIO', 'ASC_EDP']);
+    // Explicit synthetic Dagger cadence permits the post-enchant basic hit in this scenario.
+    c.classes.novice.weaponAspd = { dagger: 1000 };
     const enchant = skill('AS_ENCHANTPOISON');
     s.learnedSkills[enchant.id] = 10;
     s.rotation = [enchant.id];

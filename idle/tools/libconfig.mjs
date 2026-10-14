@@ -115,9 +115,18 @@ export function resolveInheritance(entries, name, trail = []) {
     if (!own)
         throw new Error(`Unknown inherited entry ${name}`);
     let result = {};
-    for (const parent of own.Inherit ?? [])
-        result = { ...result, ...resolveInheritance(entries, parent, [...trail, name]) };
+    let inheritedBaseASPD;
+    for (const parent of own.Inherit ?? []) {
+        const resolved = resolveInheritance(entries, parent, [...trail, name]);
+        result = { ...result, ...resolved };
+        // Native status_read_job_db copies the whole final parent's array, including defaults.
+        inheritedBaseASPD = resolved.BaseASPD;
+    }
     result = { ...result, ...own };
+    if (own.BaseASPD !== undefined || inheritedBaseASPD !== undefined)
+        result.BaseASPD = { ...inheritedBaseASPD, ...own.BaseASPD };
+    else
+        delete result.BaseASPD;
     if (own.InheritHP)
         result.HPTable = resolveInheritance(entries, own.InheritHP[0], [...trail, name]).HPTable;
     if (own.InheritSP)

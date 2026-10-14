@@ -103,6 +103,8 @@ describe('Sage combat integration',()=>{
   });
   it('Double Casting hits the same living target after it leaves ordinary cast range',()=>{
     const {c,s,skill,bolt}=spellSetup(); active(s,skill('PF_DOUBLECASTING'),5);
+    // Synthetic 1 s Dagger base keeps the queued repeat inside the original observation window.
+    c.classes.novice.weaponAspd = { dagger: 1000 };
     const cast=advanceState(s,c,1000); cast.rotation=[];
     const old=cast.battle!.enemies![0]; old.position={x:BATTLE_HERO.x+100,y:BATTLE_HERO.y}; old.approachFrom={...old.position}; old.arrivedAt=0;
     const next=advanceState(cast,c,2000);
