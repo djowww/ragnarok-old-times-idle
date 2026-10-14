@@ -180,11 +180,17 @@ describe('SA_FREECAST persisted combat integration', () => {
     const castActionId = castAtHalf!.actionId;
     expect(castActionId).toBeTruthy();
 
-    const completed = advanceState(JSON.parse(JSON.stringify(started)), c, 1000);
-    expect(completed.battle!.cast).toBeUndefined();
+    const beforeEnd = advanceState(JSON.parse(JSON.stringify(started)), c, 999);
+    expect(beforeEnd.battle!.cast?.actionId).toBe(castActionId); expect(beforeEnd.sp).toBe(100);
+    expect(beforeEnd.events.filter(event => event.kind === 'cast' && event.skillId === 'fire_bolt')).toHaveLength(1);
+    const completed = advanceState(beforeEnd, c, 1000);
+    // Native zero postdelay permits the next cast exactly at completion. FreeCast
+    // never started a second cast while the original was still active.
+    expect(completed.battle!.cast).toMatchObject({ skillId: 'fire_bolt', startedAt: 1000, endsAt: 2000 });
+    expect(completed.battle!.cast!.actionId).not.toBe(castActionId);
     expect(completed.sp).toBe(75);
     expect(completed.events.filter(event => event.kind === 'cast' && event.skillId === 'fire_bolt'))
-      .toMatchObject([{ actionId: castActionId }]);
+      .toMatchObject([{ actionId: castActionId }, { at: 1000 }]);
     expect(completed.events.filter(event => event.kind === 'skill' && event.skillId === 'fire_bolt'))
       .toMatchObject([{ actionId: castActionId }]);
   });

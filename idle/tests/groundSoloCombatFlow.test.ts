@@ -102,9 +102,10 @@ describe('Venom Dust and Spider Web source units', () => {
     const fire = Object.values((catalogJson as unknown as Catalog).skills).find(s => s.sourceName === 'MG_FIREBOLT')!;
     ctx.c.skills[fire.id] = { ...structuredClone(fire), castTimeMs: [0] };
     ctx.c.classes.novice.skills.push(fire.id); cast.learnedSkills[fire.id] = 1; cast.rotation = [fire.id];
-    cast.battle!.playerNextAttackAt = cast.battle!.playerNextSkillAt = cast.battle!.playerActionReadyAt = 1100;
+    const fireAt = cast.playerCanActAt!;
+    cast.battle!.playerNextAttackAt = cast.battle!.playerNextSkillAt = cast.battle!.playerActionReadyAt = fireAt;
     const control = structuredClone(cast); delete control.battle!.enemies![0].statuses!.SC_SPIDERWEB;
-    const normal = advanceState(control, ctx.c, 1250), doubled = advanceState(cast, ctx.c, 1250);
+    const normal = advanceState(control, ctx.c, Math.ceil(fireAt / 250) * 250), doubled = advanceState(cast, ctx.c, Math.ceil(fireAt / 250) * 250);
     expect(doubled.events.find(e => e.kind === 'damage' && e.skillId === fire.id)?.amount)
       .toBe(normal.events.find(e => e.kind === 'damage' && e.skillId === fire.id)!.amount! * 2);
     expect(doubled.battle!.enemies![0].statuses?.SC_SPIDERWEB).toBeUndefined();
@@ -146,9 +147,10 @@ describe('Venom Dust and Spider Web source units', () => {
     cast.learnedSkills[fire.id] = 1; cast.rotation = [fire.id];
     cast.battle!.enemies!.push({ ...structuredClone(cast.battle!.enemies![0]), id: 'other', statuses: {}, hp: 100000 });
     cast.battle!.enemies![0].hp = 1;
-    cast.battle!.playerNextAttackAt = cast.battle!.playerNextSkillAt = cast.battle!.playerActionReadyAt = 1100;
-    const next = advanceState(cast, ctx.c, 1250);
-    expect(units(next)[0].expiresAt).toBe(2100);
+    const fireAt = cast.playerCanActAt!;
+    cast.battle!.playerNextAttackAt = cast.battle!.playerNextSkillAt = cast.battle!.playerActionReadyAt = fireAt;
+    const next = advanceState(cast, ctx.c, Math.ceil(fireAt / 250) * 250);
+    expect(units(next)[0].expiresAt).toBe(fireAt + 1000);
     expect(units(next)[0].capturedEnemyId).toBeUndefined();
   });
   it('retains web ownership and timer on added charges, and starts a new capture after fire', () => {

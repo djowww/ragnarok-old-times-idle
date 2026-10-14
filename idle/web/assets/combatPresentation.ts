@@ -317,3 +317,10 @@ export function presentedActorReactionAt<T extends PresentedActorReaction>(cues:
 export function retireInterruptedCastCues<T extends { sourceActorId:string; actionId:string; castAction?:boolean }>(cues:T[],events:readonly {kind:string;sourceActorId?:string;actionId?:string}[]):T[] {
   return cues.filter(cue=>!cue.castAction||!events.some(event=>event.kind==='cast-interrupted'&&event.actionId&&event.sourceActorId===cue.sourceActorId&&event.actionId===cue.actionId));
 }
+
+
+/** Position selected by the scene for a presented action. */
+export function heroWorldAtAction(strike: { world?: WorldPoint } | null | undefined,
+  movement: WorldPoint | undefined, fallback: () => WorldPoint): WorldPoint {
+  return strike?.world ?? movement ?? fallback();
+}

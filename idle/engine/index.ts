@@ -234,10 +234,15 @@ function resumePausedState(s: GameState, now: number) {
   const gap = Math.max(0, now - (s.pausedAt ?? s.lastSimulatedAt));
   const shift = (at: number) => Number.isFinite(at) ? Math.min(Number.MAX_SAFE_INTEGER, at + gap) : at;
   const optional = (at: number | undefined) => at === undefined ? undefined : shift(at);
+  s.playerCanActAt = optional(s.playerCanActAt);
+  const shiftSkillOwnership = (ownership: { readyAt: number; previousReadyAt?: number } | undefined) => {
+    if (ownership) { ownership.readyAt = shift(ownership.readyAt); ownership.previousReadyAt = optional(ownership.previousReadyAt); }
+  };
   s.nextEncounterAt = shift(s.nextEncounterAt);
   if (s.supportCast) {
     s.supportCast.startedAt = shift(s.supportCast.startedAt);
     s.supportCast.endsAt = shift(s.supportCast.endsAt);
+    shiftSkillOwnership(s.supportCast.skillClockOwnership);
     if (s.supportCast.battleClockOwnership) {
       if (s.supportCast.battleClockOwnership.battleIdentity)
         s.supportCast.battleClockOwnership.battleIdentity.startedAt = shift(s.supportCast.battleClockOwnership.battleIdentity.startedAt);
@@ -332,6 +337,7 @@ function resumePausedState(s: GameState, now: number) {
     b.enemyNextAttackAt = shift(b.enemyNextAttackAt); b.deadlineAt = optional(b.deadlineAt);
     b.fieldDecisionAt = optional(b.fieldDecisionAt);
     if (b.cast) { b.cast.startedAt = shift(b.cast.startedAt); b.cast.endsAt = shift(b.cast.endsAt);
+      shiftSkillOwnership(b.cast.skillClockOwnership);
       const ownership=b.cast.clockOwnership;
       if(ownership) for(const key of Object.keys(ownership) as (keyof typeof ownership)[]) ownership[key]=optional(ownership[key]);
     }
