@@ -177,7 +177,8 @@
     "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
     "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
     "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
-    "PF_FOGWALL: a adaptação solo cria um campo defensivo centrado no personagem por 20 s quando o alvo tem alcance normal acima de 3 ou uma magia NPC modelada com alcance acima de 3; reduz hit de ataques normais longos em 50 pontos percentuais, dano desses ataques a 25%, e reduz dano de magia NPC direcionada em 25% após uma rolagem de falha de 75% no fim da conjuração. A cegueira dos ocupantes do campo e a geometria completa do terreno continuam sem simulação."
+    "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
+    "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -902,11 +903,6 @@
       "sourceType": "IT_ARMOR"
     },
     {
-      "itemId": 4054,
-      "aegisName": "Angeling_Card",
-      "sourceType": "IT_CARD"
-    },
-    {
       "itemId": 1135,
       "aegisName": "Cutlas",
       "sourceType": "IT_WEAPON"
@@ -1395,26 +1391,6 @@
       "itemId": 4263,
       "aegisName": "Incant_Samurai_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 2344,
-      "aegisName": "Flame_Sprits_Armor",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2346,
-      "aegisName": "Water_Sprits_Armor",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2350,
-      "aegisName": "Earth_Sprits_Armor",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2348,
-      "aegisName": "Wind_Sprits_Armor",
-      "sourceType": "IT_ARMOR"
     },
     {
       "itemId": 2110,
@@ -1909,11 +1885,6 @@
     {
       "itemId": 2679,
       "aegisName": "Ring_Of_Resonance",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2345,
-      "aegisName": "Flame_Sprits_Armor_",
       "sourceType": "IT_ARMOR"
     },
     {
@@ -6480,8 +6451,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "adaptation": "Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6526,8 +6497,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "adaptation": "Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6572,8 +6543,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "adaptation": "Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6977,7 +6948,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "adaptation": "Hunt-only adaptation: places a 20-second self-centered field when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.",
+      "adaptation": "Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13910,8 +13881,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 256,
-    "unsupported": 92,
+    "supported": 259,
+    "unsupported": 89,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14015,13 +13986,13 @@
       },
       "sage": {
         "sourceTree": 41,
-        "supported": 34,
-        "unsupported": 7
+        "supported": 37,
+        "unsupported": 4
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 41,
-        "unsupported": 8
+        "supported": 44,
+        "unsupported": 5
       },
       "hunter": {
         "sourceTree": 28,
@@ -14239,6 +14210,9 @@
       "SA_LIGHTNINGLOADER",
       "SA_SEISMICWEAPON",
       "SA_DRAGONOLOGY",
+      "SA_VOLCANO",
+      "SA_DELUGE",
+      "SA_VIOLENTGALE",
       "SA_CREATECON",
       "SA_ELEMENTWATER",
       "SA_ELEMENTGROUND",
@@ -14447,21 +14421,6 @@
         "skillId": "ganbantein",
         "sourceName": "HW_GANBANTEIN",
         "reason": "Requer remoção de unidades de habilidades em células do mapa."
-      },
-      {
-        "skillId": "sa_volcano",
-        "sourceName": "SA_VOLCANO",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sa_deluge",
-        "sourceName": "SA_DELUGE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sa_violentgale",
-        "sourceName": "SA_VIOLENTGALE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "sa_landprotector",
@@ -14882,6 +14841,9 @@
       "RG_CLOSECONFINE",
       "PF_MINDBREAKER",
       "PF_FOGWALL",
+      "SA_VOLCANO",
+      "SA_DELUGE",
+      "SA_VIOLENTGALE",
       "MO_BODYRELOCATION",
       "MO_BLADESTOP"
     ]
@@ -15127,6 +15089,58 @@
       "item_db.conf Range"
     ]
   },
+  "bodyElementItems": [
+    {
+      "itemId": 2344,
+      "element": "fire",
+      "scriptSha256": "1b363a0df7d100a091dbd822f2e946cb5b585f024090b75ec5f03ab9dd7dc5a1"
+    },
+    {
+      "itemId": 2345,
+      "element": "fire",
+      "scriptSha256": "1b363a0df7d100a091dbd822f2e946cb5b585f024090b75ec5f03ab9dd7dc5a1"
+    },
+    {
+      "itemId": 2346,
+      "element": "water",
+      "scriptSha256": "982164211bd98fdfae5b1cff9dcffd83807eaf2f49fb785b71f3a22fc2778abf"
+    },
+    {
+      "itemId": 2347,
+      "element": "water",
+      "scriptSha256": "982164211bd98fdfae5b1cff9dcffd83807eaf2f49fb785b71f3a22fc2778abf"
+    },
+    {
+      "itemId": 2348,
+      "element": "wind",
+      "scriptSha256": "c9235c9f7acac97ba81465165e12a32d543d37e1f1aba19de0cc826702c8b13f"
+    },
+    {
+      "itemId": 2349,
+      "element": "wind",
+      "scriptSha256": "c9235c9f7acac97ba81465165e12a32d543d37e1f1aba19de0cc826702c8b13f"
+    },
+    {
+      "itemId": 2350,
+      "element": "earth",
+      "scriptSha256": "c919bfad36e7540a56731c85dad2059c7d7bebc1440412b0210ec14a8a446084"
+    },
+    {
+      "itemId": 2351,
+      "element": "earth",
+      "scriptSha256": "c919bfad36e7540a56731c85dad2059c7d7bebc1440412b0210ec14a8a446084"
+    },
+    {
+      "itemId": 4054,
+      "element": "holy",
+      "scriptSha256": "3a378df9787d38eb7a24acc52eb4948bd884861d5c23166c01027f679f1df165"
+    },
+    {
+      "itemId": 4119,
+      "element": "dark",
+      "scriptSha256": "f17b516d4fb29d87f70d8b0f29575eb07f058babb70a682b85eb77b38ee71aad"
+    }
+  ],
   "monsterBehavior": {
     "source": "db/pre-re/mob_db.conf:Mode",
     "movementSource": "db/pre-re/mob_db.conf:MoveSpeed/ViewRange/ChaseRange/Mode.CanMove",
@@ -15367,7 +15381,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "e2032402473bb397e3f55d8fc7f0a094c0a6b656b79390587c304acd5cd7f294",
+  "rulesSha256": "4b3d78822619668f63fb60977c9a0ca7cbaa6c95c628dae15afea5257063d584",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15403,6 +15417,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "7e1ced9723950ac18dfdb253d2b38f1a45be71971e82fd45a80419dab4d58414",
+  "catalogSha256": "5502c03a524321165420cf58248d3863a78fd3ecd5c311a121a7fc09408177c5",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

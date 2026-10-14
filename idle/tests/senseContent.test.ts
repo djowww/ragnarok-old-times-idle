@@ -1,3 +1,4 @@
+import { beforeSageFieldSkills, beforeSagePropertyItems } from './sage-fields-historical-fixture';
 import chasewalkBaseline from './fixtures/chasewalk389Baseline.json';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
@@ -24,7 +25,7 @@ describe('source-closed manual Sense catalog', () => {
   it('promotes Sense and retains every non-Sight Blaster source skill value', () => {
     expect(catalog.skills.sense).toEqual({ ...baseline.sense, implementation: 'supported',
       unsupportedReason: undefined, manualUse: 'inspect' });
-    const { sense: _sense, ...otherSkills } = catalog.skills as Record<string, Record<string, unknown>>;
+    const { sense: _sense, ...otherSkills } = beforeSageFieldSkills(typedCatalog.skills) as unknown as Record<string, Record<string, unknown>>;
     otherSkills.sight_blaster.implementation = 'unsupported';
     otherSkills.sight_blaster.unsupportedReason = 'Requer carga que detona ao contato com um inimigo.';
     otherSkills.al_ruwach.implementation = 'unsupported';
@@ -87,7 +88,7 @@ describe('source-closed manual Sense catalog', () => {
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 256, unsupported: 92 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 259, unsupported: 89 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });
@@ -104,7 +105,7 @@ describe('source-closed manual Sense catalog', () => {
       elementalOrder: ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'], manualOnly: true });
     expect(catalog.source.commit).toBe(baseline.commit);
     for (const key of ['classes', 'items', 'monsters', 'areas'] as const) {
-      const historical = structuredClone(typedCatalog[key]);
+      const historical = key === 'items' ? beforeSagePropertyItems(typedCatalog.items) : structuredClone(typedCatalog[key]);
       if (key === 'classes') for (const id of ['sage', 'professor', 'priest', 'high_priest']) {
         const rows = historical as Catalog['classes'];
         rows[id].weapons = rows[id].weapons.filter(weapon => weapon !== 'book');

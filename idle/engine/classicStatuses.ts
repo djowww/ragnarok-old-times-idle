@@ -193,6 +193,7 @@ export function effectiveMonsterStatus(
   statuses: ClassicMonsterStatuses | undefined,
   at: number,
   petrifyingDelayMs = 5000,
+  fieldFlee = 0,
 ) {
   const active = (name: string) => (statuses?.[name]?.expiresAt ?? 0) > at;
   const frozen = active('SC_FREEZE');
@@ -224,7 +225,7 @@ export function effectiveMonsterStatus(
     conversion:active('SC_ARMOR_PROPERTY')&&property?.element&&Number.isInteger(property.elementLevel)&&property.elementLevel!>=1&&property.elementLevel!<=4
       ?{element:property.element,level:property.elementLevel!}:undefined}));
   let hit = clone.level + clone.stats.dex;
-  let flee = clone.level + clone.stats.agi;
+  let flee = clone.level + clone.stats.agi + fieldFlee;
   if (active('SC_BLIND')) {
     hit -= Math.trunc(hit * 25 / 100);
     flee -= Math.trunc(flee * 25 / 100);

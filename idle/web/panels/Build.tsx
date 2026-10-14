@@ -14,6 +14,8 @@ import { currentPlayerCast } from '../../engine/playerCast';
 import { isPecoMounted } from '../../engine/mountedPeco';
 import { senseManualTarget } from '../../engine/senseInspection';
 import { sageEnchantCanStart } from '../../engine/sageEnchantments';
+import { sageFieldCanStart } from '../../engine/sageFieldCasting';
+import { sageFieldSource } from '../../engine/sageFields';
 import { backslidingStatusBlocked } from '../../engine/backsliding';
 import { activePlayerStatus } from '../../engine/playerStatuses';
 import type { GameCommand } from '../../shared/types';
@@ -109,9 +111,11 @@ export default function Build({
               !backslidingStatusBlocked(state, catalog, snapshot.serverTime) &&
               canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
             const sageEnchantSkill = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
-            const sageEnchantCast = sageEnchantSkill && state.supportCast?.skillId === skill.id ? state.supportCast : undefined;
-            const sageEnchantReady = sageEnchantSkill && level > 0 && !unsupported &&
-              sageEnchantCanStart(state, catalog, skill, level, snapshot.serverTime);
+            const sageGroundSkill = !!sageFieldSource(skill.sourceName);
+            const sageManualCast = (sageEnchantSkill || sageGroundSkill) && state.supportCast?.skillId === skill.id ? state.supportCast : undefined;
+            const sageManualReady = level > 0 && !unsupported && (sageGroundSkill
+              ? sageFieldCanStart(state, catalog, skill, level, snapshot.serverTime)
+              : sageEnchantSkill && sageEnchantCanStart(state, catalog, skill, level, snapshot.serverTime));
             const mechanics = [
               castTime > 0 ? `${(castTime / 1000).toLocaleString("pt-BR", {maximumFractionDigits: 1})}s de conjuração` : "",
               afterCast > 0 ? `${(afterCast / 1000).toLocaleString("pt-BR", {maximumFractionDigits: 1})}s após conjurar` : "",
@@ -222,16 +226,16 @@ export default function Build({
                         onClick={() => void command({type:'useSkill',skillId:skill.id,expectedCastActionId:ownCast?.actionId})}>Cancelar conjuração</button>
                       {ownCast && <small>{canceledSkill?.name ?? ownCast.skillId} · {cancelExtra} SP adicionais</small>}
                     </>}
-                  {sageEnchantSkill && <>
-                    <button disabled={busy || !sageEnchantReady || !!state.supportCast || !!state.battle?.cast}
+                  {(sageEnchantSkill || sageGroundSkill) && <>
+                    <button disabled={busy || !sageManualReady || !!state.supportCast || !!state.battle?.cast}
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
-                      {sageEnchantCast ? 'Conjurando…' : 'Encantar arma'}
+                      {sageManualCast ? 'Conjurando…' : sageGroundSkill ? 'Conjurar campo' : 'Encantar arma'}
                     </button>
-                    {sageEnchantCast && <div className="support-cast-progress" role="status" aria-live="polite">
-                      <span>{skill.name} · {((Math.max(0, sageEnchantCast.endsAt - snapshot.serverTime)) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s restantes</span>
-                      <progress aria-label={`Conjuração de ${skill.name}`} max={Math.max(1, sageEnchantCast.endsAt - sageEnchantCast.startedAt)}
-                        value={Math.max(0, Math.min(sageEnchantCast.endsAt - sageEnchantCast.startedAt,
-                          snapshot.serverTime - sageEnchantCast.startedAt))} />
+                    {sageManualCast && <div className="support-cast-progress" role="status" aria-live="polite">
+                      <span>{skill.name} · {((Math.max(0, sageManualCast.endsAt - snapshot.serverTime)) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s restantes</span>
+                      <progress aria-label={`Conjuração de ${skill.name}`} max={Math.max(1, sageManualCast.endsAt - sageManualCast.startedAt)}
+                        value={Math.max(0, Math.min(sageManualCast.endsAt - sageManualCast.startedAt,
+                          snapshot.serverTime - sageManualCast.startedAt))} />
                     </div>}
                   </>}
                     {skill.manualUse === 'inspect' && <button type="button"
@@ -278,6 +282,7 @@ export default function Build({
                       {trickDeadSkill ? toggleActive ? 'Levantar' : 'Fingir de morto' : toggleActive ? 'Desativar' : 'Ativar'}
                     </button>}
                     {skill.kind !== "passive" && skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||
+                      sageGroundSkill ||
                       skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate' ||
                       skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && (
                       <button

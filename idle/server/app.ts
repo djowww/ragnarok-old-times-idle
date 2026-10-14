@@ -18,7 +18,7 @@ import type { SimulationContext } from '../engine/fieldNavigation.js';
 export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
 export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
-  const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles);
+  const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles, catalog);
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
   const gameplayWritePaths = new Set(['/api/session/open', '/api/session', '/api/command', '/api/admin/action']);
   app.addHook('onRequest', async (request, reply) => {

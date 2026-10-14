@@ -5,10 +5,10 @@ import { event } from './state.js';
 import { battleHeroAt, stopHeroMovement } from '../shared/battleSpatial.js';
 
 /** Common clocks for a validated self-target cast; payment belongs to its handler. */
-export function startOwnCast(s: GameState, c: Catalog, skill: Skill, level: number, at: number): void {
+export function startOwnCast(s: GameState, c: Catalog, skill: Skill, level: number, at: number, resolvedCastTimeMs?: number): void {
   const stats = derivedStats(s, c), base = skill.castTimeMs?.[level - 1] ?? 0;
   const dexCast = skill.ignoresDex ? base : classicCastTime(base, stats.attributes?.dex ?? s.stats.dex);
-  const castMs = Math.floor(dexCast * (1 - Math.min(100, stats.effects.castReductionPct ?? 0) / 100));
+  const castMs = resolvedCastTimeMs ?? Math.floor(dexCast * (1 - Math.min(100, stats.effects.castReductionPct ?? 0) / 100));
   const actionId = `own-cast-${s.id}-${at}-${s.nextEventId}`, battle = s.battle;
   const motion = stats.attackMotionMs, sourceDelay = skill.afterCastDelayMs?.[level - 1] ?? 0;
   const delay = sourceDelay < 0 ? -sourceDelay + motion : sourceDelay;

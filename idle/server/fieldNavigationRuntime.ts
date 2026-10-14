@@ -67,7 +67,7 @@ export async function loadCatalogFieldNavigation(catalog: Catalog, options: Runt
   const sidecarPath = options.sidecarPath ?? 'content/field-navigation.json';
   const sidecar = validateSidecar(await (options.readJson ?? readSidecar)(sidecarPath), catalog);
   const specs = sidecar.areas;
-  const maps = [...new Set(specs.map(spec => spec.map))];
+  const maps = [...new Set([...specs.map(spec => spec.map), 'prontera'])];
   const loaded = await (options.loadGrids ?? loadFieldNavigationGrids)({
     maps, assetOrigin: options.assetOrigin, cacheDir: options.cacheDir,
   });
@@ -75,6 +75,7 @@ export async function loadCatalogFieldNavigation(catalog: Catalog, options: Runt
   const publicByArea = navigation.publicAreas;
   const safeCatalog: Catalog = {
     ...catalog,
+    sceneNavigation: { prontera: { map: 'prontera', origin: navigation.scene('prontera').origin } },
     areas: catalog.areas.map(area => ({ ...area, fieldNavigation: publicByArea[area.id] })),
   };
   return { catalog: safeCatalog, context: { navigation }, cacheFallbackMaps: loaded.cacheFallbackMaps };

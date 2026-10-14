@@ -1,4 +1,14 @@
 /** battle.c pre-renewal SC_FOGWALL defense for the attacks modeled by Idle. */
+import type { Catalog, GameState } from '../shared/types.js';
+import { battleHeroAt } from '../shared/battleSpatial.js';
+import { classicBuffActive } from './classicBuffs.js';
+import { activeGroundPlacements, groundPlacementContains } from './groundUnitOccupancy.js';
+
+export function fogWallDefending(s: GameState, c: Catalog, at: number): boolean {
+  const recorded = (s.groundPlacements ?? []).some(g => g.sourceName === 'PF_FOGWALL');
+  if (!recorded) return classicBuffActive(s, c, 'PF_FOGWALL', at); // Legacy self adaptation.
+  return activeGroundPlacements(s, at).some(g => g.sourceName === 'PF_FOGWALL' && groundPlacementContains(g, battleHeroAt(s, at), at));
+}
 export function fogWallHitChance(
   hitRatePct: number,
   active: boolean,
