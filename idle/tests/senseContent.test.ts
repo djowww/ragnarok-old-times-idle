@@ -88,13 +88,13 @@ describe('source-closed manual Sense catalog', () => {
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 259, unsupported: 89 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 260, unsupported: 88 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });
   it('pins the real monster-info packet and source sense_type default without changing other content', () => {
     for (const row of baseline.sources) expect(manifest.sources).toContainEqual(row);
-    expect(manifest.sources).toHaveLength(28);
+    expect(manifest.sources).toHaveLength(29);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1' }));
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/clif.c',
       sha256: 'ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42' }));
