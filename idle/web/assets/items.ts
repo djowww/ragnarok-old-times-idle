@@ -85,6 +85,11 @@ export function getBitmapUrl(path: string): Promise<string> {
         return FALLBACK_ICON;
     } })();
     iconCache.set(path, promise);
+    // Keep successes and in-flight deduplication; let a later caller retry a failure.
+    void promise.then(url => {
+        if (url === FALLBACK_ICON && iconCache.get(path) === promise)
+            iconCache.delete(path);
+    });
     return promise;
 }
 export function getItemIcon(item: Item): Promise<string> {
