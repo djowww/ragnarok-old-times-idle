@@ -52,6 +52,7 @@ import { returnForCarry } from './carryReturn.js';
 import { isEquipmentBroken } from './equipmentCondition.js';
 import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
+import { applyTeleport } from './teleport.js';
 import { cancelSageEnchantCast } from './sageEnchantments.js';
 function town(s: GameState) {
   requireRule(
@@ -100,6 +101,10 @@ export function executeCommand(
     requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
   }
   switch (command.type) {
+    case 'teleport': {
+      applyTeleport(s, c, command.destination, now, context);
+      break;
+    }
     case 'collectPendingLoot': {
       town(s);
       collectPendingLoot(s, c, now);

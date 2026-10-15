@@ -1,0 +1,111 @@
+{
+  "teleport": {
+    "id": "al_teleport",
+    "name": "Teleport",
+    "kind": "buff",
+    "maxLevel": 2,
+    "herculesId": 26,
+    "sourceName": "AL_TELEPORT",
+    "mechanic": "AL_TELEPORT",
+    "implementation": "unsupported",
+    "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+    "description": "Teleport. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+    "iconResource": "data/texture/유저인터페이스/item/al_teleport.bmp",
+    "spCost": [
+      10,
+      9
+    ],
+    "power": [
+      0,
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      0,
+      0
+    ],
+    "afterCastDelayMs": [
+      0,
+      0
+    ],
+    "interruptCast": true,
+    "hitCount": [
+      1,
+      1
+    ],
+    "sourceHitCount": [
+      1,
+      1
+    ],
+    "aoeRadius": [
+      0,
+      0
+    ],
+    "range": [
+      0,
+      0
+    ],
+    "targetType": "self",
+    "damageType": "none",
+    "prerequisites": [
+      {
+        "skillId": "al_ruwach",
+        "level": 1
+      }
+    ],
+    "prerequisitesByClass": {
+      "acolyte": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ],
+      "high_acolyte": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ],
+      "priest": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ],
+      "high_priest": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ],
+      "monk": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ],
+      "champion": [
+        {
+          "skillId": "al_ruwach",
+          "level": 1
+        }
+      ]
+    },
+    "minimumJobLevel": 1
+  },
+  "domains": {
+    "version": "8e633b4f41f99d4c388915bc852f2143cf4e9f5eaad70c76a81d4f4aa629eec1",
+    "rates": "7f6fc9b98db292a99f83554e5f125e0ec27bac0714bea986aba2aaba63919cb5",
+    "monsters": "dccebf28e7454a77da2423a3ce1b8e0ae2e767c005bbc0fdb568108ed2523f79",
+    "items": "c614bfbc77b8567a8ea04c6d936ab8a43c7101838ffde19a67a848a744d42fc2",
+    "classes": "a20cee9849620134e3ba9c9436b0bcae780c79c8a0275a16005e9beaeb0e4160",
+    "areas": "13f277880ea30b125123a3009dd0a3bd441670ac183fcab519df72235c8d60aa",
+    "quests": "a095feadb37b0c54b61501088e95e89f3573b6cbfbdd81705b735d975ecedc9e",
+    "challenges": "f531e6a9ed3b9c07c23c77d250d6b2b6b1f361220b2e65c0d4ca75c4f2d52ba7",
+    "exp": "2c3968e72e27d21536e627acfddc2542fed7179a033f7a794105a5d58c058b01",
+    "elementModifiers": "14498b14b652aa8370e4c121ac60dca71e579417ddd685e279d13628c16810d4",
+    "sizeModifiers": "82baa2ff17cfe40e6284e6e06f54a59699655e993ec2a1b91438ef1512eae7ca",
+    "autospellChoices": "68f421771d53dc64091ecc261f60c0c5306cbaeec7ae438be81d2608de64f7b0"
+  },
+  "otherSkills": "3760f023f2f7bdedc4d78dee38279a4b23e8fc01b6b3dc522e6a878c6ffcc107"
+}

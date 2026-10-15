@@ -231,7 +231,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "activate" | "inspect";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "activate" | "inspect" | "teleport";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -310,6 +310,8 @@ export interface Challenge {
   firstReward: Reward;
 }
 export interface Catalog {
+  /** Pinned Hercules noteleport map flags; absence disables manual Teleport. */
+  teleportBlockedMaps?: string[];
   /** Public scene anchors derived from GAT dimensions; collision masks stay server-side. */
   sceneNavigation?: Record<string, { map: string; origin: { x: number; y: number } }>;
   version: string;
@@ -830,6 +832,7 @@ export interface GameSnapshot {
   offlineSummary: RewardSummary | null;
 }
 export type GameCommand =
+  | { type: 'teleport'; destination: 'random' | 'save' }
   | { type: "startHunt"; areaId: string }
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }
   | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" | "repairAll" | "collectPendingLoot" }

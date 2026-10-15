@@ -4,6 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { parseTeleportMapFlags } from './teleport-mapflags.mjs';
 import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
 import { staticDefenseElement } from './itemDefenseElement.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -38,6 +39,13 @@ const repairUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules
 const repairBuffer = source ? await readFile(resolve(source, repairPath)) : Buffer.from(await (await fetch(repairUrl)).arrayBuffer());
 if (sha(repairBuffer) !== rules.sourceHashes[repairPath]) throw new Error('Pinned source hash mismatch: ' + repairPath);
 manifest.sources.push({ path: repairPath, url: repairUrl, sha256: sha(repairBuffer) });
+const teleportFlagPath = 'npc/mapflag/noteleport.txt';
+const teleportFlagUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${teleportFlagPath}`;
+const teleportFlagBuffer = source ? await readFile(resolve(source, teleportFlagPath)) : Buffer.from(await (await fetch(teleportFlagUrl)).arrayBuffer());
+if (sha(teleportFlagBuffer) !== rules.sourceHashes[teleportFlagPath]) throw new Error('Pinned source hash mismatch: ' + teleportFlagPath);
+const teleportBlockedMaps = parseTeleportMapFlags(teleportFlagBuffer.toString('utf8'));
+if (!teleportBlockedMaps.length) throw new Error('Empty source noteleport list');
+manifest.sources.push({ path: teleportFlagPath, url: teleportFlagUrl, sha256: sha(teleportFlagBuffer) });
 if (!/function\s+script\s+repairmain/i.test(repairBuffer.toString('utf8')) || !/\.\@repairprice\s*=\s*5000/.test(repairBuffer.toString('utf8')))
     throw new Error('Pinned NPC repair service changed');
 manifest.npcRepair = { source: 'npc/merchants/refine.txt:1145..1229', pricePerEquipment: 5000, repairs: 'all broken equipment in one NPC transaction', discount: false };
@@ -151,6 +159,7 @@ function inheritedItem(item, trail = []) { if (!item.CloneItem)
     throw new Error('CloneItem cycle'); const parent = typeof item.CloneItem === 'number' ? itemById[item.CloneItem] : itemByName[item.CloneItem]; if (!parent)
     throw new Error('Missing CloneItem'); return { ...inheritedItem(parent, [...trail, item.Id]), ...item }; }
 const catalog = { version: rules.version, source: { commit: rules.commit, files: manifest.sources.map(s => s.path), hash: '' }, rates: rules.rates, monsters: {}, items: {}, classes: {}, skills: {}, areas: rules.areas, quests: [], challenges: [], exp: { base: [], job: {} }, elementModifiers: {}, sizeModifiers: {} };
+catalog.teleportBlockedMaps = teleportBlockedMaps;
 catalog.autospellChoices = Object.fromEntries(parsed['autospell_db.conf'].autospell_db.map(row =>
     [row.SkillId, Array.from({ length: 10 }, (_, i) => typeof row.SkillLevel === 'number'
         ? row.SkillLevel : row.SkillLevel?.['Lv' + (i + 1)] ?? 0)]));
@@ -252,6 +261,7 @@ activeSpecial.add('MO_BODYRELOCATION');
 activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
+activeSpecial.add('AL_TELEPORT');
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
@@ -281,6 +291,7 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    AL_TELEPORT: 'Teleporta para uma posição aleatória passável do mapa. No nível 2, permite voltar a Prontera. Uso manual durante a caça; custo pelo nível aprendido. O destino aleatório permanece na região conectada da caça.',
     ST_CHASEWALK: 'Oculta você dos monstros comuns e permite caminhar, com atraso de 35−5×nível%. Consome 10+2×nível SP a cada 10s; o primeiro pulso concede STR 2^(nível−1) por 30s, sem renovar um bônus ativo. Impede atacar ou usar outras habilidades; chefes, detectores e magia já conjurada ainda podem atingir você. Desativar é imediato e gratuito.',
     RG_PLAGIARISM: 'Copia uma magia de monstro que causar dano sem derrotar você. O nível fica limitado pelo Plágio, sem consumir pontos. Uma nova magia substitui a anterior; receber a mesma não melhora a cópia. As quatro magias de Mago presentes nos ataques NPC são copiáveis; outras fontes ainda não estão simuladas.',
     ST_PRESERVE: 'Protege a magia copiada contra substituição por dez minutos. Conjuração base de um segundo e custo de 30 SP. A caça automática só ativa após obter uma cópia. O efeito termina na morte, ao sair da conta ou reconectar; a magia copiada continua salva.',
@@ -368,9 +379,10 @@ for (const name of skillNames) {
     const requiredWeapon = [...new Set(weaponRequirements.map(k => ({ Daggers: 'dagger', '1HSwords': 'sword', '2HSwords': 'sword', '1HSpears': 'spear', '2HSpears': 'spear', '1HAxes': 'axe', '2HAxes': 'axe', Maces: 'mace', '2HMaces': 'mace', Staves: 'staff', '2HStaves': 'staff', Bows: 'bow', Katars: 'katar', Instruments: 'instrument', Whips: 'whip' })[k]).filter(Boolean))];
     const onlyTwoHanded = weaponRequirements.length && weaponRequirements.every(k => ['2HSwords', '2HSpears', '2HAxes', '2HMaces', '2HStaves'].includes(k));
     catalog.skills[skillId(name)] = {
-        id: skillId(name), name: ({ RG_PLAGIARISM: 'Plágio', ST_PRESERVE: 'Preservar', ST_CHASEWALK: 'Furtividade' })[name] ?? rule?.name ?? rules.skillNames?.[name] ?? src.Description, kind, maxLevel,
+        id: skillId(name), name: ({ AL_TELEPORT: 'Teleporte', RG_PLAGIARISM: 'Plágio', ST_PRESERVE: 'Preservar', ST_CHASEWALK: 'Furtividade' })[name] ?? rule?.name ?? rules.skillNames?.[name] ?? src.Description, kind, maxLevel,
         herculesId: src.Id, sourceName: name, mechanic: name, implementation, ...(unsupportedReason && { unsupportedReason }),
         ...(name === 'MC_IDENTIFY' && { manualUse: 'inventory' }),
+        ...(name === 'AL_TELEPORT' && { manualUse: 'teleport' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
@@ -750,6 +762,7 @@ catalog.challenges = challengeMonsterRows.map(m => {
 manifest.hpSpModifierSource = { path: 'src/map/status.c', url: 'https://github.com/HerculesWS/Hercules/blob/' + rules.commit + '/src/map/status.c', functions: ['status_get_base_maxhp', 'status_get_base_maxsp'], modifier: 'JOBL_UPPER: floor(base * 1.25)', sha256: rules.referenceHashes.statusC };
 manifest.rulesSha256 = sha(await readFile(resolve(root, 'content/rules.json')));
 manifest.spriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js', license: 'GPL-3.0-or-later', sha256: rules.referenceHashes.jobNameTable };
+manifest.skillSources.al_teleport.adaptation = 'Manual field-hunting only: current learned-level SP cost for either menu choice; Random uses interior passable cells in the existing navigation component to keep AFK routes reachable. Level2 offers the sole Idle save-point Prontera. Town, sitting and challenge use are excluded; source noteleport flags gate both choices. Warp cancels encounter targeting/casts and owned ground groups, preserving population HP/IDs/respawns and ordinary progression. No AFK automatic teleport.';
 manifest.mountedPecoEvidence = {
     mechanics: ['pc.c:695..700,8985..8988,9220..9227,9391..9398', 'status.c:1857..1861,2140..2148,2173..2174,5421..5441,5534..5599', 'battle.c:764..770,2145..2156', 'skill.c:7971..7973,17857..18012'],
     visuals: ['roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js:30,39,59,67', 'DB/Jobs/WeaponJobTable.js:50..59,130..140', 'DB/Jobs/WeaponAction.js:171..182,247..257', 'DB/Skills/SkillAction.js:137..143'],

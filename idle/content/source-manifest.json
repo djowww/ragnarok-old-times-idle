@@ -63,6 +63,11 @@
       "sha256": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1"
     },
     {
+      "path": "npc/mapflag/noteleport.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/noteleport.txt",
+      "sha256": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
+    },
+    {
       "path": "npc/pre-re/mobs/fields/geffen.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
       "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
@@ -3275,10 +3280,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Manual field-hunting only: current learned-level SP cost for either menu choice; Random uses interior passable cells in the existing navigation component to keep AFK routes reachable. Level2 offers the sole Idle save-point Prontera. Town, sitting and challenge use are excluded; source noteleport flags gate both choices. Warp cancels encounter targeting/casts and owned ground groups, preserving population HP/IDs/respawns and ordinary progression. No AFK automatic teleport."
     },
     "al_warp": {
       "id": 27,
@@ -13881,8 +13886,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 259,
-    "unsupported": 89,
+    "supported": 260,
+    "unsupported": 88,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -13926,13 +13931,13 @@
       },
       "acolyte": {
         "sourceTree": 17,
-        "supported": 13,
-        "unsupported": 4
+        "supported": 14,
+        "unsupported": 3
       },
       "high_acolyte": {
         "sourceTree": 17,
-        "supported": 13,
-        "unsupported": 4
+        "supported": 14,
+        "unsupported": 3
       },
       "merchant": {
         "sourceTree": 15,
@@ -14026,23 +14031,23 @@
       },
       "priest": {
         "sourceTree": 36,
-        "supported": 29,
-        "unsupported": 7
+        "supported": 30,
+        "unsupported": 6
       },
       "high_priest": {
         "sourceTree": 40,
-        "supported": 32,
-        "unsupported": 8
+        "supported": 33,
+        "unsupported": 7
       },
       "monk": {
         "sourceTree": 34,
-        "supported": 29,
-        "unsupported": 5
+        "supported": 30,
+        "unsupported": 4
       },
       "champion": {
         "sourceTree": 38,
-        "supported": 33,
-        "unsupported": 5
+        "supported": 34,
+        "unsupported": 4
       },
       "blacksmith": {
         "sourceTree": 39,
@@ -14122,6 +14127,7 @@
       "AL_DEMONBANE",
       "AL_RUWACH",
       "AL_PNEUMA",
+      "AL_TELEPORT",
       "AL_HEAL",
       "AL_INCAGI",
       "AL_DECAGI",
@@ -14356,11 +14362,6 @@
         "skillId": "ac_makingarrow",
         "sourceName": "AC_MAKINGARROW",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "al_teleport",
-        "sourceName": "AL_TELEPORT",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "al_warp",
@@ -15381,7 +15382,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "4b3d78822619668f63fb60977c9a0ca7cbaa6c95c628dae15afea5257063d584",
+  "rulesSha256": "f14e75cb5b49bc667ab412e24293cf8014b37b9133263ab36a11acb008f29d0e",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15417,6 +15418,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "5502c03a524321165420cf58248d3863a78fd3ecd5c311a121a7fc09408177c5",
+  "catalogSha256": "661e02de71605889b698bee6efa3cd1b5db1669d15d023c49b6e3e77a85986c5",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

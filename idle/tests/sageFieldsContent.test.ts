@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import raw from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
 import baseline from './fixtures/sageFields256Baseline.json';
+import { beforeTeleportSkills } from './sage-fields-historical-fixture';
 import type { Catalog } from '../shared/types';
 const c = raw as unknown as Catalog;
 function canonical(value: unknown): string {
@@ -24,13 +25,15 @@ describe('pinned Sage fields catalog release', () => {
       expect(c.skills[id].unsupportedReason).toBeUndefined();
     });
   it('adds exactly three solo skills without changing other skill mechanics or world balance', () => {
-    const names = Object.values(c.skills).filter(s => s.implementation === 'supported').map(s => s.sourceName!);
+    const historicalSkills = beforeTeleportSkills(c.skills);
+    const names = Object.values(historicalSkills).filter(s => s.implementation === 'supported').map(s => s.sourceName!);
     expect(names.filter(n => !baseline.supportedSourceNames.includes(n)).sort()).toEqual(added);
     expect(baseline.supportedSourceNames.filter(n => !names.includes(n))).toEqual([]);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 259, unsupported: 89 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 260, unsupported: 88 });
     for (const [key, hash] of Object.entries(baseline.domains)) expect(digest(raw[key as keyof typeof raw]), key).toBe(hash);
-    expect(Object.fromEntries(Object.entries(raw.source).filter(([key]) => key !== 'hash'))).toEqual(baseline.sourceMetadata);
-    expect(digest(Object.fromEntries(Object.entries(c.skills).filter(([id]) =>
+    expect({ ...Object.fromEntries(Object.entries(raw.source).filter(([key]) => key !== 'hash')),
+      files: raw.source.files.filter(path => path !== 'npc/mapflag/noteleport.txt') }).toEqual(baseline.sourceMetadata);
+    expect(digest(Object.fromEntries(Object.entries(historicalSkills).filter(([id]) =>
       !['sa_volcano', 'sa_deluge', 'sa_violentgale', 'pf_fogwall'].includes(id))))).toBe(baseline.otherSkills);
     const properties = new Set([2344, 2345, 2346, 2347, 2348, 2349, 2350, 2351, 4054, 4119]);
     expect(digest(Object.fromEntries(Object.entries(c.items).filter(([id]) => !properties.has(Number(id)))))).toBe(baseline.otherItems);

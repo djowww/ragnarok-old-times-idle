@@ -2386,7 +2386,8 @@
     "npc/merchants/shops.txt": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5",
     "unit_parameters_db.conf": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792",
     "src/map/pc.h": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f",
-    "src/map/clif.c": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
+    "src/map/clif.c": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42",
+    "npc/mapflag/noteleport.txt": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",

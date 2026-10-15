@@ -10,8 +10,8 @@ describe('exact source-pinned converter package',()=>{
   const names=Object.values(c.skills).filter(s=>s.implementation==='supported').map(s=>s.sourceName!);
   expect(baseline.supportedSourceNames).toHaveLength(225);
   expect(baseline.supportedSourceNames.filter(name=>!names.includes(name))).toEqual([]);
-  expect(names.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_CREATECON', 'SA_DELUGE', 'SA_ELEMENTFIRE', 'SA_ELEMENTGROUND', 'SA_ELEMENTWATER', 'SA_ELEMENTWIND', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 259, unsupported: 89});
+  expect(names.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'AL_TELEPORT', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_CREATECON', 'SA_DELUGE', 'SA_ELEMENTFIRE', 'SA_ELEMENTGROUND', 'SA_ELEMENTWATER', 'SA_ELEMENTWIND', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 260, unsupported: 88});
   expect(c.skills.sa_createcon).toMatchObject({implementation:'supported',manualUse:'converterCraft',maxLevel:1,spCost:[30]});
   const reagents={sa_elementfire:12114,sa_elementwater:12115,sa_elementground:12116,sa_elementwind:12117};
   for(const [id,itemId] of Object.entries(reagents))expect(c.skills[id]).toMatchObject({implementation:'supported',maxLevel:1,spCost:[30],range:[9],castTimeMs:[2000],afterCastDelayMs:[1000],cooldownMs:0,itemCostByLevel:[[{itemId,quantity:1}]]});
@@ -20,8 +20,8 @@ describe('exact source-pinned converter package',()=>{
  it('preserves all22 prior source paths and hashes and adds only exact recipes and NPC shop source',()=>{
   for(const source of baseline.sources)expect(manifest.sources).toContainEqual(source);
   for(const [path,hash] of Object.entries(baseline.sourceHashes))expect((rules.sourceHashes as Record<string,string>)[path],path).toBe(hash);
-  expect(manifest.sources).toHaveLength(28);
-  expect(manifest.sources.filter(source=>!baseline.sources.some(old=>old.path===source.path)).map(source=>source.path).sort()).toEqual(['db/pre-re/unit_parameters_db.conf','db/produce_db.txt','npc/merchants/refine.txt','npc/merchants/shops.txt','src/map/clif.c','src/map/pc.h']);
+  expect(manifest.sources).toHaveLength(29);
+  expect(manifest.sources.filter(source=>!baseline.sources.some(old=>old.path===source.path)).map(source=>source.path).sort()).toEqual(['db/pre-re/unit_parameters_db.conf','db/produce_db.txt','npc/mapflag/noteleport.txt','npc/merchants/refine.txt','npc/merchants/shops.txt','src/map/clif.c','src/map/pc.h']);
   expect(manifest.sources).toContainEqual(expect.objectContaining({path:'npc/merchants/refine.txt',sha256:'3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1'}));
   expect((rules.sourceHashes as Record<string,string>)['npc/merchants/refine.txt']).toBe('3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1');
   expect(manifest.sources).toContainEqual(expect.objectContaining({path:'db/produce_db.txt',sha256:'122d6ebc9a9451cb731643118bfff99f3a3c9ec2e5fe58d99129dc48c6f2fc2d'}));
