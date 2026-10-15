@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { heroWorldAtAction } from '../web/assets/combatPresentation';
 import { battleHeroAt, enemyPositionAt } from '../shared/battleSpatial';
 import type { BattleEnemy, GameState } from '../shared/types';
 import { battleRouteTangent, projectBattlePoint, type MapProjection } from '../web/assets/mapProjection';
@@ -52,5 +53,26 @@ describe('authoritative field actor presentation', () => {
     expect(projectBattlePoint(map, enemyPositionAt(pausedEnemy, 9000), origin)).toEqual(expected);
     expect(pausedHero.fieldHero).toMatchObject({ startedAt: 1000, arrivedAt: 2500 });
     expect(pausedEnemy).toMatchObject({ startedAt: 1000, arrivedAt: 2500, approachPausedAt: 1750 });
+  });
+});
+
+
+describe('native strike contact through target handoff', () => {
+  it('keeps a lethal swing at its contact while the latest snapshot already follows another route', () => {
+    const map = camera([199.5, 0, 199.5]);
+    const contact = projectBattlePoint(map, battleHeroAt(hero, 1750), origin);
+    const nextRouteWorld = projectBattlePoint(map, battleHeroAt(hero, 2500), origin);
+    expect(heroWorldAtAction({ world: contact }, nextRouteWorld, () => [999, 0, 999])).toEqual(contact);
+    expect(heroWorldAtAction(null, nextRouteWorld, () => contact)).toEqual(nextRouteWorld);
+    expect(hero.fieldHero).toMatchObject({ startedAt: 1000, arrivedAt: 2500 });
+  });
+  it('preserves explicit Back Slide movement and defers fallback projection until needed', () => {
+    const slide: [number, number, number] = [194.5, 2, 199.5];
+    let calls = 0;
+    const fallback = (): [number, number, number] => { calls++; return [199.5, 0, 199.5]; };
+    expect(heroWorldAtAction(null, slide, fallback)).toEqual(slide);
+    expect(calls).toBe(0);
+    expect(heroWorldAtAction(undefined, undefined, fallback)).toEqual([199.5, 0, 199.5]);
+    expect(calls).toBe(1);
   });
 });

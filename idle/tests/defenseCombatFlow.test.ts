@@ -45,8 +45,12 @@ describe('source defensive skill integration', () => {
     const cast = advanceState(s, c, 1000), original = structuredClone(cast.combatEffects!.defensiveGrounds![0]);
     cast.status = 'hunting'; cast.areaId = c.areas[0].id;
     cast.fieldHero = { areaId: cast.areaId, from: { x: 0.9, y: 0.65 }, position: { x: 0.9, y: 0.65 }, startedAt: 1000, arrivedAt: 1000, routeIndex: 0 };
-    cast.battle!.playerActionReadyAt = 1000; cast.battle!.playerNextSkillAt = 1000; cast.battle!.supportNeedsOffense = false;
-    const again = advanceState(cast, c, 1250);
+    cast.battle!.supportNeedsOffense = false;
+    cast.battle!.enemies![0].enemyNextAttackAt = 999999; // Isolate ground placement from incoming damage.
+    const readyAt = cast.playerCanActAt!;
+    expect(readyAt).toBeGreaterThan(1250);
+    expect(advanceState(cast, c, 1250).combatEffects!.defensiveGrounds).toHaveLength(1);
+    const again = advanceState(cast, c, Math.ceil(readyAt / 250) * 250);
     expect(again.combatEffects!.defensiveGrounds).toHaveLength(2);
     expect(again.combatEffects!.defensiveGrounds![0]).toEqual(original);
     expect(again.combatEffects!.defensiveGrounds![1].cells).not.toEqual(original.cells);

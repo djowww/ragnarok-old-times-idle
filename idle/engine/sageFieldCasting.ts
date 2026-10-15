@@ -13,13 +13,14 @@ import { placeSageField, sageFieldIsActive, sageFieldSource } from './sageFields
 import type { SimulationContext } from './fieldNavigation.js';
 import type { GridPoint } from '../shared/fieldNavigation.js';
 import { occupiedGroundCells } from './groundUnitOccupancy.js';
+import { resolveOwnSkillAction } from './skillActionClock.js';
 
 export function sageFieldCanStart(s: GameState, c: Catalog, skill: Skill, level: number, at: number): boolean {
   const load = inventoryLoad(s, c);
   return !!sageFieldSource(skill.sourceName) && skill.implementation === 'supported' &&
     Number.isSafeInteger(level) && level >= 1 && level <= 5 && s.learnedSkills[skill.id] === level &&
     classSkills(c, s.job).includes(skill.id) && ['town', 'hunting', 'challenge'].includes(s.status) &&
-    s.hp > 0 && !s.supportCast && !s.battle?.cast && load.weight * 10 < load.maxWeight * 9 &&
+    s.hp > 0 && !s.supportCast && !s.battle?.cast && (s.playerCanActAt ?? 0) <= at && load.weight * 10 < load.maxWeight * 9 &&
     !activePlayerStatus(s, 'SC_SILENCE', at) &&
     !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'ST_CHASEWALK', 'NV_TRICKDEAD', 'KN_AUTOCOUNTER']
       .some(source => classicBuffActive(s, c, source, at)) && canBeginSkillResources(s, c, skill, level, at);
@@ -45,6 +46,7 @@ export function resolveSageFieldCast(s: GameState, c: Catalog, at: number, conte
   const cast = s.supportCast, skill = c.skills[cast?.skillId ?? ''];
   if (!cast || cast.endsAt > at || !skill || !sageFieldSource(skill.sourceName)) return false;
   delete s.supportCast;
+  return resolveOwnSkillAction(s, c, cast, at, () => {
   if (s.hp <= 0 || skill.implementation !== 'supported' || !cast.position || cast.sceneKey !== classicGroundSceneKey(s)) return false;
   if (occupiedGroundCells(s, c, at, context).unresolved) {
     event(s, at, 'cast-failed', 'Aguarde o efeito antigo no chão terminar para conjurar o campo.',
@@ -64,4 +66,5 @@ export function resolveSageFieldCast(s: GameState, c: Catalog, at: number, conte
   event(s, at, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: cast.level,
     sourceActorId: s.id, targetActorId: s.id, actionId: cast.actionId, actorAction: 'none', actionSourcePosition: cast.position });
   return true;
+  });
 }
