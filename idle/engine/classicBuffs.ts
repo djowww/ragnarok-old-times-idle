@@ -103,8 +103,10 @@ export function cancelClassicBuff(
 }
 /** Hercules clears a caster's ground groups on warp under the default setting. */
 export function clearClassicGrounds(s: GameState, c: Catalog) {
+  delete s.groundPlacements;
   cancelClassicBuff(s, c, "AL_PNEUMA");
   cancelClassicBuff(s, c, "MG_SAFETYWALL");
+  cancelClassicBuff(s, c, "PF_FOGWALL");
 }
 export function classicGroundSceneKey(s: GameState): string {
   if (s.battle?.challengeId) return `challenge:${s.battle.attemptId ?? s.battle.challengeId}`;

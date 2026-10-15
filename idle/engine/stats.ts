@@ -17,6 +17,7 @@ import { playerDiseaseModifiers } from './playerStatusRules.js';
 import { activePlayerStatus } from './playerStatuses.js';
 import { currentPlayerCast } from './playerCast.js';
 import { inventoryCapacity } from './itemCapacity.js';
+import { sageFieldModifiers } from './sageFields.js';
 export const statNames: Stat[] = ["str", "agi", "vit", "int", "dex", "luk"];
 export const MAX_BASE_STAT = 99;
 export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
@@ -69,6 +70,7 @@ export function inventoryLoad(s: GameState, c: Catalog) {
 }
 export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const effects: Effects = {};
+  const field = sageFieldModifiers(s, s.id, s.lastSimulatedAt);
   let weaponAttack = 0;
   let weaponRefineAttack = 0;
   let armorDef = 0;
@@ -96,6 +98,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     }
   }
   armorDef += Math.floor((armorRefineDef + 50) / 100);
+  weaponAttack += field.weaponAttack;
   const job = c.classes[s.job];
   for (const stat of statNames)
     effects[stat] =
@@ -154,8 +157,9 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const attackMotionMs = capPlayerAmotion(amotionAfterFixedAspd, job.minimumAttackMotionMs ?? 100);
   const attackIntervalMs = playerAttackDelayFromAmotion(attackMotionMs);
   const softMdef = a.int + Math.floor(a.vit / 2);
-  const maxHp = (berserk ? 3 : 1) * Math.max(1, Math.floor(
+  const ordinaryMaxHp = Math.max(1, Math.floor(
     (Math.floor(hpBase * (1 + a.vit / 100)) + (effects.hp ?? 0)) * (1 + (effects.hpPct ?? 0) / 100)));
+  const maxHp = (berserk ? 3 : 1) * (ordinaryMaxHp + Math.trunc(ordinaryMaxHp * field.hpPercent / 100));
   // A pure projection reconciles every HP/maxHP change, without saved stale bonuses.
   const reactive = autoBerserkModifiers({ enabled: Object.entries(s.buffs).some(([id, buff]) =>
     c.skills[id]?.sourceName === 'SM_AUTOBERSERK' && buff.expiresAt > s.lastSimulatedAt), hp: s.hp, maxHp });
@@ -184,7 +188,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     ),
     mdef: berserk ? 0 : softMdef + (steel ? 90 : (effects.mdef ?? 0)),
     hit: (() => { const value = s.baseLevel + a.dex + (effects.hit ?? 0); return value - Math.trunc(value * disease.hitReductionPercent / 100); })(),
-    flee: (() => { const value = s.baseLevel + a.agi + (effects.flee ?? 0);
+    flee: (() => { const value = s.baseLevel + a.agi + (effects.flee ?? 0) + field.flee;
       const reduced = berserk ? value - Math.trunc(value * .5) : value;
       return reduced - Math.trunc(reduced * disease.fleeReductionPercent / 100); })(),
     // status.c:3941,3946 retain tenths; clif truncates only the displayed value.

@@ -45,7 +45,8 @@
     "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
     "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
     "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
-    "PF_FOGWALL: a adaptação solo cria um campo defensivo centrado no personagem por 20 s quando o alvo tem alcance normal acima de 3 ou uma magia NPC modelada com alcance acima de 3; reduz hit de ataques normais longos em 50 pontos percentuais, dano desses ataques a 25%, e reduz dano de magia NPC direcionada em 25% após uma rolagem de falha de 75% no fim da conjuração. A cegueira dos ocupantes do campo e a geometria completa do terreno continuam sem simulação."
+    "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
+    "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido."
   ],
   "classes": [
     {
@@ -1193,7 +1194,18 @@
       "maxLevel": 10,
       "powerStart": 240,
       "powerStep": 80,
-      "idleDamageMultiplierPct": [171, 178, 182, 185, 187, 189, 190, 191, 191, 192],
+      "idleDamageMultiplierPct": [
+        171,
+        178,
+        182,
+        185,
+        187,
+        189,
+        190,
+        191,
+        191,
+        192
+      ],
       "cooldownMs": 8000,
       "element": "water",
       "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos."
@@ -2465,7 +2477,10 @@
     "HW_GRAVITATION": "Campo Gravitacional",
     "RG_CLOSECONFINE": "Confinamento",
     "PF_MINDBREAKER": "Quebra-Mente",
-    "PF_FOGWALL": "Nevoeiro Ofuscante"
+    "PF_FOGWALL": "Nevoeiro Ofuscante",
+    "SA_VOLCANO": "Vulcão",
+    "SA_DELUGE": "Dilúvio",
+    "SA_VIOLENTGALE": "Furacão"
   },
   "skillDescriptions": {
     "SA_ADVANCEDBOOK": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",
@@ -2551,7 +2566,10 @@
     "DC_WINKCHARM": "Wink of Charm: conjura por 1 segundo, custa 40 SP e tenta encantar por 10 segundos um monstro comum de nível inferior, das raças Demônio, Demi-humano ou Anjo, em até 9 células. Chance fixa de 70%, sem efeito em chefes. Enquanto encantado, o monstro não inicia novas habilidades especiais; ataques normais e conjurações já iniciadas seguem seus próprios relógios. A caça já conduz o movimento em direção ao jogador, sem um caminho separado até o alcance 3.",
     "RG_CLOSECONFINE": "Prende você e um monstro adjacente por 10 segundos. O alvo ainda pode atacar e receber seus golpes; seus movimentos voltam quando o último alvo preso morre ou o efeito termina. Custa 25 SP. A rotação automática usa a habilidade somente contra um alvo vivo em contato durante a caça no campo.",
     "PF_MINDBREAKER": "Aumenta a MATK do alvo em 20% por nível e reduz sua MDEF secundária em 12% por nível durante 30 segundos. Chefes e mortos-vivos são imunes.",
-    "PF_FOGWALL": "Cria um nevoeiro ao redor do personagem por 20 segundos. Contra ataques normais à distância, reduz a precisão do atacante em 50 pontos percentuais e o dano em 75%; reduz o dano de habilidades diretas em 25%. O efeito de Cegueira nos ocupantes do campo ainda não é simulado."
+    "PF_FOGWALL": "Cria um nevoeiro fixo de 5 × 3 células sob o personagem por 20 segundos; células sobre Dilúvio duram 40 segundos. Até dois campos ativos. Reduz precisão de ataques normais longos em 50 pontos percentuais e seu dano em 75%; magias NPC direcionadas têm 75% de falha e 25% de redução de dano. A Cegueira nos ocupantes ainda não é simulada.",
+    "SA_VOLCANO": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Fogo no campo; concede ATQ de arma a ocupantes com armadura de Fogo. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. O efeito termina ao sair do campo ou reconectar.",
+    "SA_DELUGE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Água e aumenta o HP máximo de ocupantes com armadura de Água, sem curá-los. Permite Esferas d’Água no campo. Requer Gema Amarela; a substituição preserva o tempo restante sem consumir outra gema. Termina ao sair ou reconectar.",
+    "SA_VIOLENTGALE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Vento e concede esquiva a ocupantes com armadura de Vento. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. Termina ao sair do campo ou reconectar."
   },
   "converterMaterials": [
     7433,

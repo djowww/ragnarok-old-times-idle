@@ -29,6 +29,8 @@ import { merchantPrice } from "../shared/prices.js";
 import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
 import { battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
 import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
+import { clearSageField, sageFieldSource } from './sageFields.js';
+import { sageFieldCanStart, startSageFieldCast } from './sageFieldCasting.js';
 import { automaticSpellChoices } from "./sageCasting.js";
 import { inventoryLoad } from './stats.js';
 import { paySkillResources } from './skillResources.js';
@@ -127,6 +129,11 @@ export function executeCommand(
         break;
       }
       requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de usar habilidades.');
+      if (sageFieldSource(skill?.sourceName)) {
+        requireRule(sageFieldCanStart(s, c, skill, level, now), 'SAGE_FIELD_UNAVAILABLE', 'Tenha SP suficiente e esteja livre para conjurar o campo.');
+        requireRule(startSageFieldCast(s, c, skill, level, now, context), 'SAGE_FIELD_UNAVAILABLE', 'Não foi possível iniciar o campo elemental.');
+        break;
+      }
       if (skill?.sourceName && ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
         requireRule(sageEnchantCanStart(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
           'Equipe uma arma intacta, tenha 40 SP e o reagente correto; uma propriedade incompatível impede o encantamento.');
@@ -904,7 +911,7 @@ export function executeCommand(
   }
   if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
     returnForCarry(s, c, now);
-  if (classicGroundSceneKey(s) !== previousScene) clearClassicGrounds(s, c);
+  if (classicGroundSceneKey(s) !== previousScene) { clearClassicGrounds(s, c); clearSageField(s); }
   clampResources(s, c);
   updateQuests(s, c);
 }

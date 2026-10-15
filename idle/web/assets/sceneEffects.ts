@@ -4,6 +4,7 @@ import type { GameEvent, Skill } from '../../shared/types';
 import { decodeSPR, type SpriteFrame } from './sprite';
 import { decodeBMP, assetUrl } from './items';
 import { drawActor, getActorPose, loadActor, type DecodedActor } from './renderer';
+import { propertyGroundPixels, sageFieldTexture } from './sageFieldVisuals';
 
 export const DAMAGE_POPUP_MS = 1500;
 export const EMOTE_MS = 1500;
@@ -40,6 +41,7 @@ export interface SceneEffects {
   jupitelImpact: HTMLCanvasElement[];
   venomDust?: DecodedActor | null;
   spiderWeb?: HTMLCanvasElement | null;
+  elementalFields?: Partial<Record<'SA_VOLCANO' | 'SA_DELUGE' | 'SA_VIOLENTGALE', HTMLCanvasElement | null>>;
 }
 
 export interface DamagePopup {
@@ -192,6 +194,15 @@ async function loadSpiderWeb(): Promise<HTMLCanvasElement> {
   image.data.set(spiderWebPixels(image.data)); context.putImageData(image, 0, 0);
   return texture;
 }
+async function loadPropertyGround(source: string): Promise<HTMLCanvasElement> {
+  const path = sageFieldTexture(source);
+  if (!path) throw new Error('Unknown property ground effect');
+  const texture = await loadTga(path), context = texture.getContext('2d');
+  if (!context) throw new Error('Canvas indisponível');
+  const pixels = context.getImageData(0, 0, texture.width, texture.height);
+  pixels.data.set(propertyGroundPixels(pixels.data)); context.putImageData(pixels, 0, 0);
+  return texture;
+}
 
 function optional<T>(promise: Promise<T>, fallback: T): Promise<T> {
   return promise.catch(() => fallback);
@@ -207,7 +218,8 @@ export function loadSceneEffects(): Promise<SceneEffects> {
   if (effectsPromise) return effectsPromise;
   effectsPromise = (async () => {
     const [digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb] = await Promise.all([
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb,
+      volcano, deluge, violentGale] = await Promise.all([
       optional(loadDigits(), null),
       optional(loadMiss(), null),
       optional(loadActor({ spr: EFFECT_FOLDER + 'emotion.spr', act: EFFECT_FOLDER + 'emotion.act' }).then((actor) => actor.fallback ? null : actor), null),
@@ -227,9 +239,13 @@ export function loadSceneEffects(): Promise<SceneEffects> {
       optional(loadActor({ spr: EFFECT_FOLDER + 'particle3.spr', act: EFFECT_FOLDER + 'particle3.act' })
         .then(actor => actor.fallback ? null : actor), null),
       optional(loadSpiderWeb(), null),
+      optional(loadPropertyGround('SA_VOLCANO'), null),
+      optional(loadPropertyGround('SA_DELUGE'), null),
+      optional(loadPropertyGround('SA_VIOLENTGALE'), null),
     ]);
     return { digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb };
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb,
+      elementalFields: { SA_VOLCANO: volcano, SA_DELUGE: deluge, SA_VIOLENTGALE: violentGale } };
   })();
   return effectsPromise;
 }
@@ -597,7 +613,10 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
   let original = false;
-  if (['tfpickstone', 'alcure', 'tfdetoxify', 'prslowpoison'].includes(source)) {
+  if (['savolcano', 'sadeluge', 'saviolentgale'].includes(source)) {
+    // The persistent, clipped ground group owns this effect; no body aura.
+    original = true;
+  } else if (['tfpickstone', 'alcure', 'tfdetoxify', 'prslowpoison'].includes(source)) {
     // Collection is a self skill pose/text, never a magic aura or floor drop.
     original = true;
   } else if (casting && cue.kind === 'magical' && !bolt) {

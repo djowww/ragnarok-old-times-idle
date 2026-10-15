@@ -368,6 +368,7 @@ export interface FieldNavigationRuntime {
   readonly remappedHomes: Readonly<Record<string, readonly number[]>>;
   readonly publicAreas: Readonly<Record<string, { map: string; origin: { x: number; y: number }; homeOffsets: readonly GridPoint[] }>>;
   area(areaId: string): FieldNavigationAreaRuntime;
+  scene(map: string): { grid: FieldNavigationGrid; origin: GridPoint };
   toGridPoint(areaId: string, point: BattlePoint): GridPoint;
   toBattlePoint(areaId: string, point: GridPoint): BattlePoint;
   isWalkableBattlePoint(areaId: string, point: BattlePoint): boolean;
@@ -433,7 +434,7 @@ export function createFieldNavigationRuntime(
     if (spec.originRemapped) remappedOrigins.push(spec.map);
     if (spec.remappedHomeSlots?.length) remappedHomes[spec.areaId] = [...spec.remappedHomeSlots];
   }
-  for (const map of grids.keys()) if (!specs.some(spec => spec.map === map))
+  for (const map of grids.keys()) if (map !== 'prontera' && !specs.some(spec => spec.map === map))
     throw new FieldNavigationError(`Navigation grid has no area spec: ${map}`);
 
   const area = (areaId: string) => {
@@ -457,6 +458,11 @@ export function createFieldNavigationRuntime(
     remappedHomes: Object.freeze(remappedHomes),
     publicAreas: Object.freeze(publicAreas),
     area,
+    scene(map: string) {
+      const grid = grids.get(map);
+      if (!grid) throw new FieldNavigationError(`Missing scene terrain for ${map}`);
+      return { grid, origin: { x: grid.width >> 1, y: grid.height >> 1 } };
+    },
     toGridPoint(areaId: string, point: BattlePoint): GridPoint {
       const selected = area(areaId);
       return { x: selected.originPoint.x + (point.x - BATTLE_HERO.x) * BATTLE_CELLS_PER_UNIT,

@@ -94,6 +94,8 @@ describe('private field navigation asset loader', () => {
         expect(metadata).toMatchObject({ map: 'prt_fild08', width: 1, height: 1, decoderRevision: expect.any(String),
             sourceSha256: createHash('sha256').update(bytes).digest('hex'), maskSha256: expect.any(String) });
         expect(metadata.maskSha256).toBe(createHash('sha256').update(Buffer.from(metadata.walkable, 'base64')).digest('hex'));
+        expect(metadata.formatVersion).toBe(2);
+        expect(metadata.wallSha256).toBe(createHash('sha256').update(Buffer.from(metadata.wall, 'base64')).digest('hex'));
         expect(result.cacheFallbackMaps).toEqual([]);
     });
 
@@ -104,7 +106,24 @@ describe('private field navigation asset loader', () => {
             fetchImpl: async () => { throw new Error('offline'); } });
         expect(fallback.cacheFallbackMaps).toEqual(['prt_fild08']);
         expect(fallback.grids.get('prt_fild08')?.sourceSha256).toBe(createHash('sha256').update(bytes).digest('hex'));
+        expect(Array.from(fallback.grids.get('prt_fild08')?.wall ?? [])).toEqual([0]);
     });
+
+    it.each(['old-version', 'missing-wall', 'wall-checksum', 'wall-base64', 'wall-length'])(
+      'fails closed on %s cache after upstream loss', async defect => {
+        const cacheDir = await tempCache(), path = join(cacheDir, 'prt_fild08.navigation.json');
+        await loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir,
+          fetchImpl: async () => response(gat(5)) });
+        const record = JSON.parse(await readFile(path, 'utf8'));
+        if (defect === 'old-version') record.formatVersion = 1;
+        if (defect === 'missing-wall') delete record.wall;
+        if (defect === 'wall-checksum') record.wallSha256 = '0'.repeat(64);
+        if (defect === 'wall-base64') record.wall += '!';
+        if (defect === 'wall-length') { record.wall = 'AAAA'; record.wallSha256 = createHash('sha256').update(Buffer.from(record.wall, 'base64')).digest('hex'); }
+        await writeFile(path, JSON.stringify(record));
+        await expect(loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir,
+          fetchImpl: async () => response(gat(), 404) })).rejects.toThrow(/field navigation unavailable/i);
+      });
 
     it('rejects private cache metadata with non-positive dimensions', async () => {
         const cacheDir = await tempCache(), bytes = gat();

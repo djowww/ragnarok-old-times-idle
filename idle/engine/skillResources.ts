@@ -69,6 +69,7 @@ function skillResourceCosts(
 function hasSkillResources(
   s: GameState,
   costs: ReturnType<typeof skillResourceCosts>,
+  requireItems = true,
 ): costs is NonNullable<ReturnType<typeof skillResourceCosts>> {
   if (
     !costs ||
@@ -78,7 +79,7 @@ function hasSkillResources(
     (s.combatEffects?.spiritSpheres ?? 0) < costs.spheres
   )
     return false;
-  for (const [id, quantity] of costs.quantities)
+  for (const [id, quantity] of requireItems ? costs.quantities : [])
     if (
       s.inventory
         .filter((e) => e.itemId === id)
@@ -97,6 +98,11 @@ export function canPaySkillResources(
   at = s.lastSimulatedAt,
 ): boolean {
   return hasSkillResources(s, skillResourceCosts(s, c, skill, level, at));
+}
+
+/** Source Sage ground cast-begin checks base costs; required items are checked at cast-end. */
+export function canBeginSkillResources(s: GameState, c: Catalog, skill: Skill, level: number, at: number): boolean {
+  return hasSkillResources(s, skillResourceCosts(s, c, skill, level, at), false);
 }
 
 /** Revalidates and consumes at cast end; failed or interrupted casts pay nothing. */
@@ -126,12 +132,13 @@ export function runSkillResourcePhases<T>(
   level: number,
   at: number,
   handler: () => T,
+  consumeItems = true,
 ): { paid: false } | { paid: true; result: T } {
   const costs = skillResourceCosts(s, c, skill, level, at);
   if (!hasSkillResources(s, costs)) return { paid: false };
   paySkillBaseCosts(s, costs);
   const result = handler();
-  paySkillItemCosts(s, costs);
+  if (consumeItems) paySkillItemCosts(s, costs);
   return { paid: true, result };
 }
 

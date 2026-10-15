@@ -32,7 +32,7 @@ await migrate(pool);
 const legacyProfileId = await resolveLegacyProfileId(pool);
 const repository = new GameRepository(pool, () => createInitialState(catalog, Date.now(), 'djow'), legacyProfileId);
 await initializeLegacyProfileIfReady(navigationReady, () => repository.read());
-const profiles = new SessionGameProfiles(new SqlGameProfiles(pool));
+const profiles = new SessionGameProfiles(new SqlGameProfiles(pool), catalog);
 const accounts = new SqlAccountStore(pool);
 const allowedOrigins = process.env.RAGIDLE_ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean);
 const trustedProxyAddresses = process.env.RAGIDLE_TRUSTED_PROXY_ADDRESSES?.split(',').map(address => address.trim()).filter(Boolean);
