@@ -33,3 +33,15 @@ A cura determinística usa o ponto médio do intervalo original. Consumo manual 
 Referências: [scripts dos produtos](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf), [status pré-renovação](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/sc_config.conf).
 
 Fonte: [receitas originais](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/produce_db.txt#L329-L380), [vendedor do Alquimista](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/alchemist.txt#L42-L179).
+
+## Arremessar Poção Compacta
+
+Criadores com a habilidade aprendida podem escolher o nível na janela de habilidades e usar manualmente ou na rotação automática. Níveis 1–5 usam Red Slim Potion, 6–9 Yellow Slim Potion e 10 White Slim Potion. Cada uso consome uma poção e 30 SP ao concluir a conjuração.
+
+A conjuração base é de um segundo, reduzida por DEX; a pós-conjuração é de um segundo. A cura considera os níveis aprendidos de Arremessar Poção Compacta, Arremessar Poção e Preparar Poção, além da VIT e recuperação do alvo, com truncamento inteiro por etapa. No modo solo, a área é centrada no próprio personagem. Mantemos os pontos médios de recuperação das poções usados pelo Idle.
+
+## Encontrar Minério
+
+Ferreiros e Mestres Ferreiros com Encontrar Minério aprendida podem obter um minério extra ao derrotar um monstro. A seleção usa a cadeia de vinte itens do Hercules: um sorteio uniforme da entrada e outro da chance dessa entrada. A chance total é de 1,4275% por abate elegível, sem multiplicadores de drop, nível ou LUK.
+
+O minério segue o fluxo normal de loot e capacidade; mochila cheia conserva o item na fila de coleta. A elegibilidade exige o jogador vivo no instante do abate. A implementação atual cobre o mundo individual de caça, onde o jogador é o atacante e dono do dano; mortes por aliados, mascotes ou Homunculus aguardam esses sistemas.

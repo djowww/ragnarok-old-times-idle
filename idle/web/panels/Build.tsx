@@ -154,7 +154,7 @@ export default function Build({
                         level: event.currentTarget.value === 'max' ? null : Number(event.currentTarget.value) })}>
                       <option value="max">Máximo (Nv. {level})</option>
                       {Array.from({ length: level }, (_, index) => {
-                        const item = skill.sourceName === 'AM_POTIONPITCHER'
+                        const item = ['AM_POTIONPITCHER','CR_SLIMPITCHER'].includes(skill.sourceName ?? '')
                           ? skill.itemCostByLevel?.[index]?.[0] : undefined;
                         const itemName = item ? catalog.items[item.itemId]?.name : undefined;
                         return <option key={index + 1} value={index + 1}>

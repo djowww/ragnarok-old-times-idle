@@ -82,7 +82,7 @@ for (const [name, value] of Object.entries(jobs))
 const skillByName = Object.fromEntries(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));
 // Source formulas and job bonuses are pinned alongside the databases. They are
 // audited data; the exporter never evaluates Hercules C or item scripts.
-for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c']) {
+for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf']) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
     const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
     if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
@@ -197,6 +197,22 @@ function inheritedItem(item, trail = []) { if (!item.CloneItem)
     return item; if (trail.includes(item.Id))
     throw new Error('CloneItem cycle'); const parent = typeof item.CloneItem === 'number' ? itemById[item.CloneItem] : itemByName[item.CloneItem]; if (!parent)
     throw new Error('Missing CloneItem'); return { ...inheritedItem(parent, [...trail, item.Id]), ...item }; }
+const expectedFindingOreChain = [[1002,600],[998,380],[993,100],[1003,80],[992,100],[1010,600],[991,100],[990,100],[999,50],[1011,380],[757,70],[756,80],[997,40],[996,40],[995,40],[994,40],[985,20],[984,20],[969,10],[714,5]];
+const findingOreChain = orderedConfigEntries(parseConfig(buffers['db/pre-re/item_chain.conf'].toString('utf8')).ITMCHAIN_ORE).map(([name,chance]) => {
+    const raw=itemByName[name];
+    if(!raw || !Number.isSafeInteger(chance) || chance<=0 || chance>10000) throw new Error('Invalid pinned Ore chain entry: '+name);
+    const item=inheritedItem(raw);
+    if(!Number.isSafeInteger(item.Id) || itemById[item.Id]!==raw) throw new Error('Invalid pinned Ore chain item: '+name);
+    return {itemId:item.Id,chance};
+});
+if(JSON.stringify(findingOreChain.map(e=>[e.itemId,e.chance]))!==JSON.stringify(expectedFindingOreChain)) throw new Error('Pinned Ore chain differs');
+const chainDropDefaults=parseConfig(buffers['conf/map/battle/drops.conf'].toString('utf8'));
+if(chainDropDefaults.item_rate_add_chain!==100 || chainDropDefaults.item_drop_add_chain_min!==1 || chainDropDefaults.item_drop_add_chain_max!==10000) throw new Error('Pinned Ore drop defaults differ');
+manifest.findingOre={chain:findingOreChain,selection:'uniform-entry-then-strict-chance',drawsPerEligibleKill:2,dropRateMultiplier:false,
+    chainSource:'db/pre-re/item_chain.conf:ITMCHAIN_ORE',randomSource:'src/map/itemdb.c:itemdb_chain_item',
+    ownershipSource:'src/map/mob.c:mob_dead PC killer and damage owner',
+    ownershipAdaptation:'Current personal hunt has one direct PC killer and damage owner. No pet, homunculus, summon or allied killing producer.',
+    acquisition:'Existing floor loot, pickup, inventory capacity and pending-loot path; one extra item at most per eligible owned kill.'};
 const catalog = { version: rules.version, source: { commit: rules.commit, files: manifest.sources.map(s => s.path), hash: '' }, rates: rules.rates, monsters: {}, items: {}, classes: {}, skills: {}, areas: rules.areas, quests: [], challenges: [], exp: { base: [], job: {} }, elementModifiers: {}, sizeModifiers: {} };
 catalog.teleportBlockedMaps = teleportBlockedMaps;
 catalog.autospellChoices = Object.fromEntries(parsed['autospell_db.conf'].autospell_db.map(row =>
@@ -290,6 +306,7 @@ for(const name of ['SA_CREATECON','SA_ELEMENTWATER','SA_ELEMENTGROUND','SA_ELEME
 passiveSkills.add('RG_COMPULSION');
 passiveSkills.add('RG_PLAGIARISM');
 passiveSkills.add('SA_FREECAST');
+passiveSkills.add('BS_FINDINGORE');
 activeSpecial.add('WZ_ESTIMATION');
 activeSpecial.add('AL_RUWACH');
 activeSpecial.add('DC_WINKCHARM');
@@ -301,7 +318,7 @@ activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
-for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY']) activeSpecial.add(name);
+for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
@@ -314,7 +331,6 @@ const unsupported = {
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
     CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.', CG_TAROTCARD: 'Requer baralho aleatório com efeitos de combate entre personagens.',
     WZ_ICEWALL: 'Requer edição de células bloqueadas do mapa.', HW_GANBANTEIN: 'Requer remoção de unidades de habilidades em células do mapa.',
-    CR_SLIMPITCHER: 'Requer cura específica da poção compacta e seus modificadores.',
 };
 const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
 function backslidingSourceMatchesSourceContract(source) {
@@ -331,6 +347,8 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    BS_FINDINGORE: 'Chance passiva de encontrar um minério adicional ao derrotar um monstro. Usa a cadeia original do Hercules, sem multiplicadores de drop; o minério segue a coleta normal da caça.',
+    CR_SLIMPITCHER: 'Arremessa uma poção compacta para recuperar seu HP. Níveis 1–5 usam a vermelha, 6–9 a amarela e 10 a branca. Consome 30 SP e uma poção, com conjuração base de 1s e pós-conjuração de 1s. Os níveis aprendidos de Arremessar Poção e Preparar Poção aumentam a cura.',
     AL_TELEPORT: 'Teleporta para uma posição aleatória passável do mapa. No nível 2, permite voltar a Prontera. Uso manual durante a caça; custo pelo nível aprendido. O destino aleatório permanece na região conectada da caça.',
     ST_CHASEWALK: 'Oculta você dos monstros comuns e permite caminhar, com atraso de 35−5×nível%. Consome 10+2×nível SP a cada 10s; o primeiro pulso concede STR 2^(nível−1) por 30s, sem renovar um bônus ativo. Impede atacar ou usar outras habilidades; chefes, detectores e magia já conjurada ainda podem atingir você. Desativar é imediato e gratuito.',
     RG_PLAGIARISM: 'Copia uma magia de monstro que causar dano sem derrotar você. O nível fica limitado pelo Plágio, sem consumir pontos. Uma nova magia substitui a anterior; receber a mesma não melhora a cópia. As quatro magias de Mago presentes nos ataques NPC são copiáveis; outras fontes ainda não estão simuladas.',
@@ -399,7 +417,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -429,7 +447,7 @@ for (const name of skillNames) {
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'ST_CHASEWALK' && { manualUse: 'toggle', toggle: true }),
-        ...(['PA_SACRIFICE', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(name) && { manualUse: 'activate' }),
+        ...(['PA_SACRIFICE', 'WS_MELTDOWN', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
         ...(backslidingSupported && { manualUse: 'activate' }),
@@ -481,6 +499,8 @@ for (const name of skillNames) {
 manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
 }
 manifest.skillSources.ws_meltdown.adaptation = 'Native self buff at the selected learned level; SkillData1 lifetime15–60s, original SP/cast clocks, physical-hit weapon/armor break chances100/70 per level on scale10000. MD_BOSS immunity; native strip Lv0 overlap, duration from RG_STRIP_*Lv1. One additional-effect phase per living hit target, excluding Cart Termination/Tomahawk/Reflect Shield. AFK skips all-boss battles. NoSave buff and captured level are process-local, cleared on caster new connection/logout; NoDeathReset survives defeat. Monster NoSave strips remain on the same live instance across caster reconnect/logout, disappear on process restart and never transfer to a respawn ID. Emperium rejects status before its draw; BG/Gravity Control systems are absent. Native generic equipment-break contributions are not produced by the current solo engine.';
+manifest.skillSources.bs_findingore.adaptation = 'Native passive direct-PC owned-kill proc: uniform choice among the ordered20-entry ITMCHAIN_ORE table, followed by strict roll below chance on scale10000. Exactly two draws, including failures; no rates, LUK or level scaling. Uses normal floor loot and capacity handling. Current solo world has one PC damage owner; ally/pet/homunculus killing is not modeled.';
+manifest.skillSources.cr_slimpitcher.adaptation = 'Solo self-centered ground cast; source range3 and radius3 retained, without party targets. Used level selects Red/Yellow/White Slim Potion at1–5/6–9/10, one item and30SP. Native1000ms base cast and1000ms aftercast, no extra drinking cooldown. Learned Slim/Pitcher/LearningPotion and target VIT/Recovery enter staged truncation. Existing deterministic raw item-heal midpoints55/205/365HP replace the native shared random raw heal. Generic caster heal bonus is excluded by default skill_add_heal_rate7; current specific/heal2/status modifiers have no producers and pass zero. AFK retains configured HP threshold capped70% and offense between support actions.';
 manifest.skillSources.potion_pitcher.adaptation = 'Self-only solo use; selected Lv1–5 consumes exactly Red/Orange/Yellow/White/Blue Potion and1SP, with native500ms after-cast delay and no extra potion cooldown. Recovery uses full learned Pitcher plus Learning Potion and target VIT/INT/Recovery, with native stage truncation. Current item export retains deterministic script midpoints55/125/205/365HP and50SP. Item-heal/caster-heal/received-heal bonuses, Soul Link and recovery-blocking statuses have no current producers and pass zero/false; helper covers their source arithmetic. AFK uses positive configured HP threshold capped at70%, or positive configured SP threshold, only if useful, with offense between support actions. No party target system.';
 manifest.skillSources.ba_pangvoice.adaptation = 'Single-target no-damage cast at range 9 during field hunting; applies source SC_CONFUSION for 17 s at a 50% base chance. Bosses reject it. Solo adaptation releases the monster attack target and randomizes movement within the source AREA_SIZE / 2 (7-cell) envelope until expiry.';
 manifest.rogueCopy = {
@@ -681,6 +701,7 @@ for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostB
     includeItem(itemById[id], false, true);
 const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
 for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
+for(const {itemId} of findingOreChain)if(!itemById[itemId]||!includeItem(itemById[itemId],false,true))throw new Error('Missing Ore chain item '+itemId);
 for(const [id,script] of supportedPotionScripts){
  const source=inheritedItem(itemById[id]);
  if(source.Script?.replace(/\s+/g,'')!==script.replace(/\s+/g,''))throw new Error('Pinned potion script differs:'+id);

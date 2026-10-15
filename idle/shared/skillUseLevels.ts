@@ -3,7 +3,7 @@ import { effectiveSkillLevel } from './copiedSkills.js';
 
 /** Only skills with a complete level-aware handler expose this preference. */
 export function configurableSkillUseLevel(skill: Skill | undefined): boolean {
-  return !!skill && ['WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '');
+  return !!skill && ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER'].includes(skill.sourceName ?? '');
 }
 
 /** Learned/passive/prerequisite levels never use this optional cast preference. */

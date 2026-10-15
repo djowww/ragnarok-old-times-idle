@@ -191,6 +191,26 @@
       "path": "src/map/clif.c",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/clif.c",
       "sha256": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
+    },
+    {
+      "path": "db/pre-re/item_chain.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_chain.conf",
+      "sha256": "4f754f6f528a6902c759363ce7970ad74d3840ccef6c32024196b9e3c4338f2d"
+    },
+    {
+      "path": "src/map/itemdb.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/itemdb.c",
+      "sha256": "1449a595ebe05c01adc9229e9174ed0fcfe0c7879bb87d0a6c49d810c28033f1"
+    },
+    {
+      "path": "src/map/script.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/script.c",
+      "sha256": "b01e0f07b79a804647f5add1fbf63b3daead2a25290b2c1221790b534a23bac8"
+    },
+    {
+      "path": "conf/map/battle/drops.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/drops.conf",
+      "sha256": "066c126f61c231eafc438b18c1e9c8a396f8c98d68e24a0005e691461453fe1d"
     }
   ],
   "adaptations": [
@@ -10754,10 +10774,10 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Native passive direct-PC owned-kill proc: uniform choice among the ordered20-entry ITMCHAIN_ORE table, followed by strict roll below chance on scale10000. Exactly two draws, including failures; no rates, LUK or level scaling. Uses normal floor loot and capacity handling. Current solo world has one PC damage owner; ally/pet/homunculus killing is not modeled."
     },
     "bs_weaponresearch": {
       "id": 107,
@@ -11862,10 +11882,10 @@
         1
       ],
       "sourceSplashRange": 3,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer cura específica da poção compacta e seus modificadores.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Solo self-centered ground cast; source range3 and radius3 retained, without party targets. Used level selects Red/Yellow/White Slim Potion at1–5/6–9/10, one item and30SP. Native1000ms base cast and1000ms aftercast, no extra drinking cooldown. Learned Slim/Pitcher/LearningPotion and target VIT/Recovery enter staged truncation. Existing deterministic raw item-heal midpoints55/205/365HP replace the native shared random raw heal. Generic caster heal bonus is excluded by default skill_add_heal_rate7; current specific/heal2/status modifiers have no producers and pass zero. AFK retains configured HP threshold capped70% and offense between support actions."
     },
     "cr_fullprotection": {
       "id": 479,
@@ -14366,6 +14386,98 @@
     "actorSource": "roBrowserLegacy d88a3cd4 DB/Items/WeaponTable.js:28, DB/Items/WeaponType.js:25",
     "attackActionSource": "roBrowserLegacy d88a3cd4 DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; direction-group offset 8*11=88"
   },
+  "findingOre": {
+    "chain": [
+      {
+        "itemId": 1002,
+        "chance": 600
+      },
+      {
+        "itemId": 998,
+        "chance": 380
+      },
+      {
+        "itemId": 993,
+        "chance": 100
+      },
+      {
+        "itemId": 1003,
+        "chance": 80
+      },
+      {
+        "itemId": 992,
+        "chance": 100
+      },
+      {
+        "itemId": 1010,
+        "chance": 600
+      },
+      {
+        "itemId": 991,
+        "chance": 100
+      },
+      {
+        "itemId": 990,
+        "chance": 100
+      },
+      {
+        "itemId": 999,
+        "chance": 50
+      },
+      {
+        "itemId": 1011,
+        "chance": 380
+      },
+      {
+        "itemId": 757,
+        "chance": 70
+      },
+      {
+        "itemId": 756,
+        "chance": 80
+      },
+      {
+        "itemId": 997,
+        "chance": 40
+      },
+      {
+        "itemId": 996,
+        "chance": 40
+      },
+      {
+        "itemId": 995,
+        "chance": 40
+      },
+      {
+        "itemId": 994,
+        "chance": 40
+      },
+      {
+        "itemId": 985,
+        "chance": 20
+      },
+      {
+        "itemId": 984,
+        "chance": 20
+      },
+      {
+        "itemId": 969,
+        "chance": 10
+      },
+      {
+        "itemId": 714,
+        "chance": 5
+      }
+    ],
+    "selection": "uniform-entry-then-strict-chance",
+    "drawsPerEligibleKill": 2,
+    "dropRateMultiplier": false,
+    "chainSource": "db/pre-re/item_chain.conf:ITMCHAIN_ORE",
+    "randomSource": "src/map/itemdb.c:itemdb_chain_item",
+    "ownershipSource": "src/map/mob.c:mob_dead PC killer and damage owner",
+    "ownershipAdaptation": "Current personal hunt has one direct PC killer and damage owner. No pet, homunculus, summon or allied killing producer.",
+    "acquisition": "Existing floor loot, pickup, inventory capacity and pending-loot path; one extra item at most per eligible owned kill."
+  },
   "rogueCopy": {
     "maxCopiedSlots": 1,
     "incomingScope": "modeled NPC magic",
@@ -14652,8 +14764,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 263,
-    "unsupported": 85,
+    "supported": 265,
+    "unsupported": 83,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14817,13 +14929,13 @@
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 19,
-        "unsupported": 20
+        "supported": 20,
+        "unsupported": 19
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 23,
-        "unsupported": 21
+        "supported": 24,
+        "unsupported": 20
       },
       "alchemist": {
         "sourceTree": 35,
@@ -14832,8 +14944,8 @@
       },
       "creator": {
         "sourceTree": 39,
-        "supported": 17,
-        "unsupported": 22
+        "supported": 18,
+        "unsupported": 21
       },
       "assassin": {
         "sourceTree": 24,
@@ -15070,6 +15182,7 @@
       "CH_CHAINCRUSH",
       "CH_SOULCOLLECT",
       "BS_HILTBINDING",
+      "BS_FINDINGORE",
       "BS_WEAPONRESEARCH",
       "BS_SKINTEMPER",
       "BS_HAMMERFALL",
@@ -15088,6 +15201,7 @@
       "AM_DEMONSTRATION",
       "AM_ACIDTERROR",
       "AM_POTIONPITCHER",
+      "CR_SLIMPITCHER",
       "CR_ACIDDEMONSTRATION",
       "AS_KATAR",
       "AS_CLOAKING",
@@ -15403,11 +15517,6 @@
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
-        "skillId": "bs_findingore",
-        "sourceName": "BS_FINDINGORE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
         "skillId": "bs_repairweapon",
         "sourceName": "BS_REPAIRWEAPON",
         "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
@@ -15496,11 +15605,6 @@
         "skillId": "am_twilight3",
         "sourceName": "AM_TWILIGHT3",
         "reason": "Requer estado de Espírito da classe, ainda não implementado."
-      },
-      {
-        "skillId": "cr_slimpitcher",
-        "sourceName": "CR_SLIMPITCHER",
-        "reason": "Requer cura específica da poção compacta e seus modificadores."
       },
       {
         "skillId": "cr_fullprotection",
@@ -16183,7 +16287,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "cd84b995cf44c982dc79e2c90bc4a206079064d809674804a1452d6377485b78",
+  "rulesSha256": "9520343196ea80c50ec6380f2c4a0258b3f8406004ae77ef52b7b48b1e3b8a04",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16238,6 +16342,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "44f7af7e8c38906b4716975cfb4af9377237e162472fcb6f7a94a0a7e9911a47",
+  "catalogSha256": "d05a83f7358f632b692aa6ba65a2abdeffde22508ec2ab5794d45807c2d697f8",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

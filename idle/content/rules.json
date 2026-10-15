@@ -2450,7 +2450,11 @@
     "npc/pre-re/mobs/dungeons/gef_dun.txt": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8",
     "npc/pre-re/mobs/dungeons/glastheim.txt": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313",
     "npc/merchants/alchemist.txt": "479d77eb8c4729597f2ff54bb1c984fba2befb395c475cc43078ae4b942bdf1f",
-    "npc/pre-re/merchants/shops.txt": "5e8fa251182efe2bd080f2c6b0fe1dd50a41890ab81500d1fcc69bc03a8710b8"
+    "npc/pre-re/merchants/shops.txt": "5e8fa251182efe2bd080f2c6b0fe1dd50a41890ab81500d1fcc69bc03a8710b8",
+    "db/pre-re/item_chain.conf": "4f754f6f528a6902c759363ce7970ad74d3840ccef6c32024196b9e3c4338f2d",
+    "src/map/itemdb.c": "1449a595ebe05c01adc9229e9174ed0fcfe0c7879bb87d0a6c49d810c28033f1",
+    "src/map/script.c": "b01e0f07b79a804647f5add1fbf63b3daead2a25290b2c1221790b534a23bac8",
+    "conf/map/battle/drops.conf": "066c126f61c231eafc438b18c1e9c8a396f8c98d68e24a0005e691461453fe1d"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
@@ -2545,7 +2549,9 @@
     "SA_VOLCANO": "Vulcão",
     "SA_DELUGE": "Dilúvio",
     "SA_VIOLENTGALE": "Furacão",
-    "AM_PHARMACY": "Preparar Poções"
+    "AM_PHARMACY": "Preparar Poções",
+    "BS_FINDINGORE": "Encontrar Minério",
+    "CR_SLIMPITCHER": "Arremessar Poção Compacta"
   },
   "skillDescriptions": {
     "SA_ADVANCEDBOOK": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",

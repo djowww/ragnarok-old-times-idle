@@ -1,6 +1,6 @@
 import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
-import { resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
+import { isSoloPotionPitcher, skillCueCastDuration, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
@@ -936,7 +936,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         action: incoming ? "enemyAttack" : skill ? "skill" : "attack",
         hit: event.kind === "damage" && (event.amount ?? 0) > 0,
         melee: actorAction === "attack" && !incoming && !skill && equippedType !== "bow",
-        skill, skillLevel: event.skillLevel, enemyId, castMs: sourceActorId === state.id ? undefined : event.castMs ?? 0, hitCount: event.hitCount, eventAt: event.at,
+        skill, skillLevel: event.skillLevel, enemyId, castMs: skillCueCastDuration({ ...event, sourceActorId }, skill, state.id), hitCount: event.hitCount, eventAt: event.at,
         effectEnemyId: targetActorId === state.id ? undefined : targetActorId ?? enemyId,
       };
     };
@@ -1411,8 +1411,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         ground: { point: strikePose?.ground.point ?? (fieldHeroPoint ? battleScenePoint(fieldHeroPoint, FIELD_SCENE_ORIGIN) : { ...heroPoint }), world: heroPlacement?.world } };
       mapFollow.current = fieldPopulation ? heroPlacement?.world ?? null : null;
       const castingSkill = casting ? catalog.skills[casting.skillId] : undefined;
-      const castPoint = casting?.position && castingSkill?.targetType === "ground" ? battleScenePoint(casting.position, fieldPopulation ? formationAnchor : heroPoint) : undefined;
-      const castPlacement = camera && castPoint ? projectMapPoint(camera, sceneGroundPoint(camera, castPoint, formationAnchor), width, height) : null;
+      const castPoint = isSoloPotionPitcher(castingSkill) ? heroPoint : casting?.position && castingSkill?.targetType === "ground" ? battleScenePoint(casting.position, fieldPopulation ? formationAnchor : heroPoint) : undefined;
+      const castPlacement = isSoloPotionPitcher(castingSkill) ? heroPlacement : camera && castPoint ? projectMapPoint(camera, sceneGroundPoint(camera, castPoint, formationAnchor), width, height) : null;
       const enemyContactPoint = {
         x: heroPoint.x + (enemyPoint.x - heroPoint.x) * 0.45,
         y: heroPoint.y + (enemyPoint.y - heroPoint.y) * 0.45,
