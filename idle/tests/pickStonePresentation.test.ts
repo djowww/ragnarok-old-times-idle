@@ -1,3 +1,5 @@
+import { selectSceneEventBatch } from '../web/assets/sceneEventBootstrap';
+import { shiftCorpsePresentation } from '../web/assets/corpsePresentation';
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
@@ -11,8 +13,11 @@ import { isNpcStatusAction } from '../shared/playerStatusView';
 const scene = readFileSync(new URL('../web/components/Scene.tsx', import.meta.url), 'utf8');
 const effectStart = scene.indexOf('    const previous = stateRef.current.state;');
 const effectEnd = scene.indexOf('  }, [snapshot, state.events, catalog]);', effectStart);
+const associateStart = scene.indexOf('  const shiftPresentationAssociates =');
+const associateEnd = scene.indexOf('  useEffect(() => {', associateStart);
 const sourceHelpers = scene.slice(scene.indexOf('function skillFor('), scene.indexOf('export default function Scene(')) +
-  scene.slice(scene.indexOf('function pruneActionWatermarks('), scene.indexOf('function newestCue('));
+  scene.slice(scene.indexOf('function pruneActionWatermarks('), scene.indexOf('function newestCue(')) +
+  scene.slice(associateStart, associateEnd);
 const snapshotConsumer = new Function('scope', `with (scope) { ${ts.transpileModule(sourceHelpers + scene.slice(effectStart, effectEnd), {
   compilerOptions: { target: ts.ScriptTarget.ES2022 },
 }).outputText} }`);
@@ -25,7 +30,7 @@ function snapshotFixture(population: boolean) {
     battle: { ...(population ? { enemies: [] } : {}), monsterId: 1002, groundEffects: [] } };
   const ref = (current: any) => ({ current });
   const scope: any = { state, snapshot: { state, serverTime: 1500, stats: { attackIntervalMs: 600 } }, catalog: rawCatalog,
-    stateRef: ref({ state: structuredClone(state) }), receivedAt: ref(0), eventCursor: ref(0),
+    stateRef: ref({ state: structuredClone(state) }), receivedAt: ref(0), eventCursor: ref({ profileId: 'hero', id: 0 }),
     performance: { now: () => 1600 }, mapName: 'fixture', renderedHeroGround: ref(null),
     combatCues: ref([]), actionWatermarks: ref(new Map()), effects: ref([]), lootCues: ref([]),
     textureStartup: ref({ hasPendingDebut: () => false }), heroPresentation: ref({ hasPendingFrame: () => false }),
@@ -33,7 +38,7 @@ function snapshotFixture(population: boolean) {
     enemyPositions: ref(new Map()), offensiveTargets: ref(new Set()), legacyOpponentPosition: ref(null),
     legacyOpponentId: ref('enemy'), defeatedOpponent: ref(null), blockedTerminalId: ref(null),
     projection: ref(null), encounterPose: ref(null), roaming: ref({ position: { x: .5, y: .5 } }),
-    isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
+    selectSceneEventBatch, shiftCorpsePresentation, isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
     presentLatestActorActions, retireInterruptedCastCues, retireTrickDeadPoses, hasSceneAction, trapCueAction, combatPopupText, SKILL_EFFECT_MS,
   };
   return scope;
@@ -49,6 +54,19 @@ describe('Pick Stone collection cue', () => {
     snapshotConsumer(scope);
     expect(scope.effects.current).toHaveLength(1); expect(scope.combatCues.current).toHaveLength(1);
     expect(scope.lootCues.current).toHaveLength(0);
+  });
+  it.each([false, true])('recovers a recent self action on Scene mount only once in population %s', population => {
+    const scope = snapshotFixture(population);
+    scope.eventCursor.current = undefined;
+    scope.state.battle.challengeId = 'challenge-current';
+    scope.state.battle.startedAt = 1000;
+    snapshotConsumer(scope);
+    expect(scope.combatCues.current).toHaveLength(1);
+    expect(scope.effects.current).toEqual([expect.objectContaining({ id: 5, text: 'Pedra +1' })]);
+    expect(scope.eventCursor.current).toEqual({ profileId: 'hero', id: 5 });
+    snapshotConsumer(scope);
+    expect(scope.combatCues.current).toHaveLength(1);
+    expect(scope.effects.current).toHaveLength(1);
   });
   it('shows the real item quantity rather than a healing popup', () => {
     expect(combatPopupText({ kind: 'skill', target: 'player', amount: 1, itemId: 7049, quantity: 1 })).toBe('Pedra +1');

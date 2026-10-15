@@ -131,9 +131,15 @@ export function projectStrikeContact(router: ConnectedMapMovement, camera: MapPr
     stationary ? rendered ?? from : from, to, stationary ? 1 : progress).world;
 }
 
+/** Keep presentation clocks finite while reserving each action through contact. */
+function maxFiniteDuration(...values: number[]): number {
+  return values.reduce((maximum, value) => Number.isFinite(value) && value > maximum ? value : maximum, 0);
+}
+
 export function presentLatestActorActions<T extends PresentedActorAction>(
   cues: T[], watermarks: Map<string, ActorActionWatermark>, now: number, retained: T[] = [],
-): void {
+): Map<number, number> {
+  const moved = new Map<number, number>();
   const actors = new Map<string, Map<string, T>>();
   for (const cue of cues) {
     if (cue.actorAction === 'none') continue;
@@ -159,7 +165,18 @@ export function presentLatestActorActions<T extends PresentedActorAction>(
       const presented = existing ? existing.presented !== false : sameAction ? previous!.presented
         : newer && eligible.has(cue) && scheduled - now <= 1600;
       const start = existing?.start ?? (sameAction ? previous!.start : presented ? scheduled : cue.start);
-      const actionDuration = existing?.actionDuration ?? cue.actionDuration;
+      const actionCues = cues.filter(sibling => sibling.sourceActorId === cue.sourceActorId &&
+        sibling.actionId === cue.actionId && sibling.actionAt === cue.actionAt && sibling.actorAction !== 'none');
+      const impactFloor = maxFiniteDuration(...actionCues.map(sibling => sibling.impact - sibling.start));
+      const watermarkDuration = sameAction ? previous!.end - previous!.start : 0;
+      const actionDuration = maxFiniteDuration(existing?.actionDuration ?? 0, watermarkDuration, cue.actionDuration, impactFloor);
+      // A late target hit can extend an observed action. Move its already
+      // scheduled successors before updating the incoming siblings' duration.
+      if (existing?.presented && actionDuration > existing.actionDuration) {
+        const all = [...new Set([...retained, ...cues])];
+        for (const [id, delta] of reconcileActorPlayback(all, watermarks, existing, actionDuration))
+          moved.set(id, (moved.get(id) ?? 0) + delta);
+      }
       if (sameAction || newer) watermarks.set(cue.sourceActorId, { actionAt: cue.actionAt, actionId: cue.actionId,
         id: sameAction ? Math.max(previous!.id, cue.id) : cue.id, start,
         end: presented ? start + actionDuration : previous?.end ?? now, presented });
@@ -176,6 +193,7 @@ export function presentLatestActorActions<T extends PresentedActorAction>(
       }
     }
   }
+  return moved;
 }
 
 /** One body action may own several target hits; all share its pose and clock. */
@@ -279,14 +297,18 @@ export interface PresentedActorReaction {
 export function reconcileActorPlayback<T extends PresentedActorAction>(cues: T[], marks: Map<string, ActorActionWatermark>, active: T, duration: number): Map<number, number> {
   const moved = new Map<number, number>();
   if (!active.presented || !Number.isFinite(duration) || duration <= 0) return moved;
-  const delta = duration - active.actionDuration;
+  const actionCues = cues.filter(cue => cue.sourceActorId === active.sourceActorId &&
+    cue.actionAt === active.actionAt && cue.actionId === active.actionId && cue.actorAction !== 'none' && cue.presented);
+  const impactFloor = maxFiniteDuration(...actionCues.map(cue => cue.impact - cue.start));
+  const actionDuration = maxFiniteDuration(duration, impactFloor);
+  const delta = actionDuration - active.actionDuration;
   if (Math.abs(delta) < .000001) return moved;
   const oldEnd = active.start + active.actionDuration;
   for (const cue of cues) {
     if (cue.sourceActorId !== active.sourceActorId || cue.actorAction === 'none' || !cue.presented) continue;
     if (cue.actionAt === active.actionAt && cue.actionId === active.actionId) {
-      cue.actionDuration = duration;
-      cue.duration = Math.max(cue.duration ?? duration, duration);
+      cue.actionDuration = actionDuration;
+      cue.duration = maxFiniteDuration(cue.duration ?? actionDuration, actionDuration);
     } else if (cue.start >= oldEnd) {
       cue.start += delta; cue.effectStart += delta; cue.impact += delta;
       moved.set(cue.id, delta);
@@ -294,7 +316,7 @@ export function reconcileActorPlayback<T extends PresentedActorAction>(cues: T[]
   }
   const mark = marks.get(active.sourceActorId);
   if (mark?.presented) {
-    if (mark.actionAt === active.actionAt && mark.actionId === active.actionId) mark.end += delta;
+    if (mark.actionAt === active.actionAt && mark.actionId === active.actionId) mark.end = mark.start + actionDuration;
     else if (mark.start >= oldEnd) { mark.start += delta; mark.end += delta; }
   }
   return moved;
