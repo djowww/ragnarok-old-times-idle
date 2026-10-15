@@ -5,6 +5,7 @@ import manifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import baseline from './fixtures/sense234Baseline.json';
 import magicRodBaseline from './fixtures/magicRodUnsupportedBaseline.json';
+import rogueCopyBaseline from './fixtures/rogueCopyUnsupportedBaseline.json';
 import type { Catalog } from '../shared/types';
 
 const typedCatalog = catalog as unknown as Catalog;
@@ -64,7 +65,12 @@ describe('source-closed manual Sense catalog', () => {
     delete otherSkills.tf_backsliding.manualUse;
     // The frozen source baseline predates the explicit Idle balance layer.
     // Its independent coverage/hash tests validate those new vectors.
-    for (const skill of Object.values(otherSkills)) delete skill.idleDamageMultiplierPct;
+    for (const skill of Object.values(otherSkills)) {
+      delete skill.idleDamageMultiplierPct;
+      delete skill.allowPlagiarism; // Source flag export has independent Rogue coverage.
+    }
+    otherSkills.rg_plagiarism = structuredClone(rogueCopyBaseline.rg_plagiarism);
+    otherSkills.st_preserve = structuredClone(rogueCopyBaseline.st_preserve);
     // Restore Magic Rod's pre-promotion export row so the frozen digest continues
     // to verify every unrelated skill value.
     otherSkills.sa_magicrod = structuredClone(magicRodBaseline) as unknown as Record<string, unknown>;
@@ -79,7 +85,7 @@ describe('source-closed manual Sense catalog', () => {
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 255, unsupported: 93 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });

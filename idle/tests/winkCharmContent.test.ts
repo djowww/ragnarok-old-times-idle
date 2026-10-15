@@ -30,7 +30,7 @@ describe('DC_WINKCHARM source content', () => {
       implementation: 'supported',
       adaptation: expect.stringContaining('NPC special skill is modeled'),
     });
-    expect(rawManifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
+    expect(rawManifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 255, unsupported: 93 });
     expect(rawManifest.skillCoverage.supportedSourceNames).toContain('DC_WINKCHARM');
     expect(rawManifest.skillCoverage.supportedSourceNames).toEqual(
       Object.values(catalog.skills).filter(entry => entry.implementation === 'supported').map(entry => entry.sourceName),

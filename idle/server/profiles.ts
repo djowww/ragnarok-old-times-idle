@@ -17,6 +17,9 @@ export class SessionGameProfiles implements GameProfiles {
     return repository;
   }
   eligible(after: string | null, limit: number): Promise<string[]> { return this.durable.eligible(after, limit); }
+  async endSession(profileId: string): Promise<void> {
+    await this.repositories.get(profileId)?.endSession();
+  }
   health(): Promise<boolean> { return this.durable.health(); }
 }
 export class SqlGameProfiles implements GameProfiles {
