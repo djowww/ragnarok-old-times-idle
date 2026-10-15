@@ -1,3 +1,4 @@
+import { discardAloeveraUnderAutoBerserk } from './consumables.js';
 import type { Catalog, GameState, PlayerDisease, PlayerStatus, Skill } from '../shared/types.js';
 import { playerStatusResistance, poisonTickParameters, poisonTickDecision, deadlyPoisonInitialDamage } from './playerStatusRules.js';
 import { derivedStats, classSkills } from './stats.js';
@@ -52,7 +53,7 @@ export function tickPlayerStatuses(s:GameState,c:Catalog,at:number) {
     while(s.playerStatuses?.[kind]&&status.nextTickAt!<=at) {
       const deadline:number=status.nextTickAt!,before=s.hp;
       const result=poisonTickDecision({kind:kind as 'SC_POISON'|'SC_DPOISON',hp:s.hp,maxHp:derivedStats(s,c).maxHp,damage:status.tickDamage??0,remainingTicks:status.remainingTicks??0,slowPoison:slowPoisonActive(s,c,deadline)});
-      s.hp=result.hp;status.remainingTicks=result.remainingTicks;
+      s.hp=result.hp;discardAloeveraUnderAutoBerserk(s,c,deadline);status.remainingTicks=result.remainingTicks;
       if(result.damageApplied>0) event(s,deadline,'damage',kind==='SC_DPOISON'?'Veneno Mortal':'Veneno',result.damageApplied,'player',{statusName:kind,sourceActorId:status.sourceActorId,targetActorId:s.id,skillId:statusSourceSkill(status),skillLevel:status.level,actionId:`status-${s.id}-${kind}-${deadline}`,actorAction:'none',targetHpBefore:before,hitMotionMs:0});
       if(result.end) removePlayerStatus(s,kind,deadline);else status.nextTickAt=deadline+1000;
     }

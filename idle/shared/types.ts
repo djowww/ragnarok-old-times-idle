@@ -711,7 +711,7 @@ export interface GameState {
     /** Active choice is a cast-time snapshot, independent of the configured choice. */
     autospell?: { skillId: string; level: number };
     memorizeCharges?: number;
-    endure?: { level: number; charges: number; expiresAt: number };
+    endure?: { level: number; charges: number; expiresAt: number; infinite?: boolean };
     /** Fixed source map cells: defensive ground never follows a moving caster. */
     pneumaGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
     safetyWallGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
@@ -870,6 +870,7 @@ export type GameCommand =
   | { type: "unequip"; slot: Slot }
   | { type: "socket"; uid: string; cardUid: string }
   | { type: "changeClass"; classId: string }
+  | { type: "consumeItem"; uid: string }
   | { type: "setPotions"; hpThreshold: number; spThreshold: number }
   | { type: "setAutoResume"; enabled: boolean }
   | { type: "claimQuest"; questId: string }

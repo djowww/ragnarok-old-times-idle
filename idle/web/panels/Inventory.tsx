@@ -1,3 +1,5 @@
+import { usableConsumable, consumableDescription } from "../../shared/consumables";
+import { consumeItemBlockReason } from "../../engine/consumables";
 import { useState } from "react";
 import type { InventoryEntry, Item } from "../../shared/types";
 import {
@@ -316,6 +318,12 @@ export default function Inventory({
                 {entry.cards.map((id) => catalog.items[id]?.name).join(", ")}
               </p>
             )}
+            {consumableDescription(item) && <p className="note">{consumableDescription(item)}</p>}
+            {usableConsumable(item) && <div className="detail-section">
+              <button className="primary" disabled={busy || !!consumeItemBlockReason(state,catalog,entry,state.lastSimulatedAt)}
+                onClick={() => void command({type:'consumeItem',uid:entry.uid})}>Usar item</button>
+              {consumeItemBlockReason(state,catalog,entry,state.lastSimulatedAt) && <p className="note" role="status">{consumeItemBlockReason(state,catalog,entry,state.lastSimulatedAt)}</p>}
+            </div>}
             <div className="action-row">
               <button
                 disabled={busy}

@@ -38,6 +38,7 @@ import { inventoryLoad } from './stats.js';
 import { paySkillResources } from './skillResources.js';
 import { applyBacksliding } from './backsliding.js';
 import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
+import { consumeItem, discardAloeveraUnderAutoBerserk } from "./consumables.js";
 import { craftPharmacy } from "./pharmacyCraft.js";
 import { craftConverter } from "./converterCraft.js";
 import { cancelActorCast, useCastCancel } from './castControl.js';
@@ -92,7 +93,7 @@ export function executeCommand(
   const trickDead = trickDeadActive(s, c, now);
   if (trickDead) {
     const cancelsPosture = command.type === 'rest' || command.type === 'startHunt';
-    const usesItem = command.type === 'identify';
+    const usesItem = command.type === 'identify' || command.type === 'consumeItem';
     const usesOtherSkill = command.type === 'useSkill' || command.type === 'cancelBuff' ||
       command.type === 'toggleBuff' && c.skills[command.skillId]?.sourceName !== 'NV_TRICKDEAD';
     requireRule(!cancelsPosture && !usesItem && !usesOtherSkill, 'TRICK_DEAD_ACTION_BLOCKED',
@@ -104,6 +105,10 @@ export function executeCommand(
     requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
   }
   switch (command.type) {
+    case 'consumeItem': {
+      consumeItem(s,c,command.uid,now);
+      break;
+    }
     case 'teleport': {
       applyTeleport(s, c, command.destination, now, context);
       break;
@@ -941,6 +946,7 @@ export function executeCommand(
     default:
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
+  discardAloeveraUnderAutoBerserk(s,c,now);
   if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
     returnForCarry(s, c, now);
   if (classicGroundSceneKey(s) !== previousScene) { clearClassicGrounds(s, c); clearSageField(s); }

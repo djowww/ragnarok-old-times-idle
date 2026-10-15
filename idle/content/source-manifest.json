@@ -228,7 +228,8 @@
     "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
     "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
     "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
-    "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido."
+    "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido.",
+    "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -265,51 +266,6 @@
     {
       "itemId": 657,
       "aegisName": "Berserk_Potion",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 545,
-      "aegisName": "Red_Slim_Potion",
-      "sourceType": "IT_HEALING"
-    },
-    {
-      "itemId": 546,
-      "aegisName": "Yellow_Slim_Potion",
-      "sourceType": "IT_HEALING"
-    },
-    {
-      "itemId": 547,
-      "aegisName": "White_Slim_Potion",
-      "sourceType": "IT_HEALING"
-    },
-    {
-      "itemId": 12118,
-      "aegisName": "Resist_Fire",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 12119,
-      "aegisName": "Resist_Water",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 12120,
-      "aegisName": "Resist_Earth",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 12121,
-      "aegisName": "Resist_Wind",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 605,
-      "aegisName": "Anodyne",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 606,
-      "aegisName": "Aloebera",
       "sourceType": "IT_USABLE"
     },
     {
@@ -14363,16 +14319,7 @@
     "locationAdaptation": "Paid native NPC stock aggregated into Prontera city services.",
     "scriptRule": "Production never evaluates item scripts; existing explicit handlers only.",
     "inertOutputItemIds": [
-      545,
-      546,
-      547,
-      605,
-      606,
-      7142,
-      12118,
-      12119,
-      12120,
-      12121
+      7142
     ],
     "unavailableAcquisition": [
       {
@@ -15956,6 +15903,27 @@
       "scriptSha256": "f17b516d4fb29d87f70d8b0f29575eb07f058babb70a682b85eb77b38ee71aad"
     }
   ],
+  "consumableUse": {
+    "scriptSource": "db/pre-re/item_db.conf",
+    "items": [
+      545,
+      546,
+      547,
+      605,
+      606,
+      12118,
+      12119,
+      12120,
+      12121
+    ],
+    "healing": "Explicit midpoint healing uses the shared native VIT/INT, recovery and LearningPotion formula.",
+    "statuses": "Native Endure1, self Provoke1 and four independent20min elemental resistances; source death/expiry/replacement rules.",
+    "idleAdaptations": [
+      "Shared2000ms item cooldown",
+      "Itemskill preconditions reject atomically before charging"
+    ],
+    "execution": "Explicit handlers only; arbitrary item scripts are never evaluated."
+  },
   "monsterBehavior": {
     "source": "db/pre-re/mob_db.conf:Mode",
     "movementSource": "db/pre-re/mob_db.conf:MoveSpeed/ViewRange/ChaseRange/Mode.CanMove",
@@ -16215,7 +16183,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "0fe8933bc2b85e1d00982f3087bb3abe6122ce5a5177a8db6d35ed7a7eb9356c",
+  "rulesSha256": "cd84b995cf44c982dc79e2c90bc4a206079064d809674804a1452d6377485b78",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16270,6 +16238,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "2e4b06f451963e88e17c6b8ea2f9f04549970ddb7a2622a0b9ab5751f04367fa",
+  "catalogSha256": "44f7af7e8c38906b4716975cfb4af9377237e162472fcb6f7a94a0a7e9911a47",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

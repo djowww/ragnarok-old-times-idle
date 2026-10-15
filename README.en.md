@@ -40,6 +40,11 @@ This is an independent fan project under active development.
 
 Unavailable mechanics are identified in the game. Idle progression adapts some rules and rewards; full reproduction of every original system and effect is still in progress. See the [catalog](idle/content/) and [source manifest](idle/content/source-manifest.json).
 
+
+### Inventory consumables
+
+Use regular and condensed potions, Anodyne, Aloevera and elemental resistance potions from the inventory. Manual and automatic recovery share the same calculation. See [alchemy effects and current limits](docs/ALCHEMY.md).
+
 ## Development and hosting
 
 Built with **TypeScript, React, Fastify and MariaDB**, using Docker Compose. The Idle engine has separate progression; the classic client uses Hercules and roBrowserLegacy.

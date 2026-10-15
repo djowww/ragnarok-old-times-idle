@@ -1,3 +1,4 @@
+import { discardAloeveraUnderAutoBerserk } from './consumables.js';
 import type { Catalog, GameState, Skill } from "../shared/types.js";
 import { derivedStats, inventoryLoad } from "./stats.js";
 import { classicBuffActive, cancelClassicBuff } from "./classicBuffs.js";
@@ -82,6 +83,7 @@ export function recoverResources(
     resetResourceRecovery(s);
     return;
   }
+  discardAloeveraUnderAutoBerserk(s,c,at);
   // The idle engine owns its accelerated town and death recovery separately.
   const sitting = isFieldSitting(s);
   if (s.status !== "hunting" && s.status !== "challenge" && !sitting) return;
