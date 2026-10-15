@@ -139,11 +139,7 @@ function playerAction(s: GameState, c: Catalog, at: number, actorAction: GameEve
   };
 }
 function afterCastDelay(s: GameState, c: Catalog, skill: Skill, level: number) {
-  const sourceDelay = val(skill.afterCastDelayMs, level);
-  // Hercules skill_delay_fix: negative delay adds its magnitude to amotion.
-  const delay = sourceDelay < 0 ? -sourceDelay + playerMotion(s, c) : sourceDelay;
-  return Math.max(0, Math.floor(delay *
-    (1 - Math.min(100, derivedStats(s, c).effects.afterCastReductionPct ?? 0) / 100)));
+  return sourceAfterCastDelay(s, c, skill, level);
 }
 const learnedBySource = (s: GameState, c: Catalog) =>
   Object.fromEntries(
@@ -1149,6 +1145,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   if (activeCast && damage > 0 && c.skills[activeCast.skillId]?.interruptCast) {
     event(s, at, 'cast-interrupted', 'Conjuração interrompida.', undefined, 'player', {
       skillId: activeCast.skillId, sourceActorId: s.id, actorAction: 'none', actionId: activeCast.actionId });
+    cancelSkillAction(s, activeCast.skillClockOwnership, at);
     s.battle!.cast = undefined;
     s.battle!.playerActionReadyAt = at + 1000;
     s.battle!.playerNextSkillAt = at + 1000;
@@ -1185,6 +1182,7 @@ import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
 import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { tickChasewalk, CHASEWALK_STRENGTH_ID } from './chasewalk.js';
 import { resolveSupportCast } from './supportCasts.js';
+import { beginSkillAction, finishSkillAction, cancelSkillAction, sourceAfterCastDelay } from './skillActionClock.js';
 import type { MonsterStatusSkill } from '../shared/types.js';
 const bodyRelocationReachabilityCache = new WeakMap<GameState, Map<string, boolean>>();
 
@@ -1222,6 +1220,7 @@ function chooseSkill(
   offenseOnly = false,
   context?: SimulationContext,
 ): Skill | undefined {
+  if ((s.playerCanActAt ?? 0) > at) return;
   const bladeLink = s.combatEffects?.bladeStopLink;
   const linkedTarget = bladeStopTarget(s, at);
   if (linkedTarget) target = linkedTarget;
@@ -1249,8 +1248,11 @@ function chooseSkill(
         playerBattleDistance(battleHeroAt(s, at), enemyPositionAt(target, at)) > basicAttackRange(s, c))) continue;
     if (['CR_SHRINK', 'PA_SACRIFICE'].includes(skill?.sourceName ?? '') && skill &&
       !guardianSkillEligible(s, c, skill)) continue;
-    // AFK policy: a 0.4..2s posture is useful only near the chosen opponent.
-    if (skill?.sourceName === 'KN_AUTOCOUNTER' && playerBattleDistance(battleHeroAt(s, at), enemyPositionAt(target, at)) > basicAttackRange(s, c) + 1) continue;
+    // AFK policy: predict a nearby incoming basic hit; the posture does not
+    // create a self attack or bypass native canact.
+    if (skill?.sourceName === 'KN_AUTOCOUNTER' &&
+      (playerBattleDistance(battleHeroAt(s, at), enemyPositionAt(target, at)) > basicAttackRange(s, c) + 1 ||
+       target.npcCombat?.cast || nextEnemyAttackAt(s, c, target, at, at + val(skill.statusDurationMs, level)) === undefined)) continue;
     if (
       !skill ||
       !level ||
@@ -1263,6 +1265,7 @@ function chooseSkill(
       (s.skillReadyAt[id] ?? 0) > at
     )
       continue;
+    if (skill.targetType === 'enemy' && target.hp <= 0) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
     if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
@@ -2900,6 +2903,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
         "player",
         { skillId: activeCast.skillId, sourceActorId: s.id, actorAction: "none", actionId: activeCast.actionId },
       );
+      cancelSkillAction(s, activeCast.skillClockOwnership, at);
       b.cast = undefined;
       b.playerActionReadyAt = at + 1000;
       b.playerNextSkillAt = at + 1000;
@@ -3098,6 +3102,7 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
     s.skillReadyAt[skill.id] = at + (skill.sourceName === 'AS_SPLASHER' ? splasherRules(level).cooldownMs : Math.max(0, skill.cooldownMs));
     b.supportNeedsOffense = !offensiveSkill(skill);
   }
+  return succeeded;
 }
 
 function playerCombatAction(s: GameState, c: Catalog, at: number, context?: SimulationContext) {
@@ -3115,9 +3120,11 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
   const castingWithFreeCast = !!currentPlayerCast(s, at) && activeFreeCastLevel(s, c, at) > 0;
   const bladeLinkedTarget = bladeStopTarget(s, at);
+  const living = enemies(s).filter(enemy => enemy.hp > 0);
   let target = activeCast
     ? enemies(s).find(e => e.id === activeCast.targetId)
-    : bladeLinkedTarget ?? enemies(s).find(e => e.id === b.targetId) ?? enemies(s)[0];
+    : bladeLinkedTarget ?? living.find(e => e.id === b.targetId) ?? living[0];
+  if (!activeCast && target && target.hp > 0) b.targetId = target.id;
   if (activeCast && (!target || target.hp <= 0)) {
     // Keep the cast's target ownership; do not swing at a corpse or retarget.
     if (b.playerNextAttackAt <= at) b.playerNextAttackAt = at + 250;
@@ -3170,13 +3177,14 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       if (!memorize.remaining) cancelClassicBuff(s, c, "PF_MEMORIZE");
     }
     const delay = afterCastDelay(s, c, skill, level);
-    // Auto Counter's no-damage pose has no source aftercast motion. It must not
-    // postpone an already due basic attack beyond the level1 400ms window.
+    // Auto Counter's posture owns its visual stillness; the independent source
+    // canact clock still applies and only an incoming hit triggers its counter.
     const previousActionReadyAt=b.playerActionReadyAt, previousNextSkillAt=b.playerNextSkillAt, previousMoveBlockedUntil=s.fieldHero?.moveBlockedUntil;
+    const skillClockOwnership = beginSkillAction(s, at, castMs, motion);
     b.playerActionReadyAt = at + castMs + Math.max(skill.sourceName === 'KN_AUTOCOUNTER' ? 0 : motion, delay);
     if (!(castMs > 0 && learnedFreeCastLevel(s, c) > 0))
       blockFieldHero(s, at, at + castMs + (skill.sourceName === 'KN_AUTOCOUNTER' ? 0 : motion));
-    b.playerNextSkillAt = b.playerActionReadyAt;
+    b.playerNextSkillAt = s.playerCanActAt;
     const actionId = `action-${s.id}-${at}-${s.nextEventId}`;
     // Support preserves the due basic attack; its short motion is the only
     // obstruction when the source skill has no cast or after-cast delay.
@@ -3186,12 +3194,18 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
         position: { ...(isHunterTrapSkill(skill.sourceName ?? "")
           ? hunterTrapPosition(s, c, skill, level, target, at)! : enemyPositionAt(target, at)) }, actionId, afterCastDelayMs: delay,
         clockOwnership:{actionReadyAt:b.playerActionReadyAt,previousActionReadyAt,nextSkillAt:b.playerNextSkillAt,previousNextSkillAt,moveBlockedUntil:s.fieldHero?.moveBlockedUntil,previousMoveBlockedUntil},
+        skillClockOwnership,
       };
       event(s, at, "cast", skill.name, undefined, "player", {
         skillId: skill.id, skillLevel: level, castMs, enemyId: target.id, monsterId: target.monsterId,
         ...playerAction(s, c, at, "none", actionId), targetActorId: skill.targetType === "self" ? s.id : target.id,
       });
-    } else completePlayerSkill(s, c, skill, level, target, at, actionId, undefined, context);
+    } else {
+      if (completePlayerSkill(s, c, skill, level, target, at, actionId, undefined, context))
+        finishSkillAction(s, at, delay);
+      else if (val(skill.afterCastDelayMs, level) !== 0) cancelSkillAction(s, skillClockOwnership, at);
+      b.playerNextSkillAt = s.playerCanActAt;
+    }
     return;
   }
   // This is the automation's next decision, not a skill cooldown.
@@ -3200,7 +3214,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
     if (at >= b.playerNextAttackAt) b.playerNextAttackAt = at + 250;
     return;
   }
-  if (at < b.playerNextAttackAt) return;
+  if (at < b.playerNextAttackAt || !castingWithFreeCast && at < Math.max(b.playerActionReadyAt ?? 0, s.playerCanActAt ?? 0)) return;
   const range = basicAttackRange(s, c);
   const inRange = (e: BattleEnemy) => playerBattleDistance(battleHeroAt(s, at), enemyPositionAt(e, at)) <= range;
   const targetId = target.id;
@@ -3231,7 +3245,6 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       b.playerNextAttackAt = at + stats.attackIntervalMs;
       if (!activeCast) {
         b.playerActionReadyAt = at + motion;
-        b.playerNextSkillAt = Math.max(b.playerNextSkillAt ?? at, b.playerActionReadyAt);
       }
       b.supportNeedsOffense = false;
       return;
@@ -3249,13 +3262,17 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       ...(proc === "TF_DOUBLE" && { power: [100], sourceHitCount: [2] }),
       hitCount: [proc === "TF_DOUBLE" ? 2 : 3],
     }, levels[proc!], undefined, action, false, undefined, context);
-    if (proc === "MO_TRIPLEATTACK") (s.combatEffects ??= {}).combo = { sourceName: proc, expiresAt: at + 2000 };
+    if (proc === "MO_TRIPLEATTACK") {
+      (s.combatEffects ??= {}).combo = { sourceName: proc, expiresAt: at + 2000 };
+      // Source skill.c3445 only delays Triple's proc when a follow-up is learned.
+      if ((levels.MO_CHAINCOMBO ?? 0) > 0)
+        finishSkillAction(s, at, sourceAfterCastDelay(s, c, passive, levels[proc]));
+    }
   } else damageEnemies(s, c, target, at, undefined, 1, undefined, action, false, undefined, context);
   hindsightAttack(s, c, target, at, proc !== "MO_TRIPLEATTACK", context);
   b.playerNextAttackAt = at + stats.attackIntervalMs;
   if (!activeCast) {
     b.playerActionReadyAt = at + motion;
-    b.playerNextSkillAt = Math.max(b.playerNextSkillAt ?? at, b.playerActionReadyAt);
   }
   b.supportNeedsOffense = false;
 }
@@ -3442,11 +3459,11 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     const activePlayerCast = currentPlayerCast(s, cursor);
     const freeCastDuringCast = !!activePlayerCast && activeFreeCastLevel(s, c, cursor) > 0;
     const supportCastBlocksPlayer = activePlayerCast?.kind === 'support' && !freeCastDuringCast;
-    if (!overweightForCombat(s, c) && !(s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= cursor) && !trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).length || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
-      const nextPlayerWork = freeCastDuringCast ? b.playerNextAttackAt
-        : Math.min(b.playerNextAttackAt, b.playerNextSkillAt ?? b.playerNextAttackAt);
-      const playerLock = freeCastDuringCast ? b.startedAt : b.playerActionReadyAt ?? 0;
-      add({ kind: "player", at: Math.max(cursor, b.startedAt, playerLock, nextPlayerWork), priority: 4, key: s.id });
+    if (s.hp > 0 && !overweightForCombat(s, c) && !(s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= cursor) && !trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).some(enemy => enemy.hp > 0) || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
+      const nextPlayerWork = freeCastDuringCast ? b.playerNextAttackAt : Math.min(
+        Math.max(b.playerNextAttackAt, b.playerActionReadyAt ?? 0, s.playerCanActAt ?? 0),
+        Math.max(b.playerNextSkillAt ?? b.playerNextAttackAt, s.playerCanActAt ?? 0));
+      add({ kind: "player", at: Math.max(cursor, b.startedAt, nextPlayerWork), priority: 4, key: s.id });
     }
     due.sort((a, z) => a.at - z.at || a.priority - z.priority || (a.key < z.key ? -1 : a.key > z.key ? 1 : 0));
     const next = due[0];
@@ -3522,10 +3539,6 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       const cast = b.cast!, skill = c.skills[cast.skillId];
       const castTarget = enemies(s).find(e => e.id === cast.targetId);
       b.cast = undefined;
-      b.playerActionReadyAt = cursor + Math.max(playerMotion(s, c), cast.afterCastDelayMs ??
-        (skill ? afterCastDelay(s, c, skill, cast.level) : 0));
-      b.playerNextSkillAt = b.playerActionReadyAt;
-      blockFieldHero(s, cursor, cursor + playerMotion(s, c));
       // Ground/self casts can finish while the finite population is waiting to
       // respawn. Their saved position is independent of a living target actor.
       const resolutionTarget: BattleEnemy = castTarget ?? target ?? {
@@ -3533,12 +3546,27 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
         startedAt: cast.startedAt, arrivedAt: cursor, enemyNextAttackAt: Infinity,
         spawnDirection: 0, position: cast.position ?? battleHeroAt(s, cursor),
       };
-      if (skill && ((castTarget?.hp ?? 0) > 0 || skill.targetType !== "enemy"))
-        completePlayerSkill(s, c, skill, cast.level, resolutionTarget, cursor, cast.actionId,
-          skill.targetType === "ground" ? cast.position : undefined, context);
-      else event(s, cursor, "cast-failed", "O alvo da conjuração foi derrotado.", undefined, "player", {
-        skillId: cast.skillId, sourceActorId: s.id, actorAction: "none", actionId: cast.actionId,
-      });
+      const validTarget = !!skill && ((castTarget?.hp ?? 0) > 0 || skill.targetType !== "enemy");
+      const succeeded = validTarget && completePlayerSkill(s, c, skill, cast.level, resolutionTarget, cursor, cast.actionId,
+        skill.targetType === "ground" ? cast.position : undefined, context);
+      if (succeeded) {
+        const delay = cast.afterCastDelayMs ?? afterCastDelay(s, c, skill, cast.level);
+        finishSkillAction(s, cursor, delay);
+        b.playerActionReadyAt = cursor + Math.max(playerMotion(s, c), delay);
+        b.playerNextSkillAt = s.playerCanActAt;
+        blockFieldHero(s, cursor, cursor + playerMotion(s, c));
+      } else {
+        if (skill && val(skill.afterCastDelayMs, cast.level) !== 0) cancelSkillAction(s, cast.skillClockOwnership, cursor);
+        const owned = cast.clockOwnership;
+        const legacyAction = cast.endsAt + Math.max(playerMotion(s, c), cast.afterCastDelayMs ?? 0);
+        if (b.playerActionReadyAt === (owned?.actionReadyAt ?? legacyAction)) b.playerActionReadyAt = Math.max(cursor, owned?.previousActionReadyAt ?? cursor);
+        if (b.playerNextSkillAt === (owned?.nextSkillAt ?? legacyAction)) b.playerNextSkillAt = Math.max(cursor, owned?.previousNextSkillAt ?? cursor);
+        if (s.fieldHero?.moveBlockedUntil === (owned?.moveBlockedUntil ?? cast.endsAt + playerMotion(s, c)))
+          s.fieldHero!.moveBlockedUntil = Math.max(cursor, owned?.previousMoveBlockedUntil ?? cursor);
+        if (!validTarget) event(s, cursor, "cast-failed", "O alvo da conjuração foi derrotado.", undefined, "player", {
+          skillId: cast.skillId, sourceActorId: s.id, actorAction: "none", actionId: cast.actionId,
+        });
+      }
     } else if (next.kind === "delayed") {
       b.delayedSkills = b.delayedSkills?.filter(pending => pending !== next.delayed);
       const skill = c.skills[next.delayed.skillId];

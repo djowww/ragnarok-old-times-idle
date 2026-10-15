@@ -47,6 +47,8 @@ import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame
 import { movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
 import { backslidingFacingDirection, backslidingPresentationPoint } from '../assets/backslidingPresentation';
 import { sageFieldQuads, visibleSageField } from '../assets/sageFieldVisuals';
+import { SceneClock } from '../assets/sceneClock';
+import { heroWorldAtAction } from '../assets/combatPresentation';
 import SkillIcon from './SkillIcon';
 import "../styles/scene-polish-world.css";
 
@@ -650,6 +652,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const legacyOpponentPosition = useRef<GroundPosition | null>(null);
   const legacyOpponentId = useRef("enemy");
   const receivedAt = useRef(performance.now());
+  const sceneClock = useRef(new SceneClock());
   const { state } = snapshot;
   const combatNow = state.status === 'paused' ? state.pausedAt ?? state.lastSimulatedAt : snapshot.serverTime;
   const bladeWait = state.combatEffects?.bladeStopWait;
@@ -809,6 +812,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (document.hidden) hiddenAt = performance.now();
       else if (hiddenAt !== null) {
         const paused = performance.now() - hiddenAt;
+        sceneClock.current.reset();
         emote.current.next += paused;
         if (emote.current.action >= 0) emote.current.start += paused;
         hiddenAt = null;
@@ -1235,8 +1239,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       ctx.imageSmoothingEnabled = false;
       if (!mapReady) return;
       const current = stateRef.current.state;
-      const serverNow = current.status === "paused" ? current.pausedAt ?? current.lastSimulatedAt
-        : stateRef.current.serverTime + time - receivedAt.current;
+      const serverNow = sceneClock.current.at({ id: current.id, serverTime: stateRef.current.serverTime,
+        receivedAt: receivedAt.current, at: time,
+        pausedAt: current.status === "paused" ? current.pausedAt ?? current.lastSimulatedAt : undefined });
       const groupEnemies = [...groupHistory.current.values()].filter((entry) =>
         entry.deadAt === undefined || time < (entry.until ?? 0),
       ).sort((a, b) => Number(a.deadAt !== undefined) - Number(b.deadAt !== undefined));
@@ -1387,11 +1392,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
             Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt),
           { now: time, maxSpeed: current.status === 'paused' || serverNow < current.fieldHero.startedAt ? 0 : Math.hypot(heroToWorld![0] - heroFromWorld![0], heroToWorld![2] - heroFromWorld![2]) /
             Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt) }) : null;
-      const heroPlacement = camera ? projectMapPoint(camera, fieldHeroWorld ?? strikePose?.ground.world ?? (fieldPopulation
-        ? heroMovement?.world ?? walkableSceneGroundPoint(camera, heroPoint, formationAnchor)
-        : sceneGroundPoint(camera, heroPoint, formationAnchor)), width, height) : null;
+      const heroPlacement = camera ? projectMapPoint(camera, heroWorldAtAction(strikePose?.ground, fieldHeroWorld,
+        () => fieldPopulation ? heroMovement?.world ?? walkableSceneGroundPoint(camera, heroPoint, formationAnchor)
+          : sceneGroundPoint(camera, heroPoint, formationAnchor)), width, height) : null;
       renderedHeroGround.current = { map: mapName, areaId: current.areaId,
-        ground: { point: fieldHeroPoint ? battleScenePoint(fieldHeroPoint, FIELD_SCENE_ORIGIN) : { ...heroPoint }, world: heroPlacement?.world } };
+        ground: { point: strikePose?.ground.point ?? (fieldHeroPoint ? battleScenePoint(fieldHeroPoint, FIELD_SCENE_ORIGIN) : { ...heroPoint }), world: heroPlacement?.world } };
       mapFollow.current = fieldPopulation ? heroPlacement?.world ?? null : null;
       const castingSkill = casting ? catalog.skills[casting.skillId] : undefined;
       const castPoint = casting?.position && castingSkill?.targetType === "ground" ? battleScenePoint(casting.position, fieldPopulation ? formationAnchor : heroPoint) : undefined;

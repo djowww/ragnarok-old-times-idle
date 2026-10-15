@@ -10,6 +10,8 @@ import { clearBladeStop } from './bladeStop.js';
 import { clearCloseConfine } from './rgCloseConfine.js';
 import { event, random, requireRule } from './state.js';
 import type { SimulationContext } from './fieldNavigation.js';
+import { beginSkillAction, finishSkillAction } from './skillActionClock.js';
+import { derivedStats } from './stats.js';
 
 export type TeleportDestination = 'random' | 'save';
 
@@ -23,7 +25,7 @@ export function teleportAvailable(s: GameState, c: Catalog, destination: Telepor
       !classSkills(c, s.job).includes(skill.id) || (s.learnedSkills.al_ruwach ?? 0) < 1 ||
       s.status !== 'hunting' || !map || s.fieldHero?.areaId !== s.areaId || s.hp <= 0 ||
       !Array.isArray(c.teleportBlockedMaps) || c.teleportBlockedMaps.includes(map) ||
-      s.supportCast || s.battle?.cast || (s.battle?.playerActionReadyAt ?? 0) > at ||
+      s.supportCast || s.battle?.cast || (s.playerCanActAt ?? 0) > at ||
       s.combatEffects?.bladeStopLink ||
       Object.entries(s.playerStatuses ?? {}).some(([name, status]) =>
         ['SC_SILENCE', 'SC_STASIS', 'SC_KG_KAGEHUMI'].includes(name) && status.startsAt <= at && status.expiresAt > at) ||
@@ -49,6 +51,9 @@ export function applyTeleport(s: GameState, c: Catalog, destination: TeleportDes
   requireRule(navigation.isWalkableBattlePoint(areaId, start), 'NAVIGATION_UNAVAILABLE',
     'A posição atual não está em uma célula passável.');
   requireRule(paySkillResources(s, c, skill, level, at), 'SP_REQUIRED', 'Tenha SP suficiente para usar Teleporte.');
+  // Native menu choice completes one cast; its lock survives success and bounded landing failure.
+  beginSkillAction(s, at, 0, derivedStats(s, c).attackMotionMs);
+  finishSkillAction(s, at, 0);
   let landing: { x: number; y: number } | undefined;
   if (destination === 'random') {
     // Source uses paired draws in interior cells with a bounded search. Idle

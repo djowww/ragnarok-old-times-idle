@@ -33,14 +33,13 @@ describe('manual Teleport controls', () => {
         expect(commands.at(-1)).toEqual({ type: 'teleport', destination: 'save' }); }
     } finally { await act(async () => root.unmount()); }
   });
-  it.each(['town', 'sp', 'cast', 'silence', 'busy', 'motion'])('disables teleport for %s', async mode => {
+  it.each(['town', 'sp', 'cast', 'silence', 'busy', 'sourceDelay'])('disables teleport for %s', async mode => {
     const s = createInitialState(c, 0); s.job = 'acolyte'; s.learnedSkills = { al_teleport: 2, al_ruwach: 1 };
     s.status = 'hunting'; s.areaId = 'prontera_south'; s.sp = mode === 'sp' ? 0 : 10;
     s.fieldHero = { areaId: s.areaId, from: BATTLE_HERO, position: BATTLE_HERO, startedAt: 0, arrivedAt: 0, routeIndex: 0, phase: 'seeking' };
     if (mode === 'town') s.status = 'town';
     if (mode === 'cast') s.supportCast = { skillId: 'al_heal', level: 1, startedAt: 0, endsAt: 500, actionId: 'cast' };
-    if (mode === 'motion') s.battle = { monsterId: 1002, hp: 50, maxHp: 50, startedAt: 0,
-      playerNextAttackAt: 500, enemyNextAttackAt: 500, playerActionReadyAt: 500, enemies: [], targetId: '' };
+    if (mode === 'sourceDelay') Object.assign(s, { playerCanActAt: 500 });
     if (mode === 'silence') s.playerStatuses = { SC_SILENCE: { startsAt: 0, expiresAt: 500, level: 1, sourceActorId: 'mob' } };
     const host = document.createElement('div'), root = createRoot(host);
     try {

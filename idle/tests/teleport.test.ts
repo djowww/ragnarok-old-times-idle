@@ -86,13 +86,25 @@ describe('manual source Teleport', () => {
     const s = player(1), before = structuredClone(s);
     expect(() => applyTeleport(s, c, 'save', 100, ctx)).toThrow(); expect(s).toEqual(before);
   });
-  it('blocks only the active attack motion and permits teleport at its deadline', () => {
+  it('allows manual escape during basic attack motion and AFK decision polling', () => {
     const s = player(); s.battle = { playerActionReadyAt: 500, enemies: [] } as unknown as GameState['battle'];
+    expect(teleportAvailable(s, c, 'random', 100)).toBe(true);
+    applyTeleport(s, c, 'random', 100, ctx); expect(s.battle).toBeNull(); expect(s.sp).toBe(91);
+  });
+  it('blocks a genuine skill action deadline and permits teleport exactly when it expires', () => {
+    const s = player(); Object.assign(s, { playerCanActAt: 500 });
     const before = structuredClone(s);
     expect(teleportAvailable(s, c, 'random', 100)).toBe(false);
     expect(() => applyTeleport(s, c, 'random', 100, ctx)).toThrow(); expect(s).toEqual(before);
     expect(teleportAvailable(s, c, 'random', 500)).toBe(true);
     applyTeleport(s, c, 'random', 500, ctx); expect(s.battle).toBeNull(); expect(s.sp).toBe(91);
+  });
+  it('retains its own source action lock through warp and rejects immediate repeated escapes', () => {
+    const s = player(); applyTeleport(s, c, 'random', 100, ctx);
+    expect(teleportAvailable(s, c, 'random', 101)).toBe(false);
+    const before = structuredClone(s);
+    expect(() => applyTeleport(s, c, 'random', 101, ctx)).toThrow(); expect(s).toEqual(before);
+    expect(teleportAvailable(s, c, 'random', 2000)).toBe(true);
   });
   it.each(['job', 'unlearned', 'prerequisite', 'dead', 'town', 'challenge', 'sitting', 'silence', 'cast', 'hiding', 'stasis', 'kagehumi'])(
     'rejects %s eligibility without a side effect', condition => {

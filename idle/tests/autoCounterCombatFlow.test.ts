@@ -40,14 +40,24 @@ function waiting() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('Auto Counter source combat lifecycle', () => {
-  it('preserves a due basic attack after instant activation, and avoids wasting the short posture on distant targets', () => {
+  it('does not waste a short counter posture when no enemy attack is due', () => {
     const { c, s, enemy, skill } = setup(), counter = skill('KN_AUTOCOUNTER');
     s.learnedSkills[counter.id] = 1; s.rotation = [counter.id]; enemy.enemyNextAttackAt = 999999;
     const next = advanceState(s, c, 1250);
-    expect(next.events.find(e => e.kind === 'damage')).toMatchObject({ critical: true, actionStartedAt: 1000 });
-    expect(next.buffs[counter.id]).toBeUndefined(); expect(next.sp).toBe(997);
+    expect(next.events.some(e => e.actorAction === 'attack' && e.target === 'enemy' && e.actionStartedAt === 1000)).toBe(true);
+    expect(next.events.some(e => e.kind === 'skill' && e.skillId === counter.id)).toBe(false);
+    expect(next.buffs[counter.id]).toBeUndefined(); expect(next.sp).toBe(1000);
     enemy.position = { x: .9, y: .65 }; enemy.approachFrom = { ...enemy.position };
     expect(advanceState(s, c, 1250).sp).toBe(s.sp);
+  });
+  it('counters an incoming hit during the posture without bypassing the actor cast lock', () => {
+    const { c, s, enemy, skill } = setup(), counter = skill('KN_AUTOCOUNTER');
+    s.learnedSkills[counter.id] = 1; s.rotation = [counter.id]; enemy.enemyNextAttackAt = 1100;
+    const waiting = advanceState(s, c, 1000);
+    expect(waiting.buffs[counter.id]).toBeDefined(); expect(waiting.playerCanActAt).toBeGreaterThan(1100);
+    const hit = advanceState(waiting, c, 1250); // Snapshot step; the incoming event must remain at 1100ms.
+    expect(hit.events.find(e => e.kind === 'damage' && e.skillId === counter.id)).toMatchObject({ critical: true, at: 1100 });
+    expect(hit.hp).toBe(s.hp); expect(hit.buffs[counter.id]).toBeUndefined();
   });
   it('also blocks manual skill activation while preserving free status cancellation', () => {
     const { c, s, skill } = waiting(), berserk = skill('SM_AUTOBERSERK'), identify = skill('MC_IDENTIFY');
@@ -110,7 +120,7 @@ describe('Auto Counter source combat lifecycle', () => {
   });
   it('costs three SP, permits unarmed activation, blocks other skills and delays only activation presentation by 100ms', () => {
     const { c, s, enemy, skill } = setup(), counter = skill('KN_AUTOCOUNTER'), bash = skill('SM_BASH');
-    enemy.enemyNextAttackAt = 999999; enemy.position = { x: .48 + 2.25 / 12, y: .65 }; enemy.approachFrom = { ...enemy.position };
+    enemy.enemyNextAttackAt = 2400; enemy.position = { x: .48 + 2 / 12, y: .65 }; enemy.approachFrom = { ...enemy.position };
     s.learnedSkills = { [counter.id]: 5, [bash.id]: 10 }; s.rotation = [counter.id, bash.id];
     const next = advanceState(s, c, 1750);
     expect(next.sp).toBe(s.sp - 3); expect(next.buffs[counter.id]?.expiresAt).toBe(3000);
