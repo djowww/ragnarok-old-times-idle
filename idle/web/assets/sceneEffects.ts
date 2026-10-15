@@ -1,9 +1,10 @@
 /** Cosmetic combat effects drawn over the local RO map. Client pixels stay in
  * memory and are fetched through the existing local asset proxy. */
-import type { Skill } from '../../shared/types';
+import type { GameEvent, Skill } from '../../shared/types';
 import { decodeSPR, type SpriteFrame } from './sprite';
 import { decodeBMP, assetUrl } from './items';
-import { drawActor, loadActor, type DecodedActor } from './renderer';
+import { drawActor, getActorPose, loadActor, type DecodedActor } from './renderer';
+import { propertyGroundPixels, sageFieldTexture } from './sageFieldVisuals';
 
 export const DAMAGE_POPUP_MS = 1500;
 export const EMOTE_MS = 1500;
@@ -16,8 +17,15 @@ const BOLT_STAGGER_MS = 60;
 const BOLT_IMPACT_GLOW_MS = 160;
 const MAX_VISIBLE_BOLTS = 5;
 export const EMOTE_ACTIONS = [0, 1, 2, 3, 18, 21, 33] as const;
+export function combatPopupText(event: Pick<GameEvent, 'kind' | 'target' | 'amount' | 'resource' | 'itemId' | 'quantity'>): string {
+  if (event.kind === 'skill' && event.target === 'player' && event.itemId === 7049)
+    return `Pedra +${event.quantity ?? event.amount ?? 1}`;
+  if (event.kind === 'heal' && event.target === 'player')
+    return event.resource === 'sp' ? `SP +${event.amount}` : `+${event.amount}`;
+  return event.kind === 'skill' && event.target === 'player' ? `+${event.amount}` : `${event.amount}`;
+}
 
-type Tint = 'enemy' | 'player' | 'heal' | 'critical';
+type Tint = 'enemy' | 'player' | 'heal' | 'sp' | 'critical';
 type Digits = Record<Tint, HTMLCanvasElement[]>;
 
 export interface SceneEffects {
@@ -33,6 +41,9 @@ export interface SceneEffects {
   jupitelCenter: HTMLCanvasElement | null;
   jupitelBall: HTMLCanvasElement[];
   jupitelImpact: HTMLCanvasElement[];
+  venomDust?: DecodedActor | null;
+  spiderWeb?: HTMLCanvasElement | null;
+  elementalFields?: Partial<Record<'SA_VOLCANO' | 'SA_DELUGE' | 'SA_VIOLENTGALE', HTMLCanvasElement | null>>;
 }
 
 export interface DamagePopup {
@@ -42,6 +53,7 @@ export interface DamagePopup {
   x: number;
   y: number;
   elapsedMs: number;
+  resource?: 'hp' | 'sp';
   reducedMotion?: boolean;
 }
 
@@ -50,11 +62,15 @@ export interface EmotionBubble {
   x: number;
   y: number;
   elapsedMs: number;
+  /** Same native-pixel scale as the character under the map camera. */
+  scale?: number;
+  maxHeight?: number;
   reducedMotion?: boolean;
 }
 
 export interface SkillFlash {
   skillId?: string;
+  sourceName?: string;
   name: string;
   kind?: Skill['kind'];
   element?: string;
@@ -62,6 +78,10 @@ export interface SkillFlash {
   level?: number;
   /** Duration of the stationary cast phase. Defaults to SKILL_CAST_MS. */
   castMs?: number;
+  hitCount?: number;
+  aoeRadius?: number;
+  area?: { center: { x: number; y: number }; outline: Array<{ x: number; y: number }> };
+  worldScale?: number;
   /** Caster's feet on the canvas; target x/y continue to locate the impact. */
   casterX?: number;
   casterY?: number;
@@ -110,6 +130,7 @@ async function loadDigits(): Promise<Digits> {
     enemy: sprite.frames.map((frame) => tintFrame(frame, [1, 1, 1])),
     player: sprite.frames.map((frame) => tintFrame(frame, [1, 0.08, 0.08])),
     heal: sprite.frames.map((frame) => tintFrame(frame, [0.08, 1, 0.08])),
+    sp: sprite.frames.map((frame) => tintFrame(frame, [0.15, 0.55, 1])),
     critical: sprite.frames.map((frame) => tintFrame(frame, [0.9, 0.9, 0.15])),
   };
 }
@@ -123,6 +144,17 @@ async function loadMiss(): Promise<HTMLCanvasElement> {
 async function loadBmp(path: string): Promise<HTMLCanvasElement> {
   const bitmap = decodeBMP(await binary(path));
   return canvasFromPixels(bitmap.width, bitmap.height, bitmap.rgba);
+}
+
+function removeBlackGlowBackdrop(frame: HTMLCanvasElement): HTMLCanvasElement {
+  const context = frame.getContext('2d');
+  if (!context) return frame;
+  const image = context.getImageData(0, 0, frame.width, frame.height);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const glow = Math.max(image.data[i], image.data[i + 1], image.data[i + 2]) / 255;
+    image.data[i + 3] = Math.round(image.data[i + 3] * Math.sqrt(glow));
+  }
+  return canvasFromPixels(frame.width, frame.height, image.data);
 }
 
 /** The original bolt and Heal textures in this bRO GRF are uncompressed, 32-bit TGA.
@@ -158,6 +190,23 @@ function decodeSimpleTga(data: ArrayBuffer): HTMLCanvasElement {
 async function loadTga(path: string): Promise<HTMLCanvasElement> {
   return decodeSimpleTga(await binary(path));
 }
+async function loadSpiderWeb(): Promise<HTMLCanvasElement> {
+  const texture = await loadTga(TEXTURE_FOLDER + 'spiderweb.tga');
+  const context = texture.getContext('2d');
+  if (!context) throw new Error('Canvas indisponível');
+  const image = context.getImageData(0, 0, texture.width, texture.height);
+  image.data.set(spiderWebPixels(image.data)); context.putImageData(image, 0, 0);
+  return texture;
+}
+async function loadPropertyGround(source: string): Promise<HTMLCanvasElement> {
+  const path = sageFieldTexture(source);
+  if (!path) throw new Error('Unknown property ground effect');
+  const texture = await loadTga(path), context = texture.getContext('2d');
+  if (!context) throw new Error('Canvas indisponível');
+  const pixels = context.getImageData(0, 0, texture.width, texture.height);
+  pixels.data.set(propertyGroundPixels(pixels.data)); context.putImageData(pixels, 0, 0);
+  return texture;
+}
 
 function optional<T>(promise: Promise<T>, fallback: T): Promise<T> {
   return promise.catch(() => fallback);
@@ -173,12 +222,13 @@ export function loadSceneEffects(): Promise<SceneEffects> {
   if (effectsPromise) return effectsPromise;
   effectsPromise = (async () => {
     const [digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact] = await Promise.all([
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb,
+      volcano, deluge, violentGale] = await Promise.all([
       optional(loadDigits(), null),
       optional(loadMiss(), null),
       optional(loadActor({ spr: EFFECT_FOLDER + 'emotion.spr', act: EFFECT_FOLDER + 'emotion.act' }).then((actor) => actor.fallback ? null : actor), null),
       optional(loadActor({ spr: EFFECT_FOLDER + '축복.spr', act: EFFECT_FOLDER + '축복.act' }).then((actor) => actor.fallback ? null : actor), null),
-      optional(loadBmp(TEXTURE_FOLDER + 'pikapika2.bmp'), null),
+      optional(loadBmp(TEXTURE_FOLDER + 'pikapika2.bmp').then(removeBlackGlowBackdrop), null),
       Promise.all(Array.from({ length: 6 }, (_, i) => optional(loadTga(TEXTURE_FOLDER + `불화살${i + 1}.tga`), null)))
         .then((frames) => frames.filter((frame): frame is HTMLCanvasElement => !!frame)),
       optional(loadTga(TEXTURE_FOLDER + 'icearrow.tga'), null),
@@ -190,11 +240,52 @@ export function loadSceneEffects(): Promise<SceneEffects> {
       loadBmpSequence(['thunder_pang.bmp', 'thunder_plazma_blast_a.bmp',
         'thunder_plazma_blast_b.bmp', 'thunder_ball_d.bmp', 'thunder_ball_e.bmp',
         'thunder_ball_f.bmp']),
+      optional(loadActor({ spr: EFFECT_FOLDER + 'particle3.spr', act: EFFECT_FOLDER + 'particle3.act' })
+        .then(actor => actor.fallback ? null : actor), null),
+      optional(loadSpiderWeb(), null),
+      optional(loadPropertyGround('SA_VOLCANO'), null),
+      optional(loadPropertyGround('SA_DELUGE'), null),
+      optional(loadPropertyGround('SA_VIOLENTGALE'), null),
     ]);
     return { digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact };
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb,
+      elementalFields: { SA_VOLCANO: volcano, SA_DELUGE: deluge, SA_VIOLENTGALE: violentGale } };
   })();
   return effectsPromise;
+}
+
+/** Two clipped affine triangles keep the original texture on the camera's ground plane. */
+export function drawGroundTexture(ctx: CanvasRenderingContext2D, texture: HTMLCanvasElement,
+  corners: { x: number; y: number }[]) {
+  if (corners.length !== 4 || corners.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return;
+  const [a, b, c, d] = corners, w = texture.width, h = texture.height;
+  if (!w || !h) return;
+  for (const [triangle, right, down] of [
+    [[a, b, c], { x: b.x - a.x, y: b.y - a.y }, { x: c.x - b.x, y: c.y - b.y }],
+    [[a, c, d], { x: c.x - d.x, y: c.y - d.y }, { x: d.x - a.x, y: d.y - a.y }],
+  ] as const) {
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.beginPath(); ctx.moveTo(triangle[0].x, triangle[0].y);
+    ctx.lineTo(triangle[1].x, triangle[1].y); ctx.lineTo(triangle[2].x, triangle[2].y); ctx.closePath(); ctx.clip();
+    ctx.transform(right.x / w, right.y / w, down.x / h, down.y / h, a.x, a.y);
+    ctx.drawImage(texture, 0, 0); ctx.restore();
+  }
+}
+
+/** Pinned roBrowser SpiderWeb.js uSize and Tiles.js +/-1 vertex footprint. */
+export function spiderWebRadius(elapsedMs: number, phase = 0, reducedMotion = false): number {
+  return reducedMotion ? 1.5 : 1.5 + .05 * Math.sin(phase + elapsedMs / (540 * Math.PI));
+}
+/** SpiderWeb.fs discards RGB below 0.5 and writes alpha 0.7. */
+export function spiderWebPixels(original: Uint8ClampedArray): Uint8ClampedArray {
+  const pixels = new Uint8ClampedArray(original);
+  for (let i = 0; i < pixels.length; i += 4) pixels[i + 3] = Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) < 128 ? 0 : 179;
+  return pixels;
+}
+/** ThreeDEffect 171: size80%, center anchor, GAT z0..0.5 (world y0..-0.5), repeat100ms. */
+export function venomDustPose(elapsedMs: number, reducedMotion = false) {
+  const phase = Math.max(0, elapsedMs) % 100;
+  return { scale: .8, height: reducedMotion || phase === 0 ? 0 : -(phase / 100) * .5,
+    bottom: 0, shadow: undefined };
 }
 
 function visible(elapsedMs: number, duration: number): boolean {
@@ -215,8 +306,9 @@ export function drawDamagePopup(ctx: CanvasRenderingContext2D, assets: SceneEffe
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(frame, x + drift - frame.width / 2, y - rise - frame.height / 2);
   } else {
-    const heal = text.startsWith('+');
-    const tint: Tint = heal ? 'heal' : cue.critical ? 'critical' : cue.target;
+    const spRecovery = cue.resource === 'sp';
+    const heal = text.startsWith('+') || spRecovery;
+    const tint: Tint = spRecovery ? 'sp' : heal ? 'heal' : cue.critical ? 'critical' : cue.target;
     const digitFrames = assets?.digits?.[tint];
     const numeric = text.replace(/[^0-9]/g, '');
     if (digitFrames && numeric) {
@@ -235,8 +327,8 @@ export function drawDamagePopup(ctx: CanvasRenderingContext2D, assets: SceneEffe
       ctx.font = 'bold 20px Tahoma, sans-serif';
       ctx.textAlign = 'center';
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#25302b';
-      ctx.fillStyle = heal ? '#77f173' : cue.critical ? '#ffe653' : cue.target === 'player' ? '#ff8171' : '#fff7d9';
+      ctx.strokeStyle = spRecovery ? '#3979a5' : '#25302b';
+      ctx.fillStyle = spRecovery ? '#80caff' : heal ? '#77f173' : cue.critical ? '#ffe653' : cue.target === 'player' ? '#ff8171' : '#fff7d9';
       ctx.strokeText(text, x + drift, y - rise);
       ctx.fillText(text, x + drift, y - rise);
     }
@@ -248,13 +340,20 @@ export function drawEmotion(ctx: CanvasRenderingContext2D, assets: SceneEffects 
   if (!visible(cue.elapsedMs, EMOTE_MS)) return;
   ctx.save();
   ctx.globalAlpha *= cue.reducedMotion ? 1 : Math.min(1, (EMOTE_MS - cue.elapsedMs) / 250);
+  let scale = Math.max(0.1, cue.scale ?? 1);
   if (assets?.emotion) {
-    drawActor(ctx, assets.emotion, cue.action, cue.reducedMotion ? 0 : cue.elapsedMs, cue.x, cue.y, 1.5);
+    const elapsed = cue.reducedMotion ? 0 : cue.elapsedMs;
+    const pose = getActorPose(assets.emotion, cue.action, elapsed);
+    const top = Math.min(0, ...pose.map((layer) => layer.y - layer.image.height * Math.abs(layer.scaleY) / 2));
+    const bottom = Math.max(0, ...pose.map((layer) => layer.y + layer.image.height * Math.abs(layer.scaleY) / 2));
+    if (cue.maxHeight) scale = Math.min(scale, cue.maxHeight / Math.max(1, bottom - top));
+    drawActor(ctx, assets.emotion, cue.action, elapsed, cue.x, cue.y - bottom * scale, scale);
   } else {
     ctx.fillStyle = '#fff5d8';
     ctx.strokeStyle = '#38473a';
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 21px Tahoma, sans-serif';
+    if (cue.maxHeight) scale = Math.min(scale, cue.maxHeight / 18);
+    ctx.lineWidth = 2 * scale;
+    ctx.font = `bold ${18 * scale}px Tahoma, sans-serif`;
     ctx.textAlign = 'center';
     ctx.strokeText('!', cue.x, cue.y);
     ctx.fillText('!', cue.x, cue.y);
@@ -417,29 +516,140 @@ function drawBoltEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects | nu
   }
 }
 
+function drawAreaSpell(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash, kind: 'fire' | 'thunder' | 'napalm'): void {
+  const released = cue.elapsedMs - (cue.castMs ?? 0);
+  if (released < 0) return;
+  const phase = cue.reducedMotion ? 0.45 : Math.min(1, released / 900);
+  const radius = Math.max(0.5, cue.aoeRadius ?? 1) * 35 * (cue.worldScale ?? 1);
+  const center = cue.area?.center ?? { x: cue.x, y: cue.y + 18 };
+  const outline = cue.area?.outline ?? Array.from({ length: 32 }, (_, index) => {
+    const angle = index * Math.PI * 2 / 32;
+    return { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius * 0.34 };
+  });
+  const onRing = (index: number, amount: number) => {
+    const point = outline[Math.floor(index * outline.length) % outline.length];
+    return { x: center.x + (point.x - center.x) * amount, y: center.y + (point.y - center.y) * amount };
+  };
+  const textureScale = Math.max(0.25, cue.worldScale ?? 1);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha *= cue.reducedMotion ? 0.55 : Math.max(0, 1 - phase);
+  ctx.strokeStyle = kind === 'fire' ? '#ffb458' : kind === 'thunder' ? '#bde8ff' : '#e3ddff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  outline.forEach((_, index) => {
+    const point = onRing(index / outline.length, 0.65 + phase * 0.35);
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
+  ctx.closePath();
+  ctx.stroke();
+  if (kind === 'thunder') {
+    for (let index = 0; index < 4; index++) {
+      const { x, y } = onRing(index / 4, 0.6);
+      const flash = cue.reducedMotion || Math.floor(released / 110 + index) % 3 !== 0;
+      if (!flash) continue;
+      if (assets?.jupitelCenter) ctx.drawImage(assets.jupitelCenter, x - 25 * textureScale, y - 50 * textureScale, 50 * textureScale, 70 * textureScale);
+      ctx.beginPath();
+      ctx.moveTo(x + 6 * textureScale, y - 86 * textureScale);
+      ctx.lineTo(x - 5 * textureScale, y - 52 * textureScale);
+      ctx.lineTo(x + 6 * textureScale, y - 50 * textureScale);
+      ctx.lineTo(x - 3 * textureScale, y + 7 * textureScale);
+      ctx.stroke();
+    }
+  } else {
+    const frame = kind === 'fire' ? assets?.fireBolt[Math.min(assets.fireBolt.length - 1, Math.floor(phase * assets.fireBolt.length))] : assets?.healParticle;
+    for (let index = 0; index < 7; index++) {
+      const { x, y } = onRing(index / 7, phase);
+      const size = (kind === 'fire' ? 32 : 21) * textureScale;
+      if (frame) ctx.drawImage(frame, x - size / 2, y - size / 2, size, size);
+      else {
+        ctx.fillStyle = kind === 'fire' ? '#ffb458' : '#ddd0ff';
+        ctx.beginPath();
+        ctx.arc(x, y, 3 + (1 - phase) * 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function drawSoulStrike(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash): void {
+  const released = cue.elapsedMs - (cue.castMs ?? 0);
+  if (released < 0) return;
+  const count = cue.reducedMotion ? 1 : Math.min(5, Math.max(1, cue.hitCount ?? cue.level ?? 1));
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let index = 0; index < count; index++) {
+    const local = released - index * 90;
+    if (local < 0 || local > 650) continue;
+    const phase = cue.reducedMotion ? 0.8 : Math.min(1, local / 360);
+    const fromX = cue.casterX ?? cue.x - 90;
+    const fromY = (cue.casterY ?? cue.y + 30) - 35;
+    const x = fromX + (cue.x - fromX) * phase;
+    const y = fromY + (cue.y - fromY) * phase - Math.sin(phase * Math.PI) * (18 + index * 3);
+    ctx.globalAlpha = Math.max(0, 1 - Math.max(0, local - 360) / 290);
+    if (assets?.healParticle) ctx.drawImage(assets.healParticle, x - 13, y - 13, 26, 26);
+    else {
+      ctx.fillStyle = '#ece4ff';
+      ctx.beginPath();
+      ctx.arc(x, y, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 /** Draws original 2D art where supported. Heal and Jupitel reuse original
  * textures in a flat approximation; STR/3D choreography is not reproduced. */
 export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash): void {
   const { skillId, name, x, y, elapsedMs, reducedMotion = false } = cue;
-  if (!visible(elapsedMs, SKILL_EFFECT_MS)) return;
-  const progress = elapsedMs / SKILL_EFFECT_MS;
-  const bolt = skillId === 'fire_bolt' || skillId === 'cold_bolt';
+  const castMs = cue.castMs ?? SKILL_CAST_MS;
+  const effectDuration = Math.max(SKILL_EFFECT_MS, castMs + 900);
+  if (!visible(elapsedMs, effectDuration)) return;
+  const progress = Math.max(0, elapsedMs - castMs) / Math.max(1, effectDuration - castMs);
+  const source = (cue.sourceName ?? skillId ?? '').toLowerCase().replaceAll('_', '');
+  const fireBolt = source.endsWith('firebolt');
+  const coldBolt = source.endsWith('coldbolt');
+  const bolt = fireBolt || coldBolt;
+  const casting = castMs > 0 && elapsedMs < castMs;
   const alpha = bolt ? 1 : reducedMotion ? 0.9 : 1 - progress;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
   let original = false;
-  if (bolt) {
-    drawBoltEffect(ctx, assets, cue, skillId === 'fire_bolt');
+  if (['savolcano', 'sadeluge', 'saviolentgale'].includes(source)) {
+    // The persistent, clipped ground group owns this effect; no body aura.
+    original = true;
+  } else if (['tfpickstone', 'alcure', 'tfdetoxify', 'prslowpoison'].includes(source)) {
+    // Collection is a self skill pose/text, never a magic aura or floor drop.
+    original = true;
+  } else if (casting && cue.kind === 'magical' && !bolt) {
+    drawCastSigil(ctx, assets, cue, cue.element?.toLowerCase() === 'fire');
+    original = true;
+  } else if (bolt) {
+    drawBoltEffect(ctx, assets, cue, fireBolt);
+    original = true;
+  } else if (source.endsWith('thunderstorm')) {
+    drawAreaSpell(ctx, assets, cue, 'thunder');
+    original = true;
+  } else if (source.endsWith('fireball')) {
+    drawAreaSpell(ctx, assets, cue, 'fire');
+    original = true;
+  } else if (source.endsWith('napalmbeat')) {
+    drawAreaSpell(ctx, assets, cue, 'napalm');
+    original = true;
+  } else if (source.endsWith('soulstrike')) {
+    drawSoulStrike(ctx, assets, cue);
     original = true;
   } else if (skillId === 'first_aid' && assets?.firstAid) {
     const frame = assets.firstAid;
-    const size = Math.min(100, Math.max(frame.width, frame.height));
-    // The client's BMP uses a dark ground and RO blends it as light.
-    ctx.globalCompositeOperation = 'screen';
+    const scale = Math.min(100 / frame.width, 100 / frame.height);
+    const width = frame.width * scale;
+    const height = frame.height * scale;
     const baseAlpha = ctx.globalAlpha;
     ctx.globalAlpha = baseAlpha * 0.5;
-    ctx.drawImage(frame, x - size / 2, y - size / 2, size, size);
+    ctx.drawImage(frame, x - width / 2, y - height / 2, width, height);
     ctx.globalAlpha = baseAlpha;
     original = true;
   } else if (skillId === 'blessing' && assets?.blessing) {
@@ -448,7 +658,7 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   } else if (skillId === 'heal' && assets) {
     original = drawHealEffect(ctx, assets, cue);
   } else if (skillId === 'jupitel_thunder' && assets) {
-    const releaseAt = SKILL_IMPACT_MS - 180;
+    const releaseAt = castMs;
     if (elapsedMs < (cue.castMs ?? SKILL_CAST_MS)) {
       drawCastSigil(ctx, assets, cue, false);
       original = true;
@@ -461,9 +671,20 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
       (cue.kind === 'heal' ? '#77ec96' : cue.kind === 'buff' ? '#f8da88' : '#f0e5cf');
     ctx.strokeStyle = color;
     ctx.lineWidth = 2.5;
-    const radius = reducedMotion ? 26 : 16 + progress * 22;
     ctx.beginPath();
-    ctx.ellipse(x, y - 13, radius, radius * 0.38, 0, 0, Math.PI * 2);
+    if (cue.area) {
+      cue.area.outline.forEach((point, index) => {
+        if (index === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      });
+      ctx.closePath();
+    } else if ((cue.aoeRadius ?? 0) > 0) {
+      const radius = cue.aoeRadius! * 35 * (cue.worldScale ?? 1);
+      ctx.ellipse(x, y + 18, radius, radius * 0.34, 0, 0, Math.PI * 2);
+    } else {
+      const radius = reducedMotion ? 26 : 16 + progress * 22;
+      ctx.ellipse(x, y - 13, radius, radius * 0.38, 0, 0, Math.PI * 2);
+    }
     ctx.stroke();
   }
   ctx.globalCompositeOperation = 'source-over';
@@ -472,11 +693,12 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   ctx.lineWidth = 3;
   ctx.strokeStyle = '#1c2730';
   ctx.fillStyle = '#fff4ca';
-  if (!bolt || elapsedMs < (cue.castMs ?? SKILL_CAST_MS)) {
-    const nameX = bolt ? cue.casterX ?? x : x;
-    const nameY = bolt ? (cue.casterY ?? y + 50) - 70 : y - 70;
-    ctx.strokeText(name, nameX, nameY);
-    ctx.fillText(name, nameX, nameY);
+  if (!bolt || casting) {
+    const nameX = casting ? cue.casterX ?? x : x;
+    const nameY = casting ? (cue.casterY ?? y + 50) - 70 : y - 70;
+    const label = source === 'tfpickstone' && !casting ? 'Pedra coletada' : name;
+    ctx.strokeText(label, nameX, nameY);
+    ctx.fillText(label, nameX, nameY);
   }
   ctx.restore();
 }

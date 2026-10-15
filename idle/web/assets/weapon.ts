@@ -6,6 +6,7 @@ export interface WeaponAppearance {
     type: WeaponType;
     gender: 'male' | 'female';
     job: string;
+    mounted?: boolean;
 }
 
 // DB/Jobs/WeaponJobTable.js reuses the base job's weapon sprites after rebirth.
@@ -28,9 +29,17 @@ const baseJobResource: Record<string, string> = {
     assassin: '어세신', rogue: '로그',
 };
 
+/** Mounted rebirth jobs share their mounted base job's equipment sheet.
+ * Pinned WeaponJobTable.js KNIGHT2/CRUSADER2 inheritance. */
+export function weaponSpriteForClass(job: string, mounted = false): string | undefined {
+    if (mounted && ['knight', 'lord_knight'].includes(job)) return '페코페코_기사';
+    if (mounted && ['crusader', 'paladin'].includes(job)) return '신페코크루세이더';
+    return baseJobResource[baseJob[job] ?? job];
+}
+
 // DB/Items/WeaponTable.js; the spellings are CP949-decoded client names.
 const weaponSuffix: Record<WeaponType, string> = {
-    dagger: '단검', sword: '검', spear: '창', bow: '활', staff: '롯드',
+    dagger: '단검', sword: '검', spear: '창', bow: '활', staff: '롯드', book: '책',
     mace: '클럽', axe: '도끼', katar: '카타르_카타르',
     instrument: '악기', whip: '채찍',
 };
@@ -39,13 +48,18 @@ export function weaponAssetPath(asset: SpriteAsset, visual: WeaponAppearance): {
     // An explicit job table prevents a monster or an unrelated sprite from
     // accidentally resolving to a character's equipment resource.
     if (!asset.headSpr || !asset.headAct) return null;
-    const job = baseJob[visual.job] ?? visual.job;
-    const name = baseJobResource[job];
+    const name = weaponSpriteForClass(visual.job, visual.mounted);
     const suffix = weaponSuffix[visual.type];
     if (!name || !suffix) return null;
     const sex = visual.gender === 'female' ? '여' : '남';
     const base = `data/sprite/인간족/${name}/${name}_${sex}_${suffix}`;
     return { spr: `${base}.spr`, act: `${base}.act` };
+}
+
+/** DB/Items/WeaponTrailTable.js uses the weapon's job path plus _검광. */
+export function weaponTrailAssetPath(asset: SpriteAsset, visual: WeaponAppearance): { spr: string; act: string } | null {
+    const weapon = weaponAssetPath(asset, visual);
+    return weapon ? { spr: weapon.spr.replace(/\.spr$/, '_검광.spr'), act: weapon.act.replace(/\.act$/, '_검광.act') } : null;
 }
 
 /** ATTACK1/2/3 correspond to ACT direction groups 5/10/11. */
@@ -70,7 +84,7 @@ export function weaponAttackAction(visual?: WeaponAppearance): number {
             variant = type === 'bow' ? 1 : type === 'dagger' ? 2 : 0;
             break;
         case 'acolyte': case 'priest': case 'monk':
-            variant = ['staff', 'mace'].includes(type) ? 1 : 0;
+            variant = type === 'book' ? 2 : ['staff', 'mace'].includes(type) ? 1 : 0;
             break;
         case 'merchant':
             variant = type === 'dagger' ? 2 : ['mace', 'axe', 'sword'].includes(type) ? 1 : 0;
@@ -93,7 +107,7 @@ export function weaponAttackAction(visual?: WeaponAppearance): number {
             variant = type === 'katar' ? 2 : ['axe', 'sword', 'dagger'].includes(type) ? 1 : 0;
             break;
         case 'sage':
-            variant = type === 'dagger' ? 1 : type === 'staff' ? 2 : 0;
+            variant = type === 'dagger' ? 1 : ['staff', 'book'].includes(type) ? 2 : 0;
             break;
         case 'alchemist':
             variant = type === 'dagger' ? 1 : ['sword', 'axe', 'mace'].includes(type) ? 2 : 0;

@@ -1,0 +1,197 @@
+{
+  "rg_plagiarism": {
+    "id": "rg_plagiarism",
+    "name": "Intimidate",
+    "kind": "passive",
+    "maxLevel": 10,
+    "herculesId": 225,
+    "sourceName": "RG_PLAGIARISM",
+    "mechanic": "RG_PLAGIARISM",
+    "implementation": "unsupported",
+    "unsupportedReason": "Requer habilidades inimigas copiáveis.",
+    "description": "Intimidate. Habilidade passiva. Requer habilidades inimigas copiáveis.",
+    "iconResource": "data/texture/유저인터페이스/item/rg_plagiarism.bmp",
+    "spCost": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "power": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "afterCastDelayMs": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "interruptCast": false,
+    "hitCount": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sourceHitCount": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "aoeRadius": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "range": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "targetType": "passive",
+    "damageType": "none",
+    "prerequisites": [
+      {
+        "skillId": "rg_intimidate",
+        "level": 5
+      }
+    ],
+    "prerequisitesByClass": {
+      "rogue": [
+        {
+          "skillId": "rg_intimidate",
+          "level": 5
+        }
+      ],
+      "stalker": [
+        {
+          "skillId": "rg_intimidate",
+          "level": 5
+        }
+      ]
+    },
+    "minimumJobLevel": 1
+  },
+  "st_preserve": {
+    "id": "st_preserve",
+    "name": "Preserve",
+    "kind": "buff",
+    "maxLevel": 1,
+    "herculesId": 475,
+    "sourceName": "ST_PRESERVE",
+    "mechanic": "ST_PRESERVE",
+    "implementation": "unsupported",
+    "unsupportedReason": "Depende de Intimidate/copiar habilidades.",
+    "description": "Preserve. Aplica PRESERVE. Depende de Intimidate/copiar habilidades.",
+    "iconResource": "data/texture/유저인터페이스/item/st_preserve.bmp",
+    "spCost": [
+      30
+    ],
+    "power": [
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      1000
+    ],
+    "afterCastDelayMs": [
+      0
+    ],
+    "interruptCast": true,
+    "hitCount": [
+      1
+    ],
+    "sourceHitCount": [
+      1
+    ],
+    "aoeRadius": [
+      0
+    ],
+    "range": [
+      0
+    ],
+    "targetType": "self",
+    "damageType": "none",
+    "prerequisites": [
+      {
+        "skillId": "rg_plagiarism",
+        "level": 10
+      }
+    ],
+    "prerequisitesByClass": {
+      "stalker": [
+        {
+          "skillId": "rg_plagiarism",
+          "level": 10
+        }
+      ]
+    },
+    "minimumJobLevel": 1,
+    "statusEffect": "SC_PRESERVE",
+    "statusDurationMs": [
+      600000
+    ],
+    "durationMs": 600000
+  }
+}

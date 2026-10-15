@@ -1,0 +1,1082 @@
+{
+  "base": "4d77f2782b03a2a3a879cb4251eb7296be583021",
+  "domains": {
+    "version": "8e633b4f41f99d4c388915bc852f2143cf4e9f5eaad70c76a81d4f4aa629eec1",
+    "rates": "7f6fc9b98db292a99f83554e5f125e0ec27bac0714bea986aba2aaba63919cb5",
+    "monsters": "dccebf28e7454a77da2423a3ce1b8e0ae2e767c005bbc0fdb568108ed2523f79",
+    "classes": "a20cee9849620134e3ba9c9436b0bcae780c79c8a0275a16005e9beaeb0e4160",
+    "areas": "13f277880ea30b125123a3009dd0a3bd441670ac183fcab519df72235c8d60aa",
+    "quests": "a095feadb37b0c54b61501088e95e89f3573b6cbfbdd81705b735d975ecedc9e",
+    "challenges": "f531e6a9ed3b9c07c23c77d250d6b2b6b1f361220b2e65c0d4ca75c4f2d52ba7",
+    "exp": "2c3968e72e27d21536e627acfddc2542fed7179a033f7a794105a5d58c058b01",
+    "elementModifiers": "14498b14b652aa8370e4c121ac60dca71e579417ddd685e279d13628c16810d4",
+    "sizeModifiers": "82baa2ff17cfe40e6284e6e06f54a59699655e993ec2a1b91438ef1512eae7ca",
+    "autospellChoices": "68f421771d53dc64091ecc261f60c0c5306cbaeec7ae438be81d2608de64f7b0"
+  },
+  "otherSkills": "5ef6541227da144fe072c1c817b99b6180ca2e75ea112a1509a24d5328688bd7",
+  "otherItems": "74ed8f579b05c7de3f9743cf4ebb0f9aa026f8df36b46787de67da1f499feb9d",
+  "supportedSourceNames": [
+    "AC_CHARGEARROW",
+    "AC_CONCENTRATION",
+    "AC_DOUBLE",
+    "AC_OWL",
+    "AC_SHOWER",
+    "AC_VULTURE",
+    "ALL_INCCARRY",
+    "ALL_RESURRECTION",
+    "AL_ANGELUS",
+    "AL_BLESSING",
+    "AL_CRUCIS",
+    "AL_CURE",
+    "AL_DECAGI",
+    "AL_DEMONBANE",
+    "AL_DP",
+    "AL_HEAL",
+    "AL_HOLYLIGHT",
+    "AL_INCAGI",
+    "AL_PNEUMA",
+    "AL_RUWACH",
+    "AM_ACIDTERROR",
+    "AM_AXEMASTERY",
+    "AM_DEMONSTRATION",
+    "AM_LEARNINGPOTION",
+    "ASC_BREAKER",
+    "ASC_EDP",
+    "ASC_KATAR",
+    "ASC_METEORASSAULT",
+    "AS_CLOAKING",
+    "AS_ENCHANTPOISON",
+    "AS_GRIMTOOTH",
+    "AS_KATAR",
+    "AS_POISONREACT",
+    "AS_SONICACCEL",
+    "AS_SONICBLOW",
+    "AS_SPLASHER",
+    "AS_VENOMDUST",
+    "AS_VENOMKNIFE",
+    "BA_APPLEIDUN",
+    "BA_ASSASSINCROSS",
+    "BA_DISSONANCE",
+    "BA_FROSTJOKE",
+    "BA_MUSICALLESSON",
+    "BA_MUSICALSTRIKE",
+    "BA_PANGVOICE",
+    "BA_POEMBRAGI",
+    "BA_WHISTLE",
+    "BS_ADRENALINE",
+    "BS_HAMMERFALL",
+    "BS_HILTBINDING",
+    "BS_MAXIMIZE",
+    "BS_OVERTHRUST",
+    "BS_SKINTEMPER",
+    "BS_UNFAIRLYTRICK",
+    "BS_WEAPONPERFECT",
+    "BS_WEAPONRESEARCH",
+    "CG_ARROWVULCAN",
+    "CH_CHAINCRUSH",
+    "CH_PALMSTRIKE",
+    "CH_SOULCOLLECT",
+    "CH_TIGERFIST",
+    "CR_ACIDDEMONSTRATION",
+    "CR_AUTOGUARD",
+    "CR_DEFENDER",
+    "CR_GRANDCROSS",
+    "CR_HOLYCROSS",
+    "CR_REFLECTSHIELD",
+    "CR_SHIELDBOOMERANG",
+    "CR_SHIELDCHARGE",
+    "CR_SHRINK",
+    "CR_SPEARQUICKEN",
+    "CR_TRUST",
+    "DC_DANCINGLESSON",
+    "DC_DONTFORGETME",
+    "DC_FORTUNEKISS",
+    "DC_HUMMING",
+    "DC_SCREAM",
+    "DC_SERVICEFORYOU",
+    "DC_THROWARROW",
+    "DC_WINKCHARM",
+    "HP_ASSUMPTIO",
+    "HP_MANARECHARGE",
+    "HP_MEDITATIO",
+    "HT_ANKLESNARE",
+    "HT_BEASTBANE",
+    "HT_BLASTMINE",
+    "HT_BLITZBEAT",
+    "HT_CLAYMORETRAP",
+    "HT_FALCON",
+    "HT_FLASHER",
+    "HT_FREEZINGTRAP",
+    "HT_LANDMINE",
+    "HT_PHANTASMIC",
+    "HT_SANDMAN",
+    "HT_SKIDTRAP",
+    "HT_STEELCROW",
+    "HW_GRAVITATION",
+    "HW_MAGICCRASHER",
+    "HW_MAGICPOWER",
+    "HW_NAPALMVULCAN",
+    "HW_SOULDRAIN",
+    "KN_AUTOCOUNTER",
+    "KN_BOWLINGBASH",
+    "KN_BRANDISHSPEAR",
+    "KN_CAVALIERMASTERY",
+    "KN_CHARGEATK",
+    "KN_PIERCE",
+    "KN_RIDING",
+    "KN_SPEARBOOMERANG",
+    "KN_SPEARMASTERY",
+    "KN_SPEARSTAB",
+    "KN_TWOHANDQUICKEN",
+    "LK_AURABLADE",
+    "LK_BERSERK",
+    "LK_CONCENTRATION",
+    "LK_HEADCRUSH",
+    "LK_JOINTBEAT",
+    "LK_PARRYING",
+    "LK_SPIRALPIERCE",
+    "LK_TENSIONRELAX",
+    "MC_CARTREVOLUTION",
+    "MC_DISCOUNT",
+    "MC_IDENTIFY",
+    "MC_INCCARRY",
+    "MC_LOUD",
+    "MC_MAMMONITE",
+    "MC_OVERCHARGE",
+    "MC_PUSHCART",
+    "MG_COLDBOLT",
+    "MG_ENERGYCOAT",
+    "MG_FIREBALL",
+    "MG_FIREBOLT",
+    "MG_FIREWALL",
+    "MG_FROSTDIVER",
+    "MG_LIGHTNINGBOLT",
+    "MG_NAPALMBEAT",
+    "MG_SAFETYWALL",
+    "MG_SIGHT",
+    "MG_SOULSTRIKE",
+    "MG_SRECOVERY",
+    "MG_STONECURSE",
+    "MG_THUNDERSTORM",
+    "MO_ABSORBSPIRITS",
+    "MO_BALKYOUNG",
+    "MO_BLADESTOP",
+    "MO_BODYRELOCATION",
+    "MO_CALLSPIRITS",
+    "MO_CHAINCOMBO",
+    "MO_COMBOFINISH",
+    "MO_DODGE",
+    "MO_EXPLOSIONSPIRITS",
+    "MO_EXTREMITYFIST",
+    "MO_FINGEROFFENSIVE",
+    "MO_INVESTIGATE",
+    "MO_IRONHAND",
+    "MO_SPIRITSRECOVERY",
+    "MO_STEELBODY",
+    "MO_TRIPLEATTACK",
+    "NV_FIRSTAID",
+    "NV_TRICKDEAD",
+    "PA_PRESSURE",
+    "PA_SACRIFICE",
+    "PA_SHIELDCHAIN",
+    "PF_DOUBLECASTING",
+    "PF_FOGWALL",
+    "PF_HPCONVERSION",
+    "PF_MEMORIZE",
+    "PF_MINDBREAKER",
+    "PF_SOULCHANGE",
+    "PF_SPIDERWEB",
+    "PR_ASPERSIO",
+    "PR_GLORIA",
+    "PR_IMPOSITIO",
+    "PR_KYRIE",
+    "PR_LEXAETERNA",
+    "PR_LEXDIVINA",
+    "PR_MACEMASTERY",
+    "PR_MAGNIFICAT",
+    "PR_MAGNUS",
+    "PR_SANCTUARY",
+    "PR_SLOWPOISON",
+    "PR_STRECOVERY",
+    "PR_TURNUNDEAD",
+    "RG_BACKSTAP",
+    "RG_CLOSECONFINE",
+    "RG_COMPULSION",
+    "RG_INTIMIDATE",
+    "RG_PLAGIARISM",
+    "RG_RAID",
+    "RG_SNATCHER",
+    "RG_STEALCOIN",
+    "RG_STRIPARMOR",
+    "RG_STRIPHELM",
+    "RG_STRIPSHIELD",
+    "RG_STRIPWEAPON",
+    "RG_TUNNELDRIVE",
+    "SA_ADVANCEDBOOK",
+    "SA_AUTOSPELL",
+    "SA_CASTCANCEL",
+    "SA_CREATECON",
+    "SA_DRAGONOLOGY",
+    "SA_ELEMENTFIRE",
+    "SA_ELEMENTGROUND",
+    "SA_ELEMENTWATER",
+    "SA_ELEMENTWIND",
+    "SA_FLAMELAUNCHER",
+    "SA_FREECAST",
+    "SA_FROSTWEAPON",
+    "SA_LIGHTNINGLOADER",
+    "SA_MAGICROD",
+    "SA_SEISMICWEAPON",
+    "SA_SPELLBREAKER",
+    "SM_AUTOBERSERK",
+    "SM_BASH",
+    "SM_ENDURE",
+    "SM_FATALBLOW",
+    "SM_MAGNUM",
+    "SM_MOVINGRECOVERY",
+    "SM_PROVOKE",
+    "SM_RECOVERY",
+    "SM_SWORD",
+    "SM_TWOHAND",
+    "SN_FALCONASSAULT",
+    "SN_SHARPSHOOTING",
+    "SN_SIGHT",
+    "SN_WINDWALK",
+    "ST_CHASEWALK",
+    "ST_FULLSTRIP",
+    "ST_PRESERVE",
+    "ST_REJECTSWORD",
+    "TF_BACKSLIDING",
+    "TF_DETOXIFY",
+    "TF_DOUBLE",
+    "TF_HIDING",
+    "TF_MISS",
+    "TF_PICKSTONE",
+    "TF_POISON",
+    "TF_SPRINKLESAND",
+    "TF_STEAL",
+    "TF_THROWSTONE",
+    "WS_CARTBOOST",
+    "WS_CARTTERMINATION",
+    "WS_OVERTHRUSTMAX",
+    "WZ_EARTHSPIKE",
+    "WZ_ESTIMATION",
+    "WZ_FIREPILLAR",
+    "WZ_FROSTNOVA",
+    "WZ_HEAVENDRIVE",
+    "WZ_JUPITEL",
+    "WZ_METEOR",
+    "WZ_QUAGMIRE",
+    "WZ_SIGHTBLASTER",
+    "WZ_SIGHTRASHER",
+    "WZ_STORMGUST",
+    "WZ_VERMILION",
+    "WZ_WATERBALL"
+  ],
+  "sourceMetadata": {
+    "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+    "files": [
+      "db/pre-re/mob_skill_db.conf",
+      "db/pre-re/mob_db.conf",
+      "db/pre-re/item_db.conf",
+      "db/pre-re/job_db.conf",
+      "db/pre-re/exp_group_db.conf",
+      "db/pre-re/skill_db.conf",
+      "db/pre-re/skill_tree.conf",
+      "db/pre-re/attr_fix.conf",
+      "db/pre-re/size_fix.txt",
+      "db/pre-re/autospell_db.conf",
+      "db/pre-re/unit_parameters_db.conf",
+      "npc/merchants/refine.txt",
+      "npc/pre-re/mobs/fields/geffen.txt",
+      "npc/pre-re/mobs/fields/payon.txt",
+      "npc/pre-re/mobs/fields/prontera.txt",
+      "db/job_db2.txt",
+      "db/pre-re/sc_config.conf",
+      "src/map/battle.c",
+      "src/map/status.c",
+      "src/map/skill.c",
+      "src/map/pc.c",
+      "src/map/pc.h",
+      "src/map/unit.c",
+      "src/map/mob.c",
+      "src/map/mob.h",
+      "db/produce_db.txt",
+      "npc/merchants/shops.txt",
+      "src/map/clif.c"
+    ]
+  },
+  "changedItems": {
+    "2344": {
+      "id": 2344,
+      "name": "Lucius's Fierce Armor of Volcano",
+      "aegisName": "Flame_Sprits_Armor",
+      "type": "equipment",
+      "slot": "armor",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 0,
+      "minLevel": 45,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "merchant",
+        "high_merchant",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator"
+      ],
+      "buyPrice": 136000,
+      "sellPrice": 68000,
+      "weight": 220,
+      "resource": "data/texture/유저인터페이스/item/불의갑옷.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false,
+      "equipSupported": true
+    },
+    "2345": {
+      "id": 2345,
+      "name": "Lucius's Fierce Armor of Volcano",
+      "aegisName": "Flame_Sprits_Armor_",
+      "type": "equipment",
+      "slot": "armor",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 1,
+      "minLevel": 45,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 136000,
+      "sellPrice": 68000,
+      "weight": 220,
+      "resource": "data/texture/유저인터페이스/item/불의갑옷.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false,
+      "equipSupported": true
+    },
+    "2346": {
+      "id": 2346,
+      "name": "Saphien's Armor of Ocean",
+      "aegisName": "Water_Sprits_Armor",
+      "type": "equipment",
+      "slot": "armor",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 0,
+      "minLevel": 45,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "merchant",
+        "high_merchant",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator"
+      ],
+      "buyPrice": 136000,
+      "sellPrice": 68000,
+      "weight": 220,
+      "resource": "data/texture/유저인터페이스/item/물의갑옷.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false,
+      "equipSupported": true
+    },
+    "2347": null,
+    "2348": {
+      "id": 2348,
+      "name": "Aebecee's Raging Typhoon Armor",
+      "aegisName": "Wind_Sprits_Armor",
+      "type": "equipment",
+      "slot": "armor",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 0,
+      "minLevel": 45,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "merchant",
+        "high_merchant",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator"
+      ],
+      "buyPrice": 136000,
+      "sellPrice": 68000,
+      "weight": 220,
+      "resource": "data/texture/유저인터페이스/item/바람의갑옷.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false,
+      "equipSupported": true
+    },
+    "2349": null,
+    "2350": {
+      "id": 2350,
+      "name": "Claytos Cracking Earth Armor",
+      "aegisName": "Earth_Sprits_Armor",
+      "type": "equipment",
+      "slot": "armor",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 0,
+      "minLevel": 45,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "merchant",
+        "high_merchant",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator"
+      ],
+      "buyPrice": 136000,
+      "sellPrice": 68000,
+      "weight": 220,
+      "resource": "data/texture/유저인터페이스/item/땅의갑옷.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false,
+      "equipSupported": true
+    },
+    "2351": null,
+    "4054": {
+      "id": 4054,
+      "name": "Angeling Card",
+      "aegisName": "Angeling_Card",
+      "type": "card",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 20,
+      "sellPrice": 10,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/이름없는카드.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false
+    },
+    "4119": null
+  },
+  "changedSkills": {
+    "pf_fogwall": {
+      "id": "pf_fogwall",
+      "name": "Nevoeiro Ofuscante",
+      "kind": "buff",
+      "maxLevel": 1,
+      "herculesId": 404,
+      "sourceName": "PF_FOGWALL",
+      "mechanic": "PF_FOGWALL",
+      "implementation": "supported",
+      "description": "Cria um nevoeiro ao redor do personagem por 20 segundos. Contra ataques normais à distância, reduz a precisão do atacante em 50 pontos percentuais e o dano em 75%; reduz o dano de habilidades diretas em 25%. O efeito de Cegueira nos ocupantes do campo ainda não é simulado.",
+      "iconResource": "data/texture/유저인터페이스/item/pf_fogwall.bmp",
+      "spCost": [
+        25
+      ],
+      "power": [
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        0
+      ],
+      "afterCastDelayMs": [
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1
+      ],
+      "sourceHitCount": [
+        1
+      ],
+      "aoeRadius": [
+        0
+      ],
+      "range": [
+        9
+      ],
+      "targetType": "ground",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "sa_deluge",
+          "level": 2
+        },
+        {
+          "skillId": "sa_violentgale",
+          "level": 2
+        }
+      ],
+      "prerequisitesByClass": {
+        "professor": [
+          {
+            "skillId": "sa_deluge",
+            "level": 2
+          },
+          {
+            "skillId": "sa_violentgale",
+            "level": 2
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "element": "earth",
+      "statusEffect": "SC_FOGWALL",
+      "statusDurationMs": [
+        10000
+      ],
+      "groundDurationMs": [
+        20000
+      ],
+      "groundIntervalMs": -1,
+      "durationMs": 20000
+    },
+    "sa_deluge": {
+      "id": "sa_deluge",
+      "name": "Deluge",
+      "kind": "buff",
+      "maxLevel": 5,
+      "herculesId": 286,
+      "sourceName": "SA_DELUGE",
+      "mechanic": "SA_DELUGE",
+      "implementation": "unsupported",
+      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "description": "Deluge. Aplica DELUGE. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "iconResource": "data/texture/유저인터페이스/item/sa_deluge.bmp",
+      "spCost": [
+        48,
+        46,
+        44,
+        42,
+        40
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        5000,
+        5000,
+        5000,
+        5000,
+        5000
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "range": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "targetType": "ground",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "sa_frostweapon",
+          "level": 2
+        }
+      ],
+      "prerequisitesByClass": {
+        "sage": [
+          {
+            "skillId": "sa_frostweapon",
+            "level": 2
+          }
+        ],
+        "professor": [
+          {
+            "skillId": "sa_frostweapon",
+            "level": 2
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "element": "water",
+      "statusEffect": "SC_DELUGE",
+      "statusDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundIntervalMs": -1,
+      "durationMs": 60000,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ]
+      ]
+    },
+    "sa_violentgale": {
+      "id": "sa_violentgale",
+      "name": "Whirlwind",
+      "kind": "buff",
+      "maxLevel": 5,
+      "herculesId": 287,
+      "sourceName": "SA_VIOLENTGALE",
+      "mechanic": "SA_VIOLENTGALE",
+      "implementation": "unsupported",
+      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "description": "Whirlwind. Aplica VIOLENTGALE. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "iconResource": "data/texture/유저인터페이스/item/sa_violentgale.bmp",
+      "spCost": [
+        48,
+        46,
+        44,
+        42,
+        40
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        5000,
+        5000,
+        5000,
+        5000,
+        5000
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "range": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "targetType": "ground",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "sa_lightningloader",
+          "level": 2
+        }
+      ],
+      "prerequisitesByClass": {
+        "sage": [
+          {
+            "skillId": "sa_lightningloader",
+            "level": 2
+          }
+        ],
+        "professor": [
+          {
+            "skillId": "sa_lightningloader",
+            "level": 2
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "element": "wind",
+      "statusEffect": "SC_VIOLENTGALE",
+      "statusDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundIntervalMs": -1,
+      "durationMs": 60000,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ]
+      ]
+    },
+    "sa_volcano": {
+      "id": "sa_volcano",
+      "name": "Volcano",
+      "kind": "buff",
+      "maxLevel": 5,
+      "herculesId": 285,
+      "sourceName": "SA_VOLCANO",
+      "mechanic": "SA_VOLCANO",
+      "implementation": "unsupported",
+      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "description": "Volcano. Aplica VOLCANO. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "iconResource": "data/texture/유저인터페이스/item/sa_volcano.bmp",
+      "spCost": [
+        48,
+        46,
+        44,
+        42,
+        40
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        5000,
+        5000,
+        5000,
+        5000,
+        5000
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "range": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "targetType": "ground",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "flame_enchant",
+          "level": 2
+        }
+      ],
+      "prerequisitesByClass": {
+        "sage": [
+          {
+            "skillId": "flame_enchant",
+            "level": 2
+          }
+        ],
+        "professor": [
+          {
+            "skillId": "flame_enchant",
+            "level": 2
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "element": "fire",
+      "statusEffect": "SC_VOLCANO",
+      "statusDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundDurationMs": [
+        60000,
+        120000,
+        180000,
+        240000,
+        300000
+      ],
+      "groundIntervalMs": -1,
+      "durationMs": 60000,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 715,
+            "quantity": 1
+          }
+        ]
+      ]
+    }
+  }
+}

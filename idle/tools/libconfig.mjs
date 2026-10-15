@@ -74,8 +74,10 @@ export function parseConfig(text) {
         take();
         return array;
     } if (token.v === 'true' || token.v === 'false')
-        return token.v === 'true'; if (/^-?(?:\d+(?:\.\d+)?|0x[\da-f]+)$/i.test(token.v))
-        return Number(token.v); return token.v; }
+        return token.v === 'true'; if (/^-?(?:\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?|0x[\da-f]+(?:_[\da-f]+)*)$/i.test(token.v)) {
+        const literal = token.v.replaceAll('_', '');
+        return /^-0x/i.test(literal) ? -Number(literal.slice(1)) : Number(literal);
+    } return token.v; }
     function object(end) { const out = {}; const duplicates = new Set(); while (cursor < tokens.length && peek() !== end) {
         if (peek() === ',' || peek() === ';') {
             take();
@@ -101,6 +103,11 @@ export function parseConfig(text) {
     } return out; }
     return object();
 }
+
+/** Return every object entry in source order, expanding duplicate keys which parseConfig stores as arrays. */
+export function orderedConfigEntries(record) {
+    return Object.entries(record ?? {}).flatMap(([key, value]) => (Array.isArray(value) ? value : [value]).map(entry => [key, entry]));
+}
 export function resolveInheritance(entries, name, trail = []) {
     if (trail.includes(name))
         throw new Error(`Inheritance cycle: ${[...trail, name].join(' -> ')}`);
@@ -108,9 +115,18 @@ export function resolveInheritance(entries, name, trail = []) {
     if (!own)
         throw new Error(`Unknown inherited entry ${name}`);
     let result = {};
-    for (const parent of own.Inherit ?? [])
-        result = { ...result, ...resolveInheritance(entries, parent, [...trail, name]) };
+    let inheritedBaseASPD;
+    for (const parent of own.Inherit ?? []) {
+        const resolved = resolveInheritance(entries, parent, [...trail, name]);
+        result = { ...result, ...resolved };
+        // Native status_read_job_db copies the whole final parent's array, including defaults.
+        inheritedBaseASPD = resolved.BaseASPD;
+    }
     result = { ...result, ...own };
+    if (own.BaseASPD !== undefined || inheritedBaseASPD !== undefined)
+        result.BaseASPD = { ...inheritedBaseASPD, ...own.BaseASPD };
+    else
+        delete result.BaseASPD;
     if (own.InheritHP)
         result.HPTable = resolveInheritance(entries, own.InheritHP[0], [...trail, name]).HPTable;
     if (own.InheritSP)

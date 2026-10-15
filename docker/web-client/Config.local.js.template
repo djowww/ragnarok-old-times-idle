@@ -1,5 +1,11 @@
-window.ROConfigLocal = {
-	remoteClient: 'http://127.0.0.1:8080/',
+(function configureLocalROClient() {
+	const localHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+	const remoteClient = localHost ? 'http://127.0.0.1:8080/' : '/assets/';
+	const socketProxy = localHost
+		? 'ws://127.0.0.1:5999/'
+		: `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/`;
+	window.ROConfigLocal = {
+	remoteClient,
 	skipIntro: true,
 	servers: [
 		{
@@ -13,9 +19,10 @@ window.ROConfigLocal = {
 			renewal: false,
 			worldMapSettings: { episode: 12 },
 			packetKeys: false,
-			socketProxy: 'ws://127.0.0.1:5999/',
+			socketProxy,
 			forceUseAddress: true,
 			adminList: [2000000]
 		}
 	]
-};
+	};
+})();

@@ -26,11 +26,14 @@ export interface SpriteFrame {
     height: number;
     rgba: Uint8ClampedArray;
     type: 0 | 1;
+    /** Original palette indexes, retained so a client .pal can recolor this frame. */
+    indexedPixels?: Uint8Array;
 }
 export interface DecodedSprite {
     version: number;
     indexedCount: number;
     frames: SpriteFrame[];
+    palette?: Uint8Array;
 }
 export function decodeSPR(data: ArrayBuffer): DecodedSprite {
     const r = new BinaryReader(data);
@@ -103,7 +106,7 @@ export function decodeSPR(data: ArrayBuffer): DecodedSprite {
                     rgba[dst + 3] = bytes[src];
                 }
             }
-        return { width, height, type, rgba };
+        return { width, height, type, rgba, ...(type === 0 ? { indexedPixels: bytes } : {}) };
     });
-    return { version, indexedCount, frames };
+    return { version, indexedCount, frames, ...(palette ? { palette: new Uint8Array(palette) } : {}) };
 }
