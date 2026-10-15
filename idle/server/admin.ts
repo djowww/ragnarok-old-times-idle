@@ -1,3 +1,4 @@
+import {reconcileWeaponRefine} from '../engine/weaponRefine.js';
 import {reconcileFalcon} from '../engine/falcon.js';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
@@ -320,12 +321,14 @@ export function registerAdminRoutes(
       await repository.transactCooperatively(requestId, async state => {
         const settled = await advanceStateCooperatively(state, catalog, at, context);
         applyAction(settled, catalog, action, at);
+        reconcileWeaponRefine(settled,catalog,at);
         return settled;
       }, fingerprint);
     } else {
       await repository.transact(requestId, state => {
         const settled = advanceState(state, catalog, at, context);
         applyAction(settled, catalog, action, at);
+        reconcileWeaponRefine(settled,catalog,at);
         return settled;
       }, fingerprint);
     }

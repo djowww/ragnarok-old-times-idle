@@ -82,13 +82,50 @@ for (const [name, value] of Object.entries(jobs))
 const skillByName = Object.fromEntries(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));
 // Source formulas and job bonuses are pinned alongside the databases. They are
 // audited data; the exporter never evaluates Hercules C or item scripts.
-for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf', 'npc/merchants/renters.txt', 'src/map/map.h', 'conf/map/battle/player.conf', 'conf/map/battle/skill.conf', 'conf/map/battle/battle.conf']) {
+for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/refine_db.conf', 'src/map/refine.c', 'src/map/clif.h', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf', 'npc/merchants/renters.txt', 'src/map/map.h', 'conf/map/battle/player.conf', 'conf/map/battle/skill.conf', 'conf/map/battle/battle.conf']) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
     const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
     if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
     buffers[path] = buffer;
     manifest.sources.push({ path, url, sha256: sha(buffer) });
 }
+const refineSource = parseConfig(buffers['db/pre-re/refine_db.conf'].toString('utf8'));
+const normalRefineRates = [1,2,3,4].map(level => {
+    const rates = refineSource['WeaponLevel'+level]?.Rates;
+    if (!rates) throw new Error('Missing native weapon refinement rates '+level);
+    return Array.from({length:10},(_,index)=>rates['Lv'+(index+1)]?.NormalChance ?? 100);
+});
+const expectedRefineRates = [
+ [100,100,100,100,100,100,100,60,40,19], [100,100,100,100,100,100,60,40,20,19],
+ [100,100,100,100,100,60,50,20,20,19], [100,100,100,100,60,40,40,20,20,9],
+];
+if(JSON.stringify(normalRefineRates)!==JSON.stringify(expectedRefineRates))
+ throw new Error('Native normal weapon-refine rates changed');
+const refineSkill=skillByName.WS_WEAPONREFINE;
+if(refineSkill?.Id!==477||refineSkill.MaxLevel!==10||refineSkill.Requirements?.SPCost!==5||
+ Object.keys(refineSkill.Requirements).length!==1||!refineSkill.SkillType?.Self||!refineSkill.DamageType?.NoDamage||
+ (refineSkill.CastTime??0)!==0||(refineSkill.AfterCastActDelay??0)!==0||(refineSkill.CoolDown??0)!==0)
+ throw new Error('Native Weapon Refine activation changed');
+const refineHandler=buffers['src/map/skill.c'].toString('utf8').split('static void skill_weaponrefine(')[1]?.split('static void skill_autospell_select_spell_pc')[0];
+for(const fragment of ['ITEMID_PHRACON','ITEMID_EMVERETARCON','ITEMID_ORIDECON',
+ 'per += 5 * (sd->status.job_level - 50)','per > rnd() % 1000','item->refine >= sd->menuskill_val','item->refine >= 10'])
+ if(!refineHandler?.includes(fragment))throw new Error('Native Weapon Refine handler changed: '+fragment);
+manifest.weaponRefine = {
+ source:'db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011',
+ normalRates:normalRefineRates, materialByWeaponLevel:[1010,1011,984,984], baseSpOnOpen:5, zenyCost:0,
+ rateIndex:'current refinement 0..9; source LvN maps to target refinement N; omitted NormalChance defaults100',
+ threshold:'normalPercent*10 + 5*(responseJobLevel-50); no clamp before strict comparison',
+ random:'consume one ore, then exactly one raw uint32 RNG modulo1000, including guaranteed outcomes',
+ learnedLimit:'full learned skill level captured at menu opening, not configured use level',
+ failure:'destroy the selected weapon with cards and bonuses; no SP charged at answer or cancellation',
+ adaptations:['Durable profile-bound menu survives reconnect and restart.',
+  'Repeat legitimate learned/class, identification and unequipped guards at answer.',
+  'Favorites and broken weapons remain eligible; successful refinement does not repair.',
+  'UID plus explicit persisted-item signature, captured menu offer list and one-shot answer.',
+  'Death, map warp, incompatible class/skill or catalog change close the menu without refund.',
+  'Matching-menu rejection commits a visible result instead of rolling back by exception.',
+  'Current solo domain has no forged-maker fame system.']
+};
 const falconRental=buffers['npc/merchants/renters.txt'].toString('utf8');
 for(const fragment of ['Falcon Breeder','Job_Hunter','HT_FALCON','2500'])
     if(!falconRental.includes(fragment)) throw new Error('Pinned Falcon breeder changed: '+fragment);
@@ -339,6 +376,7 @@ activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
 activeSpecial.add('HT_DETECTING');
+activeSpecial.add('WS_WEAPONREFINE');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
@@ -402,6 +440,7 @@ const descriptions = {
     MO_STEELBODY: 'Consome cinco esferas e 200 SP. Fixa DEF e DEFM de equipamentos em 90, reduz a velocidade de ataque e fixa o tempo por célula em 200 ms. Permite ataques normais e impede habilidades durante 30 segundos por nível.',
     LK_BERSERK: 'Frenesi triplica o HP máximo e recupera o HP ao ativar; zera SP e defesas, reduz esquiva e acelera ataques e caminhada. Bloqueia habilidades, itens e troca de equipamentos. Drena 5% do HP máximo a cada 15 segundos, até 5 minutos. Ao terminar, limita HP a 100 e bloqueia recuperação natural por 5 minutos.',
     ASC_EDP: 'Consome uma Garrafa de Veneno. Aumenta dano de arma antes da defesa e permite Veneno Mortal em ataques normais, sem mudar o elemento da arma. Garrafas podem ser compradas na loja do Idle; estudar Criar Veneno Mortal cumpre o pré-requisito, mas sua produção ainda não está disponível.',
+    WS_WEAPONREFINE: 'Abre uma lista de armas identificadas e desequipadas por 5 SP, sujeitos aos modificadores de custo. O nível aprendido limita o refino; o Job atual modifica a chance. Cada tentativa consome Phracon, Emveretarcon ou Oridecon conforme o nível da arma, sem zeny. Na falha, a arma e suas cartas e bônus são destruídos. Cancelar não devolve o SP.',
     HT_SKIDTRAP: 'Coloca uma armadilha no chão, verificada a cada segundo. Empurra o inimigo na direção oposta à que ele está olhando; chefes e monstros imunes não são empurrados. Na rotação, mantém uma cópia armada de cada habilidade.',
     HT_ANKLESNARE: 'Armadilha fixa que prende o movimento de um inimigo sem impedir seus ataques. Duração reduzida por AGI e contra chefes, com mínimo de 5 segundos. Consome 1 Armadilha.',
     HT_SANDMAN: 'Armadilha de Sono em área de 5 × 5 células. Chance base de 40 + 10 × nível por cento, antes das resistências; dano acorda o alvo. Consome 1 Armadilha.',
@@ -438,7 +477,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -477,6 +516,7 @@ for (const name of skillNames) {
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
+        ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
         ...(name === 'LK_TENSIONRELAX' && { manualUse: 'rest' }),
         ...(name === 'KN_RIDING' && { manualUse: 'mount' }),
@@ -520,6 +560,7 @@ for (const name of skillNames) {
     };
 manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
 }
+manifest.skillSources.ws_weaponrefine.adaptation = manifest.weaponRefine.adaptations.join(' ');
 manifest.skillSources.ws_meltdown.adaptation = 'Native self buff at the selected learned level; SkillData1 lifetime15–60s, original SP/cast clocks, physical-hit weapon/armor break chances100/70 per level on scale10000. MD_BOSS immunity; native strip Lv0 overlap, duration from RG_STRIP_*Lv1. One additional-effect phase per living hit target, excluding Cart Termination/Tomahawk/Reflect Shield. AFK skips all-boss battles. NoSave buff and captured level are process-local, cleared on caster new connection/logout; NoDeathReset survives defeat. Monster NoSave strips remain on the same live instance across caster reconnect/logout, disappear on process restart and never transfer to a respawn ID. Emperium rejects status before its draw; BG/Gravity Control systems are absent. Native generic equipment-break contributions are not produced by the current solo engine.';
 manifest.skillSources.bs_findingore.adaptation = 'Native passive direct-PC owned-kill proc: uniform choice among the ordered20-entry ITMCHAIN_ORE table, followed by strict roll below chance on scale10000. Exactly two draws, including failures; no rates, LUK or level scaling. Uses normal floor loot and capacity handling. Current solo world has one PC damage owner; ally/pet/homunculus killing is not modeled.';
 manifest.skillSources.cr_slimpitcher.adaptation = 'Solo self-centered ground cast; source range3 and radius3 retained, without party targets. Used level selects Red/Yellow/White Slim Potion at1–5/6–9/10, one item and30SP. Native1000ms base cast and1000ms aftercast, no extra drinking cooldown. Learned Slim/Pitcher/LearningPotion and target VIT/Recovery enter staged truncation. Existing deterministic raw item-heal midpoints55/205/365HP replace the native shared random raw heal. Generic caster heal bonus is excluded by default skill_add_heal_rate7; current specific/heal2/status modifiers have no producers and pass zero. AFK retains configured HP threshold capped70% and offense between support actions.';
@@ -640,7 +681,8 @@ for (const line of buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/))
         if (Number.isSafeInteger(values[i]) && values[i] > 0) protectedReagentIds.add(values[i]);
 }
 for(const recipe of pharmacyRecipes)protectedReagentIds.add(recipe.outputItemId);
-manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY'],
+for(const id of [1010,1011,984])protectedReagentIds.add(id);
+manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY', 'src/map/skill.c WS_WEAPONREFINE material array'],
     behavior: 'Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available.' };
 function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);

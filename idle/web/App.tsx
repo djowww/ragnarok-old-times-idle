@@ -40,6 +40,7 @@ import Build from "./panels/Build";
 import SenseInspection from "./panels/SenseInspection";
 import ConverterCraft from "./panels/ConverterCraft";
 import PharmacyCraft from "./panels/PharmacyCraft";
+import WeaponRefine, {useWeaponRefineWindow} from "./panels/WeaponRefine";
 import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges, { type ChallengeFilter } from "./panels/Challenges";
@@ -54,14 +55,14 @@ import type { MapStatus } from "./components/OriginalMap";
 import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "converters" | "pharmacy" | "admin";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "converters" | "pharmacy" | "weaponRefine" | "admin";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
   city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
-  converters: "Conversores elementais", pharmacy: "Preparar poções", admin: "Administração",
+  converters: "Conversores elementais", pharmacy: "Preparar poções", weaponRefine: "Refino de arma", admin: "Administração",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -494,7 +495,14 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
     setChallengeFilter(filter);
     openWindow("challenges", trigger);
   };
+  const weaponRefineWindow = useWeaponRefineWindow({
+    state: game.snapshot?.state, profileId: identity.profileId, ready: enteredWorld,
+    active: activeWindow === "weaponRefine", busy: game.busy, command: game.command,
+    onOpen: () => { setBookOpen(false); setPotionEditor(null); setActiveWindow("weaponRefine"); },
+    onClose: () => { setActiveWindow(null); window.setTimeout(() => focusWindowTrigger()?.focus(), 0); },
+  });
   const closeWindow = () => {
+    if (weaponRefineWindow.close()) return;
     setActiveWindow(null);
     window.setTimeout(() => focusWindowTrigger()?.focus(), 0);
   };
@@ -512,7 +520,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [activeWindow, bookOpen, potionEditor, rewardQuestId]);
+  }, [activeWindow, bookOpen, potionEditor, rewardQuestId, game.busy, weaponRefineWindow.closing]);
   useEffect(() => {
     if (!areaId && game.catalog)
       setAreaId(game.snapshot?.state.areaId ?? game.catalog.areas[0].id);
@@ -934,6 +942,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         <h2>{windowTitles[activeWindow]}</h2>
                         <button type="button" className="ro-window-close"
                           ref={windowClose} aria-label="Fechar janela"
+                          disabled={activeWindow === "weaponRefine" && (game.busy || weaponRefineWindow.closing)}
                           onClick={closeWindow}>×</button>
                       </div>
                       <div className="ro-window-content">
@@ -941,7 +950,8 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "equipment" &&
                           <ClassicEquipment {...props} onInventory={() => setActiveWindow("inventory")} />}
                         {activeWindow === "inventory" && <Inventory {...props} />}
-                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} onOpenPharmacy={trigger => openWindow("pharmacy", trigger)} />}
+                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} onOpenPharmacy={trigger => openWindow("pharmacy", trigger)}
+                          onOpenWeaponRefine={trigger => openWindow("weaponRefine", trigger)} />}
                         {activeWindow === "world" && <>
                           <div className="ro-journey-summary" role="group" aria-label="Sua jornada">
                             <span>Abates <b>{number(state.totals.kills)}</b></span>
@@ -958,6 +968,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "city" && <CityServices catalog={catalog} onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
                         {activeWindow === "converters" && <ConverterCraft {...props} />}
                         {activeWindow === "pharmacy" && <PharmacyCraft {...props} />}
+                        {activeWindow === "weaponRefine" && <WeaponRefine {...props} />}
                         {activeWindow === "blacksmith" && <Blacksmith {...props} />}
                         {activeWindow === "stylist" && <Stylist {...props} />}
                         {activeWindow === "admin" && <Admin {...props} identity={identity} onAuthRequired={onAuthRequired} onChanged={() => void game.retry()} />}

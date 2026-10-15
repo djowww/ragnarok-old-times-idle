@@ -193,6 +193,21 @@
       "sha256": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
     },
     {
+      "path": "db/pre-re/refine_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/refine_db.conf",
+      "sha256": "379b165bb1885627a7d0838ace7a9c6c6748e2ef5eb6a02d540aeb5d29c9349e"
+    },
+    {
+      "path": "src/map/refine.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/refine.c",
+      "sha256": "f37278ea0f021009c6a5a75983cbc44fed2bcd62c3767f05481c6303005a0bc0"
+    },
+    {
+      "path": "src/map/clif.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/clif.h",
+      "sha256": "625470b65d182fc5bdd3f4c62545d6271bcf6fe041eaa773dd24ce9be88476e3"
+    },
+    {
       "path": "db/pre-re/item_chain.conf",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_chain.conf",
       "sha256": "4f754f6f528a6902c759363ce7970ad74d3840ccef6c32024196b9e3c4338f2d"
@@ -11202,10 +11217,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Durable profile-bound menu survives reconnect and restart. Repeat legitimate learned/class, identification and unequipped guards at answer. Favorites and broken weapons remain eligible; successful refinement does not repair. UID plus explicit persisted-item signature, captured menu offer list and one-shot answer. Death, map warp, incompatible class/skill or catalog change close the menu without refund. Matching-menu rejection commits a visible result instead of rolling back by exception. Current solo domain has no forged-maker fame system."
     },
     "ws_carttermination": {
       "id": 485,
@@ -13716,6 +13731,81 @@
     "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
     "redistributed": false
   },
+  "weaponRefine": {
+    "source": "db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011",
+    "normalRates": [
+      [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        60,
+        40,
+        19
+      ],
+      [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        60,
+        40,
+        20,
+        19
+      ],
+      [
+        100,
+        100,
+        100,
+        100,
+        100,
+        60,
+        50,
+        20,
+        20,
+        19
+      ],
+      [
+        100,
+        100,
+        100,
+        100,
+        60,
+        40,
+        40,
+        20,
+        20,
+        9
+      ]
+    ],
+    "materialByWeaponLevel": [
+      1010,
+      1011,
+      984,
+      984
+    ],
+    "baseSpOnOpen": 5,
+    "zenyCost": 0,
+    "rateIndex": "current refinement 0..9; source LvN maps to target refinement N; omitted NormalChance defaults100",
+    "threshold": "normalPercent*10 + 5*(responseJobLevel-50); no clamp before strict comparison",
+    "random": "consume one ore, then exactly one raw uint32 RNG modulo1000, including guaranteed outcomes",
+    "learnedLimit": "full learned skill level captured at menu opening, not configured use level",
+    "failure": "destroy the selected weapon with cards and bonuses; no SP charged at answer or cancellation",
+    "adaptations": [
+      "Durable profile-bound menu survives reconnect and restart.",
+      "Repeat legitimate learned/class, identification and unequipped guards at answer.",
+      "Favorites and broken weapons remain eligible; successful refinement does not repair.",
+      "UID plus explicit persisted-item signature, captured menu offer list and one-shot answer.",
+      "Death, map warp, incompatible class/skill or catalog change close the menu without refund.",
+      "Matching-menu rejection commits a visible result instead of rolling back by exception.",
+      "Current solo domain has no forged-maker fame system."
+    ]
+  },
   "falconRules": {
     "source": "npc/merchants/renters.txt:166..241; skill.c:1628..1641,12453..12461; battle.c:264..355,4411..4434,4649..4702",
     "rentalZeny": 2500,
@@ -14813,8 +14903,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 266,
-    "unsupported": 82,
+    "supported": 267,
+    "unsupported": 81,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14983,8 +15073,8 @@
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 24,
-        "unsupported": 20
+        "supported": 25,
+        "unsupported": 19
       },
       "alchemist": {
         "sourceTree": 35,
@@ -15243,6 +15333,7 @@
       "BS_UNFAIRLYTRICK",
       "WS_MELTDOWN",
       "WS_CARTBOOST",
+      "WS_WEAPONREFINE",
       "WS_CARTTERMINATION",
       "WS_OVERTHRUSTMAX",
       "AM_AXEMASTERY",
@@ -15575,11 +15666,6 @@
         "skillId": "bs_adrenaline2",
         "sourceName": "BS_ADRENALINE2",
         "reason": "Requer estado de Espírito da classe, ainda não implementado."
-      },
-      {
-        "skillId": "ws_weaponrefine",
-        "sourceName": "WS_WEAPONREFINE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
         "skillId": "am_cannibalize",
@@ -15996,7 +16082,8 @@
   "materialProtection": {
     "sources": [
       "db/pre-re/skill_db.conf ItemCost",
-      "db/produce_db.txt AM_PHARMACY"
+      "db/produce_db.txt AM_PHARMACY",
+      "src/map/skill.c WS_WEAPONREFINE material array"
     ],
     "behavior": "Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available."
   },
@@ -16332,7 +16419,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "11ea744d754bc9ce4676de2d6573936df59c890a01e88f14778e175603415ae4",
+  "rulesSha256": "930c9a5ff31c8e1f46ae85f44238c8e6ff500de006895b69ef2f6b745ad46cd8",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16387,6 +16474,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "b3e23418e34d2b3948e2c719d009675a346d3358eee703684892638b5cf4d7a6",
+  "catalogSha256": "f05e0a2f37dba20df233e6d43009713ccec505d1cec956c13105f3523dd7fff1",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

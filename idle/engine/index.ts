@@ -1,3 +1,4 @@
+import {reconcileWeaponRefine} from './weaponRefine.js';
 import {reconcileFalcon} from './falcon.js';
 import type {
   Catalog,
@@ -133,6 +134,7 @@ function* advanceStateSteps(
   migrateFieldNavigationState(s, s.status === 'paused' ? s.pausedAt ?? s.lastSimulatedAt : s.lastSimulatedAt, context);
   reconcileRemovedSkills(s, catalog);
   reconcileFalcon(s, catalog);
+  reconcileWeaponRefine(s,catalog,now);
   reconcileHuntFocus(s, catalog);
   if (s.status === "paused") return s;
   const limit = s.lastSeenAt + 12 * 3600000;
@@ -160,6 +162,7 @@ function* advanceStateSteps(
     if (s.status === "hunting" && s.areaId)
       recordAreaActivity(s, s.areaId, s.lastSimulatedAt, { elapsedMs: 250 });
     tick(s, catalog, s.lastSimulatedAt, 250, context);
+    reconcileWeaponRefine(s,catalog,s.lastSimulatedAt);
     yield;
   }
   pruneAreaActivity(s, until);

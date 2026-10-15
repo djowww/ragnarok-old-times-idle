@@ -41,6 +41,9 @@
       "npc/merchants/alchemist.txt",
       "npc/pre-re/merchants/shops.txt",
       "src/map/clif.c",
+      "db/pre-re/refine_db.conf",
+      "src/map/refine.c",
+      "src/map/clif.h",
       "db/pre-re/item_chain.conf",
       "src/map/itemdb.c",
       "src/map/script.c",
@@ -51,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "7183f8098028b6d0886dc4d1b77388d6e610d7376cf3a6e6740c8b40a85cf706"
+    "hash": "12fad1b1cb7d6b2ea692ed2400636ff6f9e4d01e6d863dc0787847c5cd70729f"
   },
   "rates": {
     "baseExp": 4,
@@ -22804,7 +22807,7 @@
       "id": 1010,
       "name": "Phracon",
       "aegisName": "Phracon",
-      "type": "loot",
+      "type": "material",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -22862,7 +22865,7 @@
       "id": 1011,
       "name": "Emveretarcon",
       "aegisName": "Emveretarcon",
-      "type": "loot",
+      "type": "material",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -111286,9 +111289,9 @@
       "herculesId": 477,
       "sourceName": "WS_WEAPONREFINE",
       "mechanic": "WS_WEAPONREFINE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Upgrade Weapon. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "weaponRefine",
+      "description": "Abre uma lista de armas identificadas e desequipadas por 5 SP, sujeitos aos modificadores de custo. O nível aprendido limita o refino; o Job atual modifica a chance. Cada tentativa consome Phracon, Emveretarcon ou Oridecon conforme o nível da arma, sem zeny. Na falha, a arma e suas cartas e bônus são destruídos. Cancelar não devolve o SP.",
       "iconResource": "data/texture/유저인터페이스/item/ws_weaponrefine.bmp",
       "spCost": [
         5,
