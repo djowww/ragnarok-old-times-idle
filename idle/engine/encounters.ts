@@ -8,7 +8,10 @@ import type {
   Skill,
   JointBeatPart,
 } from "../shared/types.js";
-import { addItem, consume, event, random } from "./state.js";
+import { consume, event, random } from "./state.js";
+import { pickupItem } from './lootPickup.js';
+import { overweightForCombat } from './itemCapacity.js';
+import { returnForCarry } from './carryReturn.js';
 import { castControlEligible,spellBreakerCastMs,findInterruptibleNpcCast,resolveSpellBreaker } from './castControl.js';
 import {conversionSpec} from './elementalConversionRules.js';
 import {elementalConversionEligible,elementalConversionTarget,resolveElementalConversion,expireElementalConversion} from './elementalConversion.js';
@@ -540,7 +543,7 @@ function expireHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["tr
     if (reagent && c.items[reagent.itemId]) {
       // Hercules drops one unused trap on the floor (also for Flasher's cost2).
       // Idle ground-loot collection uses the same inventory/visible-loot path.
-      addItem(s, c, reagent.itemId, 1);
+      pickupItem(s, c, reagent.itemId, 1, at, { source: 'trap', areaId: s.areaId ?? undefined, position: { ...trap.position } }, false);
       event(s, at, "loot", c.items[reagent.itemId].name, undefined, undefined,
         { itemId: reagent.itemId, quantity: 1, enemyPosition: { ...trap.position }, areaId: s.areaId ?? undefined });
     }
@@ -1449,7 +1452,8 @@ function awardKill(
       c.items[drop.itemId] &&
       random(s) * 10000 < Math.min(10000, drop.chance * c.rates.drop)
     ) {
-      addItem(s, c, drop.itemId, 1, true);
+      pickupItem(s, c, drop.itemId, 1, at, { source: 'monster', areaId, enemyId: enemy.id,
+        monsterId: monster.id, position: { ...enemyPosition } });
       if (!b.challengeId && s.areaId)
         recordAreaActivity(s, s.areaId, at, {
           lootZeny: c.items[drop.itemId].sellPrice,
@@ -1517,7 +1521,7 @@ function awardKill(
     s.challengeWins[ch.id] = previous + 1;
     s.challengeCooldowns[ch.id] = at + ch.cooldownMs;
     clearTrickDead(s, c, at);
-    if (!previous) grantReward(s, c, ch.firstReward, at);
+    if (!previous) grantReward(s, c, ch.firstReward, at, { source: 'challenge', challengeId: ch.id });
     cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
     s.status = "town";
     s.autoResume = false;
@@ -2292,7 +2296,8 @@ function resolveSkill(
     return true;
   }
   if (!groundTick && mechanic === 'TF_PICKSTONE') {
-    addItem(s, c, PICK_STONE_ITEM_ID, 1, false);
+    pickupItem(s, c, PICK_STONE_ITEM_ID, 1, at, { source: 'skill', areaId: s.areaId ?? undefined,
+      position: { ...battleHeroAt(s, at) } }, false);
     event(s, at, 'skill', 'Pedra coletada', 1, 'player', { skillId: skill.id, skillLevel: level,
       itemId: PICK_STONE_ITEM_ID, quantity: 1, targetActorId: s.id, ...action });
     return true;
@@ -3032,6 +3037,10 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
 
 function playerCombatAction(s: GameState, c: Catalog, at: number, context?: SimulationContext) {
   const b = s.battle!;
+  if (overweightForCombat(s, c) || s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= at) {
+    b.playerNextAttackAt = b.playerNextSkillAt = at + 250;
+    return;
+  }
   if (trickDeadActive(s, c, at)) return;
   const currentCast = currentPlayerCast(s, at);
   if (currentCast?.kind === 'support' && activeFreeCastLevel(s, c, at) === 0) return;
@@ -3181,7 +3190,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
 }
 
 type CombatDeadline = { at: number; priority: number; key: string } & (
-  { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" } |
+  { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" | 'carryReturn' } |
   { kind: "enemy" | "npcCast" | "targetCheck"; enemy: BattleEnemy } |
   { kind: "sightBlaster"; enemy: BattleEnemy } |
   { kind: "ruwach"; enemy: BattleEnemy } |
@@ -3251,6 +3260,8 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     const b = s.battle;
     const due: CombatDeadline[] = [];
     const add = (deadline: CombatDeadline) => { if (deadline.at <= until) due.push(deadline); };
+    const carryAt = s.carryReturnRequestedAt ?? (overweightForCombat(s, c) ? cursor : undefined);
+    if (carryAt !== undefined) add({ kind: 'carryReturn', at: Math.max(cursor, carryAt), priority: 100, key: 'carryReturn' });
     if (!b.challengeId) {
       const movement = [b.fieldDecisionAt ?? cursor, s.fieldHero?.arrivedAt,
         s.fieldHero?.moveBlockedUntil, ...(s.fieldPopulation?.respawns.map(entry => entry.at) ?? [])]
@@ -3355,7 +3366,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     const activePlayerCast = currentPlayerCast(s, cursor);
     const freeCastDuringCast = !!activePlayerCast && activeFreeCastLevel(s, c, cursor) > 0;
     const supportCastBlocksPlayer = activePlayerCast?.kind === 'support' && !freeCastDuringCast;
-    if (!trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).length || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
+    if (!overweightForCombat(s, c) && !(s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= cursor) && !trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).length || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
       const nextPlayerWork = freeCastDuringCast ? b.playerNextAttackAt
         : Math.min(b.playerNextAttackAt, b.playerNextSkillAt ?? b.playerNextAttackAt);
       const playerLock = freeCastDuringCast ? b.startedAt : b.playerActionReadyAt ?? 0;
@@ -3369,7 +3380,9 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     cursor = next.at;
     s.lastSimulatedAt = cursor;
     const target = enemies(s).find(e => e.id === b.targetId) ?? enemies(s)[0];
-    if (next.kind === "field") {
+    if (next.kind === 'carryReturn') {
+      returnForCarry(s, c, cursor);
+    } else if (next.kind === "field") {
       updateFieldActors(s, c, cursor, context);
       b.fieldDecisionAt = cursor + 250;
      } else if (next.kind === 'playerStatus') {
@@ -3521,7 +3534,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       if (s.battle && next.enemy.enemyNextAttackAt <= cursor) next.enemy.enemyNextAttackAt = cursor + 1;
     }
     else if (next.kind === "player") playerCombatAction(s, c, cursor, context);
-    if (s.battle?.fieldTransferReady && s.pendingAreaId) {
+    if (s.battle?.fieldTransferReady && s.pendingAreaId && s.carryReturnRequestedAt === undefined && !overweightForCombat(s, c)) {
       const area = c.areas.find(entry => entry.id === s.pendingAreaId);
       cancelSageEnchantCast(s, c, cursor, 'Conjuração encerrada pela troca de área.');
       freezeFieldHero(s, cursor);
@@ -3539,6 +3552,8 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       }
     }
   }
+  if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= until)
+    returnForCarry(s, c, s.carryReturnRequestedAt);
   if (diseaseTiming && until > recoveryCursor) recoverResources(s, c, until - .001, until - recoveryCursor);
   if (s.battle) s.battle.groundEffects = s.battle.groundEffects?.filter(g => g.expiresAt > until && (g.remainingHits ?? 1) > 0);
   } finally {
@@ -3568,6 +3583,9 @@ export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000, con
 }
 function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, diseaseTiming: boolean, context?: SimulationContext) {
   const replayingCombat = !!s.battle && (s.status === "hunting" || s.status === "challenge");
+  if (!replayingCombat && (s.status === 'hunting' || s.status === 'challenge') &&
+      (overweightForCombat(s, c) || s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= at))
+    returnForCarry(s, c, Math.max(at - elapsedMs, s.carryReturnRequestedAt ?? at - elapsedMs));
   if (!replayingCombat) {
     if (s.supportCast && s.supportCast.endsAt <= at)
       resolveSageEnchantCast(s, c, s.supportCast.endsAt);
@@ -3581,6 +3599,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
     // Saved field rests with the old thirty-second deadline are migrated in place.
     s.restUntil = 0;
     if (!diseaseTiming) recoverResources(s, c, at, elapsedMs);
+    if (overweightForCombat(s, c)) s.autoResume = false;
     if (!trickDeadActive(s, c, at) && s.autoResume && s.areaId && s.hp >= d.maxHp && s.sp >= d.maxSp) {
       endFieldRest(s, c);
       s.status = 'hunting'; delete s.restMode;
@@ -3597,6 +3616,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
       healFull(s, c);
       s.restUntil = 0;
       s.status = s.restMode === "field" && s.areaId ? "resting" : "town";
+      if (overweightForCombat(s, c)) s.autoResume = false;
       if (s.autoResume && s.areaId) {
         s.status = "hunting";
         s.restMode = undefined;

@@ -16,6 +16,7 @@ import { isPecoMounted, mountedCavalierPenalty } from './mountedPeco.js';
 import { playerDiseaseModifiers } from './playerStatusRules.js';
 import { activePlayerStatus } from './playerStatuses.js';
 import { currentPlayerCast } from './playerCast.js';
+import { inventoryCapacity } from './itemCapacity.js';
 export const statNames: Stat[] = ["str", "agi", "vit", "int", "dex", "luk"];
 export const MAX_BASE_STAT = 99;
 export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
@@ -64,21 +65,7 @@ export function classSkills(c: Catalog, jobId: string): string[] {
   return [...result];
 }
 export function inventoryLoad(s: GameState, c: Catalog) {
-  const weight = s.inventory.reduce(
-    (total, entry) => total + (c.items[entry.itemId]?.weight ?? 0) * entry.quantity,
-    0,
-  );
-  let carryLevel = 0;
-  for (const [id, level] of Object.entries(s.learnedSkills)) {
-    const skill = c.skills[id];
-    if (skill?.implementation !== "unsupported" &&
-        ["MC_INCCARRY", "ALL_INCCARRY"].includes(skill?.sourceName ?? ""))
-      carryLevel += Math.max(0, Math.min(skill.maxLevel, Math.floor(level)));
-  }
-  // Exported item and job weights use Hercules Weight / 10.
-  const maxWeight = (c.classes[s.job]?.baseWeight ?? 2000) + s.stats.str * 30 + 200 * carryLevel +
-    (isPecoMounted(s, c) ? 1000 : 0);
-  return { weight, maxWeight, recoveryBlocked: weight * 2 >= maxWeight };
+  return inventoryCapacity(s, c);
 }
 export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const effects: Effects = {};

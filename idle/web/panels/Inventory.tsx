@@ -12,7 +12,7 @@ import {
   type PanelProps,
 } from "../components/common";
 import { isItemIdentified, MAGNIFIER_ITEM_ID } from "../../shared/loot";
-import { classSkills } from "../../engine/stats";
+import { classSkills, inventoryLoad } from "../../engine/stats";
 import { classicBuffActive } from "../../engine/classicBuffs";
 
 export default function Inventory({
@@ -62,6 +62,20 @@ export default function Inventory({
       )
     : [];
   const town = state.status === "town";
+  const pendingLoot = state.pendingLoot ?? [];
+  const load = inventoryLoad(state, catalog);
+  const pendingWeight = pendingLoot.reduce(
+    (total, pending) => total + (catalog.items[pending.entry.itemId]?.weight ?? 0) * pending.entry.quantity,
+    0,
+  );
+  const formatWeight = (weight: number) => weight.toLocaleString("pt-BR", {
+    minimumFractionDigits: Number.isInteger(weight) ? 0 : 1,
+    maximumFractionDigits: 1,
+  });
+  const pendingSourceNames: Record<string, string> = {
+    monster: "Monstro", reward: "Recompensa", quest: "Missão",
+    challenge: "Desafio", steal: "Furto", trap: "Armadilha", skill: "Habilidade",
+  };
   const selectedCard = cards.find((e) => e.uid === cardUid);
   const materialId = item?.slot === "weapon" ? 984 : 985;
   const hasMaterial = state.inventory.some(
@@ -124,6 +138,57 @@ export default function Inventory({
             </button>
           </div>
         )}
+        {state.carryReturnAt !== undefined && (
+          <div className="notice inventory-carry-return" role="status">
+            A caça retornou a Prontera por causa do limite de peso. Venda loot comum ou aumente sua capacidade para voltar a caçar.
+          </div>
+        )}
+        {!!pendingLoot.length && (
+          <section className="pending-loot" aria-labelledby="pending-loot-title">
+            <div className="pending-loot-heading">
+              <div>
+                <h3 id="pending-loot-title">Aguardando espaço · {pendingLoot.length}</h3>
+                <p>{formatWeight(pendingWeight)} de peso guardado até caber na mochila.</p>
+              </div>
+              <button
+                className="primary"
+                disabled={busy || !town}
+                onClick={() => void command({ type: "collectPendingLoot" })}
+              >
+                Recolher itens
+              </button>
+            </div>
+            {!town && <p className="note">Volte a Prontera para recolher os itens pendentes.</p>}
+            <div className="pending-loot-list">
+              {pendingLoot.map((pending) => {
+                const { entry: pendingEntry, source } = pending;
+                const pendingItem = catalog.items[pendingEntry.itemId];
+                if (!pendingItem) return null;
+                const pendingIdentified = pendingItem.type !== "equipment" || isItemIdentified(pendingEntry);
+                const originName = pending.monsterId !== undefined
+                  ? catalog.monsters[pending.monsterId]?.name
+                  : pending.questId
+                    ? catalog.quests.find((quest) => quest.id === pending.questId)?.name
+                    : pending.challengeId
+                      ? catalog.challenges.find((challenge) => challenge.id === pending.challengeId)?.name
+                      : pending.areaId
+                        ? catalog.areas.find((area) => area.id === pending.areaId)?.name
+                        : undefined;
+                return (
+                  <div className="pending-loot-row" key={pendingEntry.uid} data-uid={pendingEntry.uid}>
+                    <ItemIcon item={pendingItem} />
+                    <span className="pending-loot-name">{itemName(pendingItem, pendingEntry)}</span>
+                    <span className="pending-loot-quantity">{number(pendingEntry.quantity)} un.</span>
+                    {pendingIdentified && pendingItem.type === "equipment" && (
+                      <span className="item-rarity-label">{itemRarityLabel(pendingEntry)}</span>
+                    )}
+                    <span className="pending-loot-source">{[pendingSourceNames[source] ?? "Item encontrado", originName].filter(Boolean).join(" · ")}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
         <div className="item-grid">
           {visible.map((e) => {
             const i = catalog.items[e.itemId];
@@ -163,14 +228,7 @@ export default function Inventory({
         <div className="inventory-footer">
           <span>
             {state.inventory.length} pilhas ·{" "}
-            {number(
-              state.inventory.reduce(
-                (total, e) =>
-                  total + catalog.items[e.itemId].weight * e.quantity,
-                0,
-              ),
-            )}{" "}
-            de peso
+            Peso {formatWeight(load.weight)} / {formatWeight(load.maxWeight)}
           </span>
           <button
             disabled={

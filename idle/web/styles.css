@@ -3581,3 +3581,70 @@ button.full {
     transform: none;
   }
 }
+
+.pending-loot {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #c8a85b;
+  background: #f7f1dc;
+  color: #493d25;
+}
+.pending-loot-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pending-loot-heading h3,
+.pending-loot-heading p {
+  margin: 0;
+}
+.pending-loot-heading h3 {
+  font-size: 14px;
+}
+.pending-loot-heading p,
+.pending-loot .note {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.pending-loot-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.pending-loot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px;
+  background: rgb(255 255 255 / 55%);
+}
+.pending-loot-row .item-icon {
+  flex: 0 0 28px;
+}
+.pending-loot-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pending-loot-quantity,
+.pending-loot-source {
+  flex: 0 0 auto;
+  color: #74684e;
+  font-size: 11px;
+}
+.inventory-carry-return {
+  border-color: #bd8b38;
+}
+@media (max-width: 520px) {
+  .pending-loot-heading {
+    align-items: flex-start;
+  }
+  .pending-loot-heading button {
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+}

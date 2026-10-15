@@ -275,7 +275,8 @@ describe('authoritative clock and combat', () => {
     expect(s.hp).toBeLessThanOrEqual(getSnapshot(s, c, 2000).stats.maxHp);
   });
   it('discards capped time while paused even after browser contact is refreshed', () => {
-    const c = fixture(); let s = applyCommand(createInitialState(c, 0), c, { type: 'startHunt', areaId: 'prontera' }, 0);
+    const c = fixture(); c.monsters[1002].drops = []; // Clock-only farm must not stop for carry capacity.
+    let s = applyCommand(createInitialState(c, 0), c, { type: 'startHunt', areaId: 'prontera' }, 0);
     s = advanceState(s, c, 13 * 3600000); const before = structuredClone(s.totals); s.lastSeenAt = 14 * 3600000;
     s = advanceState(s, c, 14 * 3600000 + 10000); expect(s.totals).toEqual(before); expect(s.status).toBe('paused');
     const restarted = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 14 * 3600000 + 10000);

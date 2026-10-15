@@ -5,7 +5,8 @@
 import type { BattleEnemy, Catalog, GameState, Skill } from '../shared/types.js';
 import { recordAreaActivity } from '../shared/hunt.js';
 import { derivedStats } from './stats.js';
-import { addItem, event, random } from './state.js';
+import { event, random } from './state.js';
+import { pickupItem } from './lootPickup.js';
 
 const itemBlockingStatuses = new Set(['STONE', 'STONEWAIT', 'FREEZE', 'STUN', 'SLEEP', 'WHITEIMPRISON']);
 const coinBlockingStatuses = new Set(['STONE', 'FREEZE']);
@@ -82,7 +83,8 @@ function stealAt(s: GameState, c: Catalog, skill: Skill, level: number, target: 
       const dropRate = Math.min(10000, Math.max(0, Math.floor(drop.chance * c.rates.drop)));
       if (Math.floor(random(s) * 10000) >= Math.floor(dropRate * rate / 100)) continue;
       target.stolenItem = true;
-      addItem(s, c, item.id, 1, true);
+      pickupItem(s, c, item.id, 1, at, { source: 'steal', areaId: s.areaId ?? undefined,
+        enemyId: target.id, monsterId: monster.id, position: target.position });
       record(item.sellPrice);
       event(s, at, 'loot', item.type === 'equipment' ? 'Equipamento não identificado' : item.name, undefined, undefined, {
         itemId: item.id, quantity: 1, skillId: skill.id, skillLevel: level,
