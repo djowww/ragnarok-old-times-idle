@@ -117,7 +117,7 @@ export function skillReadiness(skill: Skill, state: GameState, stats: DerivedSta
     if (state.inventory.filter(entry => entry.itemId === itemCost.itemId).reduce((amount, entry) => amount + entry.quantity, 0) < itemCost.quantity)
       reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
   if (skill.sourceName === "AS_CLOAKING" && level < 3) reasons.push("níveis 1–2 exigem paredes do mapa; disponível aqui a partir do nível 3");
-  if (skill.sourceName === 'AM_POTIONPITCHER') {
+  if (['AM_POTIONPITCHER','CR_SLIMPITCHER'].includes(skill.sourceName ?? '')) {
     const pitcherUsesSp = itemCosts.some(item => item.itemId === 505);
     const resource = pitcherUsesSp ? 'SP' : 'HP';
     const current = pitcherUsesSp ? state.sp : state.hp;

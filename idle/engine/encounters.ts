@@ -1,3 +1,4 @@
+import { findingOreItem } from './findingOre.js';
 import { itemElementResistance } from '../shared/consumables.js';
 import { consumeItem, consumeItemBlockReason, discardAloeveraUnderAutoBerserk, clearConsumableStatusesOnDeath } from "./consumables.js";
 import { applyMeltdownHit } from './meltdown.js';
@@ -1240,7 +1241,7 @@ function chooseSkill(
       !skill ||
       !level ||
       skill.kind === "passive" ||
-      skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
+      skill.manualUse && !configurableSkillUseLevel(skill) && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
@@ -1420,6 +1421,8 @@ function awardKill(
   at: number,
   skill?: Skill,
 ) {
+  // XP may level up and healFull; native ore eligibility belongs to the actual kill instant.
+  const oreOwnerWasAlive = s.hp > 0;
   if (s.combatEffects?.bladeStopLink?.partnerActorId === enemy.id) clearBladeStop(s, at);
   const b = s.battle!,
     monster = c.monsters[enemy.monsterId];
@@ -1477,6 +1480,12 @@ function awardKill(
         monsterId: monster.id,
       });
     }
+  const oreItemId=findingOreItem(s,c,oreOwnerWasAlive);
+  if(oreItemId!==undefined){
+    pickupItem(s,c,oreItemId,1,at,{source:'skill',areaId,enemyId:enemy.id,monsterId:monster.id,position:{...enemyPosition}});
+    if(!b.challengeId&&s.areaId)recordAreaActivity(s,s.areaId,at,{lootZeny:c.items[oreItemId].sellPrice});
+    event(s,at,'loot',c.items[oreItemId].name,undefined,undefined,{itemId:oreItemId,quantity:1,enemyId:enemy.id,enemyPosition:{...enemyPosition},areaId,monsterId:monster.id,skillId:'bs_findingore'});
+  }
   const drain =
     Object.entries(s.learnedSkills).find(
       ([id]) => c.skills[id]?.sourceName === "HW_SOULDRAIN",

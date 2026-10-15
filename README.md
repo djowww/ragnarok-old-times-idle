@@ -38,7 +38,7 @@ A versão de testes está em desenvolvimento e recebe melhorias frequentes.
 | Áreas de caça | 31 |
 | Classes nas árvores de progressão | 40 |
 | Habilidades importadas do Hercules | 348 |
-| Habilidades implementadas | 263 |
+| Habilidades implementadas | 265 |
 
 Habilidades que dependem de sistemas ainda ausentes aparecem como indisponíveis. O idle adapta algumas regras e recompensas; a reprodução integral de todos os sistemas e efeitos do RO ainda não está concluída.
 

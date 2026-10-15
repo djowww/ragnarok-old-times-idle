@@ -1,3 +1,5 @@
+import {calculateSlimPitcherRecovery,slimPotionItem} from './slimPitcherRules.js';
+import {discardAloeveraUnderAutoBerserk} from './consumables.js';
 /** Pinned Hercules410b9738 self-use of Meltdown and Potion Pitcher. */
 import type { Catalog, GameState, Skill } from '../shared/types.js';
 import { skillUseLevel, configurableSkillUseLevel } from '../shared/skillUseLevels.js';
@@ -50,12 +52,21 @@ export function potionPitcherRecovery(s: GameState, c: Catalog, level: number) {
     itemHealRatePct: 0, casterSkillHealBonusPct: 0, targetSkillHeal2BonusPct: 0,
     criticalWoundPct: 0, deathHurt: false, waterInsigniaLevel: 0, noRecover: false });
 }
+export function slimPitcherRecovery(s:GameState,c:Catalog,level:number){
+ const d=derivedStats(s,c),item=c.items[slimPotionItem(level)];
+ return calculateSlimPitcherRecovery({baseHP:item?.healHP??0,learnedSlimLevel:learnedSource(s,c,'CR_SLIMPITCHER'),
+  learnedPitcherLevel:learnedSource(s,c,'AM_POTIONPITCHER'),learningPotionLevel:learnedSource(s,c,'AM_LEARNINGPOTION'),
+  targetVIT:d.attributes?.vit??s.stats.vit,targetHPRecoveryLevel:learnedSource(s,c,'SM_RECOVERY'),
+  // These source modifiers have no producers in the current solo equipment/status catalog.
+  casterSkillHealBonusPct:0,targetSkillHeal2BonusPct:0,criticalWoundPct:0,deathHurt:false,waterInsigniaLevel:0,noRecover:false});
+}
+const healingRecovery=(s:GameState,c:Catalog,skill:Skill,level:number)=>skill.sourceName==='CR_SLIMPITCHER'?slimPitcherRecovery(s,c,level):potionPitcherRecovery(s,c,level);
 /** Idle automation policy is separate from the native manual self-use transaction. */
 export function soloAlchemyAfkUseful(s: GameState, c: Catalog, skill: Skill, level: number, at: number): boolean {
   if (!soloAlchemyCanStart(s, c, skill, level, at)) return false;
   if (skill.sourceName === 'WS_MELTDOWN') return !classicBuffActive(s, c, 'WS_MELTDOWN', at) &&
     !!s.battle && (s.battle.enemies ?? [s.battle]).some(enemy => enemy.hp > 0 && !c.monsters[enemy.monsterId]?.boss);
-  const d = derivedStats(s, c), recovery = potionPitcherRecovery(s, c, level);
+  const d = derivedStats(s, c), recovery = healingRecovery(s, c, skill, level);
   const cost = Math.floor((skill.spCost[level - 1] ?? 0) * (1 - Math.min(100, d.effects.spCostReductionPct ?? 0) / 100));
   return recovery.hp > 0 && s.autoPotion.hpThreshold > 0 && s.hp < d.maxHp &&
     s.hp * 100 <= d.maxHp * Math.min(70, s.autoPotion.hpThreshold) ||
@@ -90,14 +101,16 @@ export function resolveSoloAlchemyCast(s: GameState, c: Catalog, at: number): bo
         event(s, at, 'status-start', skill.name, undefined, 'player',
           { ...action, actorAction: 'none', statusName: 'SC_MELTDOWN' });
       } else {
+        discardAloeveraUnderAutoBerserk(s,c,at);
         const d = derivedStats(s, c), beforeHP = s.hp, beforeSP = s.sp;
-        const recovery = potionPitcherRecovery(s, c, cast.level);
+        const recovery = healingRecovery(s, c, skill, cast.level);
+        const potionItemId=skill.sourceName==='CR_SLIMPITCHER'?slimPotionItem(cast.level):500+cast.level;
         s.hp = Math.min(d.maxHp, s.hp + recovery.hp); s.sp = Math.min(d.maxSp, s.sp + recovery.sp);
-        event(s, at, 'skill', skill.name, undefined, 'player', { ...action, itemId: 500 + cast.level });
+        event(s, at, 'skill', skill.name, undefined, 'player', { ...action, itemId: potionItemId });
         if (recovery.hp > 0) event(s, at, 'heal', 'Recuperação de HP', s.hp - beforeHP, 'player',
-          { ...action, actorAction: 'none', resource: 'hp', itemId: 500 + cast.level });
+          { ...action, actorAction: 'none', resource: 'hp', itemId: potionItemId });
         if (recovery.sp > 0) event(s, at, 'heal', 'Recuperação de SP', s.sp - beforeSP, 'player',
-          { ...action, actorAction: 'none', resource: 'sp', itemId: 500 + cast.level });
+          { ...action, actorAction: 'none', resource: 'sp', itemId: potionItemId });
         s.totals.potions++;
         if (s.status === 'hunting' && s.areaId) recordAreaActivity(s, s.areaId, at, { potions: 1 });
       }

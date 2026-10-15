@@ -143,6 +143,16 @@ describe('Reject Sword authoritative integration', () => {
     const resumed = advanceState(JSON.parse(JSON.stringify(killed)), c, 1500);
     expect(resumed.totals.kills).toBe(1); expect(resumed.totals.deaths).toBe(1);
   });
+  it('does not grant Finding Ore when a simultaneous lethal counter levels up the defeated killer', () => {
+    const {c,s}=ready();s.hp=40;s.battle!.enemies![0].hp=40;c.monsters[1002].baseExp=10000;c.monsters[1002].drops=[];
+    c.skills.bs_findingore=structuredClone(catalogJson.skills.bs_findingore) as any;c.skills.bs_findingore.implementation='supported';c.classes.novice.skills.push('bs_findingore');s.learnedSkills.bs_findingore=1;
+    c.items[1002]={...c.items[909],id:1002,name:'Iron Ore'};
+    vi.mocked(stateTools.random).mockImplementation(state=>{state.rngState=0;return .1;});
+    const killed=advanceState(s,c,1250);
+    expect(killed.totals.kills).toBe(1);expect(killed.totals.deaths).toBe(1);expect(killed.baseLevel).toBeGreaterThan(s.baseLevel);
+    expect(killed.events.filter(e=>e.kind==='loot'&&e.skillId==='bs_findingore')).toHaveLength(0);
+    expect(killed.inventory.some(e=>e.itemId===1002)).toBe(false);
+  });
   it('activation costs SP once and retains its source infinite duration', () => {
     const { c, s, skill } = setup(), reject = skill('ST_REJECTSWORD');
     s.learnedSkills[reject.id] = 5; s.rotation = [reject.id];

@@ -346,3 +346,12 @@ export function heroWorldAtAction(strike: { world?: WorldPoint } | null | undefi
   movement: WorldPoint | undefined, fallback: () => WorldPoint): WorldPoint {
   return strike?.world ?? movement ?? fallback();
 }
+
+/** Both self-use pitchers retain source ground/enemy metadata but target the caster in solo mode. */
+export function isSoloPotionPitcher(skill: Pick<Skill,'sourceName'> | undefined): boolean {
+  return !!skill && ['AM_POTIONPITCHER','CR_SLIMPITCHER'].includes(skill.sourceName ?? '');
+}
+/** A resolved pitcher event already follows its authoritative cast; never invent a second visual cast. */
+export function skillCueCastDuration(event: GameEvent, skill: Skill | undefined, playerId: string): number | undefined {
+  return event.sourceActorId === playerId && !isSoloPotionPitcher(skill) ? undefined : event.castMs ?? 0;
+}
