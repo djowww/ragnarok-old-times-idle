@@ -20,7 +20,10 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/public-build ./public-build
 COPY --from=build /app/content/catalog.json ./content/catalog.json
+COPY --from=build /app/content/field-navigation.json ./content/field-navigation.json
+COPY --from=build /app/content/news.json ./content/news.json
 COPY --from=build /app/server/schema.sql ./server/schema.sql
+RUN mkdir -p /var/cache/ragidle/field-navigation && chown -R node:node /var/cache/ragidle
 ENV NODE_ENV=production
 USER node
 EXPOSE 3339

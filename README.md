@@ -6,19 +6,39 @@
 
 Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. Ele combina uma experiência idle independente com o emulador Hercules e o cliente browser roBrowserLegacy. O catálogo do idle é preparado a partir de fontes versionadas do Hercules; mapas, sprites, efeitos, ícones e música vêm do cliente Ragnarok instalado localmente pelo jogador.
 
-[English summary](README.en.md) · [Instalação](#começar) · [Assets do cliente](#assets-do-cliente-ragnarok) · [Licença](#licença-e-créditos)
+[Jogar online](https://203.0.113.10:8443/) · [English summary](README.en.md) · [Instalação](#começar) · [Assets do cliente](#assets-do-cliente-ragnarok) · [Licença](#licença-e-créditos)
 
 > Projeto independente, sem afiliação ou endosso da Gravity Co., Ltd. Nenhum GRF, sprite, ícone, mapa, efeito ou faixa original de Ragnarok Online é distribuído aqui.
+
+## Acesso aos testes
+
+Os convites para testar a versão online são divulgados separadamente pelo projeto.
 
 ## O jogo
 
 - Combate idle autoritativo no servidor, com progresso persistido e resumo de até 12 horas offline.
-- Dez áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
+- 29 áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
 - Evolução de classes clássicas, renascimento, atributos, habilidades, equipamentos, cartas, refino, consumíveis e loot.
+- Peso clássico: aos 90%, novos ataques e habilidades são bloqueados. A caça retorna a Prontera quando a mochila fica pesada ou um novo drop não cabe. Os itens aguardam espaço na Mochila e podem ser recolhidos na cidade, preservando identificação, raridade, cartas e refino; nenhuma venda é automática.
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
+- Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.
+- Personagem e monstros seguem rotas calculadas pelas células transitáveis dos 29 mapas. Servidor e cena compartilham o caminho e o tempo de chegada, respeitando paredes e cantos das diagonais.
+- Árvores de 40 classes: 348 habilidades importadas, com 262 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
+- Teleporte manual para a linha de Noviço: posição aleatória no mapa ou retorno direto a Prontera no nível 2, com custo de SP pelo nível aprendido. A fuga preserva monstros e respawns, encerra o combate anterior e permite retomar a busca. O destino aleatório fica na região conectada da caça; cidade, descanso sentado e desafios não usam essa ação nesta versão.
+- Plágio copia as quatro magias de Mago presentes nos ataques dos monstros, sem gastar pontos; a cópia pode entrar na rotação. Preservar protege essa magia por dez minutos. Reconectar mantém a cópia e encerra a proteção, seguindo o estado NoSave do Hercules.
+- Back Slide manual para a linha de Gatuno: recuo de até cinco células com colisão do terreno, custo de 7 SP e orientação preservada. A apresentação usa o relógio da animação nativa.
+- Livros, Perícia com Livro e os quatro encantamentos elementais do Sábio, com conjuração, reagentes, chance de falha e quebra de arma. O ferreiro repara equipamentos quebrados sem perder refino, cartas ou raridade.
+- Vulcão, Dilúvio e Furacão: campos fixos recortados pelo terreno, com conjuração manual ou uso na rotação AFK. Os efeitos dependem da posição e da propriedade da armadura de cada ocupante; uma substituição preserva o tempo restante. Campos e bônus temporários terminam ao reconectar. A cena usa texturas originais projetadas no chão; o cone 3D do cliente ainda é uma adaptação visual.
+- Ghostring, Moonlight Flower, Orc Lord e Thanatos lançam as magias selecionadas de suas tabelas clássicas. Sábios e Professores podem interceptá-las com Magic Rod, por ativação manual ou pela rotação automática.
+- Prioridade circular de nove habilidades, loja compacta e diário com chat persistente entre as sessões locais.
+- HUD e janelas reposicionáveis, equipamento e atributos com interface clássica, cooldowns discretos e descanso sentado no campo.
+- Combate com prazos ordenados, relógios separados para ataque, movimento, conjuração e recarga, além de ações e reações animadas por ator. A cura automática intercala ações ofensivas.
+- Equipamentos encontrados exigem Lupa para identificação. Raridades especiais do idle revelam cor e um bônus de atributo de +1 a +5 após identificar.
 
 O modo idle adapta regras e recompensas para sessões curtas. Ele não executa scripts de itens nem pretende reproduzir integralmente todos os sistemas do emulador oficial.
+
+Custos, pré-requisitos, tempos e fórmulas têm suas fontes registradas em [`idle/content/source-manifest.json`](idle/content/source-manifest.json). Habilidades que dependem de sistemas ainda ausentes permanecem marcadas como indisponíveis. O renderizador nativo integra os sprites à geometria do mapa; os efeitos visuais ainda incluem composições 2D dos recursos locais, sem execução integral dos efeitos STR do cliente.
 
 ## Começar
 
@@ -30,13 +50,11 @@ O modo idle adapta regras e recompensas para sessões curtas. Ele não executa s
 
 ### Preparar e iniciar
 
-Na raiz do repositório, copie o arquivo de ambiente de exemplo:
+Na raiz do repositório:
 
 ```powershell
 Copy-Item .env.example .env
 ```
-
-No macOS ou Linux, use `cp .env.example .env`.
 
 Edite `.env` e substitua as senhas locais de exemplo. Depois, inicie a stack:
 
@@ -45,7 +63,73 @@ docker compose up --build -d
 docker compose ps
 ```
 
+O painel administrativo é opcional e fica desativado até receber uma chave privada. Gere uma chave aleatória com `openssl rand -base64 32`, adicione `RAGIDLE_ADMIN_TOKEN=<chave>` ao `.env` e recrie apenas o serviço do jogo:
+
+```powershell
+docker compose up -d --force-recreate idle-game
+```
+
+No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas. O painel pode conceder níveis Base e Job, trocar a classe, adicionar zeny e entregar itens do catálogo ao personagem da conta autenticada; ele não altera os personagens do Hercules.
+
 Abra o idle em **http://localhost:3339/**. O cliente clássico fica em **http://localhost:3338/applications/pwa/index.html**. O primeiro build compila os serviços e pode levar alguns minutos.
+
+Em um banco novo, o Compose aguarda MariaDB saudável e os schemas clássicos
+`login`/`loginlog` importados pelo Hercules antes de iniciar o Idle. O probe é
+somente leitura e não imprime credenciais. As migrações do portal são aditivas;
+reiniciar ou reconstruir o Idle conserva o volume e o progresso existente.
+`PUBLIC_ORIGIN` pode ser definido em `.env`; o padrão é `http://localhost:3339`.
+Uma origem HTTPS configurada habilita cookies seguros.
+
+### Contas e portal
+
+As contas do Idle são independentes do Hercules. Crie uma conta em
+`http://localhost:3339/registro`, entre em `/login` e acompanhe o personagem em
+`/painel` ou `/jogar`. Cada conta possui um personagem e progresso próprio;
+`/ranking` publica somente os personagens vinculados a contas do Idle.
+Os links diretos e o reload dessas páginas são servidos pelo mesmo servidor.
+Os comunicados em `/noticias` vêm de `idle/content/news.json`, versionado com
+parágrafos de texto e incluído na imagem; editar o conteúdo exige novo build.
+
+Perfis legados existentes não são associados automaticamente: qualquer
+associação exige uma ação explícita. As migrações do portal são aditivas e
+preservam o progresso salvo no volume do banco.
+
+### Hospedar atrás de HTTPS
+
+Ao publicar o site, configure `PUBLIC_ORIGIN` e `RAGIDLE_ALLOWED_ORIGINS` com
+a origem HTTPS exata do portal. Defina `WS_ALLOWED_ORIGINS` com a origem exata
+do cliente clássico, por exemplo `https://jogo.example.com`. Não use curingas.
+Para distinguir clientes nos limites de login, configure
+`RAGIDLE_TRUSTED_PROXY_ADDRESSES` com os IPs exatos do proxy que conecta ao
+container. Esse proxy deve sobrescrever `X-Real-IP` com `$remote_addr`;
+cabeçalhos de um peer não confiável são ignorados. Sem proxy, deixe a lista vazia.
+O proxy reverso também precisa encaminhar `/ro/` ao cliente clássico, `/assets/`
+ao serviço de assets e `/ws/` ao serviço WebSocket. Para `/ws/`, use HTTP/1.1
+e os cabeçalhos `Upgrade` e `Connection: upgrade`; remova somente o prefixo
+`/ws/` ao encaminhar o caminho do servidor Hercules. Em um Nginx no mesmo host
+dos containers, os blocos essenciais são:
+
+```nginx
+location ^~ /ro/ {
+    proxy_pass http://127.0.0.1:3338/applications/pwa/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+}
+
+location /assets/ {
+    proxy_pass http://127.0.0.1:3339;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+}
+
+location ^~ /ws/ {
+    proxy_pass http://127.0.0.1:5999/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 3600s;
+}
+```
 
 ### Assets do cliente Ragnarok
 
@@ -63,7 +147,15 @@ docker compose restart asset-service
 docker compose logs -f asset-service
 ```
 
-Sem os recursos locais, a aplicação ainda pode iniciar, mas mapas, sprites, ícones e música originais não estarão disponíveis. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
+Depois que o serviço de assets estiver pronto, reinicie o Idle para carregar as células transitáveis dos mapas:
+
+```powershell
+docker compose restart idle-game
+```
+
+O portal pode iniciar sem recursos locais, mas a aventura depende dos arquivos GAT dos 29 mapas ou de seu cache validado. Se esse carregamento falhar, o jogo fica indisponível e o progresso permanece preservado. Mapas, sprites, ícones e música também dependem do cliente local. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
+
+A associação entre mapas e músicas é gerada de `data/mp3nametable.txt` do cliente, incluindo fields, dungeons e interiores. Para atualizar os metadados ao trocar de cliente, execute `node idle/tools/export-map-bgm.mjs --asset-origin http://localhost:8080`. A tabela gerada registra o hash da fonte e não contém áudio.
 
 ## Serviços locais
 
@@ -94,6 +186,27 @@ pnpm build
 pnpm dev
 ```
 
+Para uma verificação focada, use `pnpm exec vitest run tests/hosting.test.ts`.
+A suíte local informa os testes SQL/assets opcionais ignorados. A verificação
+completa requer banco **descartável**, recursos reais e execução serial:
+
+Antes deste bloco Docker, volte à raiz do repositório (se estiver em `idle/`,
+execute `cd ..`). Os caminhos de build abaixo são relativos à raiz.
+
+```powershell
+docker run --rm -d --name ragidle-portal-test-db --network ragidle_ragnarok_local -e MARIADB_DATABASE=idle_portal_test -e MARIADB_USER=idle_test -e MARIADB_PASSWORD=idle_test_local -e MARIADB_ROOT_PASSWORD=idle_test_root_local mariadb:11.4
+# Aguarde a prontidão do banco temporário antes dos testes.
+docker build --target dependencies -t ragidle-portal-tests -f docker/idle-game/Dockerfile idle
+docker run --rm --network ragidle_ragnarok_local -e DB_HOST=ragidle-portal-test-db -e DB_NAME=idle_portal_test -e DB_USER=idle_test -e DB_PASSWORD=idle_test_local -e IDLE_DB_TEST=1 -e IDLE_ASSET_ORIGIN=http://asset-service:8080 ragidle-portal-tests node node_modules/vitest/vitest.mjs run --no-file-parallelism
+docker stop ragidle-portal-test-db
+```
+
+Essas credenciais são exclusivas do banco de testes, que não monta o volume
+do jogador nem publica porta. Não use esse banco para navegador ou scheduler.
+Não execute fixtures SQL na instalação real. Para comprovar início de volume
+novo e persistência, use outro projeto Compose com sua própria rede, volume,
+contas QA e porta local; preserve seus dados durante o reinício de teste.
+
 O Vite abre em `http://localhost:5173/` e encaminha API e assets para a stack local. Para reconstruir o serviço idle servido pelo Docker, volte à raiz e execute:
 
 ```powershell
@@ -103,7 +216,7 @@ docker compose up --build -d idle-game
 O catálogo, as regras de seleção e as adaptações do idle estão documentados em [`idle/content/`](idle/content/). O exportador compara hashes com as fontes fixadas do Hercules e trata scripts de itens como dados, sem executá-los. Para regenerar o catálogo, inicie a stack e use:
 
 ```powershell
-cd idle
+Set-Location idle
 pnpm export-content
 ```
 
@@ -119,3 +232,5 @@ pnpm export-content
 O código do projeto e os componentes adaptados sob GPL são distribuídos sob **GNU GPL v3 ou posterior**. Consulte [`LICENSE`](LICENSE) e [`idle/THIRD_PARTY_NOTICES.md`](idle/THIRD_PARTY_NOTICES.md) para os créditos, fontes e limites de redistribuição.
 
 Ragnarok Online e seus materiais visuais e sonoros pertencem a seus respectivos titulares. A licença do código não concede direitos sobre esses materiais; forneça somente arquivos do cliente que você esteja autorizado a usar.
+
+Furtividade do Desordeiro usa conjuração, consumo periódico de SP e bônus de força com prazo independente. É uma habilidade manual: monstros comuns perdem o alvo oculto, enquanto chefes, detectores e magias já conjuradas continuam perigosos.

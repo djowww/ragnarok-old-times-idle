@@ -1,0 +1,105 @@
+{
+  "id": "st_chasewalk",
+  "name": "Stealth",
+  "kind": "buff",
+  "maxLevel": 5,
+  "herculesId": 389,
+  "sourceName": "ST_CHASEWALK",
+  "mechanic": "ST_CHASEWALK",
+  "implementation": "unsupported",
+  "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+  "description": "Stealth. Aplica CHASEWALK. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+  "iconResource": "data/texture/유저인터페이스/item/st_chasewalk.bmp",
+  "spCost": [
+    10,
+    10,
+    10,
+    10,
+    10
+  ],
+  "power": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cooldownMs": 0,
+  "castTimeMs": [
+    1200,
+    1200,
+    1200,
+    1200,
+    1200
+  ],
+  "afterCastDelayMs": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "interruptCast": false,
+  "hitCount": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "sourceHitCount": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "aoeRadius": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "range": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "targetType": "self",
+  "damageType": "none",
+  "prerequisites": [
+    {
+      "skillId": "tf_hiding",
+      "level": 5
+    },
+    {
+      "skillId": "rg_tunneldrive",
+      "level": 3
+    }
+  ],
+  "prerequisitesByClass": {
+    "stalker": [
+      {
+        "skillId": "tf_hiding",
+        "level": 5
+      },
+      {
+        "skillId": "rg_tunneldrive",
+        "level": 3
+      }
+    ]
+  },
+  "minimumJobLevel": 1,
+  "statusEffect": "SC_CHASEWALK",
+  "statusDurationMs": [
+    30000,
+    30000,
+    30000,
+    30000,
+    30000
+  ],
+  "durationMs": 10000
+}

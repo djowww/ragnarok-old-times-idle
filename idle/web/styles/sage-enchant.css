@@ -1,0 +1,13 @@
+.support-cast-progress {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 280px);
+  color: #795d24;
+  font-size: 11px;
+}
+
+.support-cast-progress progress {
+  width: 100%;
+  height: 8px;
+  accent-color: #c9852c;
+}

@@ -1,6 +1,11 @@
 {
   "version": "0.1.0",
   "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+  "mapSpawnSources": [
+    "npc/pre-re/mobs/fields/geffen.txt",
+    "npc/pre-re/mobs/fields/payon.txt",
+    "npc/pre-re/mobs/fields/prontera.txt"
+  ],
   "rates": {
     "baseExp": 4,
     "jobExp": 4,
@@ -8,13 +13,40 @@
   },
   "adaptations": [
     "Deterministic healing uses midpoints of source ranges.",
-    "Skill damage, cooldowns, effects, simplified buffs, rotation and encounters are explicit idle adaptations.",
-    "No scripts execute. Ammo requirements are waived; zeny and declared reagents remain real costs.",
     "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
     "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Book 1550 is supplied by the aggregated Idle shop at its pinned 30,000 zeny item_db price because the selected Hercules merchant shop file does not sell books.",
     "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
-    "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database."
+    "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
+    "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
+    "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
+    "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
+    "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
+    "Non-positive element coefficients yield zero damage rather than healing the target.",
+    "Fire Wall uses one contact unit in the idle encounter formation; the full source creates oriented three-cell walls. Map collision and exact contact/knockback paths are outside this formation.",
+    "Solo Bard/Dancer songs apply their source bonuses to the simulated avatar as an idle adaptation; the source uses nearby eligible party targets and caster eligibility rules.",
+    "The 40 resolved source class trees import 348 skills after removing family skills from every class. Increase Weight Limit R is retained only for Merchant and evolutions. Availability requires an explicit arithmetic, passive, status or action implementation; unavailable mechanics remain listed with a reason.",
+    "Hunter combat traps detonate once on contact in the encounter formation. SkillData1 is the maximum armed waiting time, not the duration of repeated damage; full free placement and map-cell pathfinding remain outside the formation.",
+    "Monster attacks use source AttackRange and AttackDelay. Selected Tarou Poison and Nightmare Blind casts use real NPC metadata; full monster AI, equipment breakage, crafting, homunculi and party members remain outside this solo adaptation.",
+    "Encounter entry uses an idle formation with a 3-second arrival plus 750 ms per extra monster, rather than full map pathfinding. Combat and scene share the same timed cell positions; source player circular and monster square range checks use those positions. Exact action deadlines are ordered inside 250 ms simulation windows; actor motion and hit reaction use source milliseconds.",
+    "Snap relocates the selected field-hunt character to a one-cell offset from a living target at up to 18 cells for 14 SP and one spirit sphere, waived by Explosion Spirits; it deals no damage, excludes challenges and blocks Extremity Fist for 2 seconds. Exact GAT collision and cell occupancy are outside the normalized formation.",
+    "Automatic healing yields an offensive action before another heal. This is an idle automation policy; First Aid retains source healing of 5 HP, cost of 3 SP and zero cast time. Basic ASPD, action motion, after-cast delay and individual cooldown have independent clocks.",
+    "Hunt fields use regular monster spawns from the pinned Hercules pre-renewal scripts; plant spawns and long-respawn bosses stay outside the repeating AFK encounter pool.",
+    "Poison Bottle 678 is sold by the Idle shop at its source item price to supply EDP. Create Deadly Poison remains study-only for the original prerequisite; production is not implemented. Berserk follows normal expiry without Bloodylust or enemy dispel, using the pinned default that preserves other buffs.",
+    "Venom Dust uses five source units with range one and a 100 ms unit timer; the Idle timer phase is anchored to epoch multiples of 100 ms, with per-group/per-target one-second eligibility. Spider Web binds its unit and eight-second status to the captured enemy; fire releases movement and consumes a weakness charge. Units use normalized encounter cells, not server GAT walls. AFK avoids duplicate poison fields and webs on already-held targets. Web clocks persist across reconnects without extension, unlike Hercules NoSave. Original particle3 and spiderweb pixels are used; Venom Dust choreography is approximated by ACT playback rather than the original STR/3D particle simulation. Red Gemstones and Cobweb are sold at source prices as an Idle supply adaptation.",
+    "Selected NPC actions only: Tarou NPC_POISON1 and Nightmare NPC_BLINDATTACK3, using existing engaged/hostile attack opportunities. First attack remains normal; later successful NPC attempts replace an attack. This is not full monster AI. Player Cure, Detoxify and Slow Poison treat the own character during solo hunting.",
+    "Cast Cancel is manual and releases only cast-owned locks, preserving basic ASPD and independent effects. Spell Breaker selects a real engaged NPC caster in range9 only with a strict finish-before-NPC window; passive2% zap does not trigger attack hooks or break controls. NPC base SP is zero; Magic Rod and PvP branches are not simulated.",
+    "Priest Recovery releases only the monster attack target, freezes its interpolated position and preserves pending NPC casts, paid cooldowns and instance state. Released monsters check acquisition at100ms deadlines; Blind reduces monster vision to3. Random walk is persisted as4000 plus0..999ms without protection against acquisition. Recent real damage awaiting a minimum100ms think opportunity survives release; older normal-combat memory is discarded. Full loot, slave, assist, rude attack and map-cell AI remain outside this solo adaptation.",
+    "Lex Divina toggles existing monster Silence off in the source dispatcher; AFK instead selects unsilenced nonboss monsters with implemented NPC actions. Silence gates new NPC skills before chance and cooldown; normal attacks and already-started casts retain their source clocks. Recovery AFK targets only effective-undead monsters with an active attack target and no Blind; it is not self Stun escape.",
+    "Haggle applies the larger of the Rogue and Merchant NPC discounts, without stacking, truncates the unit price and retains the source minimum1. Its Gangster prerequisite remains studyable through points without inventing allies.",
+    "Criar Conversor Elemental usa menu apenas na cidade, lote inteiro de 1 a 1000, uma ativação de 30 SP modificada e materiais por unidade, com capacidade líquida após consumo. A loja agregada de Prontera vende Blank Scroll7433 por4000, Scorpion Tail904 por124 e Horn947 por116, preços do item_db fonte. Yuno vende apenas o pergaminho na fonte; a venda agregada de caudas e chifres é adaptação de aquisição do Idle. Snail Shell946 e Rainbow Shell1013 permanecem nos drops existentes, sem novos mapas ou grants.",
+    "As quatro Mudanças Elementais alteram o corpo de uma instância de monstro por30min; não encantam arma. Boss é rejeitado antes de RNG; status garantido consome um roll e uma aplicação aceita outro para nível1 a4. Propriedade ativa nível2 a4 é preservada após apenas o roll de status. Freeze e Stone petrificado precedem conversão. AFK exige um ataque elemental aprendido na rotação com coeficiente estritamente melhor em todos os quatro níveis, evita conversão ativa e estados que a sobrepõem; escolha não consome RNG. NoDispelReset é preservado e Desencantar continua indisponível.",
+    "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
+    "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
+    "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
+    "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
+    "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido."
   ],
   "classes": [
     {
@@ -324,7 +356,8 @@
         "pierce",
         "brandish_spear"
       ],
-      "spriteJob": "KNIGHT"
+      "spriteJob": "KNIGHT",
+      "mountedSpriteJob": "KNIGHT2"
     },
     {
       "id": "lord_knight",
@@ -345,7 +378,8 @@
         "brandish_spear"
       ],
       "spriteJob": "KNIGHT_H",
-      "rebirthOf": "knight"
+      "rebirthOf": "knight",
+      "mountedSpriteJob": "KNIGHT2_H"
     },
     {
       "id": "crusader",
@@ -366,7 +400,8 @@
         "holy_cross",
         "shield_boomerang"
       ],
-      "spriteJob": "CRUSADER"
+      "spriteJob": "CRUSADER",
+      "mountedSpriteJob": "CRUSADER2"
     },
     {
       "id": "paladin",
@@ -388,7 +423,8 @@
         "shield_boomerang"
       ],
       "spriteJob": "CRUSADER_H",
-      "rebirthOf": "crusader"
+      "rebirthOf": "crusader",
+      "mountedSpriteJob": "CRUSADER2_H"
     },
     {
       "id": "wizard",
@@ -440,7 +476,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "hindsight",
@@ -459,7 +496,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "hindsight",
@@ -604,7 +642,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "kyrie",
@@ -623,7 +662,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "kyrie",
@@ -1154,6 +1194,18 @@
       "maxLevel": 10,
       "powerStart": 240,
       "powerStep": 80,
+      "idleDamageMultiplierPct": [
+        171,
+        178,
+        182,
+        185,
+        187,
+        189,
+        190,
+        191,
+        191,
+        192
+      ],
       "cooldownMs": 8000,
       "element": "water",
       "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos."
@@ -1172,25 +1224,6 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas."
-    },
-    {
-      "id": "flame_enchant",
-      "source": "SA_FLAMELAUNCHER",
-      "name": "Encantar com Chama",
-      "kind": "buff",
-      "maxLevel": 5,
-      "powerStart": 0,
-      "powerStep": 0,
-      "cooldownMs": 30000,
-      "effects": {
-        "damagePct": 5
-      },
-      "durationMs": 60000,
-      "itemCost": {
-        "itemId": 990,
-        "quantity": 1
-      },
-      "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso."
     },
     {
       "id": "blitz_beat",
@@ -1747,6 +1780,272 @@
       ],
       "scene": "castle",
       "description": "Caçada em Cavalaria de Glast Heim. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "sewers_depths",
+      "name": "Esgotos — segundo nível",
+      "map": "prt_sewb2",
+      "minLevel": 13,
+      "monsters": [
+        1051,
+        1175
+      ],
+      "scene": "sewer",
+      "description": "Uma descida mais perigosa pelos esgotos de Prontera."
+    },
+    {
+      "id": "payon_cave_depths",
+      "name": "Caverna de Payon — segundo nível",
+      "map": "pay_dun01",
+      "minLevel": 25,
+      "monsters": [
+        1015,
+        1076,
+        1028
+      ],
+      "scene": "cave",
+      "description": "Esqueletos e mortos-vivos guardam as galerias profundas."
+    },
+    {
+      "id": "byalan_depths",
+      "name": "Byalan — segundo nível",
+      "map": "iz_dun02",
+      "minLevel": 30,
+      "monsters": [
+        1070,
+        1066,
+        1141
+      ],
+      "scene": "sea",
+      "description": "As correntes subterrâneas escondem criaturas marinhas mais resistentes."
+    },
+    {
+      "id": "orc_dungeon",
+      "name": "Calabouço dos Orcs",
+      "map": "orcsdun01",
+      "minLevel": 32,
+      "monsters": [
+        1023,
+        1273
+      ],
+      "scene": "orc",
+      "description": "Avance para dentro do território dos Orcs e enfrente seus guerreiros."
+    },
+    {
+      "id": "prontera_field_00",
+      "name": "Campo de Prontera 00",
+      "map": "prt_fild00",
+      "minLevel": 6,
+      "monsters": [
+        1018,
+        1007,
+        1008,
+        1063,
+        1002,
+        1004
+      ],
+      "scene": "field",
+      "description": "Campos abertos de Prontera, ocupados por criaturas jovens e insetos."
+    },
+    {
+      "id": "prontera_field_01",
+      "name": "Campo de Prontera 01",
+      "map": "prt_fild01",
+      "minLevel": 4,
+      "monsters": [
+        1051,
+        1007,
+        1008,
+        1063,
+        1002
+      ],
+      "scene": "field",
+      "description": "Um campo movimentado por lunáticos, porings e ladrões-das-cavernas."
+    },
+    {
+      "id": "prontera_field_02",
+      "name": "Campo de Prontera 02",
+      "map": "prt_fild02",
+      "minLevel": 8,
+      "monsters": [
+        1020,
+        1007,
+        1008,
+        1063,
+        1002
+      ],
+      "scene": "field",
+      "description": "Mandrágoras e criaturas de campo cercam as rotas ao norte de Prontera."
+    },
+    {
+      "id": "prontera_field_05",
+      "name": "Campo de Prontera 05",
+      "map": "prt_fild05",
+      "minLevel": 5,
+      "monsters": [
+        1002,
+        1048,
+        1063,
+        1008,
+        1051
+      ],
+      "scene": "field",
+      "description": "Ovos de inseto e pequenos monstros dividem este campo."
+    },
+    {
+      "id": "prontera_field_06",
+      "name": "Campo de Prontera 06",
+      "map": "prt_fild06",
+      "minLevel": 5,
+      "monsters": [
+        1063,
+        1048,
+        1051,
+        1008,
+        1002
+      ],
+      "scene": "field",
+      "description": "Uma rota campestre com lunáticos, porings e ovos de inseto."
+    },
+    {
+      "id": "prontera_field_07",
+      "name": "Campo de Prontera 07",
+      "map": "prt_fild07",
+      "minLevel": 10,
+      "monsters": [
+        1052,
+        1031
+      ],
+      "scene": "field",
+      "description": "Rockers e poporings aparecem nas trilhas deste campo."
+    },
+    {
+      "id": "prontera_field_09",
+      "name": "Campo de Prontera 09",
+      "map": "prt_fild09",
+      "minLevel": 7,
+      "monsters": [
+        1167,
+        1107,
+        1047,
+        1049,
+        1009
+      ],
+      "scene": "field",
+      "description": "Criaturas do deserto e pecos-pecos jovens percorrem esta região."
+    },
+    {
+      "id": "prontera_field_10",
+      "name": "Campo de Prontera 10",
+      "map": "prt_fild10",
+      "minLevel": 22,
+      "monsters": [
+        1166,
+        1167,
+        1031,
+        1051
+      ],
+      "scene": "field",
+      "description": "Savages e poporings tornam a travessia mais perigosa."
+    },
+    {
+      "id": "prontera_field_11",
+      "name": "Campo de Prontera 11",
+      "map": "prt_fild11",
+      "minLevel": 22,
+      "monsters": [
+        1122,
+        1123,
+        1124,
+        1125,
+        1126,
+        1258,
+        1280
+      ],
+      "scene": "field",
+      "description": "Goblins de diferentes tipos guardam as passagens deste campo."
+    },
+    {
+      "id": "geffen_field_00",
+      "name": "Campo de Geffen 00",
+      "map": "gef_fild00",
+      "minLevel": 8,
+      "monsters": [
+        1002,
+        1007,
+        1008,
+        1031
+      ],
+      "scene": "field",
+      "description": "Porings, fabres, pupas e poporings percorrem os arredores de Geffen."
+    },
+    {
+      "id": "geffen_field_02",
+      "name": "Floresta de Geffen 02",
+      "map": "gef_fild02",
+      "minLevel": 18,
+      "monsters": [
+        1057,
+        1023,
+        1104,
+        1056
+      ],
+      "scene": "forest",
+      "description": "Yoyos, smokies e guerreiros orcs disputam a floresta."
+    },
+    {
+      "id": "geffen_field_09",
+      "name": "Campo de Geffen 09",
+      "map": "gef_fild09",
+      "minLevel": 14,
+      "monsters": [
+        1094,
+        1031,
+        1077
+      ],
+      "scene": "field",
+      "description": "Âmbar-nites e esporos venenosos rondam os poporings."
+    },
+    {
+      "id": "payon_field_01",
+      "name": "Floresta de Payon 01",
+      "map": "pay_fild01",
+      "minLevel": 6,
+      "monsters": [
+        1010,
+        1031,
+        1002,
+        1014
+      ],
+      "scene": "forest",
+      "description": "Willows, esporos e poporings cobrem a primeira trilha de Payon."
+    },
+    {
+      "id": "sograt_field_04",
+      "name": "Deserto de Sograt 04",
+      "map": "pay_fild04",
+      "minLevel": 10,
+      "monsters": [
+        1002,
+        1113,
+        1031,
+        1242
+      ],
+      "scene": "desert",
+      "description": "Drops, porings, poporings e marins atravessam as dunas."
+    },
+    {
+      "id": "payon_field_09",
+      "name": "Floresta de Payon 09",
+      "map": "pay_fild09",
+      "minLevel": 20,
+      "monsters": [
+        1031,
+        1056,
+        1060
+      ],
+      "scene": "forest",
+      "description": "Smokies e bigfoots habitam os bosques mais densos de Payon."
     }
   ],
   "cards": {
@@ -1782,6 +2081,12 @@
     }
   },
   "shop": [
+    1550,
+    716,
+    1025,
+    678,
+    1065,
+    611,
     501,
     502,
     503,
@@ -1819,11 +2124,20 @@
     2211,
     2402,
     2502,
-    2607
+    2607,
+    7433,
+    904,
+    947
   ],
   "catalogItems": [
     2302,
-    2320
+    2320,
+    946,
+    1013,
+    12114,
+    12115,
+    12116,
+    12117
   ],
   "heal": {
     "501": [
@@ -1914,6 +2228,7 @@
     "1016": "skel_archer",
     "1028": "skel_soldier",
     "1502": "poring",
+    "1626": "dark_priest",
     "1646": "seyren",
     "1647": "eremes",
     "1648": "harword",
@@ -1921,7 +2236,6 @@
     "1650": "shecil",
     "1651": "katrinn",
     "1658": "ygnizem",
-    "1626": "dark_priest",
     "1802": "magaleta",
     "1813": "hydro",
     "1917": "morocc"
@@ -1942,8 +2256,14 @@
         "baseExp": 500,
         "jobExp": 250,
         "items": [
-          { "itemId": 984, "quantity": 1 },
-          { "itemId": 985, "quantity": 1 }
+          {
+            "itemId": 984,
+            "quantity": 1
+          },
+          {
+            "itemId": 985,
+            "quantity": 1
+          }
         ]
       }
     },
@@ -1958,8 +2278,14 @@
         "baseExp": 3000,
         "jobExp": 1500,
         "items": [
-          { "itemId": 984, "quantity": 2 },
-          { "itemId": 985, "quantity": 2 }
+          {
+            "itemId": 984,
+            "quantity": 2
+          },
+          {
+            "itemId": 985,
+            "quantity": 2
+          }
         ]
       }
     },
@@ -1974,8 +2300,14 @@
         "baseExp": 10000,
         "jobExp": 5000,
         "items": [
-          { "itemId": 984, "quantity": 3 },
-          { "itemId": 985, "quantity": 3 }
+          {
+            "itemId": 984,
+            "quantity": 3
+          },
+          {
+            "itemId": 985,
+            "quantity": 3
+          }
         ]
       }
     },
@@ -1993,13 +2325,45 @@
     }
   ],
   "miniBossMonsterIds": [
-    1088, 1089, 1090, 1091, 1092, 1093, 1096, 1120, 1200, 1203, 1204, 1205,
-    1259, 1262, 1283, 1289, 1302, 1307, 1388, 1582, 1618, 1626, 1681,
-    1704, 1705, 1706, 1707, 1813
+    1088,
+    1089,
+    1090,
+    1091,
+    1092,
+    1093,
+    1096,
+    1120,
+    1200,
+    1203,
+    1204,
+    1205,
+    1259,
+    1262,
+    1283,
+    1289,
+    1302,
+    1307,
+    1388,
+    1582,
+    1618,
+    1626,
+    1681,
+    1704,
+    1705,
+    1706,
+    1707,
+    1813
   ],
   "miniBossRosterSource": "https://irowiki.org/wiki/Boss",
-  "excludedMvpSpritePrefixes": ["EVENT_"],
+  "excludedMvpSpritePrefixes": [
+    "EVENT_"
+  ],
   "sourceHashes": {
+    "src/map/mob.c": "a30af793eb5328ef7787638da5a22458f651b2c0cc5e8f533b3449d7acf6174d",
+    "src/map/mob.h": "bb971d72be5a2345438360d8a9004eefd4f34839d4e51ce89a1b05bce1fb9a74",
+    "db/pre-re/sc_config.conf": "614102c89301968ba2292f682eb46802b2e27f6c22e8f4d8b6709993b0ab713e",
+    "autospell_db.conf": "835b806ad0aaaab221c8bcd9a358982081d0bb9220bde0ae4e1a60e6d395612f",
+    "src/map/unit.c": "2af74d2cf42ab274d394d2e7e43ff05feb2629a65991692fd0f8d77fbd5bdf7b",
     "mob_db.conf": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43",
     "item_db.conf": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30",
     "job_db.conf": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc",
@@ -2007,10 +2371,216 @@
     "skill_db.conf": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11",
     "skill_tree.conf": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37",
     "attr_fix.conf": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c",
-    "size_fix.txt": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+    "size_fix.txt": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba",
+    "npc/pre-re/mobs/fields/prontera.txt": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791",
+    "npc/pre-re/mobs/fields/geffen.txt": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63",
+    "npc/pre-re/mobs/fields/payon.txt": "f448e15667f770b0eef3592652b814cf94ff1b5dda0f6c4abe88cc025c7189fa",
+    "npc/merchants/refine.txt": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1",
+    "db/job_db2.txt": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56",
+    "src/map/battle.c": "7c4916a043223e39ec35fdcb040c62f274d312a1d5ccd4802e5a60f7a5076d78",
+    "src/map/status.c": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
+    "src/map/skill.c": "1987348fa5003e6e6b4e74700ff44c5bb10cf60247d29872ad269f74c3b0e0e3",
+    "src/map/pc.c": "822bdba23749049fac8eab6044ad21f6409d9c81027757761e6efc26a1c07ded",
+    "mob_skill_db.conf": "a7752d8f4bdd1ea12191e70cb53bd5fb335ba3de855adaf30a7d362c3708b21b",
+    "db/produce_db.txt": "122d6ebc9a9451cb731643118bfff99f3a3c9ec2e5fe58d99129dc48c6f2fc2d",
+    "npc/merchants/shops.txt": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5",
+    "unit_parameters_db.conf": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792",
+    "src/map/pc.h": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f",
+    "src/map/clif.c": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42",
+    "npc/mapflag/noteleport.txt": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
     "jobNameTable": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
-  }
+  },
+  "skillAliases": {
+    "MG_SRECOVERY": "sp_recovery",
+    "MG_SIGHT": "sight",
+    "MG_NAPALMBEAT": "napalm_beat",
+    "MG_SAFETYWALL": "safety_wall",
+    "MG_SOULSTRIKE": "soul_strike",
+    "MG_FROSTDIVER": "frost_diver",
+    "MG_STONECURSE": "stone_curse",
+    "MG_FIREBALL": "fire_ball",
+    "MG_FIREWALL": "fire_wall",
+    "MG_THUNDERSTORM": "thunder_storm",
+    "MG_ENERGYCOAT": "energy_coat",
+    "WZ_FIREPILLAR": "fire_pillar",
+    "WZ_SIGHTRASHER": "sight_rasher",
+    "WZ_METEOR": "meteor_storm",
+    "WZ_VERMILION": "lord_of_vermilion",
+    "WZ_WATERBALL": "water_ball",
+    "WZ_ICEWALL": "ice_wall",
+    "WZ_FROSTNOVA": "frost_nova",
+    "WZ_EARTHSPIKE": "earth_spike",
+    "WZ_HEAVENDRIVE": "heavens_drive",
+    "WZ_QUAGMIRE": "quagmire",
+    "WZ_ESTIMATION": "sense",
+    "WZ_SIGHTBLASTER": "sight_blaster",
+    "HW_SOULDRAIN": "soul_drain",
+    "HW_MAGICCRASHER": "stave_crasher",
+    "HW_MAGICPOWER": "magic_power",
+    "HW_NAPALMVULCAN": "napalm_vulcan",
+    "HW_GANBANTEIN": "ganbantein",
+    "HW_GRAVITATION": "gravitation_field"
+  },
+  "skillIdOverrides": {
+    "SA_FLAMELAUNCHER": "flame_enchant"
+  },
+  "skillNames": {
+    "SA_ADVANCEDBOOK": "Perícia com Livro",
+    "SA_FLAMELAUNCHER": "Encantar com Chama",
+    "SA_FROSTWEAPON": "Encantar com Geada",
+    "SA_LIGHTNINGLOADER": "Encantar com Relâmpago",
+    "SA_SEISMICWEAPON": "Encantar com Terremoto",
+    "DC_DONTFORGETME": "Graça Lenta",
+    "CR_SHRINK": "Encolher",
+    "PA_SACRIFICE": "Sacrifício do Mártir",
+    "ST_FULLSTRIP": "Desarmar Total",
+    "ST_REJECTSWORD": "Rejeitar Espada",
+    "SM_AUTOBERSERK": "Instinto de Sobrevivência",
+    "MO_STEELBODY": "Corpo Fechado",
+    "LK_BERSERK": "Frenesi",
+    "LK_JOINTBEAT": "Golpe das Juntas",
+    "ASC_EDP": "Encantar com Veneno Mortal",
+    "SM_FATALBLOW": "Golpe Fatal",
+    "AL_CRUCIS": "Sinal da Cruz",
+    "AL_RUWACH": "Revelação",
+    "LK_AURABLADE": "Lâmina de Aura",
+    "MG_SRECOVERY": "Aumentar Recuperação de SP",
+    "MG_SIGHT": "Chama Reveladora",
+    "MG_NAPALMBEAT": "Ataque Espiritual",
+    "MG_SAFETYWALL": "Escudo Mágico",
+    "MG_SOULSTRIKE": "Espíritos Anciões",
+    "MG_FROSTDIVER": "Rajada Congelante",
+    "MG_STONECURSE": "Petrificar",
+    "MG_FIREBALL": "Bola de Fogo",
+    "MG_FIREWALL": "Barreira de Fogo",
+    "MG_THUNDERSTORM": "Tempestade de Raios",
+    "MG_ENERGYCOAT": "Proteção Arcana",
+    "WZ_FIREPILLAR": "Coluna de Fogo",
+    "WZ_SIGHTRASHER": "Explosão Protetora",
+    "WZ_METEOR": "Chuva de Meteoros",
+    "WZ_VERMILION": "Ira de Thor",
+    "WZ_WATERBALL": "Esfera d’Água",
+    "WZ_ICEWALL": "Barreira de Gelo",
+    "WZ_FROSTNOVA": "Congelar",
+    "WZ_EARTHSPIKE": "Coluna de Pedra",
+    "WZ_HEAVENDRIVE": "Fúria da Terra",
+    "WZ_QUAGMIRE": "Pântano dos Mortos",
+    "WZ_ESTIMATION": "Sentido Sobrenatural",
+    "WZ_SIGHTBLASTER": "Impacto Explosivo",
+    "HW_SOULDRAIN": "Dreno de Alma",
+    "HW_MAGICCRASHER": "Esmagamento Mágico",
+    "HW_MAGICPOWER": "Amplificação Mística",
+    "HW_NAPALMVULCAN": "Vulcão Napalm",
+    "HW_GANBANTEIN": "Ganbantein",
+    "HW_GRAVITATION": "Campo Gravitacional",
+    "RG_CLOSECONFINE": "Confinamento",
+    "PF_MINDBREAKER": "Quebra-Mente",
+    "PF_FOGWALL": "Nevoeiro Ofuscante",
+    "SA_VOLCANO": "Vulcão",
+    "SA_DELUGE": "Dilúvio",
+    "SA_VIOLENTGALE": "Furacão"
+  },
+  "skillDescriptions": {
+    "SA_ADVANCEDBOOK": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",
+    "SA_FLAMELAUNCHER": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Fogo por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Sangue Vermelho. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_FROSTWEAPON": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Água por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Cristal Azul. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_LIGHTNINGLOADER": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Vento por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Frescor do Vento. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_SEISMICWEAPON": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Terra por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Vida Verdejante. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "TF_PICKSTONE": "Coleta 1 Pedra para Arremessar Pedra. Custa 3 SP e tem conjuração base de 500 ms, reduzida por DEX. Na rotação AFK, coleta somente quando Arremessar Pedra está aprendida e na rotação, sem Pedra na mochila e com peso abaixo de 50%. Recusa a coleta se não houver capacidade para guardar a Pedra.",
+    "SM_FATALBLOW": "Passiva que permite que Bash nos níveis 6 a 10 atordoe o alvo. Chance base: 5% × (nível de Bash − 5) × nível Base / 50; duração base de 5 segundos antes das resistências.",
+    "AL_CRUCIS": "Reduz a DEF de demônios e monstros de propriedade Morto-Vivo em 10 + 4 × nível %. Chance base: 23 + 4 × nível + nível Base do usuário − nível do alvo. O efeito dura até o alvo morrer.",
+    "LK_AURABLADE": "Aumenta em 20 × nível o dano físico depois da DEF do alvo. Não adiciona dano a Perfurar em Espiral.",
+    "LK_JOINTBEAT": "Escolhe uma parte do corpo antes do golpe de lança. Causa (100 + 10 × nível − 50)% do dano de arma; um golpe no pescoço dobra apenas o modificador aditivo. Após acertar, há 5 + 5 × nível% de chance de acumular a parte por 30 s: tornozelo reduz movimento em 50%; pulso aumenta o intervalo de ataque em 25%; joelho aumenta o intervalo em 10% e reduz movimento em 30%; ombro reduz DEF em 50%; cintura reduz ATQ em 25% e DEF em 25%. Pescoço também tenta causar Sangramento, com resistência própria. Exige lança; flags corporais se acumulam e expiram junto ao status.",
+    "MG_SRECOVERY": "Recupera 3 × nível + piso(SP máximo × nível / 500) SP a cada intervalo de recuperação de habilidade. Aumenta em 10% por nível a recuperação por itens.",
+    "SM_RECOVERY": "Recupera 5 × nível + piso(HP máximo × nível / 500) HP a cada intervalo de recuperação de habilidade. Aumenta em 10% por nível a recuperação por itens.",
+    "MG_SIGHT": "Revela inimigos ocultos ao redor durante 10 segundos.",
+    "MG_NAPALMBEAT": "Magia de propriedade Fantasma em área de 3 × 3 células. Causa (70 + 10 × nível)% MATK dividido entre os inimigos atingidos.",
+    "MG_SAFETYWALL": "Consome Gema Azul e cria uma célula que bloqueia nível + 1 ataques físicos corpo a corpo.",
+    "MG_SOULSTRIKE": "Dispara até cinco espíritos de propriedade Fantasma. Cada espírito causa 100% MATK; contra mortos-vivos, o dano por espírito cresce 5% por nível.",
+    "MG_FROSTDIVER": "Causa (100 + 10 × nível)% MATK de Água. Chance base de congelar: 35 + 3 × nível por cento, antes da resistência do alvo.",
+    "MG_STONECURSE": "Consome Gema Vermelha para tentar petrificar um inimigo. Chance base: 20 + 4 × nível por cento; usa os tempos de preparação e petrificação da fonte.",
+    "MG_FIREBALL": "Explosão de Fogo em área de 5 × 5 células. Causa (70 + 10 × nível)% MATK, com conjuração e atraso menores a partir do nível 6.",
+    "MG_FIREWALL": "Cria uma barreira de Fogo; cada célula causa 50% MATK por contato e suporta 4 + nível contatos. A posição da barreira e o recuo afetam os contatos.",
+    "MG_FIREBOLT": "Dispara nível projéteis de Fogo, cada um com 100% MATK. Tempo base de conjuração: 700 ms por nível, reduzido por DEX.",
+    "MG_COLDBOLT": "Dispara nível projéteis de Água, cada um com 100% MATK. Tempo base de conjuração: 700 ms por nível, reduzido por DEX.",
+    "MG_LIGHTNINGBOLT": "Dispara nível projéteis de Vento, cada um com 100% MATK. Tempo base de conjuração: 700 ms por nível, reduzido por DEX.",
+    "MG_THUNDERSTORM": "Tempestade de Vento em área de 5 × 5 células. Dispara nível golpes, cada um com 80% MATK. Conjuração base de 1 segundo por nível e atraso de 2 segundos.",
+    "MG_ENERGYCOAT": "Proteção Arcana por 300 segundos. Reduz dano físico de 6% a 30% conforme a porcentagem de SP restante e consome SP a cada golpe protegido.",
+    "AL_RUWACH": "Ativa Revelação por 10 segundos. A cada pulso de 20 ms, remove Hiding, Cloaking, Camouflage, Cloaking Exceed ou New Moon de inimigos em até 2 células; cada inimigo recém-revelado recebe um ataque Sagrado de 145% MATK (nível 1 do Hercules). Custa 10 SP. A rotação só ativa quando um alvo oculto pode alcançar a aura antes de ela expirar; o monstro só é provocado quando recebe o dano.",
+    "WZ_FIREPILLAR": "Armadilha de Fogo que ignora a parcela percentual de MDEF. O dano total usa (40 + 20 × nível)% MATK + 100 + 50 × nível, distribuído visualmente em nível + 2 golpes. Consome Gema Azul a partir do nível 6.",
+    "WZ_SIGHTRASHER": "Explosão de Fogo ao redor, com (100 + 20 × nível)% MATK. Requer Chama Reveladora ativa.",
+    "WZ_METEOR": "Invoca 2 + piso(nível / 2) meteoros em posições aleatórias. Cada meteoro causa piso((nível + 1) / 2) golpes de 100% MATK de Fogo e pode atordoar.",
+    "WZ_JUPITEL": "Dispara nível + 2 golpes de Vento, cada um de 100% MATK, e empurra o alvo. Conjuração base de 2 segundos + 500 ms por nível.",
+    "WZ_VERMILION": "Campo de Vento com pulsos de (80 + 20 × nível)% MATK. Cada pulso é dividido visualmente em dez golpes; pode causar Cegueira.",
+    "WZ_WATERBALL": "Cada célula de água disponível ao redor do conjurador produz uma esfera de (100 + 30 × nível)% MATK. Raio de consumo de água: piso(nível / 2) células.",
+    "WZ_ICEWALL": "Cria uma barreira física de gelo por 5 segundos por nível. Bloqueia passagem; não causa dano mágico.",
+    "WZ_FROSTNOVA": "Explosão de Água em área de 5 × 5 células. Causa piso((100 + 10 × nível) × 2 / 3)% MATK e pode congelar.",
+    "WZ_STORMGUST": "Tempestade de Água com pulsos de (100 + 40 × nível)% MATK a cada 450 ms. O terceiro golpe tenta congelar o alvo; congelamento e recuo afetam os próximos golpes.",
+    "WZ_EARTHSPIKE": "Dispara nível golpes de Terra, cada um com 100% MATK.",
+    "WZ_HEAVENDRIVE": "Área de 5 × 5 células com nível golpes de Terra, cada um com 100% MATK.",
+    "WZ_QUAGMIRE": "Campo de 5 × 5 células que reduz AGI e DEX de monstros em 10 por nível e remove certas acelerações. Não causa dano.",
+    "WZ_ESTIMATION": "Inspeciona HP, defesa, propriedade e outras informações do inimigo. Não causa dano.",
+    "WZ_SIGHTBLASTER": "Mantém uma carga de Fogo por 120 segundos; ao contato com um inimigo próximo, causa 100% MATK e o empurra.",
+    "HW_SOULDRAIN": "Aumenta SP máximo em 2% por nível. Ao matar o alvo principal com uma magia direcionada, recupera piso(nível do monstro × (95 + 15 × nível da habilidade) / 100) SP.",
+    "HW_MAGICCRASHER": "Ataque de arma que utiliza MATK mínimo na parcela de ataque base e a defesa física do alvo. Usa o elemento da arma.",
+    "HW_MAGICPOWER": "Aumenta MATK em 5% por nível para a próxima invocação mágica. Conjuração de 700 ms não é reduzida por DEX.",
+    "HW_NAPALMVULCAN": "Explosão de Fantasma em área de 3 × 3 células: nível golpes de (70 + 10 × nível)% MATK, divididos entre os inimigos. Pode causar Maldição.",
+    "HW_GANBANTEIN": "Consome Gema Azul e Gema Amarela para tentar remover habilidades de solo na área. Não causa dano.",
+    "HW_GRAVITATION": "Campo de 5 × 5 células por 4 + nível segundos. Causa 200 + 200 × nível de dano fixo por segundo, ignorando propriedade e defesa, e reduz velocidade de ataque.",
+    "AL_HEAL": "Recupera piso((nível base + INT) / 8) × (4 + 8 × nível) HP antes de modificadores de cura.",
+    "TF_DOUBLE": "Com adaga, chance de 5% por nível de atacar duas vezes; não é um bônus percentual permanente de dano.",
+    "MC_CARTREVOLUTION": "Ataque em área de 150% ATK mais até 100% conforme a proporção de peso do carrinho.",
+    "SA_AUTOSPELL": "Permite invocar automaticamente uma magia aprendida ao atacar. A chance e a magia permitida dependem do nível.",
+    "BA_POEMBRAGI": "Canção que reduz tempo de conjuração e atraso após conjuração conforme nível, DEX, INT e Lições de Música.",
+    "DC_SERVICEFORYOU": "Dança que aumenta SP máximo e reduz o custo de SP conforme nível, INT e Lições de Dança.",
+    "AM_LEARNINGPOTION": "Aumenta em 5% por nível a recuperação de HP e SP por itens, somada aos modificadores de VIT/INT e de Recuperação de HP/SP. Produção de poções exige outra habilidade.",
+    "BS_SKINTEMPER": "Reduz dano de propriedade Fogo em 4% por nível e Neutro em 1% por nível.",
+    "BS_WEAPONPERFECT": "Remove a penalidade de tamanho da arma durante 10 segundos por nível. Vínculo com Arma prolonga a duração em 10%.",
+    "BS_MAXIMIZE": "Usa o maior valor de ataque da arma. Consome 1 SP a cada nível segundos e impede recuperação natural de SP; permanece até ser desligada ou faltar SP.",
+    "SA_DRAGONOLOGY": "Concede piso((nível + 1) / 2) INT, aumenta o dano físico de arma e mágico contra Dragões em 4% por nível e reduz o dano recebido deles em 4% por nível.",
+    "AL_DP": "Contra monstros de raça Demônio ou propriedade Morto-vivo, acrescenta nível × piso(3 + (nível base + 1) × 0,04) à defesa física de atributos.",
+    "PR_ASPERSIO": "Consome 1 Água Benta para dar propriedade Sagrado aos ataques da arma durante 30 + 30 × nível segundos. Não muda a propriedade das magias.",
+    "RG_STRIPWEAPON": "Chance base de 5 + 5 × nível por cento, ajustada pela diferença de DEX. Contra monstros reduz ATK em 25%; duração e chance seguem Hercules.",
+    "RG_STRIPARMOR": "Chance base de 5 + 5 × nível por cento, ajustada pela diferença de DEX. Contra monstros reduz VIT em 40%; duração e chance seguem Hercules.",
+    "RG_STRIPHELM": "Chance base de 5 + 5 × nível por cento, ajustada pela diferença de DEX. Contra monstros reduz INT em 40%; duração e chance seguem Hercules.",
+    "PF_HPCONVERSION": "Consome piso(HP máximo / 10) HP e recupera piso(HP consumido × nível / 10) SP, além do custo normal de SP. Requer HP suficiente e SP abaixo do máximo.",
+    "HT_LANDMINE": "Armadilha de Terra de uso único: piso(nível × (DEX + 75) × (100 + INT) / 100) dano em área de 3 × 3. Chance base de Atordoar: 30 + 5 × nível por cento. Consome 1 Armadilha.",
+    "HT_BLASTMINE": "Armadilha de Vento de uso único: piso(nível × (piso(DEX / 2) + 50) × (100 + INT) / 100) dano dividido entre os alvos em área de 3 × 3. Consome 1 Armadilha.",
+    "HT_CLAYMORETRAP": "Armadilha de Fogo de uso único: piso(nível × (piso(DEX / 2) + 75) × (100 + INT) / 100) dano dividido entre os alvos em área de 5 × 5. Consome 2 Armadilhas.",
+    "HT_FREEZINGTRAP": "Armadilha de Água de uso único com (50 + 10 × nível)% ATK em área de 3 × 3, ignorando esquiva. Chance base de Congelar: 35 + 3 × nível por cento. Consome 2 Armadilhas.",
+    "BA_FROSTJOKE": "Após 2 segundos, tenta congelar inimigos no alcance visível de 14 células. Chance base de 15 + 5 × nível por cento, antes das resistências.",
+    "DC_SCREAM": "Após 2 segundos, tenta atordoar inimigos no alcance visível de 14 células. Chance base de 25 + 5 × nível por cento, antes das resistências.",
+    "BS_HAMMERFALL": "Tenta atordoar inimigos em área de 5 × 5 células. Chance base de 20 + 10 × nível por cento, antes das resistências.",
+    "AL_CURE": "Na caça, trata a Cegueira do próprio personagem. Custa 15 SP, com pós conjuração de 1 segundo. Só entra na rotação quando há uma doença tratável; não recupera HP. Também encerra Silêncio, Confusão e BitEscar quando esses estados reais existirem.",
+    "TF_DETOXIFY": "Na caça, remove Veneno e Veneno Mortal do próprio personagem por 10 SP. Só entra na rotação enquanto houver um desses estados; não recupera HP nem remove venenos arbitrários.",
+    "PR_SLOWPOISON": "Na caça, suprime o dano periódico de Veneno e Veneno Mortal por 10 segundos por nível e permite a recuperação bloqueada por esses venenos. Mantém a doença, sua contagem e a penalidade de defesa de VIT. Custa 6/8/10/12 SP; a rotação só usa enquanto envenenado e sem o efeito ativo.",
+    "SA_CREATECON": "Criar Conversor Elemental: produção manual na cidade. Cada ativação custa 30 SP, uma vez por lote, e cada unidade consome 1 Pergaminho em Branco e 3 materiais da receita. Sucesso fonte garantido, mantendo os sorteios de produção. Não participa da rotação de caça.",
+    "SA_ELEMENTWATER": "Muda o corpo de um monstro para Água, nível elemental sorteado de 1 a 4, por 30 minutos. Alcance nove, conjuração base de dois segundos reduzida por DEX, pós-conjuração de um segundo; custa 30 SP e 1 conversor correspondente. Boss é imune. Propriedade anterior nível 2 a 4 mantém elemento e prazo; Freeze e Petrificação têm precedência. A rotação evita propriedade ativa e exige vantagem elemental nos quatro níveis para uma magia aprendida planejada. Não causa dano nem interrompe conjuração NPC.",
+    "SA_ELEMENTGROUND": "Muda o corpo de um monstro para Terra, nível elemental sorteado de 1 a 4, por 30 minutos. Alcance nove, conjuração base de dois segundos reduzida por DEX, pós-conjuração de um segundo; custa 30 SP e 1 conversor correspondente. Boss é imune. Propriedade anterior nível 2 a 4 mantém elemento e prazo; Freeze e Petrificação têm precedência. A rotação evita propriedade ativa e exige vantagem elemental nos quatro níveis para uma magia aprendida planejada. Não causa dano nem interrompe conjuração NPC.",
+    "SA_ELEMENTFIRE": "Muda o corpo de um monstro para Fogo, nível elemental sorteado de 1 a 4, por 30 minutos. Alcance nove, conjuração base de dois segundos reduzida por DEX, pós-conjuração de um segundo; custa 30 SP e 1 conversor correspondente. Boss é imune. Propriedade anterior nível 2 a 4 mantém elemento e prazo; Freeze e Petrificação têm precedência. A rotação evita propriedade ativa e exige vantagem elemental nos quatro níveis para uma magia aprendida planejada. Não causa dano nem interrompe conjuração NPC.",
+    "SA_ELEMENTWIND": "Muda o corpo de um monstro para Vento, nível elemental sorteado de 1 a 4, por 30 minutos. Alcance nove, conjuração base de dois segundos reduzida por DEX, pós-conjuração de um segundo; custa 30 SP e 1 conversor correspondente. Boss é imune. Propriedade anterior nível 2 a 4 mantém elemento e prazo; Freeze e Petrificação têm precedência. A rotação evita propriedade ativa e exige vantagem elemental nos quatro níveis para uma magia aprendida planejada. Não causa dano nem interrompe conjuração NPC.",
+    "DC_DONTFORGETME": "Campo 7 × 7 por 180 segundos. A cada 3 segundos reduz em inimigos a velocidade de ataque e de movimento conforme DEX, AGI, nível da habilidade e Lições de Dança. O efeito persiste por até 20 segundos após sair do campo. Custa 1 SP a cada 10 segundos enquanto ativo; exige instrumento ou chicote.",
+    "BA_PANGVOICE": "Pang Voice: conjura por 1 segundo, custa 20 SP e tenta confundir por 17 segundos um monstro em até 9 células durante a caça no campo. A chance base é 50%, reduzida pela resistência de STR, INT, SOR e nível do alvo; chefes são imunes. Ao ser confundido, o monstro interrompe o ataque e anda para destinos aleatórios até o efeito acabar.",
+    "DC_WINKCHARM": "Wink of Charm: conjura por 1 segundo, custa 40 SP e tenta encantar por 10 segundos um monstro comum de nível inferior, das raças Demônio, Demi-humano ou Anjo, em até 9 células. Chance fixa de 70%, sem efeito em chefes. Enquanto encantado, o monstro não inicia novas habilidades especiais; ataques normais e conjurações já iniciadas seguem seus próprios relógios. A caça já conduz o movimento em direção ao jogador, sem um caminho separado até o alcance 3.",
+    "RG_CLOSECONFINE": "Prende você e um monstro adjacente por 10 segundos. O alvo ainda pode atacar e receber seus golpes; seus movimentos voltam quando o último alvo preso morre ou o efeito termina. Custa 25 SP. A rotação automática usa a habilidade somente contra um alvo vivo em contato durante a caça no campo.",
+    "PF_MINDBREAKER": "Aumenta a MATK do alvo em 20% por nível e reduz sua MDEF secundária em 12% por nível durante 30 segundos. Chefes e mortos-vivos são imunes.",
+    "PF_FOGWALL": "Cria um nevoeiro fixo de 5 × 3 células sob o personagem por 20 segundos; células sobre Dilúvio duram 40 segundos. Até dois campos ativos. Reduz precisão de ataques normais longos em 50 pontos percentuais e seu dano em 75%; magias NPC direcionadas têm 75% de falha e 25% de redução de dano. A Cegueira nos ocupantes ainda não é simulada.",
+    "SA_VOLCANO": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Fogo no campo; concede ATQ de arma a ocupantes com armadura de Fogo. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. O efeito termina ao sair do campo ou reconectar.",
+    "SA_DELUGE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Água e aumenta o HP máximo de ocupantes com armadura de Água, sem curá-los. Permite Esferas d’Água no campo. Requer Gema Amarela; a substituição preserva o tempo restante sem consumir outra gema. Termina ao sair ou reconectar.",
+    "SA_VIOLENTGALE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Vento e concede esquiva a ocupantes com armadura de Vento. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. Termina ao sair do campo ou reconectar."
+  },
+  "converterMaterials": [
+    7433,
+    904,
+    946,
+    947,
+    1013,
+    12114,
+    12115,
+    12116,
+    12117
+  ]
 }

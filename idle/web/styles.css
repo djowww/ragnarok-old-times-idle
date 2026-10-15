@@ -716,6 +716,23 @@ button.full {
   font-size: 11px;
   color: #edf1df;
 }
+.scene-blade-stop {
+  position: absolute;
+  z-index: 3;
+  top: 17px;
+  left: 50%;
+  max-width: calc(100% - 36px);
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border: 1px solid #718a83a8;
+  border-radius: 3px;
+  background: #e7efdfd9;
+  color: #263b34;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
+}
 .target-card {
   position: absolute;
   z-index: 2;
@@ -1550,6 +1567,24 @@ button.full {
   font-size: 10px;
   color: #7c896e;
 }
+.skill-use-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 5px 0;
+  color: #687561;
+  font-size: 10px;
+}
+.skill-use-level select {
+  min-height: 24px;
+  padding: 2px 5px;
+  border: 1px solid #bdc7ad;
+  border-radius: 3px;
+  background: #f5f6e9;
+  color: #425849;
+  font: inherit;
+}
+.skill-use-level select:disabled { opacity: 0.65; }
 .skill-description .action-row {
   gap: 4px;
 }
@@ -3562,5 +3597,72 @@ button.full {
   }
   button:active:not(:disabled) {
     transform: none;
+  }
+}
+
+.pending-loot {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #c8a85b;
+  background: #f7f1dc;
+  color: #493d25;
+}
+.pending-loot-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pending-loot-heading h3,
+.pending-loot-heading p {
+  margin: 0;
+}
+.pending-loot-heading h3 {
+  font-size: 14px;
+}
+.pending-loot-heading p,
+.pending-loot .note {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.pending-loot-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+.pending-loot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px;
+  background: rgb(255 255 255 / 55%);
+}
+.pending-loot-row .item-icon {
+  flex: 0 0 28px;
+}
+.pending-loot-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pending-loot-quantity,
+.pending-loot-source {
+  flex: 0 0 auto;
+  color: #74684e;
+  font-size: 11px;
+}
+.inventory-carry-return {
+  border-color: #bd8b38;
+}
+@media (max-width: 520px) {
+  .pending-loot-heading {
+    align-items: flex-start;
+  }
+  .pending-loot-heading button {
+    padding-inline: 8px;
+    white-space: nowrap;
   }
 }

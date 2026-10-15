@@ -12,14 +12,23 @@ const huntFocus: Rule = value => typeof value === 'string' && (value === 'any' |
 const oneOf = (...values: unknown[]): Rule => value => values.includes(value);
 const boolean: Rule = value => typeof value === 'boolean';
 const rules: Record<string, Record<string, Rule>> = {
-  startHunt: { areaId: token }, setHuntFocus: { areaId: token, focus: huntFocus }, stop: {}, rest: {}, sellLoot: {}, rebirth: {}, dismissOffline: {},
+  teleport: { destination: oneOf('random', 'save') },
+  startHunt: { areaId: token }, setHuntFocus: { areaId: token, focus: huntFocus }, stop: {}, rest: {}, sellLoot: {}, collectPendingLoot: {}, repairAll: {}, rebirth: {}, dismissOffline: {},
   setGender: { gender: oneOf('male', 'female') },
+  changeAppearance: { hairStyle: integer(0, 27), hairColor: integer(0, 8), clothesColor: integer(0, 4) },
   allocate: { stat: oneOf('str', 'agi', 'vit', 'int', 'dex', 'luk'), amount: integer(1, 99) },
   learnSkill: { skillId: token },
-  setRotation: { skillIds: value => Array.isArray(value) && value.length <= 3 && new Set(value).size === value.length && value.every(token) },
+  setSkillUseLevel: { skillId: token, level: value => value === null || integer(1, 100)(value) },
+  setAutospell: { skillId: value => value === null || token(value) },
+  cancelBuff: { skillId: token },
+  toggleBuff: { skillId: token },
+  useSkill: { skillId: token, expectedCastActionId: value => value === undefined || token(value), expectedEnemyId: value => value === undefined || token(value) },
+  setMount: { mounted: boolean },
+  setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token) },
   buy: { itemId: integer(1, 1_000_000), quantity: integer(1, 9999) },
+  craftConverter: { itemId: oneOf(12114,12115,12116,12117), quantity: integer(1,1000) },
   sell: { uid: token, quantity: integer(1, 9999) },
-  equip: { uid: token }, favorite: { uid: token }, refine: { uid: token },
+  equip: { uid: token }, favorite: { uid: token }, refine: { uid: token }, identify: { uid: token, method: value => value === undefined || value === 'magnifier' || value === 'skill' },
   unequip: { slot: oneOf('weapon', 'armor', 'shield', 'head', 'garment', 'shoes', 'accessory') },
   socket: { uid: token, cardUid: token }, changeClass: { classId: token },
   setPotions: { hpThreshold: integer(0, 100), spThreshold: integer(0, 100) },
@@ -39,7 +48,7 @@ export function parseCommandRequest(value: unknown): CommandRequest {
   const command: Record<string, unknown> = { type: value.command.type };
   for (const [key, check] of Object.entries(rule)) {
     if (!check(value.command[key])) throw new ValidationError();
-    command[key] = value.command[key];
+    if (value.command[key] !== undefined) command[key] = value.command[key];
   }
   return { requestId: value.requestId, command: command as unknown as GameCommand };
 }
