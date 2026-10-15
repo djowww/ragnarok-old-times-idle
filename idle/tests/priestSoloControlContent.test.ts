@@ -1,3 +1,4 @@
+import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import {describe,it,expect} from 'vitest';
 import data from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
@@ -14,7 +15,7 @@ describe('Executed solo Priest catalog',()=>{
   for(const id of ['rg_gangster','as_right','as_left'])expect(c.skills[id].implementation,id).toBe('unsupported');
   expect(c.skills.sa_advancedbook).toMatchObject({sourceName:'SA_ADVANCEDBOOK',implementation:'supported',kind:'passive'});
   expect(c.skills.pr_lexdivina.prerequisitesByClass!.priest).toContainEqual({skillId:'al_ruwach',level:1});
-  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 260, unsupported: 88});
+  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 262, unsupported: 86});
   expect((manifest as Record<string, unknown>).ruwach).toMatchObject({ skill:'AL_RUWACH', status:'SC_RUWACH', durationMs:10000,
    radius:2, spCost:10, pulseMs:20, damage:'145% MATK, Holy, Hercules level 1; only when concealment is removed' });
   expect(manifest.skillSources.al_ruwach).toMatchObject({ name:'AL_RUWACH', implementation:'supported',
@@ -30,7 +31,7 @@ describe('Executed solo Priest catalog',()=>{
   expect(c.source.files.filter(path=>!baseline.sourcePaths.includes(path)).sort()).toEqual(['db/pre-re/unit_parameters_db.conf','db/produce_db.txt','npc/mapflag/noteleport.txt','npc/merchants/refine.txt','npc/merchants/shops.txt','src/map/clif.c','src/map/mob.c','src/map/mob.h','src/map/pc.h']);
  });
  it('preserves every supported skill from the exact frozen CAST222 archive and accounts for later solo packages',()=>{
-  const supported=Object.values(c.skills).filter(skill=>skill.implementation==='supported').map(skill=>skill.sourceName!);
+  const supported=Object.values(beforeSoloAlchemySkills(c.skills)).filter(skill=>skill.implementation==='supported').map(skill=>skill.sourceName!);
   expect(baseline.supportedSourceNames).toHaveLength(222);
   expect(baseline.supportedSourceNames.filter(name=>!supported.includes(name))).toEqual([]);
   expect(supported.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'AL_TELEPORT', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'PR_LEXDIVINA', 'PR_STRECOVERY', 'RG_CLOSECONFINE', 'RG_COMPULSION', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_CREATECON', 'SA_DELUGE', 'SA_ELEMENTFIRE', 'SA_ELEMENTGROUND', 'SA_ELEMENTWATER', 'SA_ELEMENTWIND', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);

@@ -1,3 +1,4 @@
+import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import raw from '../content/catalog.json';
@@ -20,12 +21,12 @@ describe('source Teleport catalog', () => {
     expect(c.skills.al_teleport.unsupportedReason).toBeUndefined();
     expect(c.skills.al_teleport.description).toContain('posição aleatória');
     expect(c.skills.al_teleport.description).toContain('Prontera');
-    expect(manifest.skillCoverage).toMatchObject({ supported: 260, unsupported: 88, skills: 348, classes: 40 });
+    expect(manifest.skillCoverage).toMatchObject({ supported: 262, unsupported: 86, skills: 348, classes: 40 });
     for (const [key, expected] of Object.entries(baseline.domains)) {
       const historical = key === 'classes' ? beforeHistoricalClassCadence(c.classes) : raw[key as keyof typeof raw];
       expect(hash(historical), key).toBe(expected);
     }
-    expect(hash(Object.fromEntries(Object.entries(c.skills).filter(([id]) => id !== 'al_teleport')))).toBe(baseline.otherSkills);
+    expect(hash(Object.fromEntries(Object.entries(beforeSoloAlchemySkills(c.skills)).filter(([id]) => id !== 'al_teleport')))).toBe(baseline.otherSkills);
   });
   it('pins source noteleport and discloses component/home/manual adaptations', () => {
     expect(c.teleportBlockedMaps).toContain('prt_in'); expect(c.teleportBlockedMaps).toContain('gefg_cas01');

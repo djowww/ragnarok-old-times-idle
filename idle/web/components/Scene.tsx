@@ -544,6 +544,7 @@ type PopupCue = {
   text: string;
   target: "player" | "enemy";
   critical?: boolean;
+  resource?: 'hp' | 'sp';
   start: number;
   enemyId?: string;
 };
@@ -1047,7 +1048,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         }
         if (event.amount !== undefined && event.target) {
           effects.current.push({ id: event.id, text: combatPopupText(event),
-            target: event.target, critical: event.critical, start: eventCue?.impact ?? start, enemyId: event.enemyId });
+            target: event.target, critical: event.critical, resource: event.resource, start: eventCue?.impact ?? start, enemyId: event.enemyId });
         } else if (event.kind === "miss" || event.kind === "dodge") {
           effects.current.push({ id: event.id, text: "MISS", target: event.kind === "dodge" ? "player" : "enemy", start: eventCue?.impact ?? start, enemyId: event.enemyId });
         }
@@ -1146,7 +1147,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       }
       if (event.amount !== undefined && event.target)
         effects.current.push({ id: event.id, text: combatPopupText(event),
-          target: event.target, critical: event.critical, start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
+          target: event.target, critical: event.critical, resource: event.resource, start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
       else if (event.kind === "miss" || event.kind === "dodge")
         effects.current.push({ id: event.id, text: "MISS", target: isNpcStatusAction(event, state.id) || event.kind === "dodge" ? "player" : "enemy",
           start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
@@ -2053,6 +2054,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           text: e.text,
           target: e.target,
           critical: e.critical,
+          resource: e.resource,
           x,
           y,
           elapsedMs: time - e.start,

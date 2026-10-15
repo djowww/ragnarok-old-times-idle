@@ -78,6 +78,7 @@
 .chat-combat-event.event-loot > span,
 .chat-combat-event.event-drop > span { color: #36643f; }
 .chat-combat-event.event-death > span { color: #884438; }
+.chat-combat-event.event-resource-sp > span { color: #347db5; text-shadow: none; }
 .chat-message { color: #3b6069; }
 .chat-message b { color: #31598a; }
 .chat-empty { margin: 0; padding: 5px 3px; color: #4b6476; font-size: 11px; }
