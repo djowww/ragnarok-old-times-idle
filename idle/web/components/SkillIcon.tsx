@@ -8,13 +8,27 @@ export default function SkillIcon({ skill }: { skill: Skill }) {
 
   useEffect(() => {
     let active = true;
+    let retryTimer: number | undefined;
+    let attempts = 0;
+    const resource = skill.iconResource;
     setImage(null);
-    if (skill.iconResource) {
-      void getBitmapUrl(skill.iconResource).then((url) => {
-        if (active && url !== FALLBACK_ICON) setImage(url);
+    const load = () => {
+      if (!active || !resource) return;
+      const attempt = attempts++;
+      void getBitmapUrl(resource).then((url) => {
+        if (!active) return;
+        if (url !== FALLBACK_ICON) {
+          setImage(url);
+        } else if (attempt < 2) {
+          retryTimer = window.setTimeout(load, (attempt + 1) * 1000);
+        }
       });
-    }
-    return () => { active = false; };
+    };
+    load();
+    return () => {
+      active = false;
+      window.clearTimeout(retryTimer);
+    };
   }, [skill.iconResource]);
 
   return (
