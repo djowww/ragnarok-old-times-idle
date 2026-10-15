@@ -1,7 +1,11 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { describe, it, expect } from 'vitest';
-import raw from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentRaw from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import type { Catalog } from '../shared/types';
+const raw = beforeDungeonExpansionCatalog(dungeonCurrentRaw);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c = raw as unknown as Catalog;
 describe('source-pinned Cast Cancel and Spell Breaker export', () => {
     it('promotes exactly two mechanics with manual and resource metadata', () => { expect(c.skills.sa_castcancel).toMatchObject({ implementation: 'supported', manualUse: 'castCancel', spCost: [2, 2, 2, 2, 2] }); expect(c.skills.sa_spellbreaker).toMatchObject({ implementation: 'supported', targetType: 'enemy', range: [9, 9, 9, 9, 9], castTimeMs: [700, 700, 700, 700, 700], spCost: [10, 10, 10, 10, 10] }); expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 262, unsupported: 86 }); });

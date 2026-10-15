@@ -1,12 +1,16 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import raw from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentRaw from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/sageFields256Baseline.json';
 import { beforeTeleportSkills } from './sage-fields-historical-fixture';
 import type { Catalog } from '../shared/types';
 import { beforeHistoricalClassCadence } from './class-cadence-historical';
+const raw = beforeDungeonExpansionCatalog(dungeonCurrentRaw);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c = raw as unknown as Catalog;
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';

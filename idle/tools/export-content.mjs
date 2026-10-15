@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { parseTeleportMapFlags } from './teleport-mapflags.mjs';
 import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
 import { staticDefenseElement } from './itemDefenseElement.mjs';
+import { parseMapSpawnScript, validateMapSpawnSelections } from './mapSpawns.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rules = JSON.parse(await readFile(resolve(root, 'content/rules.json'), 'utf8'));
 const sha = b => createHash('sha256').update(b).digest('hex');
@@ -56,20 +57,15 @@ for (const path of rules.mapSpawnSources ?? []) {
         throw new Error('Pinned source hash mismatch: ' + path);
     buffers[path] = buffer;
     manifest.sources.push({ path, url, sha256: sha(buffer) });
-    for (const line of buffer.toString('utf8').split(/\r?\n/)) {
-        const match = line.match(/^\s*([a-z0-9_]+),.*?\b(?:monster|boss_monster)\s+.+?\s+(\d+),/i);
-        if (!match) continue;
-        const [, map, id] = match;
+    for (const [map, ids] of parseMapSpawnScript(buffer.toString('utf8'))) {
         const monsters = mapSpawnMonsterIds.get(map) ?? new Set();
-        monsters.add(Number(id));
+        for (const id of ids) monsters.add(id);
         mapSpawnMonsterIds.set(map, monsters);
     }
 }
-for (const area of rules.areas) {
-    const officialSpawns = mapSpawnMonsterIds.get(area.map);
-    if (officialSpawns && area.monsters.some(id => !officialSpawns.has(id)))
-        throw new Error(`Area ${area.id} contains a monster not spawned on ${area.map} in its pinned Hercules script`);
-}
+validateMapSpawnSelections(rules.areas, mapSpawnMonsterIds);
+manifest.mapSpawnValidation = { maps: rules.areas.map(area => area.map),
+    selection: 'All selected monsters must appear on their configured map in the pinned spawn scripts; missing maps are rejected.' };
 const resourcePath = arg('--item-resources');
 const resourceBuffer = resourcePath ? await readFile(resolve(resourcePath)) : Buffer.from(await (await fetch((arg('--asset-origin') ?? 'http://127.0.0.1:8080') + '/data/idnum2itemresnametable.txt')).arrayBuffer());
 const resources = {};
@@ -547,6 +543,18 @@ manifest.formulaEvidence = {
 const slotFromLoc = loc => { if (Array.isArray(loc))
     loc = loc.join('|'); return /EQP_ARMS|EQP_WEAPON/.test(loc ?? '') ? 'weapon' : /EQP_ARMOR/.test(loc ?? '') ? 'armor' : /EQP_SHIELD/.test(loc ?? '') ? 'shield' : /EQP_HEAD/.test(loc ?? '') ? 'head' : /EQP_GARMENT/.test(loc ?? '') ? 'garment' : /EQP_SHOES/.test(loc ?? '') ? 'shoes' : /EQP_ACC/.test(loc ?? '') ? 'accessory' : undefined; };
 const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_BOOK: 'book', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
+// Reagents keep their inventory role even when their native usable script is inert.
+const protectedReagentIds = new Set(Object.values(catalog.skills).flatMap(skill =>
+    (skill.itemCostByLevel ?? []).flatMap(costs => costs.map(cost => cost.itemId))));
+for (const line of buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/)) {
+    if (!/^\d+,/.test(line)) continue;
+    const values = line.split(',').map(Number);
+    if (values[2] !== 228) continue;
+    for (let i = 4; i < values.length; i += 2)
+        if (Number.isSafeInteger(values[i]) && values[i] > 0) protectedReagentIds.add(values[i]);
+}
+manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY'],
+    behavior: 'Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available.' };
 function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);
     const defenseElement = staticDefenseElement(i);
@@ -557,6 +565,7 @@ function includeItem(raw, shop = false, drop = false) {
     }
     let type = 'loot', slot = slotFromLoc(i.Loc), weaponType = weaponTypes[i.Subtype], unsupportedEffect = false;
     if ((rules.converterMaterials??[]).includes(i.Id)) { type='material';unsupportedEffect=!!i.Script; }
+    else if (protectedReagentIds.has(i.Id) && !rules.heal[i.Id] && i.Id !== 611 && !['IT_WEAPON', 'IT_ARMOR', 'IT_CARD'].includes(i.Type)) { type = 'material'; unsupportedEffect = !!i.Script; }
     else if (i.Type === 'IT_CARD') {
         type = 'card';
         if (!rules.cards[i.Id] && !defenseElement) {

@@ -5,7 +5,7 @@ import { getMapLife } from '../web/assets/mapLife';
 
 const catalog = catalogJSON as unknown as Catalog;
 const dungeonScenes = new Set(['sewer', 'cave', 'sea', 'castle', 'orc']);
-const dungeons = catalog.areas.filter(area => dungeonScenes.has(area.scene) || area.map === 'moc_pryd02');
+const dungeons = catalog.areas.filter(area => dungeonScenes.has(area.scene) || ['moc_pryd02', 'moc_pryd05'].includes(area.map));
 const fields = catalog.areas.filter(area => !dungeons.includes(area));
 
 describe('ambient NPCs match the hunt area', () => {

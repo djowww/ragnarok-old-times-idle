@@ -1,9 +1,13 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import {describe,it,expect} from 'vitest';
-import data from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentData from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import type {Catalog} from '../shared/types';
 import baseline from './fixtures/castControl222Baseline.json';
+const data = beforeDungeonExpansionCatalog(dungeonCurrentData);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c=data as unknown as Catalog;
 describe('Executed solo Priest catalog',()=>{
  it('promotes exactly Priest Recovery, Lex and real Haggle while preserving study-only foundations',()=>{

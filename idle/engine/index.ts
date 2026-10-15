@@ -9,7 +9,7 @@ import { availableClasses, derivedStats, healFull } from "./stats.js";
 import { tick } from "./combat.js";
 import { executeCommand } from "./commands.js";
 import { updateQuests } from "./progression.js";
-import { pruneAreaActivity, recordAreaActivity } from "../shared/hunt.js";
+import { pruneAreaActivity, recordAreaActivity, reconcileHuntFocus } from "../shared/hunt.js";
 import { clearStaleSenseInspection } from './senseInspection.js';
 import { bladeStopRules } from './bladeStop.js';
 import { assertSimulationNavigation, type SimulationContext } from './fieldNavigation.js';
@@ -130,6 +130,7 @@ function* advanceStateSteps(
   const s = structuredClone(state);
   migrateFieldNavigationState(s, s.status === 'paused' ? s.pausedAt ?? s.lastSimulatedAt : s.lastSimulatedAt, context);
   reconcileRemovedSkills(s, catalog);
+  reconcileHuntFocus(s, catalog);
   if (s.status === "paused") return s;
   const limit = s.lastSeenAt + 12 * 3600000;
   const until = Math.min(now, limit);
@@ -366,6 +367,7 @@ export function getSnapshot(
   updateQuests(copy, catalog);
   copy.pendingAreaId ??= null;
   copy.huntFocus ??= {};
+  reconcileHuntFocus(copy, catalog);
   copy.areaActivity ??= {};
   pruneAreaActivity(copy, now);
   return {

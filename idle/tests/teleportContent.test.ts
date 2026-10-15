@@ -1,11 +1,15 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import raw from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentRaw from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/teleport259Baseline.json';
 import type { Catalog } from '../shared/types';
 import { beforeHistoricalClassCadence } from './class-cadence-historical';
+const raw = beforeDungeonExpansionCatalog(dungeonCurrentRaw);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c = raw as unknown as Catalog;
 function canonical(v: unknown): string {
   return Array.isArray(v) ? '[' + v.map(canonical).join(',') + ']' : v && typeof v === 'object'

@@ -30,8 +30,10 @@ const localMaps = new Set([
   "iz_dun01",
   "gef_fild10",
   "moc_pryd02",
+  "moc_pryd05",
   "gef_dun02",
   "gl_knt01",
+  "gl_chyard",
   "prt_sewb2",
   "pay_dun01",
   "iz_dun02",
@@ -167,7 +169,7 @@ export default function OriginalMap({
         <iframe
           key={`${map}:${fieldOrigin?.x ?? ""}:${fieldOrigin?.y ?? ""}:${attempt}`}
           ref={frame}
-          src={`${mapViewer}?v=20261013-field-navigation&attempt=${attempt}${fieldOrigin ? `&originX=${fieldOrigin.x}&originY=${fieldOrigin.y}` : ""}#${map}.rsw`}
+          src={`${mapViewer}?v=20261015-dungeons31&attempt=${attempt}${fieldOrigin ? `&originX=${fieldOrigin.x}&originY=${fieldOrigin.y}` : ""}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
           onLoad={() => resetActors(true)}

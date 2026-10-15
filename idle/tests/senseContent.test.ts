@@ -1,16 +1,20 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { beforeSageFieldSkills, beforeSagePropertyItems } from './sage-fields-historical-fixture';
 import chasewalkBaseline from './fixtures/chasewalk389Baseline.json';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentCatalog from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import baseline from './fixtures/sense234Baseline.json';
 import magicRodBaseline from './fixtures/magicRodUnsupportedBaseline.json';
 import rogueCopyBaseline from './fixtures/rogueCopyUnsupportedBaseline.json';
 import type { Catalog } from '../shared/types';
 import { beforeHistoricalClassCadence } from './class-cadence-historical';
+
+const catalog = beforeDungeonExpansionCatalog(dungeonCurrentCatalog);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
 
 const typedCatalog = catalog as unknown as Catalog;
 

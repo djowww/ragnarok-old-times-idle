@@ -1,10 +1,14 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import {describe,it,expect} from 'vitest';
-import data from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentData from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/priestControl225Baseline.json';
 import rules from '../content/rules.json';
 import type {Catalog} from '../shared/types';
+const data = beforeDungeonExpansionCatalog(dungeonCurrentData);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c=data as unknown as Catalog;
 describe('exact source-pinned converter package',()=>{
  it('preserves Priest225 and accounts for the two solo postures after Guardian',()=>{

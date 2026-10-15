@@ -33,7 +33,7 @@ This is an independent fan project under active development.
 
 | Content in the current source | Count |
 | --- | ---: |
-| Hunting areas | 29 |
+| Hunting areas | 31 |
 | Classes in the progression trees | 40 |
 | Skills imported from Hercules | 348 |
 | Implemented skills | 262 |

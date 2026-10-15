@@ -35,7 +35,7 @@ A versão de testes está em desenvolvimento e recebe melhorias frequentes.
 
 | Conteúdo disponível no código atual | Quantidade |
 | --- | ---: |
-| Áreas de caça | 29 |
+| Áreas de caça | 31 |
 | Classes nas árvores de progressão | 40 |
 | Habilidades importadas do Hercules | 348 |
 | Habilidades implementadas | 262 |

@@ -20,6 +20,14 @@ export function focusMatches(catalog: Catalog, area: Area, focus: HuntFocus): bo
   return false;
 }
 
+/** Drop only saved preferences that no longer exist after a catalog update. */
+export function reconcileHuntFocus(state: GameState, catalog: Catalog): void {
+  for (const [areaId, focus] of Object.entries(state.huntFocus ?? {})) {
+    const area = catalog.areas.find(entry => entry.id === areaId);
+    if (!area || !focusMatches(catalog, area, focus)) state.huntFocus![areaId] = 'any';
+  }
+}
+
 export function chooseAreaMonster(state: GameState, catalog: Catalog, area: Area, roll: number): number {
   const focus = focusForArea(state, area.id);
   const weights = area.monsters.map(id => {

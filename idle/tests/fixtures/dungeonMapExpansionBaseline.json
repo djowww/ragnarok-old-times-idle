@@ -1,0 +1,421 @@
+{
+  "baseCommit": "20bf7d881f7004d40887b06f834cea3f1524ef6c",
+  "baselineSha256": "f45e5f3a34cac1068ec170db3d4c3ec3fbc349a0c9585583ad1a9aee6fa9d993",
+  "beforeSource": {
+    "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+    "files": [
+      "db/pre-re/mob_skill_db.conf",
+      "db/pre-re/mob_db.conf",
+      "db/pre-re/item_db.conf",
+      "db/pre-re/job_db.conf",
+      "db/pre-re/exp_group_db.conf",
+      "db/pre-re/skill_db.conf",
+      "db/pre-re/skill_tree.conf",
+      "db/pre-re/attr_fix.conf",
+      "db/pre-re/size_fix.txt",
+      "db/pre-re/autospell_db.conf",
+      "db/pre-re/unit_parameters_db.conf",
+      "npc/merchants/refine.txt",
+      "npc/mapflag/noteleport.txt",
+      "npc/pre-re/mobs/fields/geffen.txt",
+      "npc/pre-re/mobs/fields/payon.txt",
+      "npc/pre-re/mobs/fields/prontera.txt",
+      "db/job_db2.txt",
+      "db/pre-re/sc_config.conf",
+      "src/map/battle.c",
+      "src/map/status.c",
+      "src/map/skill.c",
+      "src/map/pc.c",
+      "src/map/pc.h",
+      "src/map/unit.c",
+      "src/map/mob.c",
+      "src/map/mob.h",
+      "db/produce_db.txt",
+      "npc/merchants/shops.txt",
+      "src/map/clif.c"
+    ],
+    "hash": "b246410c8e2cc40bf0487387bffd242cb85186a694f5e3dbbf621317ebef06e5"
+  },
+  "afterSource": {
+    "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+    "files": [
+      "db/pre-re/mob_skill_db.conf",
+      "db/pre-re/mob_db.conf",
+      "db/pre-re/item_db.conf",
+      "db/pre-re/job_db.conf",
+      "db/pre-re/exp_group_db.conf",
+      "db/pre-re/skill_db.conf",
+      "db/pre-re/skill_tree.conf",
+      "db/pre-re/attr_fix.conf",
+      "db/pre-re/size_fix.txt",
+      "db/pre-re/autospell_db.conf",
+      "db/pre-re/unit_parameters_db.conf",
+      "npc/merchants/refine.txt",
+      "npc/mapflag/noteleport.txt",
+      "npc/pre-re/mobs/fields/geffen.txt",
+      "npc/pre-re/mobs/fields/payon.txt",
+      "npc/pre-re/mobs/fields/prontera.txt",
+      "npc/pre-re/mobs/dungeons/prt_sew.txt",
+      "npc/pre-re/mobs/dungeons/pay_dun.txt",
+      "npc/pre-re/mobs/dungeons/iz_dun.txt",
+      "npc/pre-re/mobs/dungeons/orcsdun.txt",
+      "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+      "npc/pre-re/mobs/dungeons/gef_dun.txt",
+      "npc/pre-re/mobs/dungeons/glastheim.txt",
+      "db/job_db2.txt",
+      "db/pre-re/sc_config.conf",
+      "src/map/battle.c",
+      "src/map/status.c",
+      "src/map/skill.c",
+      "src/map/pc.c",
+      "src/map/pc.h",
+      "src/map/unit.c",
+      "src/map/mob.c",
+      "src/map/mob.h",
+      "db/produce_db.txt",
+      "npc/merchants/shops.txt",
+      "src/map/clif.c"
+    ],
+    "hash": "254544d854b446b126864c49b1a4e87f4c88a2d5d0d071914a736f501918bfaf"
+  },
+  "newItemIds": [
+    601,
+    643,
+    748,
+    913,
+    922,
+    929,
+    941,
+    950,
+    951,
+    961,
+    962,
+    1005,
+    1007,
+    1011,
+    1024,
+    1043,
+    1105,
+    1226,
+    1260,
+    1358,
+    1361,
+    1551,
+    2209,
+    2217,
+    2259,
+    2299,
+    2326,
+    2505,
+    2612,
+    2626,
+    4020,
+    4035,
+    4042,
+    4061,
+    4069,
+    4070,
+    4071,
+    4085,
+    4093,
+    4095,
+    4107,
+    4110,
+    4115,
+    4126,
+    4141,
+    4190,
+    4205,
+    5014,
+    5015,
+    7006,
+    7032,
+    7478
+  ],
+  "newMonsterIds": [
+    1005,
+    1032,
+    1035,
+    1036,
+    1042,
+    1044,
+    1067,
+    1068,
+    1111,
+    1116,
+    1117,
+    1144,
+    1149,
+    1152,
+    1153,
+    1191,
+    1192
+  ],
+  "newAreaIds": [
+    "pyramid_depths",
+    "glast_heim_cemetery"
+  ],
+  "itemTypes": {
+    "523": {
+      "before": "loot",
+      "after": "material"
+    },
+    "545": {
+      "before": "loot",
+      "after": "material"
+    },
+    "546": {
+      "before": "loot",
+      "after": "material"
+    },
+    "547": {
+      "before": "loot",
+      "after": "material"
+    },
+    "657": {
+      "before": "loot",
+      "after": "material"
+    },
+    "713": {
+      "before": "loot",
+      "after": "material"
+    },
+    "715": {
+      "before": "loot",
+      "after": "material"
+    },
+    "905": {
+      "before": "loot",
+      "after": "material"
+    },
+    "911": {
+      "before": "loot",
+      "after": "material"
+    },
+    "921": {
+      "before": "loot",
+      "after": "material"
+    },
+    "970": {
+      "before": "loot",
+      "after": "material"
+    },
+    "991": {
+      "before": "loot",
+      "after": "material"
+    },
+    "992": {
+      "before": "loot",
+      "after": "material"
+    },
+    "993": {
+      "before": "loot",
+      "after": "material"
+    },
+    "1059": {
+      "before": "loot",
+      "after": "material"
+    },
+    "1065": {
+      "before": "loot",
+      "after": "material"
+    },
+    "6377": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7033": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7049": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7126": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7134": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7135": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7137": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7138": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7139": {
+      "before": "loot",
+      "after": "material"
+    },
+    "7142": {
+      "before": "loot",
+      "after": "material"
+    }
+  },
+  "areaPools": {
+    "payon_cave_depths": {
+      "before": [
+        1015,
+        1076,
+        1028
+      ],
+      "after": [
+        1111,
+        1116,
+        1028,
+        1016
+      ]
+    },
+    "byalan_depths": {
+      "before": [
+        1070,
+        1066,
+        1141
+      ],
+      "after": [
+        1068,
+        1067,
+        1144,
+        1044
+      ]
+    },
+    "orc_dungeon": {
+      "before": [
+        1023,
+        1273
+      ],
+      "after": [
+        1042,
+        1005,
+        1111,
+        1153,
+        1152
+      ]
+    }
+  },
+  "addedSources": [
+    {
+      "path": "npc/pre-re/mobs/dungeons/prt_sew.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/prt_sew.txt",
+      "sha256": "83b86756f210b65ba6b5ee1d01a59760d5423263b07f8995da62476a7f9b0662"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/pay_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/pay_dun.txt",
+      "sha256": "c767bdff9fdb8d92405eb42485d075b12c625e79c0f0985861a455a377b30b6f"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/iz_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/iz_dun.txt",
+      "sha256": "6a2f0a093ee56f3efa5ff3dba5301c975397eaa4b2a8354279f4960d432ff38e"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/orcsdun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/orcsdun.txt",
+      "sha256": "5d389b5f338e9f3bae8a06de780dd8a9d00661cefc71cbe1525db252b40eed44"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/moc_pryd.txt",
+      "sha256": "0f34a8c8ba2e7abdd5348487b3525a02e1086dc50a3845c8540e104770417cb7"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/gef_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/gef_dun.txt",
+      "sha256": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/glastheim.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/glastheim.txt",
+      "sha256": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
+    }
+  ],
+  "newEntryHashes": {
+    "items": {
+      "601": "618bff0d3757cad3a88d40504d765b2baccac9bf15803b998dfc638c1194e888",
+      "643": "fb88278455a6d48e5d1c67d1328e3cbe0b07a98e217516ad81bfbe75fb9ace2e",
+      "748": "9dd4074108cccc6f4833d3a0cf56dfb05d2dd800cfe86afc23e77dc5d7c57bcc",
+      "913": "dc87caea35fd4642722a0df9a7114665f421e096ce12bfbf42e7ceae5992eba7",
+      "922": "2b703498f361497d09dd3d0becc790da13bea3ac2d9690546fbaf51ef72466a6",
+      "929": "20b9c3de6baa2230820aa4437b58a51209ad1318e2d7bf6c9e9a305cf9879c66",
+      "941": "8889e66d6f9d9a83244b68de9cf69b953e4ba08fedd1418509ac0ef7033b1c01",
+      "950": "8d4bdd78a709ba918511b0786d5cdbc633c1ee559d8ccf0eaeba1ad49bd4cdcb",
+      "951": "d103fb18884b1304be3e22ee18ef4cb26130e2f8b01b65498056715dd41ce858",
+      "961": "90240c507e819501cf8b56dedf977f037a9d11ce2761a43a4ee51f4cbd32fb3d",
+      "962": "6de87b91cb95fd2ac430fb9aba7c4a202a3efcbc8ba4a70001f5b0ad37432ab5",
+      "1005": "e7d5acb9d70d9f28905d21fa29d316b0269bef7356866f6fc50aeeeebb8e6ec3",
+      "1007": "e9463ab90124d0a244d781f1f1f8dbbfe7fa2f851112418268e108e28a602b2a",
+      "1011": "6888f9958f936063ecc41a8014c8c6103629c0bfc342f7ae26203fe3fcbf3168",
+      "1024": "597c5c9c6014d0e2d81a52b6e45f39635e6e1689e531d051081b0f0007b7f97f",
+      "1043": "ecdf8c5c65e38e78fe6b76b73f5341fa140b697c6e668194e51101d39c4f576e",
+      "1105": "7f78cf97b58332cfb7742dacadb28b76eb4678ca97ef705f854254e4c2877c99",
+      "1226": "b2496586c8b46eaeb7e8a7aa9339646fda18e00b45e2d94c62267bc438d09123",
+      "1260": "946ce786fae5977c0f356abc220a2cd1fef9a23d0f025a5b8017593d7978bc59",
+      "1358": "03dcd0219ac08c9c96e112435ee625a7ff5da432858731a43eee0523f8a9655e",
+      "1361": "762164aa5e4e48595dd39bfe3058940b4b70eb6de05bd93b9b47b8b428d40b5d",
+      "1551": "736c8dc1e554cc94989fd5d28e6cda2c18af208e50501a3f7db8a8a20d267f55",
+      "2209": "827600c04071b6b12d995c194cc9311f867928c95007bf99edb66be5729ca2de",
+      "2217": "fdfa85f74cfb307f7460dae46713c3575546b5c79bfda47b33756dcbd19dd39b",
+      "2259": "e8d8c52f2c3cab2d12792980f079e6de16095b7e2fe587cd8941c5dbd61dfa2f",
+      "2299": "53b484df1b2cbae2f50ff1d55993998b541ffb609b0a29b37ec18a204b306d47",
+      "2326": "e80b4858dde863b69d3df699a74150d925edb67d534709621271ab241e1714ad",
+      "2505": "66a6a8aee2967d59bf6e9a24a56df8da85651f6e6d28c1689fd6ba9cf40b9b2f",
+      "2612": "e5ecfa5c149b55abe5c2b7ad9a3406a4f0b304bbdce054f47070da54de5be7b0",
+      "2626": "cd89db441298dafdd3fe71e4aaa951ddd24b167b28d5aa82ad1299a016dc76c2",
+      "4020": "7bac00bddb9e1286c22677d8625994fd2bba833bc812f3424de0652563ed0634",
+      "4035": "4e96f3ee22f0fa447e3cef8b2bf50c25b0f9e13c57d1b47e58e4c7602c8410d5",
+      "4042": "cf41d23891fadbf3a15fb216a0a0eabaae3e092a174117720a0e288beb9f5549",
+      "4061": "e613fa48a80f9648c10fd261b42ef247060fd7e392289943e15cde6ad9051de8",
+      "4069": "2d4acb21f9adc2de8602b67b5a4d0c48d4e57c1c825d2ad2d7376a715a5b2554",
+      "4070": "0d8d2b35ee4fbb62b9856536eb54876f22e0aea357e2574a3d933a3cd43e38c4",
+      "4071": "f77469b94f95f83dc6f4a27ec2c2e6fa0818159fc85be6b4ff1eb106eb9e18a3",
+      "4085": "7057b48f85ba50f3d75e524fbecbce531635e548fec9a61e9f567067c5f2efe5",
+      "4093": "c278bbaf539cbf2bc3614d06aae93fb5d5990f9c8e495e9e552c4f1e7d8ff881",
+      "4095": "04040b72d046fe4947a4874d7bfb05a63c56fdddf4b63ddcdd0cd71983e8b903",
+      "4107": "b62df08d19844efd64a993ae1068934d3a0bd0f2c5a089ae3030f4fa3a264114",
+      "4110": "ab9d35e8314603f0155c3b9aed77871737325d0bad14cf534063e013a2d6135d",
+      "4115": "0370d8e12431a3095e30166e5558c7a27522086edcabeecd3da4ae2ebb030af6",
+      "4126": "065b5768fe35d348085e1543f1039758c52fd5254ca2313d4baea7f203fc70bc",
+      "4141": "4a02589fd0a1f36bc04a038d047172853ee642b8c506f9d828c4a59d1e81a452",
+      "4190": "f3bfcfc5f267ba640ae601cefc2e74246a61d4558d47a5e4ea3ec9c297c18824",
+      "4205": "bc8c473cea655fc55999b8c008c02d77d97212b5907a98f9ecb6f857d2ab6191",
+      "5014": "54190c0984f4459b40682109fc6048bbf7d3ce6ece5745d7ff8604515e387d34",
+      "5015": "4ada982687bf2d15a2e69e5163c00a73bd52ecbdf6624651f53069afd7501216",
+      "7006": "1dfbb53327337c286ede98e064bc4282ade9937a2fc48033e14cb191a6e45da3",
+      "7032": "4e33acae25099be3f3fcd915f3e174b85503b6377d8ef87a813e74490aff5132",
+      "7478": "6ea16cbd1f1d869ea481750cf3bda3543ec44a37c2d3c479824fe71789a7ba21"
+    },
+    "monsters": {
+      "1005": "a6e6ade447013264ecebf859d5a3daf29b375c407ff921f3917d0cee41a9c98e",
+      "1032": "636ad418c200e693d05cee2f08bf24be91075519d093b8eac913ff64ba069a43",
+      "1035": "59ac50ef35bcbf852068b0eb333183ddfe9f0d56fd8632c26c41181953461b52",
+      "1036": "7d149825c54112826ac02e254b57d737dc96514bcaf59fee1a56d29005e8443f",
+      "1042": "b746fb169169744a4671571f0c9bae090daa5b8256f37547ff99f2ffad412bf4",
+      "1044": "7af1a24c8bc15cd9a322f7efedd583b36e1259fff24e81c3ee489c22a3ddca4f",
+      "1067": "f136c9df95b3113effcf4c596cc5165855a736ccb9995808907565f58dc783af",
+      "1068": "61782e7926c610245373159b0f76af4c3097603bed7c42bf8782a8d7478f334f",
+      "1111": "2de629889cef6585d2de97682ca48e3ea098c7b6c6d716b49a8c68b43e715c7f",
+      "1116": "c3ee54ea6cfa2057be722bf7597a8847f39980628a99dfb93f23b68f330ae5b5",
+      "1117": "368732d5ee398097dbad54856697196ccdd97541e6f1876ba6602fa495be9ed9",
+      "1144": "83e2dead2cb765c41d66e5ab5c753525880e96ed767cb27362ce97a13082474e",
+      "1149": "29279526f0f6c4125a875c205b1769e3a9bddc7f4cae5b56f60ff70dd77b1445",
+      "1152": "cecd95f21e2d0b101487a0295c5d5584db518326b1fe0933ccf6fdc851312eae",
+      "1153": "cc0635fe619a5ef60360d51629e24d1b2d623397e57ec1b255e62eabc2187344",
+      "1191": "e04c2df6400161852f41b6b598e058b4e1d05e5ac6c73a4e762f07952c449dc5",
+      "1192": "7970513cca6a5dc274e58bcf6a8ef45ac90ead1c790c410628006becbea8aa6c"
+    },
+    "areas": {
+      "pyramid_depths": "e5391f6ac5642a815026d0e2b5e214c9a1aab2cf1a69404aa1f66564625afa6d",
+      "glast_heim_cemetery": "d45bf9fe6ba7a9fd314df70ca30a3cc61dee8c09507fd66faa810f284a86ad33"
+    }
+  }
+}
