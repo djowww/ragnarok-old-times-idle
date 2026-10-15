@@ -24,23 +24,44 @@ function bootstrap(events: SceneBootstrapEvent[], options: {
 }
 
 describe('scene event bootstrap contract', () => {
-  it('replays same-area group events retained in the two-second window, including a kill between polls', () => {
+  it('replays same-area group events retained in the four-second window, including a kill between polls', () => {
     const result = bootstrap([
       event(10, 7_900, 'attack', { areaId: 'payon-field' }),
       event(11, 8_900, 'damage', { areaId: 'payon-field', enemyId: 'mob-1' }),
       event(12, 9_100, 'kill', { areaId: 'payon-field', enemyId: 'mob-1', enemyPosition: { x: 4, y: 7 }, monsterId: 1002 }),
       event(13, 9_300, 'loot', { areaId: 'payon-field', enemyId: 'mob-1' }),
       event(14, 9_400, 'attack', { areaId: 'prontera-field' }),
-      event(15, 7_800, 'kill', { areaId: 'payon-field', enemyId: 'old-mob', enemyPosition: { x: 1, y: 1 }, monsterId: 1002 }),
+      event(15, 5_800, 'kill', { areaId: 'payon-field', enemyId: 'old-mob', enemyPosition: { x: 1, y: 1 }, monsterId: 1002 }),
     ]);
 
-    expect(result.events.map(entry => entry.id)).toEqual([11, 12, 13]);
+    expect(result.events.map(entry => entry.id)).toEqual([10, 11, 12, 13]);
     expect(result.events.find(entry => entry.kind === 'kill')).toMatchObject({
       enemyId: 'mob-1', enemyPosition: { x: 4, y: 7 }, monsterId: 1002,
     });
-    expect([...result.actionEventIds]).toEqual([11, 12, 13]);
+    expect([...result.actionEventIds]).toEqual([10, 11, 12, 13]);
     // Filtered and stale records still advance the monotonic cursor.
     expect(result.cursor).toEqual({ profileId: 'profile-a', id: 15 });
+  });
+
+  it('keeps field attack and kill cues through a short three-second render stall', () => {
+    const result = bootstrap([
+      event(60, 7_000, 'attack', { areaId: 'payon-field', enemyId: 'mob-1' }),
+      event(61, 7_100, 'damage', { areaId: 'payon-field', enemyId: 'mob-1' }),
+      event(62, 9_000, 'kill', { areaId: 'payon-field', enemyId: 'mob-1', enemyPosition: { x: 4, y: 7 }, monsterId: 1002 }),
+    ], { snapshotAt: 10_000 });
+
+    expect(result.events.map(entry => entry.id)).toEqual([60, 61, 62]);
+    expect([...result.actionEventIds]).toEqual([60, 61, 62]);
+  });
+
+  it('keeps delayed live attack cues eligible when a snapshot arrives three seconds late', () => {
+    const live = selectSceneEventBatch({
+      events: [event(71, 7_000, 'attack', { areaId: 'payon-field' }), event(72, 7_100, 'damage', { areaId: 'payon-field' })],
+      snapshotAt: 10_000, scope: scope(), cursor: { profileId: 'profile-a', id: 70 }, bootstrap: false,
+    });
+
+    expect(live.events.map(entry => entry.id)).toEqual([71, 72]);
+    expect([...live.actionEventIds]).toEqual([71, 72]);
   });
 
   it('seeds the bootstrap once and processes only newer ids as live events', () => {

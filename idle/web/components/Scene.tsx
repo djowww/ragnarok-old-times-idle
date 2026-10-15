@@ -699,7 +699,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const enemy = useActor(monster?.sprite);
   const enemyAssetIds = [...new Set([...sceneEnemies(state).map((entry) => entry.monsterId),
     ...state.events.filter(event => event.kind === "kill" && event.monsterId &&
-      event.at >= snapshot.serverTime - 2000 && (!event.areaId || (!isTownScene(state) && event.areaId === state.areaId)))
+      event.at >= snapshot.serverTime - 4000 && (!event.areaId || (!isTownScene(state) && event.areaId === state.areaId)))
       .map(event => event.monsterId!)] )].sort().join(",");
   useEffect(() => {
     let live = true;
@@ -1001,7 +1001,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       // A fast kill may occur entirely between two polls. Keep its recorded
       // corpse position without creating another living map actor.
       for (const killed of newEvents.filter(event => event.kind === "kill" && event.enemyId &&
-        event.enemyPosition && event.monsterId && event.at >= snapshot.serverTime - 2000 &&
+        event.enemyPosition && event.monsterId && event.at >= snapshot.serverTime - 4000 &&
         (!event.areaId || (!isTownScene(state) && event.areaId === state.areaId)))) {
         if (groupHistory.current.has(killed.enemyId!)) continue;
         groupHistory.current.set(killed.enemyId!, { enemy: {
@@ -1038,7 +1038,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       let killId = 0;
       let lootOrder = 0;
       const batchCues: CombatCue[] = [];
-      for (const event of newEvents.filter((entry) => entry.at >= snapshot.serverTime - 2000)) {
+      for (const event of newEvents.filter((entry) => entry.at >= snapshot.serverTime - 4000)) {
         if (event.areaId && (isTownScene(state) || event.areaId !== state.areaId)) continue;
         const start = serverOffset + event.at;
         const skill = skillFor(event, catalog.skills);
@@ -1082,7 +1082,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       batchCues.splice(0,batchCues.length,...retainedCastCues);
       retireTrickDeadPoses(combatCues.current, newEvents, actionWatermarks.current, now);
       retireTrickDeadPoses(batchCues, newEvents, actionWatermarks.current, now);
-      shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current));
+      shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current, 4000));
       for (const cue of batchCues) {
         const popup = effects.current.find(effect => effect.id === cue.id);
         if (popup) popup.start = cue.impact;
