@@ -74,8 +74,10 @@ export function parseConfig(text) {
         take();
         return array;
     } if (token.v === 'true' || token.v === 'false')
-        return token.v === 'true'; if (/^-?(?:\d+(?:\.\d+)?|0x[\da-f]+)$/i.test(token.v))
-        return Number(token.v); return token.v; }
+        return token.v === 'true'; if (/^-?(?:\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?|0x[\da-f]+(?:_[\da-f]+)*)$/i.test(token.v)) {
+        const literal = token.v.replaceAll('_', '');
+        return /^-0x/i.test(literal) ? -Number(literal.slice(1)) : Number(literal);
+    } return token.v; }
     function object(end) { const out = {}; const duplicates = new Set(); while (cursor < tokens.length && peek() !== end) {
         if (peek() === ',' || peek() === ';') {
             take();

@@ -10,11 +10,15 @@ services:
       DB_USER: ${DB_USER:?Defina DB_USER em .env}
       DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
       ASSET_ORIGIN: http://asset-service:8080
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3339}
+      RAGIDLE_ALLOWED_ORIGINS: ${RAGIDLE_ALLOWED_ORIGINS:-http://localhost:3339}
     depends_on:
       database:
         condition: service_healthy
       asset-service:
         condition: service_started
+      hercules:
+        condition: service_healthy
     ports:
       - "127.0.0.1:3339:3339"
     healthcheck:
@@ -66,6 +70,12 @@ services:
       - "6900"
       - "6121"
       - "5121"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/hercules-schema-healthcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     restart: unless-stopped
     networks:
       - ragnarok_local
@@ -92,7 +102,7 @@ services:
       hercules:
         condition: service_started
     environment:
-      WS_ALLOWED_ORIGINS: http://localhost:3338,http://127.0.0.1:3338
+      WS_ALLOWED_ORIGINS: ${WS_ALLOWED_ORIGINS:-http://localhost:3338,http://127.0.0.1:3338}
     ports:
       - "127.0.0.1:5999:5999"
     restart: unless-stopped

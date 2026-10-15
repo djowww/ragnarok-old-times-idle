@@ -27,7 +27,13 @@ describe('playable source catalog', () => {
         expect(data.areas).toHaveLength(10);
         expect(data.areas.flatMap(a => a.monsters)).toHaveLength(25);
         expect(data.challenges).toHaveLength(81);
-        expect(Object.values(data.items).filter(i => i.type === 'card')).toHaveLength(8);
+        const cards = Object.values(data.items).filter(i => i.type === 'card');
+        expect(cards.filter(i => !i.unsupportedEffect)).toHaveLength(8);
+        for (const card of cards.filter(i => i.unsupportedEffect)) {
+            expect(card.effects).toEqual({});
+            expect(card.cardSlots).toBeUndefined();
+            expect(card.shop).toBe(false);
+        }
         for (const mob of Object.values(data.monsters))
             for (const drop of mob.drops)
                 expect(data.items[drop.itemId], `drop ${drop.itemId}`).toBeDefined();
@@ -51,11 +57,14 @@ describe('playable source catalog', () => {
 });
 describe('source effect translation', () => {
     const data = catalog as unknown as Catalog;
-    it('uses healing midpoints and excludes status cure scripts without a supported effect', () => {
+    it('uses healing midpoints and retains unsupported status cures as inert loot', () => {
         expect(data.items[512].healHP).toBe(19);
         expect(data.items[514].healSP).toBe(12);
         expect(data.items[509].healHP).toBe(95);
-        expect(data.items[511]).toBeUndefined();
+        expect(data.items[511]).toMatchObject({ type: 'loot', unsupportedEffect: true, effects: {}, shop: false });
+        expect(data.items[511].healHP).toBeUndefined();
+        expect(data.items[511].healSP).toBeUndefined();
+        expect(data.monsters[1031].drops).toContainEqual({ itemId: 511, chance: 500 });
         expect(data.items[2607].effects.sp).toBe(10);
     });
     it('retains the distinct reborn curve and correct inherited upper HP/SP', () => {

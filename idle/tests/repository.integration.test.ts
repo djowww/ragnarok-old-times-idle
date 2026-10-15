@@ -1,11 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createPool, type Pool, type RowDataPacket } from 'mysql2/promise';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes } from 'node:crypto';
 import { GameRepository, migrate } from '../server/repository.js';
 import type { GameState } from '../shared/types.js';
 import type { Catalog } from '../shared/types.js';
 import catalogJSON from '../content/catalog.json';
-import { createInitialState, applyCommand, advanceState } from '../engine/index.js';
+import { applyCommand, advanceState } from '../engine/index.js';
+import { SqlAccountStore } from '../server/identity/repository.js';
+import { SqlGameProfiles } from '../server/profiles.js';
+import { accountSeed, sessionSeed } from './portal-fixture.js';
+import { createHash } from 'node:crypto';
 import { buildApp } from '../server/app.js';
 
 // SQL persistence tests run in the Compose network; never mutate a player's profile.
@@ -25,7 +29,7 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('MariaDB persistence', () => {
       connectionLimit: 6, charset: 'utf8mb4' });
   });
   afterAll(async () => {
-    for (const id of profileIds) await pool.execute('DELETE FROM idle_profiles WHERE id = ?', [id]).catch(() => {});
+    for (const id of profileIds) { await pool.execute('DELETE FROM idle_accounts WHERE profile_id = ?', [id]); await pool.execute('DELETE FROM idle_profiles WHERE id = ?', [id]); }
     await pool.end();
   });
   it('creates only the two idle tables required for transactional state and receipts', async () => {
@@ -66,21 +70,36 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('MariaDB persistence', () => {
     await expect(repo.transact('reuse-0001', state => ({ ...state, zeny: 0 }), 'sell')).rejects.toThrow();
     expect((await repo.read()).zeny).toBe(180);
   });
+  async function authenticatedRepository() {
+    const seed = accountSeed(`u_${randomUUID().slice(0,8)}`, `N${randomUUID().slice(0,8)}`); profileIds.push(seed.profile.id);
+    const token = randomBytes(32).toString('base64url'); const session = sessionSeed(); session.tokenHash = createHash('sha256').update(token).digest('hex');
+    const accounts = new SqlAccountStore(pool); await accounts.register(seed, session);
+    const repo = new GameRepository(pool, () => { throw new Error('Unexpected reset'); }, seed.profile.id);
+    return { repo, accounts, profiles: new SqlGameProfiles(pool), token, id: seed.profile.id };
+  }
+  it('scopes the same purchase receipt to independent owned SQL profiles', async () => {
+    const catalog = catalogJSON as unknown as Catalog;
+    const a = await authenticatedRepository(); const b = await authenticatedRepository();
+    for (const repository of [a.repo, a.repo, b.repo]) await repository.transact('shared-purchase', state => applyCommand(state, catalog, { type: 'buy', itemId: 501, quantity: 2 }, 1000), 'buy-two');
+    expect((await a.profiles.forProfile(a.id).read()).zeny).toBe(100);
+    expect((await b.profiles.forProfile(b.id).read()).zeny).toBe(100);
+    expect((await a.repo.read()).inventory.find(i => i.itemId === 501)?.quantity).toBe(22);
+    expect((await b.repo.read()).inventory.find(i => i.itemId === 501)?.quantity).toBe(22);
+  });
   it('restores a real hunt after restart and reconciles the same absence only once', async () => {
     const catalog = catalogJSON as unknown as Catalog;
-    const id = `test-${randomUUID()}`; profileIds.push(id);
-    const repo = new GameRepository(pool, () => createInitialState(catalog, 1000), id);
+    const { repo, accounts, profiles, token, id } = await authenticatedRepository();
     await repo.transact('hunt-start', s => applyCommand(s, catalog, { type: 'startHunt', areaId: catalog.areas[0].id }, 1000), 'start');
     // A scheduler persists progress but does not extend the last browser contact.
     await repo.transact(null, s => advanceState(s, catalog, 31_000));
     expect((await repo.read()).lastSeenAt).toBe(1000);
     const reopened = new GameRepository(pool, () => { throw new Error('Unexpected reset'); }, id);
-    const app = buildApp({ catalog, repository: reopened, now: () => 61_000 });
+    const app = await buildApp({ catalog, accounts, profiles, now: () => 61_000 });
     try {
-      const first = await app.inject({ method: 'POST', url: '/api/session' });
+      const first = await app.inject({ method: 'POST', url: '/api/session', cookies: { idle_session: token }, payload: {} });
       expect(first.statusCode).toBe(200);
       expect(first.json().offlineSummary.elapsedMs).toBe(60_000);
-      const again = await app.inject({ method: 'POST', url: '/api/session' });
+      const again = await app.inject({ method: 'POST', url: '/api/session', cookies: { idle_session: token }, payload: {} });
       expect(again.json().state.totals).toEqual(first.json().state.totals);
       expect(again.json().state.rngState).toBe(first.json().state.rngState);
       expect(again.json().state.inventory).toEqual(first.json().state.inventory);
@@ -88,13 +107,12 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('MariaDB persistence', () => {
   });
   it('persists the 12-hour limit across restart before registering fresh contact', async () => {
     const catalog = catalogJSON as unknown as Catalog;
-    const id = `test-${randomUUID()}`; profileIds.push(id);
-    const repo = new GameRepository(pool, () => createInitialState(catalog, 1000), id);
+    const { repo, accounts, profiles, token, id } = await authenticatedRepository();
     await repo.transact('hunt-start', s => applyCommand(s, catalog, { type: 'startHunt', areaId: catalog.areas[0].id }, 1000), 'start');
     const reopened = new GameRepository(pool, () => { throw new Error('Unexpected reset'); }, id);
-    const app = buildApp({ catalog, repository: reopened, now: () => 13 * 3600000 + 1000 });
+    const app = await buildApp({ catalog, accounts, profiles, now: () => 13 * 3600000 + 1000 });
     try {
-      const response = await app.inject({ method: 'POST', url: '/api/session' });
+      const response = await app.inject({ method: 'POST', url: '/api/session', cookies: { idle_session: token }, payload: {} });
       expect(response.statusCode).toBe(200);
       const value = response.json();
       expect(value.state.status).toBe('paused');

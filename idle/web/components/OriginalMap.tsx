@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import { readMapProjection, type MapProjection, type WorldPoint } from "../assets/mapProjection";
+import { NativeActorsBridge } from "../assets/nativeActors";
+import { getClassicClientPaths } from "../public-client-routing";
+export type { MapProjection } from "../assets/mapProjection";
 
 const localMaps = new Set([
   "prontera",
@@ -15,23 +19,47 @@ const localMaps = new Set([
   "gl_knt01",
 ]);
 
-export type MapStatus = { map: string; phase: "loading" | "ready" | "error" };
+export type MapStatus = { map: string; phase: "loading" | "ready" | "error"; progress?: number };
 
 /** The local roBrowserLegacy MapViewer is a scenery layer; idle combat stays in React. */
 export default function OriginalMap({
   map,
   onStatusChange,
+  onProjection,
+  followTarget,
+  nativeActors,
 }: {
   map: string;
   onStatusChange?: (status: MapStatus) => void;
+  onProjection?: (projection: MapProjection | null) => void;
+  followTarget?: { current: WorldPoint | null };
+  nativeActors?: { current: NativeActorsBridge | null };
 }) {
   const host = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
+  const actorBridge = useRef<NativeActorsBridge | null>(null);
+  const projectionCallback = useRef(onProjection);
+  projectionCallback.current = onProjection;
   const [attempt, setAttempt] = useState(0);
   const allowed = localMaps.has(map);
   const [status, setStatus] = useState<MapStatus>({ map, phase: allowed ? "loading" : "error" });
-  const origin = `${window.location.protocol}//${window.location.hostname}:3338`;
+  const { origin, mapViewer } = getClassicClientPaths(window.location);
   const phase = status.map === map ? status.phase : allowed ? "loading" : "error";
+  const resetActors = (connect = false) => {
+    actorBridge.current?.dispose();
+    actorBridge.current = connect && allowed && nativeActors && frame.current?.contentWindow
+      ? new NativeActorsBridge(frame.current.contentWindow, origin, map) : null;
+    if (nativeActors) nativeActors.current = actorBridge.current;
+  };
+
+  useEffect(() => {
+    if (!followTarget || phase !== "ready") return;
+    const timer = window.setInterval(() => {
+      frame.current?.contentWindow?.postMessage({ type: "ragidle-map-follow", map,
+        world: followTarget.current }, origin);
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [map, origin, phase, followTarget]);
 
   useEffect(() => {
     const element = host.current;
@@ -55,18 +83,39 @@ export default function OriginalMap({
   }, [map, onStatusChange]);
 
   useEffect(() => {
+    resetActors();
+    projectionCallback.current?.(null);
     if (!allowed) {
       setStatus({ map, phase: "error" });
       return;
     }
     setStatus({ map, phase: "loading" });
+    // Terrain is static for this iframe. The native bridge sends it once so
+    // follow-camera matrix updates stay small enough for animation frames.
+    let ground: MapProjection["ground"];
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== origin || event.source !== frame.current?.contentWindow)
         return;
-      const data = event.data as { type?: unknown; map?: unknown } | null;
+      const data = event.data as Record<string, unknown> | null;
       if (!data || data.map !== map) return;
-      if (data.type === "ragidle-map-ready") setStatus({ map, phase: "ready" });
-      if (data.type === "ragidle-map-error") setStatus({ map, phase: "error" });
+      actorBridge.current?.receive(data);
+      if (data.type === "ragidle-map-progress" && typeof data.progress === "number" && Number.isFinite(data.progress))
+        setStatus(old => old.phase === "ready" || old.phase === "error" ? old : {
+          map, phase: "loading", progress: Math.max(old.progress ?? 0, Math.max(0, Math.min(99, data.progress as number))),
+        });
+      if (data.type === "ragidle-map-ready") setStatus({ map, phase: "ready", progress: 100 });
+      if (data.type === "ragidle-map-error") {
+        resetActors();
+        setStatus({ map, phase: "error" });
+        projectionCallback.current?.(null);
+      }
+      if (data.type === "ragidle-map-camera") {
+        const camera = readMapProjection(data);
+        if (camera) {
+          ground = camera.ground ?? ground;
+          projectionCallback.current?.({ ...camera, ...(ground ? { ground } : {}) });
+        }
+      }
     };
     window.addEventListener("message", onMessage);
     const timeout = window.setTimeout(() => setStatus((old) =>
@@ -75,16 +124,19 @@ export default function OriginalMap({
         : old,
     ), 60000);
     return () => {
+      resetActors();
       window.removeEventListener("message", onMessage);
       window.clearTimeout(timeout);
     };
-  }, [map, attempt, allowed, origin]);
+  }, [map, attempt, allowed, origin, nativeActors]);
 
   useEffect(() => {
-    onStatusChange?.({ map, phase });
-  }, [map, phase, onStatusChange]);
+    onStatusChange?.({ map, phase, progress: status.map === map ? status.progress ?? 0 : 0 });
+  }, [map, phase, status.progress, status.map, onStatusChange]);
 
   const retry = () => {
+    resetActors();
+    projectionCallback.current?.(null);
     onStatusChange?.({ map, phase: "loading" });
     setStatus({ map, phase: "loading" });
     setAttempt((value) => value + 1);
@@ -95,10 +147,11 @@ export default function OriginalMap({
         <iframe
           key={`${map}:${attempt}`}
           ref={frame}
-          src={`${origin}/applications/pwa/map-idle.html?attempt=${attempt}#${map}.rsw`}
+          src={`${mapViewer}?attempt=${attempt}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
-          onError={() => setStatus({ map, phase: "error" })}
+          onLoad={() => resetActors(true)}
+          onError={() => { resetActors(); setStatus({ map, phase: "error" }); }}
         />
       )}
       {phase !== "ready" && (

@@ -20,6 +20,7 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/public-build ./public-build
 COPY --from=build /app/content/catalog.json ./content/catalog.json
+COPY --from=build /app/content/news.json ./content/news.json
 COPY --from=build /app/server/schema.sql ./server/schema.sql
 ENV NODE_ENV=production
 USER node
