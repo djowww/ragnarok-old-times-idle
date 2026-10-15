@@ -25,7 +25,7 @@ export interface SceneEventScope {
 
 export interface SceneEventBatch<T extends SceneBootstrapEvent> {
   events: T[];
-  /** Cue actions retain the existing two second presentation window. */
+  /** Group battle cues tolerate a four-second renderer stall; legacy cues keep two seconds. */
   actionEventIds: ReadonlySet<number>;
   cursor: SceneEventCursor;
 }
@@ -50,8 +50,9 @@ export function selectSceneEventBatch<T extends SceneBootstrapEvent>(
     Number.isFinite(event.id) ? Math.max(max, event.id) : max, previousId);
   const cursor = { profileId: options.scope.profileId, id: maxSnapshotId };
   const { scope, snapshotAt } = options;
-  const actionSince = snapshotAt - 2000;
-  const retainedSince = snapshotAt - (scope.presentation === 'group' ? 2000 : 4000);
+  const actionWindowMs = scope.presentation === 'group' ? 4000 : 2000;
+  const actionSince = snapshotAt - actionWindowMs;
+  const retainedSince = snapshotAt - (scope.presentation === 'group' ? 4000 : 40000);
   const events = options.events.filter(event => {
     if (event.id <= previousId) return false;
     if (!options.bootstrap) return true;
