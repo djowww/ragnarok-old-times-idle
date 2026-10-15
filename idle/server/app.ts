@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import { Readable } from 'node:stream';
+import { assetFailureCode, assetFailureIsTimeout, reportAssetProxyFailure, type AssetProxyFailure } from './assetProxyDiagnostics.js';
 import type { Catalog } from '../shared/types.js';
 import { getSnapshot, GameError } from '../engine/index.js';
 import { ValidationError } from './validation.js';
@@ -15,8 +16,8 @@ import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
 import { SessionGameProfiles } from './profiles.js';
 import type { SimulationContext } from '../engine/fieldNavigation.js';
-export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses }: AppOptions) {
+export interface AppOptions { assetFailureReporter?: (failure: AssetProxyFailure) => void; catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses, assetFailureReporter = reportAssetProxyFailure }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
   const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles, catalog);
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
@@ -59,6 +60,18 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
     if (!/^(data|BGM|System|AI)\//i.test(path) || path.includes('\\') || path.includes('\0') || path.split('/').some(part => part === '..' || part === '.')) return reply.code(400).send({ error: { code: 'INVALID_ASSET', message: 'Recurso inválido.' } });
     const upstream = new URL(assetOrigin);
     upstream.pathname = '/' + path.split('/').map(encodeURIComponent).join('/');
+    const startedAt = performance.now();
+    const timeoutSignal = AbortSignal.timeout(10_000);
+    let failureReported = false;
+    const reportFailure = (kind: AssetProxyFailure['kind'], error?: unknown, upstreamStatus?: number) => {
+      if (failureReported) return;
+      failureReported = true;
+      try {
+        assetFailureReporter({ method: request.method, assetPath: path.replace(/[\x00-\x1f\x7f]/g, '?').slice(0, 240),
+          kind, elapsedMs: Math.max(0, Math.round(performance.now() - startedAt)), upstreamStatus,
+          code: assetFailureCode(error) });
+      } catch { /* A diagnostic sink cannot alter the asset response. */ }
+    };
     try {
       // Keep byte ranges intact for the native audio player. Identity encoding
       // also keeps the forwarded Content-Length consistent with the stream.
@@ -69,12 +82,14 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
       }
       const response = await fetch(upstream, {
         method: request.method === 'HEAD' ? 'HEAD' : 'GET',
-        headers, signal: AbortSignal.timeout(10_000),
+        headers, signal: timeoutSignal,
       });
-      if (!response.ok && response.status !== 304 && response.status !== 416)
-        return response.status === 404
-          ? reply.code(404).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recurso do cliente não encontrado.' } })
-          : reply.code(503).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recursos do cliente indisponíveis.' } });
+      if (!response.ok && response.status !== 304 && response.status !== 416) {
+        if (response.status === 404)
+          return reply.code(404).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recurso do cliente não encontrado.' } });
+        reportFailure('upstream', undefined, response.status);
+        return reply.code(503).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recursos do cliente indisponíveis.' } });
+      }
       reply.code(response.status);
       for (const name of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'etag', 'last-modified']) {
         const value = response.headers.get(name);
@@ -82,8 +97,13 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
       }
       reply.header('Cache-Control', response.headers.get('cache-control') ?? 'public, max-age=86400');
       if (request.method === 'HEAD' || response.status === 304 || !response.body) return reply.send();
-      return reply.send(Readable.fromWeb(response.body as import('node:stream/web').ReadableStream));
-    } catch { return reply.code(503).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recursos do cliente indisponíveis.' } }); }
+      const stream = Readable.fromWeb(response.body as import('node:stream/web').ReadableStream);
+      stream.once('error', error => reportFailure(assetFailureIsTimeout(error, timeoutSignal) ? 'timeout' : 'stream', error, response.status));
+      return reply.send(stream);
+    } catch (error) {
+      reportFailure(assetFailureIsTimeout(error, timeoutSignal) ? 'timeout' : 'transport', error);
+      return reply.code(503).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recursos do cliente indisponíveis.' } });
+    }
   } });
   if (webRoot) {
     app.addHook('onRequest', async request => {

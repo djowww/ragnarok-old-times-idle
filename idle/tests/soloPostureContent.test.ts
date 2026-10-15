@@ -6,6 +6,7 @@ import manifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import baseline from './fixtures/soloPosture232Baseline.json';
 import type { Catalog } from '../shared/types';
+import { beforeHistoricalClassCadence } from './class-cadence-historical';
 
 const candidate = catalog as unknown as Catalog;
 function canonical(value: unknown): string {
@@ -38,7 +39,7 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     expect(candidate.source.commit).toBe(baseline.commit);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/pc.h', sha256: rules.sourceHashes['src/map/pc.h'] }));
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'db/pre-re/unit_parameters_db.conf', sha256: rules.sourceHashes['unit_parameters_db.conf'] }));
-    const priorClasses = structuredClone(candidate.classes);
+    const priorClasses = beforeHistoricalClassCadence(candidate.classes);
     for (const job of Object.values(priorClasses)) {
       expect(job.minimumAttackMotionMs).toBe(100);
       delete job.minimumAttackMotionMs;

@@ -5,6 +5,7 @@ import manifest from '../content/source-manifest.json';
 import baseline from './fixtures/sageFields256Baseline.json';
 import { beforeTeleportSkills } from './sage-fields-historical-fixture';
 import type { Catalog } from '../shared/types';
+import { beforeHistoricalClassCadence } from './class-cadence-historical';
 const c = raw as unknown as Catalog;
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
@@ -30,7 +31,10 @@ describe('pinned Sage fields catalog release', () => {
     expect(names.filter(n => !baseline.supportedSourceNames.includes(n)).sort()).toEqual(added);
     expect(baseline.supportedSourceNames.filter(n => !names.includes(n))).toEqual([]);
     expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 260, unsupported: 88 });
-    for (const [key, hash] of Object.entries(baseline.domains)) expect(digest(raw[key as keyof typeof raw]), key).toBe(hash);
+    for (const [key, hash] of Object.entries(baseline.domains)) {
+      const historical = key === 'classes' ? beforeHistoricalClassCadence(c.classes) : raw[key as keyof typeof raw];
+      expect(digest(historical), key).toBe(hash);
+    }
     expect({ ...Object.fromEntries(Object.entries(raw.source).filter(([key]) => key !== 'hash')),
       files: raw.source.files.filter(path => path !== 'npc/mapflag/noteleport.txt') }).toEqual(baseline.sourceMetadata);
     expect(digest(Object.fromEntries(Object.entries(historicalSkills).filter(([id]) =>

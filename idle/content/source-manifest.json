@@ -15418,6 +15418,25 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "661e02de71605889b698bee6efa3cd1b5db1669d15d023c49b6e3e77a85986c5",
+  "weaponCadence": {
+    "source": "src/map/status.c:14166..14177,14300..14308,14983..14988,3763..3779",
+    "inheritance": "Copy final parent BaseASPD, then override own weapon entries; defaults2000",
+    "keyMapping": {
+      "Instrument": "instrument",
+      "Fist": "unarmed"
+    },
+    "twoHandedKeys": {
+      "sword": "twoHandSword",
+      "spear": "twoHandSpear",
+      "axe": "twoHandAxe",
+      "mace": "twoHandMace",
+      "staff": "twoHandStaff"
+    },
+    "unarmed": "Fist or native2000 default",
+    "equippedMissingSubtype": 2000,
+    "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
+    "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
+  },
+  "catalogSha256": "3ad1adf3606cf6c36e2fd7e76befea45984917b7f74e151c2b53a858474910a9",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -4,6 +4,7 @@ import type {
   Effects,
   GameState,
   JobClass,
+  Item,
   Stat,
 } from "../shared/types.js";
 import { classicBaseAttackAmotion, classicSkillEffects } from "./classic.js";
@@ -18,6 +19,7 @@ import { activePlayerStatus } from './playerStatuses.js';
 import { currentPlayerCast } from './playerCast.js';
 import { inventoryCapacity } from './itemCapacity.js';
 import { sageFieldModifiers } from './sageFields.js';
+import { baseWeaponAttackMotion } from './weaponCadence.js';
 export const statNames: Stat[] = ["str", "agi", "vit", "int", "dex", "luk"];
 export const MAX_BASE_STAT = 99;
 export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
@@ -71,6 +73,7 @@ export function inventoryLoad(s: GameState, c: Catalog) {
 export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const effects: Effects = {};
   const field = sageFieldModifiers(s, s.id, s.lastSimulatedAt);
+  let equippedWeapon: Item | undefined;
   let weaponAttack = 0;
   let weaponRefineAttack = 0;
   let armorDef = 0;
@@ -87,6 +90,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     for (const cardId of e.cards)
       if (c.items[cardId]) merge(effects, c.items[cardId].effects);
     if (item.slot === "weapon") {
+      equippedWeapon = item;
       weaponAttack += item.attack;
       weaponRefineAttack +=
         e.refine * ([2, 3, 5, 7][(item.weaponLevel ?? 1) - 1] ?? 2);
@@ -142,7 +146,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const baseAttack = main + Math.floor(main / 10) ** 2 +
     Math.floor(secondary / 5) + Math.floor(a.luk / 5) + (effects.atk ?? 0);
   const baseAttackAmotion = classicBaseAttackAmotion(
-    job.weaponAspd?.[weaponType as keyof typeof job.weaponAspd] ?? job.weaponAspd?.unarmed ?? 1000,
+    baseWeaponAttackMotion(job, equippedWeapon),
     a.agi,
     a.dex,
   );
