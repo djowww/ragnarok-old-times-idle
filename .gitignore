@@ -13,3 +13,25 @@ idle/.staging/
 .superpowers/sdd/
 idle/coverage/
 /docs/superpowers/
+
+# Arquivos operacionais e credenciais ficam fora do repositório público.
+/deploy/
+/merge/
+/ops/
+/releases/
+/backups/
+/docs/cloud-environment.md
+/compose.production.yaml
+.env*
+!.env.example
+*.private
+*.pem
+*.key
+*.sql.gz
+*.dump
+/database.sql
+id_rsa*
+id_ed25519*
+
+__pycache__/
+*.py[cod]
