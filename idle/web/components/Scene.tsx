@@ -1,3 +1,4 @@
+import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
 import { resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
@@ -771,7 +772,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const lootCues = useRef<LootCue[]>([]);
   const lootVisuals = useRef(new Map<number, GroundLootVisual>());
   const emote = useRef({ action: -1, start: 0, next: performance.now() + 6000 + Math.random() * 6000 });
-  const eventCursor = useRef(snapshot.state.events.at(-1)?.id ?? 0);
+  const eventCursor = useRef<SceneEventCursor | undefined>(undefined);
   const opponentRequest = useRef(0);
   const blockedTerminalId = useRef<number | null>(null);
   const combatCues = useRef<CombatCue[]>([]);
@@ -851,8 +852,18 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     const previous = stateRef.current.state;
     stateRef.current = snapshot;
     receivedAt.current = performance.now();
-    const newEvents = state.events.filter((e) => e.id > eventCursor.current);
-    eventCursor.current = state.events.at(-1)?.id ?? eventCursor.current;
+    const usesGroupPresentation = !!(state.fieldPopulation || state.battle?.enemies || previous.battle?.enemies || groupHistory.current.size);
+    const eventBatch = selectSceneEventBatch({
+      events: state.events, snapshotAt: snapshot.serverTime,
+      cursor: eventCursor.current,
+      bootstrap: !eventCursor.current || eventCursor.current.profileId !== state.id,
+      scope: { profileId: state.id, areaId: state.areaId ?? undefined,
+        status: isTownScene(state) ? 'town' : state.status === 'challenge' ? 'challenge' : 'field',
+        challengeId: state.battle?.challengeId, battleStartedAt: state.battle?.startedAt,
+        presentation: usesGroupPresentation ? 'group' : 'legacy' },
+    });
+    const newEvents = eventBatch.events;
+    eventCursor.current = eventBatch.cursor;
     const now = performance.now();
     if (previous.areaId !== state.areaId || isTownScene(state) || state.status === "resting") {
       renderedHeroGround.current = null;
@@ -931,8 +942,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     };
     // Group fights use each enemy's identity and server timestamps. Several
     // simultaneous hits must not be queued behind an unrelated monster's swing.
-    if (state.fieldPopulation || state.battle?.enemies || previous.battle?.enemies || groupHistory.current.size) {
-      if (previous.areaId !== state.areaId || isTownScene(state)) {
+    if (usesGroupPresentation) {
+      if (previous.id !== state.id || previous.areaId !== state.areaId || isTownScene(state)) {
         groupHistory.current.clear();
         combatCues.current = [];
         actionWatermarks.current.clear();
@@ -1058,7 +1069,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       batchCues.splice(0,batchCues.length,...retainedCastCues);
       retireTrickDeadPoses(combatCues.current, newEvents, actionWatermarks.current, now);
       retireTrickDeadPoses(batchCues, newEvents, actionWatermarks.current, now);
-      presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current);
+      shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current));
       for (const cue of batchCues) {
         const popup = effects.current.find(effect => effect.id === cue.id);
         if (popup) popup.start = cue.impact;
@@ -1087,7 +1098,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     }
     // Old saves without the population list use the same timestamp projection
     // and actor clocks. A corpse's hold never queues another actor's action.
-    if (previous.areaId !== state.areaId) {
+    if (previous.id !== state.id || previous.areaId !== state.areaId) {
       defeatedOpponent.current = null;
       combatCues.current = [];
       actionWatermarks.current.clear();
@@ -1131,7 +1142,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           void loadGroundLoot(catalog.items[event.itemId]).then(visual => lootVisuals.current.set(event.itemId!, visual));
         continue;
       }
-      if (event.at < snapshot.serverTime - 2000) continue;
+      if (!eventBatch.actionEventIds.has(event.id)) continue;
       const skill = skillFor(event, catalog.skills) ?? (event.kind === "skill"
         ? Object.values(catalog.skills).find(entry => entry.name === event.text) : undefined);
       const visibleAction = hasSceneAction(event.kind, !!skill);
@@ -1152,7 +1163,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         effects.current.push({ id: event.id, text: "MISS", target: isNpcStatusAction(event, state.id) || event.kind === "dodge" ? "player" : "enemy",
           start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
     }
-    presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current);
+    shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current));
     for (const cue of batchCues) {
       const popup = effects.current.find(effect => effect.id === cue.id);
       if (popup) popup.start = cue.impact;
