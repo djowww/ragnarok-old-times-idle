@@ -45,9 +45,9 @@ function fixture(action: 'attack' | 'skill' = 'attack', brandish = false) {
   const source = patch.split('@@ -0,0 +1,')[1].split('\n').slice(1).filter(l => l.startsWith('+'))
     .map(l => l.slice(1)).join('\n').split('export default')[0].replace(/^import .*;$/gm, '');
   const messages: any[] = [], acks: any[] = [], withheld: any[] = [];
-  const gl: any = { NO_ERROR: 0, getError: () => 0, isContextLost: () => false, getParameter: () => false, createTexture: () => ({}) };
+  const gl: any = { canvas: { addEventListener: () => {}, removeEventListener: () => {} }, NO_ERROR: 0, getError: () => 0, isContextLost: () => false, getParameter: () => false, createTexture: () => ({}) };
   for (const name of ['deleteTexture','activeTexture','bindTexture','pixelStorei','texImage2D','texParameteri','enable','depthMask']) gl[name] = () => {};
-  const api = runInNewContext(source + '\n({receive,render})', { Uint8ClampedArray, performance,
+  const api = runInNewContext(source + '\n({receive,render})', { Uint8ClampedArray, performance, setTimeout: () => 0, clearTimeout: () => {},
     window: { parent: { postMessage: (data: any) => acks.push(data) } }, Altitude: { width: 400, height: 400 }, Ground: { getShadowFactor: () => 1 }, WebGL: {},
     SpriteRenderer: { bind3DContext: () => {}, unbind: () => {}, runWithDepth: (_a:any,_b:any,_c:any,fn:any) => fn(),
       position: { set: () => {} }, offset: { set: () => {} }, size: { set: () => {} }, color: { set: () => {} }, image: {}, render: () => {} } });

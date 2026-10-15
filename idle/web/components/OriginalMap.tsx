@@ -169,7 +169,7 @@ export default function OriginalMap({
         <iframe
           key={`${map}:${fieldOrigin?.x ?? ""}:${fieldOrigin?.y ?? ""}:${attempt}`}
           ref={frame}
-          src={`${mapViewer}?v=20261015-dungeons31&attempt=${attempt}${fieldOrigin ? `&originX=${fieldOrigin.x}&originY=${fieldOrigin.y}` : ""}#${map}.rsw`}
+          src={`${mapViewer}?v=20261015-render-cadence&attempt=${attempt}${fieldOrigin ? `&originX=${fieldOrigin.x}&originY=${fieldOrigin.y}` : ""}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
           onLoad={() => resetActors(true)}
