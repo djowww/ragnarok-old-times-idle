@@ -1,5 +1,6 @@
-import type { Catalog, GameState, Reward } from '../shared/types.js';
-import { addItem, event } from './state.js';
+import type { Catalog, GameState, LootOrigin, Reward } from '../shared/types.js';
+import { event } from './state.js';
+import { pickupItem } from './lootPickup.js';
 import { healFull } from './stats.js';
 export function gainExp(s: GameState, c: Catalog, base: number, job: number, at: number) {
   s.totals.baseExp += base; s.totals.jobExp += job;
@@ -20,9 +21,10 @@ export function gainExp(s: GameState, c: Catalog, base: number, job: number, at:
   if (s.baseLevel >= 99) s.baseExp = 0; if (s.jobLevel >= jobClass.jobCap) s.jobExp = 0;
   if (leveled) healFull(s, c);
 }
-export function grantReward(s: GameState, c: Catalog, reward: Reward, at: number) {
+export function grantReward(s: GameState, c: Catalog, reward: Reward, at: number, origin?: LootOrigin) {
   s.zeny += reward.zeny; s.totals.zeny += reward.zeny; gainExp(s, c, reward.baseExp, reward.jobExp, at);
-  for (const item of reward.items) addItem(s, c, item.itemId, item.quantity, true);
+  const itemOrigin = origin ?? { source: 'reward' as const, areaId: s.areaId ?? undefined };
+  for (const item of reward.items) pickupItem(s, c, item.itemId, item.quantity, at, itemOrigin);
 }
 export function updateQuests(s: GameState, c: Catalog) {
   for (const q of c.quests) {

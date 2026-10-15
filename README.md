@@ -15,6 +15,7 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 - Combate idle autoritativo no servidor, com progresso persistido e resumo de até 12 horas offline.
 - 29 áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
 - Evolução de classes clássicas, renascimento, atributos, habilidades, equipamentos, cartas, refino, consumíveis e loot.
+- Peso clássico: aos 90%, novos ataques e habilidades são bloqueados. A caça retorna a Prontera quando a mochila fica pesada ou um novo drop não cabe. Os itens aguardam espaço na Mochila e podem ser recolhidos na cidade, preservando identificação, raridade, cartas e refino; nenhuma venda é automática.
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
 - Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.

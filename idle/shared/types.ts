@@ -336,6 +336,20 @@ export interface InventoryEntry {
   /** Hercules ATTR_BROKEN; absent means intact for existing schemaVersion 1 profiles. */
   broken?: boolean;
 }
+export interface LootOrigin {
+  source: 'monster' | 'reward' | 'quest' | 'challenge' | 'steal' | 'trap' | 'skill';
+  areaId?: string;
+  enemyId?: string;
+  monsterId?: number;
+  position?: { x: number; y: number };
+  questId?: string;
+  challengeId?: string;
+}
+/** A found item waiting for backpack capacity; its equipment rolls never repeat. */
+export interface PendingLoot extends LootOrigin {
+  entry: InventoryEntry;
+  acquiredAt: number;
+}
 export type JointBeatPart = 'ankle' | 'wrist' | 'knee' | 'shoulder' | 'waist' | 'neck';
 export interface BattleEnemy {
   npcCombat?: { firstAttackDone: boolean; readyAt: Record<number, number>; lastUsedAt?: Record<number, number>;
@@ -636,6 +650,12 @@ export interface GameState {
     bladeStopLink?: { level: number; partnerActorId: string; areaId: string | null; expiresAt: number };
   };
   inventory: InventoryEntry[];
+  /** Optional for schemaVersion 1 saves; pending rewards are owned by this profile. */
+  pendingLoot?: PendingLoot[];
+  /** Idle's automatic return after reaching the source 90% combat weight limit. */
+  carryReturnAt?: number;
+  /** Finish effects at this instant before the automatic carry-limit return. */
+  carryReturnRequestedAt?: number;
   equipment: Partial<Record<Slot, string>>;
   status: "town" | "hunting" | "challenge" | "resting" | "paused";
   /** Last server-facing direction, retained while a defensive posture stops walking. */
@@ -743,7 +763,7 @@ export interface GameSnapshot {
 export type GameCommand =
   | { type: "startHunt"; areaId: string }
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }
-  | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" | "repairAll" }
+  | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" | "repairAll" | "collectPendingLoot" }
   | { type: "setGender"; gender: "male" | "female" }
   | { type: "changeAppearance"; hairStyle: number; hairColor: number; clothesColor: number }
   | { type: "allocate"; stat: Stat; amount: number }

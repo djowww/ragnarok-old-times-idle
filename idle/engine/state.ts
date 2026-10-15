@@ -22,18 +22,24 @@ export function addItem(s: GameState, c: Catalog, itemId: number, quantity: numb
   let entry = equipment ? undefined : s.inventory.find(i => i.itemId === itemId && !i.favorite && !i.cards.length && !i.refine);
   if (entry) entry.quantity += quantity;
   else {
-    for (let n = 0; n < (equipment ? quantity : 1); n++) {
-      const created: InventoryEntry = {
-        uid: `item-${s.nextItemId++}`, itemId, quantity: equipment ? 1 : quantity,
-        refine: 0, cards: [], favorite: false,
-        ...(equipment ? reward ? rollEquipmentLoot(() => random(s)) : { identified: true, rarity: 'common' as const } : {}),
-      };
+    for (const created of createInventoryEntries(s, c, itemId, quantity, reward)) {
       s.inventory.push(created);
       entry ??= created;
     }
   }
   if (reward) s.totals.items[itemId] = (s.totals.items[itemId] ?? 0) + quantity;
   return entry!;
+}
+/** Generate an acquisition once, without deciding whether it fits the backpack. */
+export function createInventoryEntries(s: GameState, c: Catalog, itemId: number, quantity: number,
+  reward = false): InventoryEntry[] {
+  requireRule(c.items[itemId] && Number.isSafeInteger(quantity) && quantity > 0, 'INVALID_ITEM', 'Item ou quantidade inválida.');
+  const equipment = c.items[itemId].type === 'equipment';
+  return Array.from({ length: equipment ? quantity : 1 }, () => ({
+    uid: `item-${s.nextItemId++}`, itemId, quantity: equipment ? 1 : quantity,
+    refine: 0, cards: [], favorite: false,
+    ...(equipment ? reward ? rollEquipmentLoot(() => random(s)) : { identified: true, rarity: 'common' as const } : {}),
+  }));
 }
 export function owned(s: GameState, uid: string): InventoryEntry {
   const e = s.inventory.find(i => i.uid === uid); requireRule(e, 'NOT_OWNED', 'Este item não está na mochila.'); return e;

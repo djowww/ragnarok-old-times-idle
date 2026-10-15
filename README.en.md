@@ -15,6 +15,7 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 - Server-authoritative idle combat with persisted progress and summaries for up to 12 hours offline.
 - 29 explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
 - Classic class progression, rebirth, stats, skills, equipment, cards, refining, consumables and loot.
+- Classic carry limits block new attacks and skills at 90%. AFK hunting returns to Prontera when the bag is too heavy or a new drop cannot fit. Pending items can be collected from the Backpack in town with their original identification, rarity, cards and refining; selling is always a player action.
 - Browser scenes using assets from the locally supplied client; background music follows the selected area when enabled.
 - A classic roBrowserLegacy client connected to a local Hercules server.
 - A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
