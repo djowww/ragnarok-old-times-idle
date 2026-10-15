@@ -170,8 +170,8 @@
     "As quatro Mudanças Elementais alteram o corpo de uma instância de monstro por30min; não encantam arma. Boss é rejeitado antes de RNG; status garantido consome um roll e uma aplicação aceita outro para nível1 a4. Propriedade ativa nível2 a4 é preservada após apenas o roll de status. Freeze e Stone petrificado precedem conversão. AFK exige um ataque elemental aprendido na rotação com coeficiente estritamente melhor em todos os quatro níveis, evita conversão ativa e estados que a sobrepõem; escolha não consome RNG. NoDispelReset é preservado e Desencantar continua indisponível.",
     "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
     "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
-    "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK fica guardado na instância, mas habilidades mágicas de monstros ainda não calculam dano.",
-    "PF_FOGWALL: a adaptação solo cria um campo defensivo centrado no personagem por 20 s; reduz hit de ataques normais longos em 50 pontos percentuais, dano desses ataques a 25%, e dano direto de habilidades NPC modeladas em 75%. A cegueira dos ocupantes do campo e a geometria completa do terreno continuam sem simulação."
+    "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
+    "PF_FOGWALL: a adaptação solo cria um campo defensivo centrado no personagem por 20 s quando o alvo tem alcance normal acima de 3 ou uma magia NPC modelada com alcance acima de 3; reduz hit de ataques normais longos em 50 pontos percentuais, dano desses ataques a 25%, e reduz dano de magia NPC direcionada em 25% após uma rolagem de falha de 75% no fim da conjuração. A cegueira dos ocupantes do campo e a geometria completa do terreno continuam sem simulação."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -6233,8 +6233,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer magias conjuradas por inimigos.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6934,7 +6933,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "adaptation": "Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. The MATK increase is retained on the instance; current monster skills do not yet calculate magical damage.",
+      "adaptation": "Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6978,7 +6977,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "adaptation": "Hunt-only adaptation: places a 20-second self-centered field when the active target has normal range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage, while supported direct NPC skill damage is reduced by 25%. The Hercules blind-on-occupants ground-cell behavior is not simulated.",
+      "adaptation": "Hunt-only adaptation: places a 20-second self-centered field when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13628,11 +13627,236 @@
     "npcRateComparison": "rnd()%10000 <= Rate",
     "deathClears": true
   },
+  "npcMagicProduction": {
+    "source": "db/pre-re/mob_skill_db.conf + db/pre-re/skill_db.conf",
+    "runtimeMonsterIds": [
+      1120,
+      1150,
+      1190,
+      1708
+    ],
+    "runtimeRows": [
+      {
+        "monsterId": 1120,
+        "sourceRowIndex": 7,
+        "sourceName": "MG_SOULSTRIKE",
+        "level": 9,
+        "rate": 2000,
+        "castTimeMs": 500,
+        "delayMs": 5000,
+        "cancelable": true,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 42,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 14,
+        "sourceName": "MG_COLDBOLT",
+        "level": 5,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 15,
+        "sourceName": "MG_COLDBOLT",
+        "level": 5,
+        "rate": 4000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_SKILLUSED",
+        "conditionData": 18
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 16,
+        "sourceName": "MG_FIREBOLT",
+        "level": 5,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 17,
+        "sourceName": "MG_FIREBOLT",
+        "level": 5,
+        "rate": 4000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_SKILLUSED",
+        "conditionData": 18
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 18,
+        "sourceName": "MG_LIGHTNINGBOLT",
+        "level": 5,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1150,
+        "sourceRowIndex": 19,
+        "sourceName": "MG_LIGHTNINGBOLT",
+        "level": 5,
+        "rate": 4000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 20,
+        "state": "MSS_RUSH",
+        "condition": "MSC_SKILLUSED",
+        "conditionData": 18
+      },
+      {
+        "monsterId": 1190,
+        "sourceRowIndex": 8,
+        "sourceName": "MG_COLDBOLT",
+        "level": 10,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 10,
+        "baseSp": 30,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1190,
+        "sourceRowIndex": 9,
+        "sourceName": "MG_FIREBOLT",
+        "level": 10,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 5000,
+        "cancelable": false,
+        "range": 9,
+        "hitCount": 10,
+        "baseSp": 30,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1708,
+        "sourceRowIndex": 20,
+        "sourceName": "MG_SOULSTRIKE",
+        "level": 10,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 3000,
+        "cancelable": true,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 38,
+        "state": "MSS_RUSH",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "monsterId": 1708,
+        "sourceRowIndex": 21,
+        "sourceName": "MG_SOULSTRIKE",
+        "level": 10,
+        "rate": 2000,
+        "castTimeMs": 0,
+        "delayMs": 3000,
+        "cancelable": true,
+        "range": 9,
+        "hitCount": 5,
+        "baseSp": 38,
+        "state": "MSS_BERSERK",
+        "condition": "MSC_ALWAYS"
+      }
+    ],
+    "sourceFixtureMonsterIds": [
+      1033
+    ],
+    "sourceFixtureRows": [
+      {
+        "sourceName": "MG_FIREBOLT",
+        "state": "MSS_BERSERK",
+        "level": 3,
+        "rate": 500,
+        "castTimeMs": 1500,
+        "delayMs": 5000,
+        "cancelable": true,
+        "target": "MST_TARGET",
+        "condition": "MSC_ALWAYS"
+      },
+      {
+        "sourceName": "MG_FIREBOLT",
+        "state": "MSS_RUSH",
+        "level": 3,
+        "rate": 500,
+        "castTimeMs": 1500,
+        "delayMs": 5000,
+        "cancelable": true,
+        "target": "MST_TARGET",
+        "condition": "MSC_ALWAYS"
+      }
+    ],
+    "actions": [
+      "MG_FIREBOLT",
+      "MG_COLDBOLT",
+      "MG_LIGHTNINGBOLT",
+      "MG_SOULSTRIKE"
+    ],
+    "importedStates": [
+      "MSS_BERSERK",
+      "MSS_RUSH"
+    ],
+    "importedConditions": [
+      "MSC_ALWAYS",
+      "MSC_SKILLUSED"
+    ],
+    "exclusionPolicy": "Rows with unsupported target, state, condition, or missing MSC_SKILLUSED ConditionData are skipped. No unsupported row is enabled with approximate behavior; NPC_MAGICALATTACK is a separate, unimplemented mechanism.",
+    "decisionCadence": "Existing solo attack decision deadlines; casts replace one due basic attack and the next ordinary attack retains source AttackDelay cadence.",
+    "monsterSp": "No SP pool or NPC charging. Source SP cost is metadata for Magic Rod.",
+    "basicRange": "Unchanged; bolt reach applies only to the NPC magical action.",
+    "magicRodFlags": "SC_MAGICROD is NoSave and NoClearanceReset. It lives in process memory for the existing session, clears on a new session or death, and expires at its source deadline."
+  },
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 246,
-    "unsupported": 102,
+    "supported": 247,
+    "unsupported": 101,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -13736,13 +13960,13 @@
       },
       "sage": {
         "sourceTree": 41,
-        "supported": 28,
-        "unsupported": 13
+        "supported": 29,
+        "unsupported": 12
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 35,
-        "unsupported": 14
+        "supported": 36,
+        "unsupported": 13
       },
       "hunter": {
         "sourceTree": 28,
@@ -13949,6 +14173,7 @@
       "HW_NAPALMVULCAN",
       "HW_GRAVITATION",
       "SA_CASTCANCEL",
+      "SA_MAGICROD",
       "SA_SPELLBREAKER",
       "SA_FREECAST",
       "SA_AUTOSPELL",
@@ -14168,11 +14393,6 @@
         "skillId": "sa_advancedbook",
         "sourceName": "SA_ADVANCEDBOOK",
         "reason": "Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis."
-      },
-      {
-        "skillId": "sa_magicrod",
-        "sourceName": "SA_MAGICROD",
-        "reason": "Requer magias conjuradas por inimigos."
       },
       {
         "skillId": "flame_enchant",
@@ -15128,7 +15348,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "f6be468bd1177d2738f69906e537f5dd484255f16a5411eea0e5646a32c51801",
+  "rulesSha256": "e7697f2524f7e4a26808a8314887a5e72cc47a938e7055e22e39e1824987d551",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15164,6 +15384,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "70b7558f75528d994a12b09bacbe3f42127d0d084a695ee008a9ed2a826c5380",
+  "catalogSha256": "4721ba0a787358f2dd26d6cf6acd6be3532be3ed78171372e2a647ac25cc56fb",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -70,6 +70,8 @@ describe('DC_WINKCHARM solo combat flow', () => {
     expect(enemy.npcCombat?.cast).toBeUndefined();
     expect(enemy.npcCombat?.readyAt[177]).toBeUndefined();
     expect(enemy.enemyNextAttackAt).toBe(attackAt);
+    // Nightmare's Blind Attack row is a BERSERK skill and only becomes eligible in melee range.
+    enemy.position = enemy.approachFrom = { x: BATTLE_HERO.x + 1 / 12, y: BATTLE_HERO.y };
     expect(tryMonsterStatusSkill(s, c, enemy, 1000)).toBe(true);
   });
 

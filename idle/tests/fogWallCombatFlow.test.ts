@@ -74,6 +74,17 @@ describe('PF_FOGWALL solo combat adaptation', () => {
     expect(next.events.some(entry => entry.skillId === 'pf_fogwall')).toBe(false);
   });
 
+  it('arms from the rotation when a melee target has an in-range NPC magic threat', () => {
+    const { c, s } = setup(1, true);
+    const enemy = s.battle!.enemies![0];
+    c.monsters[enemy.monsterId].npcStatusSkills = [{ skillId: 19, sourceName: 'MG_FIREBOLT', damageType: 'magic',
+      element: 'fire', hitCount: 1, baseSp: 17, level: 1, rate: 10000, castTimeMs: 300, delayMs: 3000,
+      cancelable: true, range: 9, state: 'MSS_RUSH', condition: 'MSC_ALWAYS', sourceRowIndex: 5 }];
+    const next = advanceState(s, c, 250);
+    expect(next.buffs.pf_fogwall?.expiresAt).toBe(20_000);
+    expect(next.events.some(event => event.skillId === 'pf_fogwall' && event.kind === 'skill')).toBe(true);
+  });
+
   it('quarters damage from a normal ranged attack after the field is active', () => {
     const guarded = setup(8, false, true);
     vi.spyOn(stateTools, 'random').mockReturnValue(.02);

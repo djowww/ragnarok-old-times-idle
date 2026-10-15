@@ -13,7 +13,7 @@ describe('Executed solo Priest catalog',()=>{
    damageType:'magic', element:'holy', power:[145], aoeRadius:[2], spCost:[10], statusEffect:'SC_RUWACH', statusDurationMs:[10000] });
   for(const id of ['rg_gangster','sa_advancedbook','as_right','as_left'])expect(c.skills[id].implementation,id).toBe('unsupported');
   expect(c.skills.pr_lexdivina.prerequisitesByClass!.priest).toContainEqual({skillId:'al_ruwach',level:1});
-  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 246, unsupported: 102});
+  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 247, unsupported: 101});
   expect((manifest as Record<string, unknown>).ruwach).toMatchObject({ skill:'AL_RUWACH', status:'SC_RUWACH', durationMs:10000,
    radius:2, spCost:10, pulseMs:20, damage:'145% MATK, Holy, Hercules level 1; only when concealment is removed' });
   expect(manifest.skillSources.al_ruwach).toMatchObject({ name:'AL_RUWACH', implementation:'supported',
@@ -31,6 +31,6 @@ describe('Executed solo Priest catalog',()=>{
   const supported=Object.values(c.skills).filter(skill=>skill.implementation==='supported').map(skill=>skill.sourceName!);
   expect(baseline.supportedSourceNames).toHaveLength(222);
   expect(baseline.supportedSourceNames.filter(name=>!supported.includes(name))).toEqual([]);
-  expect(supported.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH','BA_PANGVOICE','CR_SHRINK','DC_DONTFORGETME','DC_WINKCHARM','LK_JOINTBEAT','MO_BLADESTOP','MO_BODYRELOCATION','NV_TRICKDEAD','PA_SACRIFICE','PF_FOGWALL','PF_MINDBREAKER','PR_LEXDIVINA','PR_STRECOVERY','RG_CLOSECONFINE','RG_COMPULSION','SA_CREATECON','SA_ELEMENTFIRE','SA_ELEMENTGROUND','SA_ELEMENTWATER','SA_ELEMENTWIND','SA_FREECAST','WZ_ESTIMATION','WZ_SIGHTBLASTER']);
+  expect(supported.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH','BA_PANGVOICE','CR_SHRINK','DC_DONTFORGETME','DC_WINKCHARM','LK_JOINTBEAT','MO_BLADESTOP','MO_BODYRELOCATION','NV_TRICKDEAD','PA_SACRIFICE','PF_FOGWALL','PF_MINDBREAKER','PR_LEXDIVINA','PR_STRECOVERY','RG_CLOSECONFINE','RG_COMPULSION','SA_CREATECON','SA_ELEMENTFIRE','SA_ELEMENTGROUND','SA_ELEMENTWATER','SA_ELEMENTWIND','SA_FREECAST','SA_MAGICROD','WZ_ESTIMATION','WZ_SIGHTBLASTER']);
  });
 });

@@ -78,9 +78,15 @@ export interface PlayerStatus {
 export interface MonsterStatusSkill {
   baseSp?: number;
   damageType?: 'weapon' | 'magic' | 'misc';
-  skillId: number; sourceName: 'NPC_POISON' | 'NPC_BLINDATTACK'; level: number;
+  element?: string;
+  hitCount?: number;
+  condition?: 'MSC_ALWAYS' | 'MSC_SKILLUSED';
+  conditionData?: number;
+  state?: 'MSS_BERSERK' | 'MSS_RUSH';
+  sourceRowIndex?: number;
+  skillId: number; sourceName: 'NPC_POISON' | 'NPC_BLINDATTACK' | 'MG_FIREBOLT' | 'MG_COLDBOLT' | 'MG_LIGHTNINGBOLT' | 'MG_SOULSTRIKE'; level: number;
   rate: number; castTimeMs: number; delayMs: number; range: number; cancelable: boolean;
-  status: 'SC_POISON' | 'SC_BLIND'; durationMs: number;
+  status?: 'SC_POISON' | 'SC_BLIND'; durationMs?: number;
 }
 export interface Monster {
   /** Deliberately selected NPC actions, separate from learnable player skills. */
@@ -327,13 +333,13 @@ export interface InventoryEntry {
 }
 export type JointBeatPart = 'ankle' | 'wrist' | 'knee' | 'shoulder' | 'waist' | 'neck';
 export interface BattleEnemy {
-  npcCombat?: { firstAttackDone: boolean; readyAt: Record<number, number>;
+  npcCombat?: { firstAttackDone: boolean; readyAt: Record<number, number>; lastUsedAt?: Record<number, number>;
     /** Attack target is independent of a pending skill's retained target. */
     attackTargetActorId?: string; targetReleasedAt?: number; nextTargetCheckAt?: number;
-    nextWanderAt?: number; pendingAttackerActorId?: string; pendingAttackerAt?: number;
+    nextWanderAt?: number; pendingAttackerActorId?: string; pendingAttackerAt?: number; lastReceivedSkillId?: number;
     cast?: {
-    skillId: number; level: number; targetActorId: string; startedAt: number; endsAt: number;
-    areaId: string | null; actionId: string; baseSp?: number;
+    skillId: number; level: number; targetActorId: string; startedAt: number; endsAt: number; sourceRowIndex?: number;
+    areaId: string | null; actionId: string; baseSp?: number; sourcePosition?: { x: number; y: number };
     clockOwnership?: { attackReadyAt:number; previousAttackReadyAt:number };
   } };
   /** Stable population slot for visible enemies in a hunting area. */

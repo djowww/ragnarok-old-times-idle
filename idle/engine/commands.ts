@@ -38,6 +38,7 @@ import { applyTrickDead, clearTrickDead, trickDeadActive } from './trickDead.js'
 import { makeSenseInspection, senseEncounterIdentity, senseManualTarget } from './senseInspection.js';
 import { clearCloseConfine } from './rgCloseConfine.js';
 import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
+import { magicRodWindow } from './monsterMagic.js';
 function town(s: GameState) {
   requireRule(
     s.status === "town",
@@ -110,6 +111,25 @@ export function executeCommand(
           actorAction: 'none', actionMotionMs: 0, castMs: 0 });
         event(s, now, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
           statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id, targetActorId: s.id });
+        break;
+      }
+      if (skill?.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 && level <= skill.maxLevel &&
+          classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule(['hunting', 'challenge'].includes(s.status) && !!s.battle && !s.battle.cast && s.hp > 0,
+          'FIELD_REQUIRED', 'Use Magic Rod durante uma luta no campo.');
+        requireRule(!['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
+          .some(source => classicBuffActive(s, c, source, now)), 'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar Magic Rod.');
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED', 'Tenha 2 SP para usar Magic Rod.');
+        const duration = skill.statusDurationMs?.[level - 1] ?? magicRodWindow(level);
+        s.buffs[skill.id] = { expiresAt: now + duration, effects: {} };
+        (s.combatEffects ??= {}).buffLevels ??= {};
+        s.combatEffects.buffLevels[skill.id] = level;
+        random(s); // status_start's guaranteed source roll.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id, actorAction: 'none', actionMotionMs: 0 });
+        event(s, now, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id });
         break;
       }
       if (skill?.sourceName === 'WZ_ESTIMATION') {
@@ -476,7 +496,8 @@ export function executeCommand(
             (!c.skills[id].manualUse ||
               c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
             c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
-            c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate') &&
+            c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate') &&
             c.skills[id].implementation !== "unsupported",
           "INVALID_ROTATION",
           "A rotação exige habilidades ativas disponíveis e aprendidas.",
