@@ -18,6 +18,15 @@ type VolatileBladeStop = {
   partners: Record<string, BladeStopStatus>;
   partnerMovement: Record<string, { startedAt: number; arrivedAt: number; approachPausedAt?: number }>;
 };
+const MELTDOWN_BUFF_ID = 'ws_meltdown';
+const VOLATILE_ALCHEMY_STATUSES = ['SC_NOEQUIPWEAPON', 'SC_NOEQUIPARMOR'] as const;
+type AlchemyEnemyStatuses = Partial<Pick<NonNullable<BattleEnemy['statuses']>, typeof VOLATILE_ALCHEMY_STATUSES[number]>>;
+type VolatileAlchemy = {
+  buff?: GameState['buffs'][string];
+  buffLevel?: number;
+  enemyStatuses: Record<string, AlchemyEnemyStatuses>;
+};
+const emptyAlchemy = (): VolatileAlchemy => ({ enemyStatuses: {} });
 type SyncStateAction = (state: GameState) => GameState;
 type AsyncStateAction = (state: GameState) => Promise<GameState>;
 type VolatileField = { group?: ElementalField; groundPlacements?: GroundPlacement[];
@@ -41,6 +50,7 @@ export class SessionStateRepository implements StateRepository {
   private volatileBuffs: VolatileBuffs = {};
   private volatileField: VolatileField = emptyField();
   private volatileBladeStop: VolatileBladeStop = { partners: {}, partnerMovement: {} };
+  private volatileAlchemy: VolatileAlchemy = emptyAlchemy();
   private readonly openedConnections = new Set<string>();
   private operationTail: Promise<void> = Promise.resolve();
 
@@ -67,6 +77,8 @@ export class SessionStateRepository implements StateRepository {
       this.volatileBuffs = {};
       this.volatileField = emptyField();
       this.volatileBladeStop = { partners: {}, partnerMovement: {} };
+      // Monsters remain in this profile's live AFK world when its player disconnects.
+      this.volatileAlchemy = { enemyStatuses: this.volatileAlchemy.enemyStatuses };
       this.openedConnections.clear();
     });
   }
@@ -82,21 +94,24 @@ export class SessionStateRepository implements StateRepository {
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
     let nextBladeStop: VolatileBladeStop | undefined;
+    let nextAlchemy: VolatileAlchemy | undefined;
     const saved = await this.durable.transact(requestId, state => {
       invoked = true;
       const next = action(this.hydrate(state));
       nextBuffs = this.readBuffs(next);
       nextField = this.readField(next);
       nextBladeStop = this.readBladeStop(next);
+      nextAlchemy = this.readAlchemy(next);
       const durableNext = structuredClone(next);
       this.stripDurableBuff(durableNext);
       this.stripDurableBladeStop(durableNext);
       this.stripDurableField(durableNext);
+      this.stripDurableAlchemy(durableNext);
       return durableNext;
     }, fingerprint);
     // The callback is skipped for an idempotent receipt replay. In that case
     // the committed volatile value is authoritative and must not be replaced.
-    if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; }
+    if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; this.volatileAlchemy = nextAlchemy ?? emptyAlchemy(); }
     return this.hydrate(saved);
   }
 
@@ -105,19 +120,22 @@ export class SessionStateRepository implements StateRepository {
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
     let nextBladeStop: VolatileBladeStop | undefined;
+    let nextAlchemy: VolatileAlchemy | undefined;
     const saved = await this.durable.transactCooperatively!(requestId, async state => {
       invoked = true;
       const next = await action(this.hydrate(state));
       nextBuffs = this.readBuffs(next);
       nextField = this.readField(next);
       nextBladeStop = this.readBladeStop(next);
+      nextAlchemy = this.readAlchemy(next);
       const durableNext = structuredClone(next);
       this.stripDurableBuff(durableNext);
       this.stripDurableBladeStop(durableNext);
       this.stripDurableField(durableNext);
+      this.stripDurableAlchemy(durableNext);
       return durableNext;
     }, fingerprint);
-    if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; }
+    if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; this.volatileAlchemy = nextAlchemy ?? emptyAlchemy(); }
     return this.hydrate(saved);
   }
 
@@ -127,23 +145,28 @@ export class SessionStateRepository implements StateRepository {
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
     let nextBladeStop: VolatileBladeStop | undefined;
+    let nextAlchemy: VolatileAlchemy | undefined;
     const saved = await this.durable.transact(null, state => {
       invoked = true;
       const next = action(this.hydrate(state, newConnection ? null : this.volatileBuffs,
-        newConnection ? null : this.volatileBladeStop, newConnection ? null : this.volatileField));
+        newConnection ? null : this.volatileBladeStop, newConnection ? null : this.volatileField,
+        newConnection ? { enemyStatuses: this.volatileAlchemy.enemyStatuses } : this.volatileAlchemy));
       nextBuffs = newConnection ? {} : this.readBuffs(next);
       nextField = newConnection ? emptyField() : this.readField(next);
       nextBladeStop = newConnection ? { partners: {}, partnerMovement: {} } : this.readBladeStop(next);
+      nextAlchemy = this.readAlchemy(next);
       const durableNext = structuredClone(next);
       this.stripDurableBuff(durableNext);
       this.stripDurableBladeStop(durableNext);
       this.stripDurableField(durableNext);
+      this.stripDurableAlchemy(durableNext);
       return durableNext;
     });
     if (invoked) {
       this.volatileBuffs = nextBuffs ?? {};
       this.volatileField = nextField ?? emptyField();
       this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} };
+      this.volatileAlchemy = nextAlchemy ?? emptyAlchemy();
       if (newConnection) this.rememberOpenedConnection(connectionId);
     }
     return this.hydrate(saved);
@@ -155,37 +178,53 @@ export class SessionStateRepository implements StateRepository {
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
     let nextBladeStop: VolatileBladeStop | undefined;
+    let nextAlchemy: VolatileAlchemy | undefined;
     const saved = await this.durable.transactCooperatively!(null, async state => {
       invoked = true;
       const next = await action(this.hydrate(state, newConnection ? null : this.volatileBuffs,
-        newConnection ? null : this.volatileBladeStop, newConnection ? null : this.volatileField));
+        newConnection ? null : this.volatileBladeStop, newConnection ? null : this.volatileField,
+        newConnection ? { enemyStatuses: this.volatileAlchemy.enemyStatuses } : this.volatileAlchemy));
       nextBuffs = newConnection ? {} : this.readBuffs(next);
       nextField = newConnection ? emptyField() : this.readField(next);
       nextBladeStop = newConnection ? { partners: {}, partnerMovement: {} } : this.readBladeStop(next);
+      nextAlchemy = this.readAlchemy(next);
       const durableNext = structuredClone(next);
       this.stripDurableBuff(durableNext);
       this.stripDurableBladeStop(durableNext);
       this.stripDurableField(durableNext);
+      this.stripDurableAlchemy(durableNext);
       return durableNext;
     });
     if (invoked) {
       this.volatileBuffs = nextBuffs ?? {};
       this.volatileField = nextField ?? emptyField();
       this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} };
+      this.volatileAlchemy = nextAlchemy ?? emptyAlchemy();
       if (newConnection) this.rememberOpenedConnection(connectionId);
     }
     return this.hydrate(saved);
   }
 
   private hydrate(state: GameState, buffs: VolatileBuffs | null = this.volatileBuffs,
-    bladeStop: VolatileBladeStop | null = this.volatileBladeStop, field: VolatileField | null = this.volatileField): GameState {
+    bladeStop: VolatileBladeStop | null = this.volatileBladeStop, field: VolatileField | null = this.volatileField,
+    alchemy: VolatileAlchemy = this.volatileAlchemy): GameState {
     const hydrated = structuredClone(state);
     this.stripDurableBuff(hydrated);
     this.stripDurableBladeStop(hydrated, !bladeStop?.link || !Object.keys(bladeStop.partners).length);
     this.stripDurableField(hydrated);
+    this.stripDurableAlchemy(hydrated);
     hydrated.buffs ??= {};
     if (buffs) for (const [id, buff] of Object.entries(buffs)) hydrated.buffs[id] = structuredClone(buff);
     if (buffs?.[PRESERVE_BUFF_ID]) ((hydrated.combatEffects ??= {}).buffLevels ??= {})[PRESERVE_BUFF_ID] = 1;
+    if (alchemy.buff) {
+      hydrated.buffs[MELTDOWN_BUFF_ID] = structuredClone(alchemy.buff);
+      if (alchemy.buffLevel !== undefined)
+        ((hydrated.combatEffects ??= {}).buffLevels ??= {})[MELTDOWN_BUFF_ID] = alchemy.buffLevel;
+    }
+    for (const enemy of [...(hydrated.battle?.enemies ?? []), ...(hydrated.fieldPopulation?.enemies ?? [])]) {
+      const statuses = alchemy.enemyStatuses[enemy.id];
+      if (statuses) Object.assign(enemy.statuses ??= {}, structuredClone(statuses));
+    }
     if (bladeStop) {
       const effects = (hydrated.combatEffects ??= {});
       if (bladeStop.wait) effects.bladeStopWait = structuredClone(bladeStop.wait);
@@ -220,6 +259,34 @@ export class SessionStateRepository implements StateRepository {
       if (hydrated.hp > 0) hydrated.hp = Math.min(derivedStats(hydrated, this.catalog).maxHp, hydrated.hp + field.playerHpAboveBase);
     }
     return hydrated;
+  }
+
+  /** Source NoSave: player reconnect drops its buff; living monster instances stay in the process.
+   * Idle owns a world per profile, rather than the shared Hercules map server.
+   * Every level of these Rogue/Meltdown statuses is volatile; never key them by a respawn slot.
+   */
+  private readAlchemy(state: GameState): VolatileAlchemy {
+    const alchemy = emptyAlchemy();
+    const buff = state.buffs?.[MELTDOWN_BUFF_ID];
+    if (buff) {
+      alchemy.buff = structuredClone(buff);
+      const level = state.combatEffects?.buffLevels?.[MELTDOWN_BUFF_ID];
+      if (level !== undefined) alchemy.buffLevel = level;
+    }
+    for (const enemy of [...(state.battle?.enemies ?? []), ...(state.fieldPopulation?.enemies ?? [])]) {
+      for (const name of VOLATILE_ALCHEMY_STATUSES) {
+        const status = enemy.statuses?.[name];
+        if (status) (alchemy.enemyStatuses[enemy.id] ??= {})[name] = structuredClone(status);
+      }
+    }
+    return alchemy;
+  }
+
+  private stripDurableAlchemy(state: GameState): void {
+    if (state.buffs) delete state.buffs[MELTDOWN_BUFF_ID];
+    if (state.combatEffects?.buffLevels) delete state.combatEffects.buffLevels[MELTDOWN_BUFF_ID];
+    for (const enemy of [...(state.battle?.enemies ?? []), ...(state.fieldPopulation?.enemies ?? [])])
+      if (enemy.statuses) for (const name of VOLATILE_ALCHEMY_STATUSES) delete enemy.statuses[name];
   }
 
   private readField(state: GameState): VolatileField {

@@ -18,6 +18,7 @@ const rules: Record<string, Record<string, Rule>> = {
   changeAppearance: { hairStyle: integer(0, 27), hairColor: integer(0, 8), clothesColor: integer(0, 4) },
   allocate: { stat: oneOf('str', 'agi', 'vit', 'int', 'dex', 'luk'), amount: integer(1, 99) },
   learnSkill: { skillId: token },
+  setSkillUseLevel: { skillId: token, level: value => value === null || integer(1, 100)(value) },
   setAutospell: { skillId: value => value === null || token(value) },
   cancelBuff: { skillId: token },
   toggleBuff: { skillId: token },

@@ -1,6 +1,7 @@
 import { playerStatusCues } from '../shared/playerStatusView';
 import { treatmentSources, statusTreatmentNeeded } from '../engine/playerStatuses';
-import { copiedSpell, effectiveSkillLevel } from '../shared/copiedSkills';
+import { copiedSpell } from '../shared/copiedSkills';
+import { skillUseLevel } from '../shared/skillUseLevels';
 import { useEffect, useRef, useState } from "react";
 import type { AccountView } from "../shared/portal-types";
 import { useAuth } from "./portal/AuthProvider";
@@ -90,10 +91,11 @@ function ClassicMenuIcon({ file }: { file: string }) {
 }
 
 export function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
-  const level = effectiveSkillLevel(state, catalog, skill.id);
+  const level = skillUseLevel(state, catalog, skill.id);
   const index = Math.max(0, level - 1);
   const sp = Math.max(0, Math.floor((skill.spCost[index] ?? skill.spCost.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.spCostReductionPct ?? 0) / 100)));
   const zeny = skill.zenyCost?.[index] ?? skill.zenyCost?.at(-1) ?? 0;
+  const itemCosts = skill.itemCostByLevel?.[index] ?? (skill.itemCost ? [skill.itemCost] : []);
   const reasons: string[] = [];
   if (!level || skill.implementation === 'unsupported') reasons.push('habilidade indisponível');
   if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(state, catalog)) reasons.push('aguardando magia copiada');
@@ -110,13 +112,23 @@ export function skillReadiness(skill: Skill, state: GameState, stats: DerivedSta
     reasons.push("arma incompatível");
   if (skill.requiredSlot && !state.equipment[skill.requiredSlot])
     reasons.push(`${slots[skill.requiredSlot].toLowerCase()} necessário`);
-  const itemCosts = skill.itemCostByLevel?.[index] ?? (skill.itemCost ? [skill.itemCost] : []);
   for (const itemCost of itemCosts)
     if (state.inventory.filter(entry => entry.itemId === itemCost.itemId).reduce((amount, entry) => amount + entry.quantity, 0) < itemCost.quantity)
       reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
   if (skill.sourceName === "AS_CLOAKING" && level < 3) reasons.push("níveis 1–2 exigem paredes do mapa; disponível aqui a partir do nível 3");
-  if (skill.kind === "heal" && state.hp > stats.maxHp * 0.7)
+  if (skill.sourceName === 'AM_POTIONPITCHER') {
+    const pitcherUsesSp = itemCosts.some(item => item.itemId === 505);
+    const resource = pitcherUsesSp ? 'SP' : 'HP';
+    const current = pitcherUsesSp ? state.sp : state.hp;
+    const maximum = pitcherUsesSp ? stats.maxSp : stats.maxHp;
+    const configuredThreshold = pitcherUsesSp ? state.autoPotion.spThreshold : state.autoPotion.hpThreshold;
+    const threshold = Math.min(70, configuredThreshold);
+    if (threshold <= 0) reasons.push(`cura automática de ${resource} desativada`);
+    else if (current >= maximum || current * 100 > maximum * threshold)
+      reasons.push(`aguardando ${resource} abaixo de ${threshold}%`);
+  } else if (skill.kind === "heal" && state.hp > stats.maxHp * 0.7) {
     reasons.push("aguardando HP abaixo de 70%");
+  }
   if (skill.kind === "buff" && (state.buffs[skill.id]?.expiresAt ?? 0) > now)
     reasons.push("efeito ainda ativo");
   const battle = state.battle;
@@ -134,7 +146,9 @@ export function skillReadiness(skill: Skill, state: GameState, stats: DerivedSta
   const baseCast = skill.castTimeMs?.[index] ?? skill.castTimeMs?.at(-1) ?? 0;
   const cast = Math.max(0, baseCast * (skill.ignoresDex ? 1 : 1 - (stats.attributes?.dex ?? state.stats.dex) / 150) * (1 - Math.min(100, stats.effects.castReductionPct ?? 0) / 100));
   const afterCast = (skill.afterCastDelayMs?.[index] ?? skill.afterCastDelayMs?.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.afterCastReductionPct ?? 0) / 100);
-  const detail = [`${sp} SP`, ...(zeny ? [`${zeny} zeny`] : []), ...(cast ? [`conjuração ${(cast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : ["instantânea"]), ...(afterCast ? [`pós conjuração ${(afterCast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : []), ...(skill.cooldownMs ? [`recarga ${(skill.cooldownMs / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : [])].join(" · ");
+  const itemDetail = itemCosts.map(item => `${item.quantity} ${catalog.items[item.itemId]?.name ?? `item ${item.itemId}`}`);
+  const durationMs = skill.sourceName === 'WS_MELTDOWN' ? skill.statusDurationMs?.[index] : undefined;
+  const detail = [`${sp} SP`, ...itemDetail, ...(durationMs ? [`duração ${(durationMs / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : []), ...(zeny ? [`${zeny} zeny`] : []), ...(cast ? [`conjuração ${(cast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : ["instantânea"]), ...(afterCast ? [`pós conjuração ${(afterCast / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : []), ...(skill.cooldownMs ? [`recarga ${(skill.cooldownMs / 1000).toLocaleString("pt-BR", {maximumFractionDigits:1})} s`] : [])].join(" · ");
   return {
     ready: reasons.length === 0,
     cooldownRemaining: Math.max(0, cooldown),

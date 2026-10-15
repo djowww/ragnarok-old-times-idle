@@ -33,7 +33,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "f8af093869b9814e00798bc198d70e1319067f75f9da48a1e948b9175199db2f"
+    "hash": "b246410c8e2cc40bf0487387bffd242cb85186a694f5e3dbbf621317ebef06e5"
   },
   "rates": {
     "baseExp": 4,
@@ -105099,9 +105099,9 @@
       "herculesId": 384,
       "sourceName": "WS_MELTDOWN",
       "mechanic": "WS_MELTDOWN",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Shattering Strike. Aplica MELTDOWN. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Ataques físicos podem enfraquecer a arma e a armadura de monstros comuns. O nível escolhido define SP, conjuração e duração; chefes são imunes.",
       "iconResource": "data/texture/유저인터페이스/item/ws_meltdown.bmp",
       "spCost": [
         50,
@@ -105244,16 +105244,16 @@
       "minimumJobLevel": 1,
       "statusEffect": "SC_MELTDOWN",
       "statusDurationMs": [
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000,
-        5000
+        15000,
+        20000,
+        25000,
+        30000,
+        35000,
+        40000,
+        45000,
+        50000,
+        55000,
+        60000
       ],
       "durationMs": 15000
     },
@@ -106455,9 +106455,9 @@
       "herculesId": 231,
       "sourceName": "AM_POTIONPITCHER",
       "mechanic": "AM_POTIONPITCHER",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer cura específica do item lançado e seus modificadores.",
-      "description": "Aid Potion. Habilidade utilitária. Requer cura específica do item lançado e seus modificadores.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Arremessa uma poção em si mesmo. Níveis 1–4 usam poções Vermelha, Laranja, Amarela e Branca; nível 5 usa Azul para SP. A recuperação usa o nível aprendido e Pesquisa de Poções.",
       "iconResource": "data/texture/유저인터페이스/item/am_potionpitcher.bmp",
       "spCost": [
         1,

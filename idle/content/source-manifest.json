@@ -10956,10 +10956,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Native self buff at the selected learned level; SkillData1 lifetime15–60s, original SP/cast clocks, physical-hit weapon/armor break chances100/70 per level on scale10000. MD_BOSS immunity; native strip Lv0 overlap, duration from RG_STRIP_*Lv1. One additional-effect phase per living hit target, excluding Cart Termination/Tomahawk/Reflect Shield. AFK skips all-boss battles. NoSave buff and captured level are process-local, cleared on caster new connection/logout; NoDeathReset survives defeat. Monster NoSave strips remain on the same live instance across caster reconnect/logout, disappear on process restart and never transfer to a respawn ID. Emperium rejects status before its draw; BG/Gravity Control systems are absent. Native generic equipment-break contributions are not produced by the current solo engine."
     },
     "ws_cartboost": {
       "id": 387,
@@ -11313,10 +11313,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer cura específica do item lançado e seus modificadores.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Self-only solo use; selected Lv1–5 consumes exactly Red/Orange/Yellow/White/Blue Potion and1SP, with native500ms after-cast delay and no extra potion cooldown. Recovery uses full learned Pitcher plus Learning Potion and target VIT/INT/Recovery, with native stage truncation. Current item export retains deterministic script midpoints55/125/205/365HP and50SP. Item-heal/caster-heal/received-heal bonuses, Soul Link and recovery-blocking statuses have no current producers and pass zero/false; helper covers their source arithmetic. AFK uses positive configured HP threshold capped at70%, or positive configured SP threshold, only if useful, with offense between support actions. No party target system."
     },
     "am_cannibalize": {
       "id": 232,
@@ -13886,8 +13886,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 260,
-    "unsupported": 88,
+    "supported": 262,
+    "unsupported": 86,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14056,18 +14056,18 @@
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 22,
-        "unsupported": 22
+        "supported": 23,
+        "unsupported": 21
       },
       "alchemist": {
         "sourceTree": 35,
-        "supported": 14,
-        "unsupported": 21
+        "supported": 15,
+        "unsupported": 20
       },
       "creator": {
         "sourceTree": 39,
-        "supported": 15,
-        "unsupported": 24
+        "supported": 16,
+        "unsupported": 23
       },
       "assassin": {
         "sourceTree": 24,
@@ -14312,6 +14312,7 @@
       "BS_OVERTHRUST",
       "BS_MAXIMIZE",
       "BS_UNFAIRLYTRICK",
+      "WS_MELTDOWN",
       "WS_CARTBOOST",
       "WS_CARTTERMINATION",
       "WS_OVERTHRUSTMAX",
@@ -14319,6 +14320,7 @@
       "AM_LEARNINGPOTION",
       "AM_DEMONSTRATION",
       "AM_ACIDTERROR",
+      "AM_POTIONPITCHER",
       "CR_ACIDDEMONSTRATION",
       "AS_KATAR",
       "AS_CLOAKING",
@@ -14654,11 +14656,6 @@
         "reason": "Requer estado de Espírito da classe, ainda não implementado."
       },
       {
-        "skillId": "ws_meltdown",
-        "sourceName": "WS_MELTDOWN",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "ws_weaponrefine",
         "sourceName": "WS_WEAPONREFINE",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
@@ -14667,11 +14664,6 @@
         "skillId": "am_pharmacy",
         "sourceName": "AM_PHARMACY",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "potion_pitcher",
-        "sourceName": "AM_POTIONPITCHER",
-        "reason": "Requer cura específica do item lançado e seus modificadores."
       },
       {
         "skillId": "am_cannibalize",
@@ -15437,6 +15429,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "3ad1adf3606cf6c36e2fd7e76befea45984917b7f74e151c2b53a858474910a9",
+  "catalogSha256": "f45e5f3a34cac1068ec170db3d4c3ec3fbc349a0c9585583ad1a9aee6fa9d993",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -216,9 +216,9 @@ export default function ChatJournal({ snapshot, isOpen, onOpenChange, identity, 
         </div>
         <div id={`${prefix}-combat`} role="tabpanel" aria-labelledby={`${prefix}-combat-tab`} hidden={tab !== 'combat'}>
           <div className="chat-combat-log" role="log" aria-live="off" tabIndex={0} aria-label="Eventos recentes de combate">
-            {events.map(event => <div className={`chat-combat-event event-${event.kind}`} key={event.id}>
+            {events.map(event => <div className={`chat-combat-event event-${event.kind}${event.kind === 'heal' && event.resource === 'sp' ? ' event-resource-sp' : ''}`} key={event.id}>
               <time dateTime={new Date(event.at).toISOString()}>{timeLabel(event.at)}</time>
-              <span>{event.text}{event.amount !== undefined && <b> · {number(event.amount)}</b>}</span>
+              <span>{event.kind === 'heal' && event.resource === 'sp' ? 'Recuperação de SP' : event.text}{event.amount !== undefined && <b> · {number(event.amount)}</b>}</span>
             </div>)}
             {events.length === 0 && <p className="chat-empty">Escolha uma área e comece a caçar. Sua aventura aparecerá aqui.</p>}
           </div>
