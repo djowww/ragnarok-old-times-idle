@@ -20,7 +20,8 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 - A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
 - Players and monsters follow walkable-cell routes across all 29 maps. The server and scene share the route and arrival time, respecting walls and diagonal corners.
 - Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
-- Forty class trees with 348 imported skills, 252 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Forty class trees with 348 imported skills, 253 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Manual Back Slide for the Thief family moves up to five terrain-clipped cells, costs 7 SP and preserves facing. Presentation follows the native animation clock.
 - Books, Advanced Book and all four Sage elemental endows include casting, reagents, failure chance and weapon breakage. The blacksmith repairs broken equipment while retaining refining, cards and rarity.
 - Ghostring, Moonlight Flower, Orc Lord and Thanatos cast the selected spells from their classic skill tables. Sages and Professors can intercept them with Magic Rod, manually or through the automatic rotation.
 - Chronological combat deadlines with separate attack, action motion, casting and cooldown clocks. Each actor has independent action and hit animations; automatic healing alternates with offensive actions.

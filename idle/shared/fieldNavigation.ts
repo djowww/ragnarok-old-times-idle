@@ -69,6 +69,31 @@ export function gridWalkable(grid: FieldNavigationGrid, p: GridPoint): boolean {
     return id !== null && isWalkableCell(grid, id);
 }
 
+/** Hercules map_getcellp's useful CELL_CHKPASS domain excludes the final row and column. */
+export function herculesCellPassable(grid: FieldNavigationGrid, point: GridPoint): boolean {
+    return Number.isFinite(point.x) && Number.isFinite(point.y) && point.x >= 0 && point.y >= 0 &&
+        point.x < grid.width - 1 && point.y < grid.height - 1 && gridWalkable(grid, point);
+}
+
+/**
+ * Source-compatible directional push: test only each next cell and stop at
+ * the first blocked destination. Hercules path_blownpos does not route around
+ * walls or impose the navigation search's diagonal corner restriction.
+ */
+export function gridHerculesDisplacement(grid: FieldNavigationGrid, from: GridPoint,
+    dx: number, dy: number, count: number): GridPoint {
+    assertGridShape(grid);
+    if (!herculesCellPassable(grid, from) || !Number.isSafeInteger(count) || count < 1 ||
+        !Number.isInteger(dx) || !Number.isInteger(dy) || Math.abs(dx) > 1 || Math.abs(dy) > 1 || (!dx && !dy))
+        return { ...from };
+    let moved = 0;
+    for (let step = 1; step <= count; step++) {
+        if (!herculesCellPassable(grid, { x: from.x + dx * step, y: from.y + dy * step })) break;
+        moved = step;
+    }
+    return { x: from.x + dx * moved, y: from.y + dy * moved };
+}
+
 const NEIGHBOR_OFFSETS = [[0, -1], [-1, 0], [1, 0], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1]] as const;
 
 function neighbors(grid: FieldNavigationGrid, id: number, out: number[]): number[] {

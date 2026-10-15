@@ -57,6 +57,11 @@ describe('source-closed manual Sense catalog', () => {
     otherSkills.rg_closeconfine.implementation = 'unsupported';
     otherSkills.rg_closeconfine.unsupportedReason = 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.';
     otherSkills.rg_closeconfine.description = 'Close Confine. Aplica RG_CCONFINE_S. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.';
+    // Restore Back Slide's imported-only row; its source promotion has independent coverage.
+    otherSkills.tf_backsliding.implementation = 'unsupported';
+    otherSkills.tf_backsliding.unsupportedReason = 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.';
+    otherSkills.tf_backsliding.description = 'Back Slide. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.';
+    delete otherSkills.tf_backsliding.manualUse;
     // The frozen source baseline predates the explicit Idle balance layer.
     // Its independent coverage/hash tests validate those new vectors.
     for (const skill of Object.values(otherSkills)) delete skill.idleDamageMultiplierPct;
@@ -74,7 +79,7 @@ describe('source-closed manual Sense catalog', () => {
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 252, unsupported: 96 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });

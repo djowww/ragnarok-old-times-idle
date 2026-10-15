@@ -262,7 +262,21 @@ const unsupported = {
     AM_POTIONPITCHER: 'Requer cura específica do item lançado e seus modificadores.', CR_SLIMPITCHER: 'Requer cura específica da poção compacta e seus modificadores.',
 };
 const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
+function backslidingSourceMatchesSourceContract(source) {
+    const requirements = source.Requirements ?? {};
+    const requirementKeys = Object.keys(requirements);
+    const skillTypeKeys = Object.keys(source.SkillType ?? {});
+    const damageTypeKeys = Object.keys(source.DamageType ?? {});
+    return source.Id === 150 && source.Name === 'TF_BACKSLIDING' && source.MaxLevel === 1 &&
+        source.Hit === 'BDT_SKILL' && source.AttackType === 'Misc' &&
+        source.SkillType?.Self === true && skillTypeKeys.length === 1 && skillTypeKeys[0] === 'Self' &&
+        source.DamageType?.NoDamage === true && damageTypeKeys.length === 1 && damageTypeKeys[0] === 'NoDamage' &&
+        source.KnockBackTiles === 5 && requirementKeys.length === 1 && requirements.SPCost === 7 &&
+        source.CastTime === undefined && source.AfterCastActDelay === undefined && source.CoolDown === undefined &&
+        source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
+}
 const descriptions = {
+    TF_BACKSLIDING: 'Desliza imediatamente até cinco células para trás, na direção oposta ao seu olhar, parando na primeira parede ou borda do mapa. Custa 7 SP; não conjura, não interrompe uma conjuração em andamento e não tem recarga. Use manualmente durante uma caça em mapa com navegação carregada.',
     PR_STRECOVERY: 'Recuperação de Status em um monstro: no elemento Morto-Vivo efetivo, tenta Cegueira com resistência por atributos e nível; nos demais, remove Petrificação, Congelamento, Sono, Atordoamento, Prisão Branca e Netherworld. Solta o alvo de ataque e interrompe a perseguição, preservando conjurações NPC já iniciadas e seus custos. Cegueira reduz a visão do monstro a três células; ele pode readquirir o alvo sem proteção garantida. Alcance nove, 5 SP e pós-conjuração de dois segundos. A rotação usa apenas monstros Mortos-Vivos que estejam atacando e ainda sem Cegueira. Não permite escapar do próprio Atordoamento.',
     PR_LEXDIVINA: 'Aplica Silêncio a um monstro, sujeito a VIT, SOR, nível e imunidade de chefes. Silêncio impede o início de novas habilidades NPC; ataques normais continuam e conjurações já iniciadas terminam normalmente. Usar em um monstro já silenciado remove o efeito; a rotação evita essa remoção e escolhe somente monstros com ações NPC implementadas. Alcance cinco, conjuração instantânea e pós-conjuração de três segundos.',
     RG_COMPULSION: 'Desconto nas compras de NPC: 9%, 13%, 17%, 21% e 25% nos níveis um a cinco. Usa o maior desconto entre esta habilidade e Desconto do Mercador, sem somar. O preço é truncado e tem mínimo de 1 zeny; não altera vendas. Requer estudar Gangster, cujo efeito de aliados continua indisponível.',
@@ -314,6 +328,7 @@ for (const name of skillNames) {
     const src = skillByName[name];
     if (!src) throw new Error('Missing source skill ' + name);
     const rule = rules.skills.find(s => s.source === name);
+    const backslidingSupported = name === 'TF_BACKSLIDING' && backslidingSourceMatchesSourceContract(src);
     const maxLevel = Math.min(src.MaxLevel, Math.max(...Object.values(treeByClass).map(tree => typeof tree[name] === 'number' ? tree[name] : tree[name]?.MaxLevel ?? 0)));
     const prerequisitesByClass = Object.fromEntries(Object.entries(treeByClass).filter(([, tree]) => tree[name]).map(([job, tree]) => [job, Object.entries(typeof tree[name] === 'number' ? {} : tree[name]).filter(([key]) => !['MaxLevel', 'MinJobLevel'].includes(key)).map(([key, level]) => ({ skillId: skillId(key), level }))]));
     const targetType = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) ? 'self' : name === 'ALL_RESURRECTION' ? 'enemy' : !src.SkillType ? 'passive' : src.SkillType.Place ? 'ground' : src.SkillType.Enemy ? 'enemy' : src.SkillType.Self ? 'self' : 'support';
@@ -322,7 +337,7 @@ for (const name of skillNames) {
     if (name === 'ALL_RESURRECTION') kind = 'magical';
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
-    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
+    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
     const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (name !== 'SA_CREATECON' && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
@@ -354,6 +369,7 @@ for (const name of skillNames) {
         ...(name === 'PA_SACRIFICE' && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
+        ...(backslidingSupported && { manualUse: 'activate' }),
         ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),

@@ -15,10 +15,10 @@ describe('Guardian and Sacrifice content promotion', () => {
       .sort();
     expect(baseline.supportedSourceNames).toHaveLength(230);
     expect(baseline.supportedSourceNames.filter(name => !supported.includes(name))).toEqual([]);
-    expect(supported.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+    expect(supported.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
     expect(Object.keys(candidate.skills)).toHaveLength(348);
     expect(Object.keys(candidate.classes)).toHaveLength(40);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 252, unsupported: 96 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 253, unsupported: 95 });
   });
 
   it('preserves the pinned source rows and keeps Devotion study-only', () => {

@@ -13,6 +13,7 @@ import { currentPlayerCast } from '../../engine/playerCast';
 import { isPecoMounted } from '../../engine/mountedPeco';
 import { senseManualTarget } from '../../engine/senseInspection';
 import { sageEnchantCanStart } from '../../engine/sageEnchantments';
+import { backslidingStatusBlocked } from '../../engine/backsliding';
 import type { GameCommand } from '../../shared/types';
 import '../styles/sage-enchant.css';
 
@@ -92,6 +93,12 @@ export default function Build({
               : undefined;
             const senseCanInspect = !!senseTarget && ids.has(skill.id) && level === 1 &&
               !unsupported && canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
+            const backslidingAvailable = skill.sourceName === 'TF_BACKSLIDING' && ids.has(skill.id) && level === 1 &&
+              !unsupported && state.hp > 0 && state.status === 'hunting' && !!state.areaId &&
+              state.fieldHero?.areaId === state.areaId &&
+              !!catalog.areas.find(area => area.id === state.areaId)?.fieldNavigation &&
+              !backslidingStatusBlocked(state, catalog, snapshot.serverTime) &&
+              canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
             const sageEnchantSkill = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
             const sageEnchantCast = sageEnchantSkill && state.supportCast?.skillId === skill.id ? state.supportCast : undefined;
             const sageEnchantReady = sageEnchantSkill && level > 0 && !unsupported &&
@@ -243,6 +250,11 @@ export default function Build({
                         !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
                       Ativar Magic Rod
+                    </button>}
+                    {skill.manualUse === 'activate' && skill.sourceName === 'TF_BACKSLIDING' && <button
+                      disabled={busy || !backslidingAvailable}
+                      onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                      Usar Back Slide · 7 SP
                     </button>}
                     {skill.manualUse === "toggle" && <button disabled={busy || unsupported || level === 0 ||
                       !toggleAvailable}
