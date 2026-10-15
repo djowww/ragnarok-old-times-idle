@@ -1,0 +1,660 @@
+{
+  "sourceCommit": "55c89d70f41687d306179d16667f4a9003e51cc9",
+  "sourceBlobSha": "0e4301ec8454b5cbcf3b0442b9972eae6ba06158",
+  "classes": {
+    "novice": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 650,
+        "sword": 700,
+        "axe": 800,
+        "mace": 700,
+        "twoHandMace": 700,
+        "staff": 650,
+        "twoHandStaff": 650
+      },
+      "weaponAspd": {
+        "dagger": 650,
+        "sword": 700,
+        "axe": 800,
+        "mace": 700,
+        "staff": 650,
+        "unarmed": 500
+      }
+    },
+    "high_novice": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 650,
+        "sword": 700,
+        "axe": 800,
+        "mace": 700,
+        "twoHandMace": 700,
+        "staff": 650,
+        "twoHandStaff": 650
+      },
+      "weaponAspd": {
+        "dagger": 650,
+        "sword": 700,
+        "axe": 800,
+        "mace": 700,
+        "staff": 650,
+        "unarmed": 500
+      }
+    },
+    "swordsman": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 550,
+        "twoHandSword": 600,
+        "spear": 650,
+        "twoHandSpear": 700,
+        "axe": 700,
+        "twoHandAxe": 750,
+        "mace": 650,
+        "twoHandMace": 700
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 550,
+        "spear": 650,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "high_swordsman": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 550,
+        "twoHandSword": 600,
+        "spear": 650,
+        "twoHandSpear": 700,
+        "axe": 700,
+        "twoHandAxe": 750,
+        "mace": 650,
+        "twoHandMace": 700
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 550,
+        "spear": 650,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "mage": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 600,
+        "staff": 700,
+        "twoHandStaff": 700
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "staff": 700,
+        "unarmed": 500
+      }
+    },
+    "high_mage": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 600,
+        "staff": 700,
+        "twoHandStaff": 700
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "staff": 700,
+        "unarmed": 500
+      }
+    },
+    "archer": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "bow": 700
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "bow": 700,
+        "unarmed": 400
+      }
+    },
+    "high_archer": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "bow": 700
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "bow": 700,
+        "unarmed": 400
+      }
+    },
+    "acolyte": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 600,
+        "twoHandMace": 600,
+        "staff": 600,
+        "twoHandStaff": 600
+      },
+      "weaponAspd": {
+        "mace": 600,
+        "staff": 600,
+        "unarmed": 400
+      }
+    },
+    "high_acolyte": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 600,
+        "twoHandMace": 600,
+        "staff": 600,
+        "twoHandStaff": 600
+      },
+      "weaponAspd": {
+        "mace": 600,
+        "staff": 600,
+        "unarmed": 400
+      }
+    },
+    "merchant": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "sword": 700,
+        "axe": 700,
+        "twoHandAxe": 750,
+        "mace": 700,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "sword": 700,
+        "axe": 700,
+        "mace": 700,
+        "unarmed": 400
+      }
+    },
+    "high_merchant": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "sword": 700,
+        "axe": 700,
+        "twoHandAxe": 750,
+        "mace": 700,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "sword": 700,
+        "axe": 700,
+        "mace": 700,
+        "unarmed": 400
+      }
+    },
+    "thief": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "bow": 800
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "bow": 800,
+        "unarmed": 400
+      }
+    },
+    "high_thief": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "bow": 800
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "bow": 800,
+        "unarmed": 400
+      }
+    },
+    "knight": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 500,
+        "twoHandSword": 550,
+        "spear": 600,
+        "twoHandSpear": 600,
+        "axe": 700,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 700
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 500,
+        "spear": 600,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "lord_knight": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 500,
+        "twoHandSword": 550,
+        "spear": 600,
+        "twoHandSpear": 600,
+        "axe": 700,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 700
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 500,
+        "spear": 600,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "crusader": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 500,
+        "twoHandSword": 550,
+        "spear": 600,
+        "twoHandSpear": 600,
+        "axe": 700,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 500,
+        "spear": 600,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "paladin": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 500,
+        "twoHandSword": 550,
+        "spear": 600,
+        "twoHandSpear": 600,
+        "axe": 700,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 500,
+        "spear": 600,
+        "axe": 700,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "wizard": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 575,
+        "staff": 625,
+        "twoHandStaff": 625
+      },
+      "weaponAspd": {
+        "dagger": 575,
+        "staff": 625,
+        "unarmed": 500
+      }
+    },
+    "high_wizard": {
+      "attackMotion": {
+        "fist": 500,
+        "dagger": 575,
+        "staff": 625,
+        "twoHandStaff": 625
+      },
+      "weaponAspd": {
+        "dagger": 575,
+        "staff": 625,
+        "unarmed": 500
+      }
+    },
+    "sage": {
+      "attackMotion": {
+        "fist": 450,
+        "dagger": 525,
+        "sword": 575,
+        "staff": 625,
+        "book": 550,
+        "twoHandStaff": 625
+      },
+      "weaponAspd": {
+        "dagger": 525,
+        "sword": 575,
+        "staff": 625,
+        "book": 550,
+        "unarmed": 450
+      }
+    },
+    "professor": {
+      "attackMotion": {
+        "fist": 450,
+        "dagger": 525,
+        "sword": 575,
+        "staff": 625,
+        "book": 550,
+        "twoHandStaff": 625
+      },
+      "weaponAspd": {
+        "dagger": 525,
+        "sword": 575,
+        "staff": 625,
+        "book": 550,
+        "unarmed": 450
+      }
+    },
+    "hunter": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "bow": 600
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "bow": 600,
+        "unarmed": 400
+      }
+    },
+    "sniper": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "bow": 600
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "bow": 600,
+        "unarmed": 400
+      }
+    },
+    "bard": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 550,
+        "bow": 650,
+        "Instrument": 575
+      },
+      "weaponAspd": {
+        "dagger": 550,
+        "bow": 650,
+        "unarmed": 400
+      }
+    },
+    "clown": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 550,
+        "bow": 650,
+        "Instrument": 575
+      },
+      "weaponAspd": {
+        "dagger": 550,
+        "bow": 650,
+        "unarmed": 400
+      }
+    },
+    "dancer": {
+      "attackMotion": {
+        "whip": 575,
+        "Instrument": 2000
+      },
+      "weaponAspd": {
+        "whip": 575,
+        "unarmed": 2000
+      }
+    },
+    "gypsy": {
+      "attackMotion": {
+        "whip": 575,
+        "Instrument": 2000
+      },
+      "weaponAspd": {
+        "whip": 575,
+        "unarmed": 2000
+      }
+    },
+    "priest": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 600,
+        "twoHandMace": 600,
+        "staff": 600,
+        "book": 600,
+        "twoHandStaff": 600
+      },
+      "weaponAspd": {
+        "mace": 600,
+        "staff": 600,
+        "book": 600,
+        "unarmed": 400
+      }
+    },
+    "high_priest": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 600,
+        "twoHandMace": 600,
+        "staff": 600,
+        "book": 600,
+        "twoHandStaff": 600
+      },
+      "weaponAspd": {
+        "mace": 600,
+        "staff": 600,
+        "book": 600,
+        "unarmed": 400
+      }
+    },
+    "monk": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 575,
+        "twoHandMace": 575,
+        "staff": 575,
+        "knuckle": 475,
+        "twoHandStaff": 575
+      },
+      "weaponAspd": {
+        "mace": 575,
+        "staff": 575,
+        "unarmed": 400
+      }
+    },
+    "champion": {
+      "attackMotion": {
+        "fist": 400,
+        "mace": 575,
+        "twoHandMace": 575,
+        "staff": 575,
+        "knuckle": 475,
+        "twoHandStaff": 575
+      },
+      "weaponAspd": {
+        "mace": 575,
+        "staff": 575,
+        "unarmed": 400
+      }
+    },
+    "blacksmith": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "sword": 650,
+        "axe": 650,
+        "twoHandAxe": 650,
+        "mace": 675,
+        "twoHandMace": 675
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "sword": 650,
+        "axe": 650,
+        "mace": 675,
+        "unarmed": 400
+      }
+    },
+    "whitesmith": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 600,
+        "sword": 650,
+        "axe": 650,
+        "twoHandAxe": 650,
+        "mace": 675,
+        "twoHandMace": 675
+      },
+      "weaponAspd": {
+        "dagger": 600,
+        "sword": 650,
+        "axe": 650,
+        "mace": 675,
+        "unarmed": 400
+      }
+    },
+    "alchemist": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 550,
+        "sword": 575,
+        "axe": 675,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 550,
+        "sword": 575,
+        "axe": 675,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "creator": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 550,
+        "sword": 575,
+        "axe": 675,
+        "twoHandAxe": 700,
+        "mace": 650,
+        "twoHandMace": 650
+      },
+      "weaponAspd": {
+        "dagger": 550,
+        "sword": 575,
+        "axe": 675,
+        "mace": 650,
+        "unarmed": 400
+      }
+    },
+    "assassin": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "katar": 500,
+        "Revolver": 750,
+        "Rifle": 975,
+        "GatlingGun": 1200,
+        "Shotgun": 880,
+        "GrenadeLauncher": 975,
+        "FuumaShuriken": 1085
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "katar": 500,
+        "unarmed": 400
+      }
+    },
+    "assassin_cross": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "katar": 500,
+        "Revolver": 750,
+        "Rifle": 975,
+        "GatlingGun": 1200,
+        "Shotgun": 880,
+        "GrenadeLauncher": 975,
+        "FuumaShuriken": 1085
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 650,
+        "axe": 800,
+        "katar": 500,
+        "unarmed": 400
+      }
+    },
+    "rogue": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 550,
+        "bow": 650
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 550,
+        "bow": 650,
+        "unarmed": 400
+      }
+    },
+    "stalker": {
+      "attackMotion": {
+        "fist": 400,
+        "dagger": 500,
+        "sword": 550,
+        "bow": 650
+      },
+      "weaponAspd": {
+        "dagger": 500,
+        "sword": 550,
+        "bow": 650,
+        "unarmed": 400
+      }
+    }
+  }
+}

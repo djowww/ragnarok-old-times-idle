@@ -1,0 +1,103 @@
+{
+  "id": "sa_magicrod",
+  "name": "Magic Rod",
+  "kind": "buff",
+  "maxLevel": 5,
+  "herculesId": 276,
+  "sourceName": "SA_MAGICROD",
+  "mechanic": "SA_MAGICROD",
+  "implementation": "unsupported",
+  "unsupportedReason": "Requer magias conjuradas por inimigos.",
+  "description": "Magic Rod. Aplica MAGICROD. Requer magias conjuradas por inimigos.",
+  "iconResource": "data/texture/유저인터페이스/item/sa_magicrod.bmp",
+  "spCost": [
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "power": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "cooldownMs": 0,
+  "castTimeMs": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "afterCastDelayMs": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "interruptCast": true,
+  "hitCount": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "sourceHitCount": [
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "aoeRadius": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "range": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "targetType": "self",
+  "damageType": "none",
+  "prerequisites": [
+    {
+      "skillId": "sa_advancedbook",
+      "level": 4
+    }
+  ],
+  "prerequisitesByClass": {
+    "sage": [
+      {
+        "skillId": "sa_advancedbook",
+        "level": 4
+      }
+    ],
+    "professor": [
+      {
+        "skillId": "sa_advancedbook",
+        "level": 4
+      }
+    ]
+  },
+  "minimumJobLevel": 1,
+  "statusEffect": "SC_MAGICROD",
+  "statusDurationMs": [
+    400,
+    600,
+    800,
+    1000,
+    1200
+  ],
+  "durationMs": 400
+}

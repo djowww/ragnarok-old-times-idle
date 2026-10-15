@@ -18,12 +18,17 @@ describe('command boundary', () => {
   });
   it('rejects malformed rotations, thresholds, and stat names', () => {
     expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'a'] } })).toThrow();
-    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd'] } })).toThrow();
+    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'setPotions', hpThreshold: 101, spThreshold: 30 } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'allocate', stat: 'power', amount: 1 } })).toThrow();
   });
   it('accepts a real purchase intention without converting it into a reward', () => {
     expect(parseCommandRequest({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } }))
       .toEqual({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } });
+  });
+  it('accepts repair-all as a payload-free command', () => {
+    expect(parseCommandRequest({ requestId, command: { type: 'repairAll' } }))
+      .toEqual({ requestId, command: { type: 'repairAll' } });
+    expect(() => parseCommandRequest({ requestId, command: { type: 'repairAll', uid: 'item-1' } })).toThrow();
   });
 });

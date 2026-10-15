@@ -1,0 +1,22 @@
+diff --git a/src/UI/Components/CharCreate/CharCreateCommon.js b/src/UI/Components/CharCreate/CharCreateCommon.js
+--- a/src/UI/Components/CharCreate/CharCreateCommon.js
++++ b/src/UI/Components/CharCreate/CharCreateCommon.js
+@@ -280,6 +280,7 @@ export function createCharCreate(config) {
+ 				sex: _accountSex,
+ 				job: 0,
+ 				head: 2,
++				headpalette: 0,
+ 				action: 0
+ 			});
+ 		}
+@@ -432,8 +433,8 @@ export function createCharCreate(config) {
+ 			}
+ 
+ 			case 'headpalette':
+-				_chargen.entity.headpalette += increment;
+-				_chargen.entity.headpalette %= 10;
++				_chargen.entity.headpalette =
++					((_chargen.entity.headpalette + increment) % 10 + 10) % 10;
+ 				break;
+ 		}
+ 

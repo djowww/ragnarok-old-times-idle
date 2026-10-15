@@ -1,0 +1,12 @@
+.copied-skill-badge {
+  display: inline-block;
+  margin-inline: 5px;
+  padding: 1px 5px;
+  border: 1px solid #91adb5;
+  border-radius: 3px;
+  color: #315b6a;
+  background: #e3eef0;
+  font: 600 10px/1.4 Verdana, sans-serif;
+  vertical-align: middle;
+}
+.copied-skill-note { color: #526b74; }

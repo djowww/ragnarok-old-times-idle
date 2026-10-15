@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "recursos-do-idle",
+    "title": "Combate offline e progressão de classes",
+    "category": "Recursos",
+    "publishedAt": "2026-10-04T12:00:00-03:00",
+    "summary": "Conheça a caça offline e a evolução de classes já disponíveis no Idle.",
+    "body": [
+      "O Idle salva o progresso do personagem e permite continuar a caça durante sua ausência. O progresso offline tem limite de 12 horas desde o último contato com o jogo.",
+      "O combate concede experiência, zeny e itens conforme as regras do catálogo. A progressão de classes, as habilidades e o renascimento fazem parte dos recursos existentes; acompanhe os requisitos no jogo.",
+      "O ranking público mostra o último estado salvo dos personagens vinculados a contas do Idle. Consultar o ranking não inicia combate nem concede recompensas."
+    ]
+  },
+  {
+    "slug": "primeiros-passos",
+    "title": "Guia de primeiros passos",
+    "category": "Guia",
+    "publishedAt": "2026-10-04T11:00:00-03:00",
+    "summary": "Crie sua conta, conheça o painel e prepare seu personagem para a primeira caça.",
+    "body": [
+      "Cadastre um usuário, um nome de personagem, a aparência e uma senha. Cada conta do Idle possui um personagem com progresso próprio.",
+      "Após entrar, consulte seu personagem no painel e use Jogar para abrir o jogo. Verifique seus equipamentos, habilidades e consumíveis antes de iniciar a caça em uma área disponível.",
+      "Acompanhe os níveis Base e Job, a experiência e os recursos do personagem. Você pode voltar ao painel para consultar seus dados e trocar a senha da conta."
+    ]
+  },
+  {
+    "slug": "bem-vindo-ao-idle",
+    "title": "Bem-vindo ao Ragnarok Old Times Idle",
+    "category": "Portal",
+    "publishedAt": "2026-10-04T10:00:00-03:00",
+    "summary": "Apresentamos o portal com acesso ao jogo, notícias e ranking de personagens.",
+    "body": [
+      "Este portal reúne o acesso ao Ragnarok Old Times Idle, os comunicados do projeto e as classificações dos personagens.",
+      "As contas do Idle são independentes das contas do Hercules. O cadastro cria um personagem próprio e não associa automaticamente personagens legados.",
+      "Consulte as notícias para conhecer os recursos disponíveis e o ranking para acompanhar os personagens por nível, zeny ou abates. As informações de status e as taxas vêm do servidor e do catálogo do jogo."
+    ]
+  }
+]

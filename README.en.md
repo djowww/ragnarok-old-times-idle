@@ -13,12 +13,25 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 ## Game features
 
 - Server-authoritative idle combat with persisted progress and summaries for up to 12 hours offline.
-- Ten explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
+- 29 explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
 - Classic class progression, rebirth, stats, skills, equipment, cards, refining, consumables and loot.
+- Classic carry limits block new attacks and skills at 90%. AFK hunting returns to Prontera when the bag is too heavy or a new drop cannot fit. Pending items can be collected from the Backpack in town with their original identification, rarity, cards and refining; selling is always a player action.
 - Browser scenes using assets from the locally supplied client; background music follows the selected area when enabled.
 - A classic roBrowserLegacy client connected to a local Hercules server.
+- A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
+- Players and monsters follow walkable-cell routes across all 29 maps. The server and scene share the route and arrival time, respecting walls and diagonal corners.
+- Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
+- Forty class trees with 348 imported skills, 256 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Plagiarism copies the four Mage spells produced by the modeled NPC attacks without spending skill points. Players can add the copied spell to their rotation; Preserve protects it for ten minutes. Reconnecting retains the copy and clears its protection, following Hercules NoSave status behavior.
+- Manual Back Slide for the Thief family moves up to five terrain-clipped cells, costs 7 SP and preserves facing. Presentation follows the native animation clock.
+- Books, Advanced Book and all four Sage elemental endows include casting, reagents, failure chance and weapon breakage. The blacksmith repairs broken equipment while retaining refining, cards and rarity.
+- Ghostring, Moonlight Flower, Orc Lord and Thanatos cast the selected spells from their classic skill tables. Sages and Professors can intercept them with Magic Rod, manually or through the automatic rotation.
+- Chronological combat deadlines with separate attack, action motion, casting and cooldown clocks. Each actor has independent action and hit animations; automatic healing alternates with offensive actions.
+- Equipment drops require a Magnifier. Special idle rarity tiers reveal their color and a random +1 to +5 stat bonus after identification.
 
 The idle mode adapts progression and rewards for shorter sessions. It does not execute item scripts and does not aim to reproduce every system of the original emulator.
+
+Source costs, requirements, timing and formulas are recorded in [`idle/content/source-manifest.json`](idle/content/source-manifest.json). Skills that depend on missing systems remain marked as unavailable. The native renderer integrates sprites with map geometry; visual effects still include 2D compositions without full client STR execution.
 
 ## Getting started
 
@@ -29,13 +42,11 @@ The idle mode adapts progression and rewards for shorter sessions. It does not e
 
 ### Start the stack
 
-From the repository root, copy the example environment file:
+From the repository root, create the local environment file and replace its sample passwords:
 
 ```powershell
 Copy-Item .env.example .env
 ```
-
-On macOS or Linux, use `cp .env.example .env`. Replace the sample passwords in `.env`.
 
 Then build and start the services:
 
@@ -44,7 +55,27 @@ docker compose up --build -d
 docker compose ps
 ```
 
+The admin panel is optional and stays disabled until a private key is configured. Generate one with `openssl rand -base64 32`, add `RAGIDLE_ADMIN_TOKEN=<key>` to `.env`, then recreate only the idle game service:
+
+```powershell
+docker compose up -d --force-recreate idle-game
+```
+
+In the game, open **Adventurer's Book → Administration** and enter the key. The session uses an `HttpOnly` cookie that expires after eight hours. The panel can grant Base and Job levels, change class, add zeny and grant catalog items to the authenticated account's character; it does not modify Hercules characters.
+
 Open the idle game at **http://localhost:3339/**. The classic client is at **http://localhost:3338/applications/pwa/index.html**. The first build compiles the services and may take several minutes.
+
+### Accounts and portal
+
+Create an Idle account at `/registro`, sign in at `/login`, and enter the game
+through `/painel` or `/jogar`. Each account owns a separate character and
+progress. The portal also provides news and a ranking of linked characters.
+Legacy profiles are preserved and are never linked to a new account automatically.
+
+For HTTPS hosting, set `PUBLIC_ORIGIN` and `RAGIDLE_ALLOWED_ORIGINS` to the exact
+public origin. If a reverse proxy is used, put only its immediate peer IPs in
+`RAGIDLE_TRUSTED_PROXY_ADDRESSES` and have it replace `X-Real-IP` with the actual
+client address. Leave the allowlist empty for direct connections.
 
 ## Ragnarok client assets
 
@@ -62,7 +93,13 @@ docker compose restart asset-service
 docker compose logs -f asset-service
 ```
 
-The application can start without local resources, but original maps, sprites, icons and music will be unavailable. Music is off by default and served locally; it is not included in Git or Docker images.
+Once the asset service is ready, restart Idle to load the maps' walkable cells:
+
+```powershell
+docker compose restart idle-game
+```
+
+The portal can start without local resources, but the adventure requires the 29 maps' GAT files or a validated cache. If loading fails, gameplay stays unavailable and saved progress is preserved. Maps, sprites, icons and music also require the local client. Music is off by default and served locally; it is not included in Git or Docker images.
 
 ## Local services
 
@@ -107,3 +144,5 @@ Vite serves the app at `http://localhost:5173/` and proxies API/assets to the lo
 Project code and adapted GPL components are distributed under the **GNU GPL v3 or later**. See [`LICENSE`](LICENSE) and [`idle/THIRD_PARTY_NOTICES.md`](idle/THIRD_PARTY_NOTICES.md) for attribution and redistribution details.
 
 Ragnarok Online and its visual and audio assets belong to their respective owners. The software license does not grant rights to those assets; provide only client files you are authorized to use.
+
+ChaseWalk is a manual Stalker ability with its original cast, periodic SP cost and independent STR timer. Ordinary monsters lose the concealed target; bosses, detectors and already-started targeted spells remain dangerous.
