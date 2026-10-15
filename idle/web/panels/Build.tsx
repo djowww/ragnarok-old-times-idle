@@ -1,4 +1,5 @@
 import { chasewalkCanStart } from '../../engine/chasewalk';
+import { teleportAvailable } from '../../engine/teleport';
 import { number, type PanelProps } from "../components/common";
 import ClassicStatus from "../components/ClassicStatus";
 import SkillIcon from "../components/SkillIcon";
@@ -238,6 +239,12 @@ export default function Build({
                           snapshot.serverTime - sageManualCast.startedAt))} />
                     </div>}
                   </>}
+                    {skill.manualUse === 'teleport' && level > 0 && <>
+                      <button type="button" disabled={busy || !teleportAvailable(state, catalog, 'random', snapshot.serverTime)}
+                        onClick={() => void command({ type: 'teleport', destination: 'random' })}>Teleportar no mapa</button>
+                      {level >= 2 && <button type="button" disabled={busy || !teleportAvailable(state, catalog, 'save', snapshot.serverTime)}
+                        onClick={() => void command({ type: 'teleport', destination: 'save' })}>Voltar a Prontera</button>}
+                    </>}
                     {skill.manualUse === 'inspect' && <button type="button"
                       disabled={busy || !senseCanInspect}
                       onClick={() => senseTarget && void command(senseInspectCommand(skill.id, senseTarget.id))}>
