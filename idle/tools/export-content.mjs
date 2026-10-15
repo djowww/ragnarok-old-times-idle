@@ -132,7 +132,7 @@ const skillNames = [...new Set(Object.values(treeByClass).flatMap(tree => Object
 const bonusRows = Object.fromEntries(buffers['db/job_db2.txt'].toString('utf8').split(/\r?\n/).map(line => line.split('//')[0].trim()).filter(Boolean).map(line => { const [job, ...bonuses] = line.split(',').map(Number); return [job, bonuses]; }));
 const statKeys = ['str', 'agi', 'vit', 'int', 'dex', 'luk'];
 const jobIds = { Novice: 0, Swordsman: 1, Magician: 2, Archer: 3, Acolyte: 4, Merchant: 5, Thief: 6, Knight: 7, Priest: 8, Wizard: 9, Blacksmith: 10, Hunter: 11, Assassin: 12, Crusader: 14, Monk: 15, Sage: 16, Rogue: 17, Alchemist: 18, Bard: 19, Dancer: 20, Novice_High: 4001, Swordsman_High: 4002, Magician_High: 4003, Archer_High: 4004, Acolyte_High: 4005, Merchant_High: 4006, Thief_High: 4007, Lord_Knight: 4008, High_Priest: 4009, High_Wizard: 4010, Whitesmith: 4011, Sniper: 4012, Assassin_Cross: 4013, Paladin: 4015, Champion: 4016, Professor: 4017, Stalker: 4018, Creator: 4019, Clown: 4020, Gypsy: 4021 };
-const motionKeys = { Fist: 'fist', Dagger: 'dagger', Sword: 'sword', TwoHandSword: 'twoHandSword', Spear: 'spear', TwoHandSpear: 'twoHandSpear', Axe: 'axe', TwoHandAxe: 'twoHandAxe', Mace: 'mace', TwoHandMace: 'twoHandMace', Rod: 'staff', TwoHandRod: 'twoHandStaff', Bow: 'bow', Knuckle: 'knuckle', Instrumen: 'instrument', Whip: 'whip', Book: 'book', Katar: 'katar' };
+const motionKeys = { Fist: 'fist', Dagger: 'dagger', Sword: 'sword', TwoHandSword: 'twoHandSword', Spear: 'spear', TwoHandSpear: 'twoHandSpear', Axe: 'axe', TwoHandAxe: 'twoHandAxe', Mace: 'mace', TwoHandMace: 'twoHandMace', Rod: 'staff', TwoHandRod: 'twoHandStaff', Bow: 'bow', Knuckle: 'knuckle', Instrument: 'instrument', Whip: 'whip', Book: 'book', Katar: 'katar' };
 const parameterGroups = parsed['unit_parameters_db.conf'];
 function resolveParameterGroup(name, trail = []) {
     if (trail.includes(name)) throw new Error(`Unit parameter inheritance cycle: ${[...trail, name].join(' -> ')}`);
@@ -174,7 +174,7 @@ for (const rule of rules.classes) {
     const bonus = Object.fromEntries(statKeys.map(k => [k, 0]));
     const jobBonuses = Array.from({ length: jobCap }, (_, index) => { const stat = statKeys[(bonusRows[jobIds[source]]?.[index] ?? 0) - 1]; if (stat) bonus[stat]++; return { ...bonus }; });
     const attackMotion = Object.fromEntries(Object.entries(job.BaseASPD ?? {}).map(([k, v]) => [motionKeys[k] ?? k, v]));
-    const weaponAspd = { ...Object.fromEntries(Object.entries(attackMotion).filter(([k]) => ['dagger', 'sword', 'spear', 'axe', 'mace', 'staff', 'book', 'bow', 'instrument', 'whip', 'katar'].includes(k))), unarmed: attackMotion.fist ?? 2000 };
+    const weaponAspd = { ...Object.fromEntries(Object.entries(attackMotion).filter(([k]) => ['dagger', 'sword', 'twoHandSword', 'spear', 'twoHandSpear', 'axe', 'twoHandAxe', 'mace', 'twoHandMace', 'staff', 'twoHandStaff', 'book', 'bow', 'instrument', 'whip', 'katar'].includes(k))), unarmed: attackMotion.fist ?? 2000 };
     catalog.classes[rule.id] = { ...rest, skills: Object.keys(treeByClass[rule.id]).map(skillId), jobCap, expGroup: job.JobExpGroup, hp: job.HPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), sp: job.SPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), jobBonuses: Object.fromEntries(statKeys.map(k => [k, jobBonuses.map(row => row[k])])), attackMotion, weaponAspd, minimumAttackMotionMs: 2000 - 10 * maxAspd, baseWeight: (job.Weight ?? 20000) / 10, sprite: { male: actorSprite(spriteJob, rule.gender ?? 'male'), female: actorSprite(spriteJob, rule.gender ?? 'female') } };
     if (mountedSpriteJob) catalog.classes[rule.id].mountedSprite = {
         male: actorSprite(mountedSpriteJob, 'male'), female: actorSprite(mountedSpriteJob, 'female'),
@@ -778,6 +778,15 @@ manifest.sightBlasterSource = {
     contactPolicy: 'one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline',
 };
 catalog.source.hash = sha(JSON.stringify(catalog));
+manifest.weaponCadence = {
+    source: 'src/map/status.c:14166..14177,14300..14308,14983..14988,3763..3779',
+    inheritance: 'Copy final parent BaseASPD, then override own weapon entries; defaults2000',
+    keyMapping: { Instrument: 'instrument', Fist: 'unarmed' },
+    twoHandedKeys: { sword: 'twoHandSword', spear: 'twoHandSpear', axe: 'twoHandAxe', mace: 'twoHandMace', staff: 'twoHandStaff' },
+    unarmed: 'Fist or native2000 default', equippedMissingSubtype: 2000,
+    statsFormula: 'base - trunc(base * (4 * AGI + DEX) / 1000)',
+    shieldPolicy: 'No RENEWAL_ASPD shield surcharge in pre-renewal',
+};
 const text = JSON.stringify(catalog, null, 2) + '\n';
 manifest.catalogSha256 = sha(text);
 manifest.hashConvention = 'Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes.';

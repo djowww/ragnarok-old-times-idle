@@ -33,7 +33,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "f3ee4bfbc796b3f84ab0c99271d08fde5c88fc70842beeadf8b9dded92d0f597"
+    "hash": "f8af093869b9814e00798bc198d70e1319067f75f9da48a1e948b9175199db2f"
   },
   "rates": {
     "baseExp": 4,
@@ -48052,7 +48052,9 @@
         "sword": 700,
         "axe": 800,
         "mace": 700,
+        "twoHandMace": 700,
         "staff": 650,
+        "twoHandStaff": 650,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -48385,7 +48387,9 @@
         "sword": 700,
         "axe": 800,
         "mace": 700,
+        "twoHandMace": 700,
         "staff": 650,
+        "twoHandStaff": 650,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -48965,9 +48969,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 550,
+        "twoHandSword": 600,
         "spear": 650,
+        "twoHandSpear": 700,
         "axe": 700,
+        "twoHandAxe": 750,
         "mace": 650,
+        "twoHandMace": 700,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -49548,9 +49556,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 550,
+        "twoHandSword": 600,
         "spear": 650,
+        "twoHandSpear": 700,
         "axe": 700,
+        "twoHandAxe": 750,
         "mace": 650,
+        "twoHandMace": 700,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -50127,6 +50139,7 @@
       "weaponAspd": {
         "dagger": 600,
         "staff": 700,
+        "twoHandStaff": 700,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -50704,6 +50717,7 @@
       "weaponAspd": {
         "dagger": 600,
         "staff": 700,
+        "twoHandStaff": 700,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -52418,7 +52432,9 @@
       },
       "weaponAspd": {
         "mace": 600,
+        "twoHandMace": 600,
         "staff": 600,
+        "twoHandStaff": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -52997,7 +53013,9 @@
       },
       "weaponAspd": {
         "mace": 600,
+        "twoHandMace": 600,
         "staff": 600,
+        "twoHandStaff": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -53578,7 +53596,9 @@
         "dagger": 600,
         "sword": 700,
         "axe": 700,
+        "twoHandAxe": 750,
         "mace": 700,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -54160,7 +54180,9 @@
         "dagger": 600,
         "sword": 700,
         "axe": 700,
+        "twoHandAxe": 750,
         "mace": 700,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -55901,9 +55923,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 500,
+        "twoHandSword": 550,
         "spear": 600,
+        "twoHandSpear": 600,
         "axe": 700,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 700,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -56638,9 +56664,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 500,
+        "twoHandSword": 550,
         "spear": 600,
+        "twoHandSpear": 600,
         "axe": 700,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 700,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -57254,9 +57284,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 500,
+        "twoHandSword": 550,
         "spear": 600,
+        "twoHandSpear": 600,
         "axe": 700,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -57995,9 +58029,13 @@
       "weaponAspd": {
         "dagger": 500,
         "sword": 500,
+        "twoHandSword": 550,
         "spear": 600,
+        "twoHandSpear": 600,
         "axe": 700,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -58602,6 +58640,7 @@
       "weaponAspd": {
         "dagger": 575,
         "staff": 625,
+        "twoHandStaff": 625,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -59319,6 +59358,7 @@
       "weaponAspd": {
         "dagger": 575,
         "staff": 625,
+        "twoHandStaff": 625,
         "unarmed": 500
       },
       "minimumAttackMotionMs": 100,
@@ -59925,6 +59965,7 @@
         "sword": 575,
         "staff": 625,
         "book": 550,
+        "twoHandStaff": 625,
         "unarmed": 450
       },
       "minimumAttackMotionMs": 100,
@@ -60660,6 +60701,7 @@
         "sword": 575,
         "staff": 625,
         "book": 550,
+        "twoHandStaff": 625,
         "unarmed": 450
       },
       "minimumAttackMotionMs": 100,
@@ -62544,11 +62586,12 @@
         "fist": 400,
         "dagger": 550,
         "bow": 650,
-        "Instrument": 575
+        "instrument": 575
       },
       "weaponAspd": {
         "dagger": 550,
         "bow": 650,
+        "instrument": 575,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -63261,11 +63304,12 @@
         "fist": 400,
         "dagger": 550,
         "bow": 650,
-        "Instrument": 575
+        "instrument": 575
       },
       "weaponAspd": {
         "dagger": 550,
         "bow": 650,
+        "instrument": 575,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -63848,12 +63892,18 @@
         ]
       },
       "attackMotion": {
-        "whip": 575,
-        "Instrument": 2000
+        "fist": 400,
+        "dagger": 550,
+        "bow": 650,
+        "instrument": 2000,
+        "whip": 575
       },
       "weaponAspd": {
+        "dagger": 550,
+        "bow": 650,
+        "instrument": 2000,
         "whip": 575,
-        "unarmed": 2000
+        "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
       "baseWeight": 2700,
@@ -64562,12 +64612,18 @@
         ]
       },
       "attackMotion": {
-        "whip": 575,
-        "Instrument": 2000
+        "fist": 400,
+        "dagger": 550,
+        "bow": 650,
+        "instrument": 2000,
+        "whip": 575
       },
       "weaponAspd": {
+        "dagger": 550,
+        "bow": 650,
+        "instrument": 2000,
         "whip": 575,
-        "unarmed": 2000
+        "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
       "baseWeight": 2700,
@@ -65165,8 +65221,10 @@
       },
       "weaponAspd": {
         "mace": 600,
+        "twoHandMace": 600,
         "staff": 600,
         "book": 600,
+        "twoHandStaff": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -65890,8 +65948,10 @@
       },
       "weaponAspd": {
         "mace": 600,
+        "twoHandMace": 600,
         "staff": 600,
         "book": 600,
+        "twoHandStaff": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -66487,7 +66547,9 @@
       },
       "weaponAspd": {
         "mace": 575,
+        "twoHandMace": 575,
         "staff": 575,
+        "twoHandStaff": 575,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -67208,7 +67270,9 @@
       },
       "weaponAspd": {
         "mace": 575,
+        "twoHandMace": 575,
         "staff": 575,
+        "twoHandStaff": 575,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -67814,7 +67878,9 @@
         "dagger": 600,
         "sword": 650,
         "axe": 650,
+        "twoHandAxe": 650,
         "mace": 675,
+        "twoHandMace": 675,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -68546,7 +68612,9 @@
         "dagger": 600,
         "sword": 650,
         "axe": 650,
+        "twoHandAxe": 650,
         "mace": 675,
+        "twoHandMace": 675,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -69148,7 +69216,9 @@
         "dagger": 550,
         "sword": 575,
         "axe": 675,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -69875,7 +69945,9 @@
         "dagger": 550,
         "sword": 575,
         "axe": 675,
+        "twoHandAxe": 700,
         "mace": 650,
+        "twoHandMace": 650,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,

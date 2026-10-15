@@ -179,7 +179,7 @@ export interface JobClass {
   sprite: Record<"male" | "female", SpriteAsset>;
   mountedSprite?: Record<"male" | "female", SpriteAsset>;
   jobBonuses?: Partial<Record<Stat, number[]>>;
-  weaponAspd?: Partial<Record<WeaponType | "unarmed" | "shield", number>>;
+  weaponAspd?: Partial<Record<WeaponType | "twoHandSword" | "twoHandSpear" | "twoHandAxe" | "twoHandMace" | "twoHandStaff" | "unarmed" | "shield", number>>;
   /** Per-class source pc_max_aspd converted to minimum player amotion in ms. */
   minimumAttackMotionMs?: number;
   baseWeight?: number;

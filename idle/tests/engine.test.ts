@@ -266,6 +266,8 @@ describe('authoritative clock and combat', () => {
   });
   it('uses a distinct transcendental base EXP curve after rebirth', () => {
     const c = fixture(); c.exp.base = [0, ...Array(99).fill(1)]; c.exp.baseTrans = [0, ...Array(99).fill(200)]; c.monsters[1002].hp = 1;
+    // Fixed synthetic Dagger cadence isolates the reborn EXP curve from weapon tables.
+    c.classes.high_novice.weaponAspd = { dagger: 1000 };
     let s = createInitialState(c, 0); s.reborn = true; s.job = 'high_novice'; s = applyCommand(s, c, { type: 'startHunt', areaId: 'prontera' }, 0); s = advanceState(s, c, 5000);
     expect(s.totals.kills).toBe(2); expect(s.baseLevel).toBe(1); expect(s.baseExp).toBe(16);
   });
@@ -295,6 +297,8 @@ describe('authoritative clock and combat', () => {
   });
   it.each([[1,10], [50,12], [99,16]])('preserves attack interval remainder for AGI %i (%i attacks in twenty seconds)', (agi, count) => {
     const c = fixture(); c.monsters[1002].hp = 1000000; c.monsters[1002].attackDelay = 1000000; c.items[1201].effects.crit = 100;
+    // This remainder test deliberately uses a 1 s base Dagger motion across AGI values.
+    c.classes.novice.weaponAspd = { dagger: 1000 };
     let s = createInitialState(c, 0); s.baseLevel = 15; s.stats.agi = agi; s.rotation = [];
     s = applyCommand(s, c, { type: 'challenge', challengeId: 'mastering' }, 0); placeEnemiesInMeleeRange(s);
     const offline = advanceState(s, c, 20000); let segmented = s; for (let t = 1000; t <= 20000; t += 1000) segmented = advanceState(segmented, c, t);

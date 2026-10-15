@@ -9,6 +9,7 @@ import baseline from './fixtures/sense234Baseline.json';
 import magicRodBaseline from './fixtures/magicRodUnsupportedBaseline.json';
 import rogueCopyBaseline from './fixtures/rogueCopyUnsupportedBaseline.json';
 import type { Catalog } from '../shared/types';
+import { beforeHistoricalClassCadence } from './class-cadence-historical';
 
 const typedCatalog = catalog as unknown as Catalog;
 
@@ -105,7 +106,9 @@ describe('source-closed manual Sense catalog', () => {
       elementalOrder: ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'], manualOnly: true });
     expect(catalog.source.commit).toBe(baseline.commit);
     for (const key of ['classes', 'items', 'monsters', 'areas'] as const) {
-      const historical = key === 'items' ? beforeSagePropertyItems(typedCatalog.items) : structuredClone(typedCatalog[key]);
+      const historical = key === 'items' ? beforeSagePropertyItems(typedCatalog.items)
+        : key === 'classes' ? beforeHistoricalClassCadence(typedCatalog.classes)
+          : structuredClone(typedCatalog[key]);
       if (key === 'classes') for (const id of ['sage', 'professor', 'priest', 'high_priest']) {
         const rows = historical as Catalog['classes'];
         rows[id].weapons = rows[id].weapons.filter(weapon => weapon !== 'book');
