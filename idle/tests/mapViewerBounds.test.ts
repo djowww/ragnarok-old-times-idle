@@ -17,7 +17,7 @@ function addedFileSource(path: string): string {
 
 function bridge(width: number, height: number) {
   const outgoing: any[] = [];
-  const gl: any = new Proxy({ isContextLost: () => false }, {
+  const gl: any = new Proxy({ canvas: { addEventListener: () => {}, removeEventListener: () => {} }, isContextLost: () => false }, {
     get: (target, key) => key in target ? target[key as keyof typeof target] : (() => undefined),
   });
   const source = addedFileSource('src/Renderer/IdleActors.js');

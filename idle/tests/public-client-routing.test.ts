@@ -1,7 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import OriginalMap from '../web/components/OriginalMap';
+afterEach(() => vi.unstubAllGlobals());
 import { getClassicClientPaths } from '../web/public-client-routing.js';
 
 describe('classic client routing', () => {
@@ -44,14 +48,34 @@ describe('classic client routing', () => {
   it('loads the map viewer assets from the public same-origin route', async () => {
     const htmlPath = fileURLToPath(new URL('../../docker/web-client/map-idle.html', import.meta.url));
     const html = await readFile(htmlPath, 'utf8');
-    expect(html).toContain("import('./MapViewer.js?v=20261015-dungeons31')");
-    expect(html).not.toContain('20261012-cloudsync');
+    const imports: string[] = [];
+    const moduleScript = html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1];
+    expect(moduleScript).toBeTruthy();
+    // Execute the loader; substitute only the external dynamic-import boundary.
+    vm.runInNewContext(moduleScript!.replace(/\bimport\(/, 'loadModule('), {
+      loadModule: (specifier: string) => { imports.push(specifier); return Promise.resolve({}); },
+    });
+    expect(imports).toEqual(['./MapViewer.js?v=20261015-render-cadence']);
     const inlineScript = html.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];
     expect(inlineScript).toBeTruthy();
     const window = {} as { ROConfig?: { remoteClient: string } };
     const location = { hostname: 'play.example.test' };
     vm.runInNewContext(inlineScript!, { window, location });
     expect(window.ROConfig?.remoteClient).toBe('/assets/');
+  });
+
+  it('invalidates the iframe document cache while preserving map and field origin', () => {
+    vi.stubGlobal('window', { location: { hostname: 'play.example.test', protocol: 'https:', origin: 'https://play.example.test' } });
+    const markup = renderToStaticMarkup(createElement(OriginalMap, { map: 'prt_fild08', fieldOrigin: { x: 12, y: 34 } }));
+    const src = markup.match(/<iframe[^>]*src="([^"]+)"/)?.[1].replaceAll('&amp;', '&');
+    expect(src).toBeDefined();
+    const url = new URL(src!, 'https://play.example.test');
+    expect(url.pathname).toBe('/ro/map-idle.html');
+    expect(url.searchParams.get('v')).toBe('20261015-render-cadence');
+    expect(url.searchParams.get('attempt')).toBe('0');
+    expect(url.searchParams.get('originX')).toBe('12');
+    expect(url.searchParams.get('originY')).toBe('34');
+    expect(url.hash).toBe('#prt_fild08.rsw');
   });
 
   it('allows same-origin public map messages while keeping local origins supported', async () => {

@@ -332,7 +332,7 @@ new file mode 100644
 index 0000000..02a18d9
 --- /dev/null
 +++ b/src/Renderer/IdleActors.js
-@@ -0,0 +1,356 @@
+@@ -0,0 +1,396 @@
 +/** RagIDLE presentation bridge. Simulation and animation poses stay in the parent. */
 +import SpriteRenderer from 'Renderer/SpriteRenderer.js';
 +import Ground from 'Renderer/Map/Ground.js';
@@ -356,11 +356,36 @@ index 0000000..02a18d9
 +let ownedActors = [];
 +let acknowledgedPoses = '';
 +let stateAt = -Infinity;
++let lastRenderAt = -Infinity;
 +let lastAck = -Infinity;
 +let evicted = [];
 +let shadowProgram = null;
 +let shadowBuffer = null;
 +let failed = false;
++let monitor = null;
++
++function stopMonitoring() {
++  const previous = monitor;
++  monitor = null;
++  if (!previous) return;
++  previous.gl.canvas.removeEventListener('webglcontextlost', previous.onLost);
++}
++
++function monitorContext(gl) {
++  if (monitor) return;
++  const current = { gl, onLost: null };
++  current.onLost = () => { if (monitor === current && !failed) disable(gl); };
++  monitor = current;
++  gl.canvas.addEventListener('webglcontextlost', current.onLost);
++}
++
++function requireContext(gl) {
++  if (gl.isContextLost()) throw new Error('Idle sprite context lost');
++}
++
++function validateDraw(gl) {
++  requireContext(gl);
++}
 +
 +const finite = (value, max = 8192) => typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= max;
 +const vector = (value, size, max = 8192) => Array.isArray(value) && value.length === size && value.every(v => finite(v, max));
@@ -377,6 +402,7 @@ index 0000000..02a18d9
 +}
 +
 +function clear(gl) {
++  stopMonitoring();
 +  for (const frame of textures.values()) {
 +    try { gl.deleteTexture(frame.texture); } catch { /* Cache ownership must still be released. */ }
 +  }
@@ -389,7 +415,7 @@ index 0000000..02a18d9
 +  acknowledgedPoses = '';
 +  ownedActors = [];
 +  sequence = -1;
-+  stateAt = lastAck = -Infinity;
++  stateAt = lastRenderAt = lastAck = -Infinity;
 +  evicted = [];
 +  if (shadowProgram) { try { gl.deleteProgram(shadowProgram); } catch { /* Lost context. */ } }
 +  if (shadowBuffer) { try { gl.deleteBuffer(shadowBuffer); } catch { /* Lost context. */ } }
@@ -426,11 +452,13 @@ index 0000000..02a18d9
 +  if (!gl || !data || typeof data !== 'object' || data.map !== mapName ||
 +    typeof data.session !== 'string' || !/^[a-f\d-]{36}$/i.test(data.session)) return false;
 +  if (data.type === 'ragidle-map-actors-init') {
-+    if (session !== data.session) { clear(gl); failed = false; }
++    if (session !== data.session || (monitor && monitor.gl !== gl)) { clear(monitor?.gl || gl); failed = false; }
 +    session = data.session;
 +    origin = parentOrigin;
 +    map = mapName;
 +    if (failed) { notify('ragidle-map-actors-error'); return true; }
++    requireContext(gl);
++    monitorContext(gl);
 +    notify('ragidle-map-actors-ready', { version: 2 });
 +    return true;
 +  }
@@ -440,6 +468,7 @@ index 0000000..02a18d9
 +    return true;
 +  }
 +  if (failed) return true;
++  requireContext(gl);
 +  if (data.type === 'ragidle-map-actor-frames') {
 +    if (!Array.isArray(data.frames) || data.frames.length > MAX_TEXTURES) return true;
 +    let packetBytes = 0;
@@ -450,6 +479,7 @@ index 0000000..02a18d9
 +      ...[...completeLayers.values()].flatMap(layers => layers.map(layer => layer.frame))
 +    ]);
 +    try { for (const frame of data.frames) {
++      requireContext(gl);
 +      if (!frame || typeof frame.id !== 'string' || !/^f\d{1,12}$/.test(frame.id) ||
 +        !Number.isInteger(frame.width) || !Number.isInteger(frame.height) ||
 +        frame.width < 1 || frame.height < 1 || frame.width > 1024 || frame.height > 1024 ||
@@ -491,8 +521,11 @@ index 0000000..02a18d9
 +      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 +      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 +      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-+      if (gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite upload failed');
-+    } } finally {
++      requireContext(gl);
++    }
++      // Keep the packet only while the context remains active.
++      requireContext(gl);
++    } finally {
 +      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 +      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiply);
 +    }
@@ -626,11 +659,17 @@ index 0000000..02a18d9
 +}
 +
 +function renderPass(tick, gl, modelView, projection, fog) {
-+  if (failed || !session || gl.isContextLost()) return;
-+  if (!actors.length || performance.now() - stateAt > 350) {
++  if (failed || !session) return;
++  requireContext(gl);
++  const now = performance.now();
++  const renderGap = Number.isFinite(lastRenderAt) ? Math.max(0, now - lastRenderAt) : 0;
++  lastRenderAt = now;
++  const freshnessLimit = Math.min(1250, Math.max(350, renderGap * 1.5));
++  if (!actors.length || now - stateAt > freshnessLimit) {
 +    // Release ownership before dropping the draw, so the parent restores its fallback.
 +    completeLayers.clear();
 +    completePoseTokens.clear();
++    validateDraw(gl);
 +    acknowledge(tick, []);
 +    return;
 +  }
@@ -678,8 +717,9 @@ index 0000000..02a18d9
 +    }
 +  });
 +  SpriteRenderer.unbind(gl);
-+  // Failed/context-lost draws must keep the parent canvas fallback visible.
-+  if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite draw failed');
++  // ACKs track submitted ownership/poses, not physical GPU pixel completion.
++  // Check first ownership immediately and never renew an expired validation.
++  validateDraw(gl);
 +  acknowledge(tick, drawn, missing, poses);
 +}
 +
@@ -689,6 +729,7 @@ index 0000000..02a18d9
 +}
 +
 +export default { receive, render, release, isMapWorldInBounds };
+
 diff --git a/src/Renderer/MapRenderer.js b/src/Renderer/MapRenderer.js
 index be5fd21..d1f1b99 100644
 --- a/src/Renderer/MapRenderer.js
