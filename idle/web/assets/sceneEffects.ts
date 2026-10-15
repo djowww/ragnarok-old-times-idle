@@ -603,6 +603,8 @@ function drawSoulStrike(ctx: CanvasRenderingContext2D, assets: SceneEffects | nu
 /** Draws original 2D art where supported. Heal and Jupitel reuse original
  * textures in a flat approximation; STR/3D choreography is not reproduced. */
 export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffects | null, cue: SkillFlash): void {
+  // These native effects are the Falcon actor and a WAV, never a generic spell ellipse.
+  if (['HT_BLITZBEAT','SN_FALCONASSAULT','HT_DETECTING'].includes(cue.sourceName ?? '')) return;
   const { skillId, name, x, y, elapsedMs, reducedMotion = false } = cue;
   const castMs = cue.castMs ?? SKILL_CAST_MS;
   const effectDuration = Math.max(SKILL_EFFECT_MS, castMs + 900);

@@ -1,3 +1,6 @@
+import {falconSounds} from '../assets/falconSounds';
+import {falconAsset,FalconPresentation,alignFalconCues,falconDestinationWorld,falconAirborneWorld} from '../assets/falconPresentation';
+import {isFalconEquipped} from '../../engine/falcon';
 import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
 import { isSoloPotionPitcher, skillCueCastDuration, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
@@ -466,6 +469,8 @@ function advanceRoaming(motion: RoamingMotion, route: readonly NormalizedPoint[]
   motion.walking = true;
 }
 type CombatCue = {
+  triggerActionId?: string;
+  falconFlight?: boolean;
   id: number;
   start: number;
   duration: number;
@@ -641,7 +646,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const actorsRef = useRef<{
     hero: DecodedActor | null;
     enemy: DecodedActor | null;
-  }>({ hero: null, enemy: null });
+    falcon: DecodedActor | null;
+  }>({ hero: null, enemy: null, falcon: null });
+  const falconMotion = useRef(new FalconPresentation());
   const enemyActors = useRef(new Map<number, DecodedActor>());
   const groupHistory = useRef(new Map<string, { enemy: BattleEnemy; hero?: NormalizedPoint; deadServerAt?: number; ground?: GroundPosition; presentationCueId?: number } & CorpsePresentation>());
   const textureStartup = useRef(new ActionTextureStartup());
@@ -687,6 +694,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     state.appearance,
     { job: state.job, gender: state.gender },
   );
+  const falconEquipped = isFalconEquipped(state,catalog);
+  const falcon = useActor(falconEquipped ? falconAsset(state.job) : undefined);
   const enemy = useActor(monster?.sprite);
   const enemyAssetIds = [...new Set([...sceneEnemies(state).map((entry) => entry.monsterId),
     ...state.events.filter(event => event.kind === "kill" && event.monsterId &&
@@ -793,6 +802,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     deathCanvas?: boolean;
   } | null>(null);
   const shiftPresentationAssociates = (moved: Map<number, number>) => {
+    for (const [id,delta] of alignFalconCues(combatCues.current)) moved.set(id,(moved.get(id)??0)+delta);
     for (const popup of effects.current) popup.start += moved.get(popup.id) ?? 0;
     for (const entry of groupHistory.current.values()) {
       const delta = entry.presentationCueId === undefined ? 0 : moved.get(entry.presentationCueId) ?? 0;
@@ -925,7 +935,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         ? Math.max(effectStart, start + (actorAction === 'attack' ? motionMs : actionDuration * 0.5)) : effectStart;
       const reactionDuration = Math.max(0, event.hitMotionMs ?? (targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320));
       return {
-        id: event.id, start, effectStart, impact, actionDuration, motionMs, reactionDuration,
+        id: event.id, triggerActionId:event.triggerActionId,
+        falconFlight:event.kind==='falcon-flight'||event.kind==='skill'&&skill?.sourceName==='HT_DETECTING',
+        start, effectStart, impact, actionDuration, motionMs, reactionDuration,
         targetHpBefore: event.targetHpBefore, amount: event.kind === 'damage' ? event.amount : undefined,
         sourcePosition: event.actionSourcePosition, movementDestination: event.movementDestination,
         actionFacing: event.actionFacing, actionAreaId: event.areaId,
@@ -954,9 +966,10 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         legacyOpponentPosition.current = null;
       }
       if (state.status === "resting" && previous.status !== "resting") {
-        combatCues.current = [];
+        combatCues.current = combatCues.current.filter(cue => cue.actorAction === 'none' &&
+          ['HT_BLITZBEAT','SN_FALCONASSAULT','HT_DETECTING'].includes(cue.skill?.sourceName ?? ''));
         actionWatermarks.current.clear();
-        effects.current = [];
+        effects.current = effects.current.filter(popup => combatCues.current.some(cue=>cue.id===popup.id));
       }
       const living = sceneEnemies(state);
       const alive = new Set(living.map((entry) => entry.id));
@@ -1037,9 +1050,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           if (!lootVisuals.current.has(event.itemId))
             void loadGroundLoot(catalog.items[event.itemId]).then((visual) => lootVisuals.current.set(event.itemId!, visual));
         }
-        if (state.status === "resting") continue;
+        if (state.status === 'resting' && !['HT_BLITZBEAT','SN_FALCONASSAULT','HT_DETECTING'].includes(skill?.sourceName ?? '')) continue;
         let eventCue: CombatCue | undefined;
-        if (hasSceneAction(event.kind, !!skill) || isNpcStatusAction(event, state.id)) {
+        if (hasSceneAction(event.kind, !!skill) || event.kind === 'falcon-flight' || isNpcStatusAction(event, state.id)) {
           const completedCast = skill ? state.events.slice().reverse().find((entry) => entry.kind === "cast" &&
             entry.skillId === skill.id && entry.at + (entry.castMs ?? 0) === event.at) : undefined;
           const groundSource = trapCueAction(event.kind) !== undefined ? event.enemyPosition : skill?.targetType === "ground" ? (
@@ -1075,6 +1088,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         if (popup) popup.start = cue.impact;
       }
       combatCues.current.push(...batchCues);
+      shiftPresentationAssociates(new Map());
       holdHeroStrike();
       for (const event of newEvents.filter(entry => entry.kind === "kill" && entry.enemyId)) {
         const entry = groupHistory.current.get(event.enemyId!);
@@ -1208,7 +1222,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   }, [snapshot, state.events, catalog]);
   useEffect(() => () => { opponentRequest.current++; }, []);
   useEffect(() => {
-    actorsRef.current = { hero: hero.actor, enemy: enemy.actor };
+    actorsRef.current = { hero: hero.actor, enemy: enemy.actor, falcon: falcon.actor };
     if (hero.actor && !hero.actor.fallback) {
       const actions = presentedActorActions(combatCues.current, state.id);
       for (const cue of actions) shiftPresentationAssociates(reconcileActorPlayback(combatCues.current, actionWatermarks.current, cue,
@@ -1221,7 +1235,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         monsterId: state.battle.monsterId,
         areaId: state.areaId,
       };
-  }, [hero.actor, enemy.actor, state.battle, state.areaId]);
+  }, [hero.actor, enemy.actor, falcon.actor, state.battle, state.areaId]);
+  useEffect(() => {falconMotion.current.reset();},[state.id,mapName,falconEquipped]);
   useEffect(() => {
     const element = canvas.current;
     if (!element) return;
@@ -1759,6 +1774,27 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (fieldClock.current && fieldClock.current.textContent !== fieldTime) fieldClock.current.textContent = fieldTime;
       for (const actorPaint of actorPaints) if (actorPaint.id === current.id)
         actorPaint.opacity = classicBuffActive(current, catalog, 'ST_CHASEWALK', serverNow) ? .45 : 1;
+      const falconActor=actorsRef.current.falcon;
+      if(!isArriving&&camera&&heroPlacement&&falconActor&&!falconActor.fallback&&
+        isFalconEquipped(current,catalog)&&current.hp>0){
+        const flightCues=combatCues.current.filter(cue=>cue.falconFlight&&cue.movementDestination&&
+          cue.effectStart+2000>=time).map(cue=>({id:cue.actionId,at:cue.effectStart,
+            destination:cue.targetActorId===current.id&&!fieldPopulation?heroPlacement.world:
+              falconDestinationWorld(camera,cue.movementDestination!,battleScenePoint(cue.movementDestination!,formationAnchor),formationAnchor,mapOrigin,!!fieldPopulation)}));
+        for(const cue of combatCues.current)if(cue.falconFlight&&cue.effectStart<=time&&time-cue.effectStart<=2000)
+          void falconSounds.play(cue.actionId,cue.skill?.sourceName??'').catch(()=>{});
+        const pose=falconMotion.current.frame(heroPlacement.world,time,current.fieldHero?.movementSpeedMs ?? 150,flightCues);
+        const world=falconAirborneWorld(camera,pose.world);
+        const placed=projectMapPoint(camera,world,width,height);
+        const destination=projectMapPoint(camera,[pose.destination[0],world[1],pose.destination[2]],width,height);
+        const direction=walkDirection(placed,destination);
+        paint(`falcon-${current.id}`,falconActor,pose.action,placed.x,placed.y,placed.scale,direction,
+          pose.action===8?pose.elapsed*150/pose.speed:pose.elapsed,undefined,world,true);
+        canvas.current!.dataset.falconAction=String(pose.action);
+        canvas.current!.dataset.falconWorld=JSON.stringify(world);
+      }else{
+        delete canvas.current!.dataset.falconAction;delete canvas.current!.dataset.falconWorld;
+      }
       const orderedActors = actorPaints.sort((a, b) => a.ground - b.ground);
       const nativeIds = camera ? nativeActors.current?.submit(orderedActors.filter(actorPaint => !actorPaint.canvasOnly).map(actorPaint => {
         const bounds = actorBounds(actorPaint.actor, actorPaint.direction, false);

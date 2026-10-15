@@ -1,3 +1,4 @@
+import {beforeFalconCatalog} from './falcon-historical';
 import {describe,it,expect} from 'vitest';
 import raw from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
@@ -13,7 +14,7 @@ describe('pinned bounded NPC production and treatment export',()=>{
   });
   it('promotes only the three completed consumers and preserves future foundation requirements',()=>{
     for(const id of ['al_cure','tf_detoxify','pr_slowpoison'])expect(c.skills[id].implementation).toBe('supported');
-    expect(c.skills.ht_detecting.implementation).toBe('unsupported');
+    expect(beforeFalconCatalog(c).skills.ht_detecting.implementation).toBe('unsupported');
     expect(c.skills.al_cure.spCost).toEqual([15]);expect(c.skills.tf_detoxify.spCost).toEqual([10]);expect(c.skills.pr_slowpoison.spCost).toEqual([6,8,10,12]);
     expect(c.skills.al_cure.prerequisitesByClass?.crusader).toContainEqual({skillId:'cr_trust',level:5});expect(c.skills.al_cure.prerequisitesByClass?.priest).toContainEqual({skillId:'heal',level:2});
   });

@@ -82,13 +82,33 @@ for (const [name, value] of Object.entries(jobs))
 const skillByName = Object.fromEntries(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));
 // Source formulas and job bonuses are pinned alongside the databases. They are
 // audited data; the exporter never evaluates Hercules C or item scripts.
-for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf']) {
+for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf', 'npc/merchants/renters.txt', 'src/map/map.h', 'conf/map/battle/player.conf', 'conf/map/battle/skill.conf', 'conf/map/battle/battle.conf']) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
     const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
     if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
     buffers[path] = buffer;
     manifest.sources.push({ path, url, sha256: sha(buffer) });
 }
+const falconRental=buffers['npc/merchants/renters.txt'].toString('utf8');
+for(const fragment of ['Falcon Breeder','Job_Hunter','HT_FALCON','2500'])
+    if(!falconRental.includes(fragment)) throw new Error('Pinned Falcon breeder changed: '+fragment);
+for(const [path,pattern] of [
+    ['conf/map/battle/player.conf',/fix_warp_hit_delay_abuse:\s*false/],
+    ['conf/map/battle/skill.conf',/skill_min_damage:\s*6(?:\s|$)/],
+    ['conf/map/battle/battle.conf',/delay_battle_damage:\s*true/],
+    ['conf/map/battle/battle.conf',/snap_dodge:\s*false/],
+]) if(!pattern.test(buffers[path].toString('utf8'))) throw new Error('Pinned Falcon configuration changed: '+path);
+manifest.falconRules={
+    source:'npc/merchants/renters.txt:166..241; skill.c:1628..1641,12453..12461; battle.c:264..355,4411..4434,4649..4702',
+    rentalZeny:2500,rentalDiscount:false,autoChance:'raw1000 <= effectiveLUK * 3',
+    autoLevel:'min(learnedBlitz, 5, floor(JobLevel/10)+1)',delayBattleDamage:true,
+    snapDodge:false,warpDelayFix:false,minimumDamageMask:6,
+    autoSplit:'truncate the source parcel by all living splash entities before multiplying source hits',
+    damageSnapshot:'final Neutral miscellaneous damage at launch; element, Lex then positive hit minimum; HP at amotion deadline',
+    requiredState:'equipped Falcon at cast begin; an already started legal cast survives dismissal',
+    detectSelfCentered:true,detectArea:'7x7 source square; one instant reveal, no aura',
+    detectStatuses:['SC_HIDING','SC_CLOAKING','SC_CLOAKINGEXCEED','SC_CAMOUFLAGE','SC_NEWMOON'],
+};
 const converterRecipes=buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/).filter(line=>/^1211[4-7],/.test(line)).map(line=>{
  const [outputItemId,itemLevel,skillId,skillLevel,...material]=line.split(',').map(Number);
  const ingredients=[];for(let n=0;n<material.length;n+=2)ingredients.push({itemId:material[n],quantity:material[n+1]});
@@ -318,6 +338,7 @@ activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
+activeSpecial.add('HT_DETECTING');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
@@ -450,6 +471,7 @@ for (const name of skillNames) {
         ...(['PA_SACRIFICE', 'WS_MELTDOWN', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
+        ...(name === 'HT_DETECTING' && { manualUse: 'activate' }),
         ...(backslidingSupported && { manualUse: 'activate' }),
         ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),

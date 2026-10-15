@@ -1,3 +1,4 @@
+import {alignFalconCues} from '../web/assets/falconPresentation';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
@@ -82,7 +83,7 @@ function fixture(action: 'attack' | 'skill' = 'attack', brandish = false) {
   const groupHistory = {current:new Map([['mob',{presentationCueId:1,deadAt:1300,until:3300}],['dot-mob',{presentationCueId:99,deadAt:1320,until:3320}]])};
   const defeatedOpponent = {current:{presentationCueId:1,deadAt:1300,until:3300}};
   const lootCues = {current:[{presentationCueId:1,start:1300,until:6300},{presentationCueId:99,start:1320,until:6320}]};
-  const shiftPresentationAssociates = associates({effects,groupHistory,defeatedOpponent,lootCues,shiftCorpsePresentation});
+  const shiftPresentationAssociates = associates({effects,groupHistory,defeatedOpponent,lootCues,shiftCorpsePresentation,alignFalconCues,combatCues});
   const tick = (at:number,release=false, clean=false) => {
     now=at;
     // Native iframe continues rendering/ACKing every50ms even through a parent RAF gap.

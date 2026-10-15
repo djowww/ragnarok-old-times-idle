@@ -554,6 +554,8 @@ export interface RewardSummary {
   jobLevels: number;
 }
 export interface GameEvent {
+  /** Secondary Falcon effect follows this swing in presentation only. */
+  triggerActionId?: string;
   statusName?: string;
   id: number;
   at: number;
@@ -644,7 +646,23 @@ export interface ElementalField {
   durationMs: number;
   occupants: Record<string, ElementalFieldEntry>;
 }
+export interface FalconStrike {
+  triggerActionId?: string;
+  id: string;
+  sourceActorId: string;
+  sceneKey: string;
+  areaId?: string;
+  skillId: string;
+  level: number;
+  automatic: boolean;
+  launchedAt: number;
+  impactAt: number;
+  sourcePosition: { x: number; y: number };
+  targets: { enemyId: string; monsterId: number; damage: number; maxDistance: number; hitMotionMs: number }[];
+}
 export interface GameState {
+  /** Final Falcon damage waits for native amotion independently of the current battle. */
+  falconStrikes?: FalconStrike[];
   /** Fixed source footprints of successful casts; separate from damage/status adaptations. */
   groundPlacements?: GroundPlacement[];
   /** Source NoSave owned field; lives across battle replacement only in this session. */
@@ -660,6 +678,8 @@ export interface GameState {
   job: string;
   /** Peco option; missing on legacy profiles means dismounted. */
   mounted?: boolean;
+  /** Native OPTION_FALCON, independent from learned Falconry; absent legacy flag means false. */
+  falconEquipped?: boolean;
   family: string | null;
   branch: string | null;
   reborn: boolean;
@@ -861,6 +881,7 @@ export type GameCommand =
   | { type: "toggleBuff"; skillId: string }
   | { type: "useSkill"; skillId: string; expectedCastActionId?: string; expectedEnemyId?: string }
   | { type: "setMount"; mounted: boolean }
+  | { type: "rentFalcon" | "dismissFalcon" }
   | { type: "buy"; itemId: number; quantity: number }
   | { type: "craftConverter"; itemId: number; quantity: number }
   | { type: "craftPharmacy"; itemId: number; quantity: number }

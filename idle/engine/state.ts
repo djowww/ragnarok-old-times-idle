@@ -12,7 +12,7 @@ export function random(s: GameState): number {
   s.rngState = (Math.imul(s.rngState, 1664525) + 1013904223) >>> 0;
   return s.rngState / 4294967296;
 }
-export function event(s: GameState, at: number, kind: string, text: string, amount?: number, target?: GameEvent['target'], metadata?: Partial<Pick<GameEvent, 'statusName' | 'resource' | 'skillId' | 'critical' | 'itemId' | 'quantity' | 'attempts' | 'failures' | 'skillLevel' | 'enemyId' | 'enemyPosition' | 'areaId' | 'monsterId' | 'castMs' | 'hitCount' | 'sourceActorId' | 'targetActorId' | 'actionId' | 'actorAction' | 'actionStartedAt' | 'actionMotionMs' | 'hitMotionMs' | 'targetHpBefore' | 'actionSourcePosition' | 'movementDestination' | 'actionFacing'>>) {
+export function event(s: GameState, at: number, kind: string, text: string, amount?: number, target?: GameEvent['target'], metadata?: Partial<Pick<GameEvent, 'statusName' | 'resource' | 'skillId' | 'critical' | 'itemId' | 'quantity' | 'attempts' | 'failures' | 'skillLevel' | 'enemyId' | 'enemyPosition' | 'areaId' | 'monsterId' | 'castMs' | 'hitCount' | 'triggerActionId' | 'sourceActorId' | 'targetActorId' | 'actionId' | 'actorAction' | 'actionStartedAt' | 'actionMotionMs' | 'hitMotionMs' | 'targetHpBefore' | 'actionSourcePosition' | 'movementDestination' | 'actionFacing'>>) {
   s.events.push({ id: s.nextEventId++, at, kind, text, ...(amount === undefined ? {} : { amount }), ...(target ? { target } : {}), ...metadata });
   if (s.events.length > 60) s.events.splice(0, s.events.length - 60);
 }

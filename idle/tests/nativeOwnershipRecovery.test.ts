@@ -1,3 +1,4 @@
+import {alignFalconCues} from '../web/assets/falconPresentation';
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
@@ -104,7 +105,7 @@ describe('native action ownership recovery through Scene and NativeActorsBridge'
     const shiftAssociates = new Function('scope', `with (scope) { ${ts.transpileModule(
       scene.slice(scene.indexOf('  const shiftPresentationAssociates ='), scene.indexOf('\n  useEffect', scene.indexOf('  const shiftPresentationAssociates ='))),
       { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText}; return shiftPresentationAssociates; }`)({
-        effects, groupHistory, defeatedOpponent, lootCues, shiftCorpsePresentation,
+        effects, groupHistory, defeatedOpponent, lootCues, shiftCorpsePresentation, alignFalconCues, combatCues:{current:cues},
       });
     const tick = (time: number) => {
       fixture.setNow(time);
@@ -157,7 +158,7 @@ describe('native action ownership recovery through Scene and NativeActorsBridge'
     const shiftAssociates = new Function('scope', `with (scope) { ${ts.transpileModule(
       scene.slice(scene.indexOf('  const shiftPresentationAssociates ='), scene.indexOf('\n  useEffect', scene.indexOf('  const shiftPresentationAssociates ='))),
       { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText}; return shiftPresentationAssociates; }`)({
-        effects, groupHistory, defeatedOpponent, lootCues, shiftCorpsePresentation,
+        effects, groupHistory, defeatedOpponent, lootCues, shiftCorpsePresentation, alignFalconCues, combatCues:{current:cues},
       });
     const tick = (time: number) => {
       fixture.setNow(time);

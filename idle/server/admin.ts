@@ -1,3 +1,4 @@
+import {reconcileFalcon} from '../engine/falcon.js';
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { Catalog, GameState, Item } from '../shared/types.js';
@@ -171,6 +172,7 @@ function setClass(state: GameState, catalog: Catalog, classId: string, at: numbe
     state.branch = null;
   }
   removeIneligible(state, catalog);
+  reconcileFalcon(state,catalog);
   state.buffs = {};
   state.combatEffects = {};
   state.recovery = { hpMs: 0, spMs: 0, skillMs: 0 };

@@ -27,6 +27,8 @@ The hosted test opens in your browser; players do not need Docker or a local ser
 - Automatic skill priorities, casting, range and cooldowns resolved by the server.
 - A classic-inspired movable HUD, inventory, combat diary and chat; shops, refining and styling in Prontera.
 
+See the [Falcon companion guide](docs/FALCON.md) for rental, automatic attacks and Detect (Portuguese).
+
 ## Project status
 
 This is an independent fan project under active development.
@@ -36,7 +38,7 @@ This is an independent fan project under active development.
 | Hunting areas | 31 |
 | Classes in the progression trees | 40 |
 | Skills imported from Hercules | 348 |
-| Implemented skills | 265 |
+| Implemented skills | 266 |
 
 Unavailable mechanics are identified in the game. Idle progression adapts some rules and rewards; full reproduction of every original system and effect is still in progress. See the [catalog](idle/content/) and [source manifest](idle/content/source-manifest.json).
 

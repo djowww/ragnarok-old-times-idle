@@ -1,8 +1,20 @@
+import {falconSounds} from '../assets/falconSounds';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bgmForMap } from "./mapBgm";
 
 export default function AudioToggle({ map }: { map: string }) {
   const track = bgmForMap(map);
+  const [effectsEnabled,setEffectsEnabled]=useState(false);
+  const [effectsError,setEffectsError]=useState(false);
+  const effectsWanted=useRef(false);
+  useEffect(()=>()=>{effectsWanted.current=false;void falconSounds.enable(false);},[]);
+  const toggleEffects=()=>{
+    effectsWanted.current=!effectsWanted.current;const wanted=effectsWanted.current;
+    setEffectsEnabled(wanted);setEffectsError(false);
+    void falconSounds.enable(wanted).then(enabled=>{
+      if(effectsWanted.current===wanted){setEffectsEnabled(enabled);setEffectsError(wanted&&!enabled);}
+    });
+  };
   const audio = useRef<HTMLAudioElement | null>(null);
   const wanted = useRef(false);
   const attempt = useRef(0);
@@ -110,6 +122,11 @@ export default function AudioToggle({ map }: { map: string }) {
       >
         {loading ? "Carregando…" : playing ? "Música ligada" : "Música"}
       </button>
+      <button className="audio-toggle" type="button" aria-pressed={effectsEnabled}
+        onClick={toggleEffects} title={effectsEnabled?'Desligar efeitos sonoros':'Ligar efeitos sonoros'}>
+        {effectsEnabled?'Efeitos ligados':'Efeitos'}
+      </button>
+      {effectsError&&<span className="audio-error" role="status">Não foi possível ativar o áudio.</span>}
       {error && (
         <span className="audio-error" role="status">
           A música está indisponível. Toque em Música para tentar novamente.

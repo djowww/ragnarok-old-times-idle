@@ -211,6 +211,31 @@
       "path": "conf/map/battle/drops.conf",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/drops.conf",
       "sha256": "066c126f61c231eafc438b18c1e9c8a396f8c98d68e24a0005e691461453fe1d"
+    },
+    {
+      "path": "npc/merchants/renters.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/renters.txt",
+      "sha256": "2267b5000b06059c32f054e97ce8d3c714b31628706f5217b5d46cec7a78ad49"
+    },
+    {
+      "path": "src/map/map.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/map.h",
+      "sha256": "8630c59ed86d3101261f5b8a30fd93956364a607fdc752f8ddb7ac43f50dc2e6"
+    },
+    {
+      "path": "conf/map/battle/player.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/player.conf",
+      "sha256": "4f94e006aaf1dfe38362a0d06c157d0c2a87a9c364fe8bc18377839efa8953b9"
+    },
+    {
+      "path": "conf/map/battle/skill.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/skill.conf",
+      "sha256": "04ae7b40ddb6ff0aed6759c0b074d8a57c7090088fbf58cb4ff2eda5cfe84533"
+    },
+    {
+      "path": "conf/map/battle/battle.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/battle.conf",
+      "sha256": "4786220d83b0ef3c12e186f01483eb72dc371d8e72a3009a5435eec9e764e9ef"
     }
   ],
   "adaptations": [
@@ -249,7 +274,9 @@
     "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
     "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
     "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido.",
-    "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item."
+    "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item.",
+    "Falcon rental keeps the native fixed 2500 zeny fee without Discount; the Idle service is exposed in Prontera instead of the original Hugel breeder NPC.",
+    "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -7682,8 +7709,7 @@
         1
       ],
       "sourceSplashRange": 3,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13690,6 +13716,29 @@
     "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
     "redistributed": false
   },
+  "falconRules": {
+    "source": "npc/merchants/renters.txt:166..241; skill.c:1628..1641,12453..12461; battle.c:264..355,4411..4434,4649..4702",
+    "rentalZeny": 2500,
+    "rentalDiscount": false,
+    "autoChance": "raw1000 <= effectiveLUK * 3",
+    "autoLevel": "min(learnedBlitz, 5, floor(JobLevel/10)+1)",
+    "delayBattleDamage": true,
+    "snapDodge": false,
+    "warpDelayFix": false,
+    "minimumDamageMask": 6,
+    "autoSplit": "truncate the source parcel by all living splash entities before multiplying source hits",
+    "damageSnapshot": "final Neutral miscellaneous damage at launch; element, Lex then positive hit minimum; HP at amotion deadline",
+    "requiredState": "equipped Falcon at cast begin; an already started legal cast survives dismissal",
+    "detectSelfCentered": true,
+    "detectArea": "7x7 source square; one instant reveal, no aura",
+    "detectStatuses": [
+      "SC_HIDING",
+      "SC_CLOAKING",
+      "SC_CLOAKINGEXCEED",
+      "SC_CAMOUFLAGE",
+      "SC_NEWMOON"
+    ]
+  },
   "converterCraft": {
     "recipeSource": "db/produce_db.txt:389..395",
     "shopSource": "npc/merchants/shops.txt:913..916",
@@ -14764,8 +14813,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 265,
-    "unsupported": 83,
+    "supported": 266,
+    "unsupported": 82,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14879,13 +14928,13 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 20,
-        "unsupported": 8
+        "supported": 21,
+        "unsupported": 7
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 24,
-        "unsupported": 8
+        "supported": 25,
+        "unsupported": 7
       },
       "bard": {
         "sourceTree": 28,
@@ -15121,6 +15170,7 @@
       "HT_FALCON",
       "HT_STEELCROW",
       "HT_BLITZBEAT",
+      "HT_DETECTING",
       "HT_PHANTASMIC",
       "SN_SIGHT",
       "SN_FALCONASSAULT",
@@ -15340,11 +15390,6 @@
         "skillId": "ht_talkiebox",
         "sourceName": "HT_TALKIEBOX",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "ht_detecting",
-        "sourceName": "HT_DETECTING",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "ht_springtrap",
@@ -16287,7 +16332,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "9520343196ea80c50ec6380f2c4a0258b3f8406004ae77ef52b7b48b1e3b8a04",
+  "rulesSha256": "11ea744d754bc9ce4676de2d6573936df59c890a01e88f14778e175603415ae4",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16342,6 +16387,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "d05a83f7358f632b692aa6ba65a2abdeffde22508ec2ab5794d45807c2d697f8",
+  "catalogSha256": "b3e23418e34d2b3948e2c719d009675a346d3358eee703684892638b5cf4d7a6",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
