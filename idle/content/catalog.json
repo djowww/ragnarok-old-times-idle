@@ -32,7 +32,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "82d4017f359818443fb41d68a02b1f7d57722e1a102157f5cad5801662929066"
+    "hash": "370a3f2cf9e554fd560e60b1a92787668b5984361394123227b4fe16504bad36"
   },
   "rates": {
     "baseExp": 4,
@@ -112101,15 +112101,16 @@
     },
     "st_chasewalk": {
       "id": "st_chasewalk",
-      "name": "Stealth",
+      "name": "Furtividade",
       "kind": "buff",
       "maxLevel": 5,
       "herculesId": 389,
       "sourceName": "ST_CHASEWALK",
       "mechanic": "ST_CHASEWALK",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Stealth. Aplica CHASEWALK. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "toggle",
+      "toggle": true,
+      "description": "Oculta você dos monstros comuns e permite caminhar, com atraso de 35−5×nível%. Consome 10+2×nível SP a cada 10s; o primeiro pulso concede STR 2^(nível−1) por 30s, sem renovar um bônus ativo. Impede atacar ou usar outras habilidades; chefes, detectores e magia já conjurada ainda podem atingir você. Desativar é imediato e gratuito.",
       "iconResource": "data/texture/유저인터페이스/item/st_chasewalk.bmp",
       "spCost": [
         10,

@@ -30,13 +30,15 @@ type BuffRuntime = NonNullable<GameState["combatEffects"]> & {
   buffLevels?: Record<string, number>;
 };
 
-const sourceName = (skill: Skill) =>
-  (
+const sourceName = (skill: Skill) => {
+  const source = (
     skill.sourceName ??
     skill.mechanic ??
     legacySources[skill.id] ??
     skill.id
   ).toUpperCase();
+  return source === "RG_CHASEWALK" ? "ST_CHASEWALK" : source;
+};
 const value = (
   values: number[] | undefined,
   level: number,
@@ -123,7 +125,8 @@ export function playerHiddenFrom(
 ): boolean {
   if (
     !classicBuffActive(s, c, "TF_HIDING", at) &&
-    !classicBuffActive(s, c, "AS_CLOAKING", at)
+    !classicBuffActive(s, c, "AS_CLOAKING", at) &&
+    !classicBuffActive(s, c, "ST_CHASEWALK", at)
   )
     return false;
   const boss =
@@ -211,7 +214,7 @@ export function tickClassicBuffs(s: GameState, c: Catalog, at: number): void {
   const timers = (effects.buffDrainAt ??= {});
   const levels = (effects.buffLevels ??= {});
   for (const id of Object.keys(timers))
-    if (!s.buffs[id] || !lifecycleSources.has(buffSource(c, id))) {
+    if (!s.buffs[id] || !lifecycleSources.has(buffSource(c, id)) && buffSource(c, id) !== 'ST_CHASEWALK') {
       delete timers[id];
       delete levels[id];
     }
@@ -258,7 +261,7 @@ export function tickClassicBuffs(s: GameState, c: Catalog, at: number): void {
   // status whose timer actually ran out of SP, including during offline catch-up.
   while (true) {
     const due = Object.entries(timers)
-      .filter(([id, tick]) => s.buffs[id] && tick <= at)
+      .filter(([id, tick]) => s.buffs[id] && lifecycleSources.has(buffSource(c, id)) && tick <= at)
       .sort((a, b) => a[1] - b[1])[0];
     if (!due) break;
     const [id, tick] = due;

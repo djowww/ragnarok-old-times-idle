@@ -49,7 +49,8 @@ import { canReceiveItem, overweightForCombat } from './itemCapacity.js';
 import { returnForCarry } from './carryReturn.js';
 import { isEquipmentBroken } from './equipmentCondition.js';
 import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
-import { interruptSageEnchantCast } from './sageEnchantments.js';
+import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
+import { cancelSageEnchantCast } from './sageEnchantments.js';
 function town(s: GameState) {
   requireRule(
     s.status === "town",
@@ -91,6 +92,11 @@ export function executeCommand(
     requireRule(!cancelsPosture && !usesItem && !usesOtherSkill, 'TRICK_DEAD_ACTION_BLOCKED',
       'Trick Dead impede movimento, itens e outras habilidades.');
   }
+  if (classicBuffActive(s, c, 'ST_CHASEWALK', now)) {
+    const ownToggle = command.type === 'useSkill' && c.skills[command.skillId]?.sourceName === 'ST_CHASEWALK';
+    const otherSkill = command.type === 'useSkill' || command.type === 'toggleBuff' || command.type === 'cancelBuff' || command.type === 'identify' && command.method === 'skill';
+    requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
+  }
   switch (command.type) {
     case 'collectPendingLoot': {
       town(s);
@@ -111,6 +117,11 @@ export function executeCommand(
     }
     case 'useSkill': {
       const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+      if (skill?.sourceName === 'ST_CHASEWALK') {
+        requireRule(chasewalkCanStart(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'Tenha 10 SP, esteja vivo e livre para conjurar Furtividade.');
+        requireRule(startChasewalkCast(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'Não foi possível iniciar Furtividade.');
+        break;
+      }
       if (skill?.sourceName === 'TF_BACKSLIDING') {
         applyBacksliding(s, c, skill, level, now, context);
         break;
@@ -351,7 +362,7 @@ export function executeCommand(
         break;
       }
       const alreadyHunting = s.status === "hunting";
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       clearBladeStop(s, now);
       if (isFieldSitting(s)) endFieldRest(s, c);
       clearCloseConfine(s, now);
@@ -379,7 +390,7 @@ export function executeCommand(
       break;
     }
     case "stop": {
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       clearBladeStop(s, now);
       clearTrickDead(s, c, now); // Leaving the field is a source warp boundary.
       clearCloseConfine(s, now);
@@ -421,7 +432,7 @@ export function executeCommand(
         "CHALLENGE_ACTIVE",
         "Não é possível descansar durante o desafio.",
       );
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       const fieldRest = s.areaId !== null && s.status !== "town" &&
         (s.status !== "resting" || s.restMode === "field");
       if (s.status === "town") s.areaId = null;
@@ -766,7 +777,7 @@ export function executeCommand(
         "CLASS_REQUIREMENTS",
         "Requisitos de classe, Job, avatar ou ramo não atendidos.",
       );
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       const next = c.classes[command.classId];
       if (s.job !== next.id) clearCopiedSpell(s, c);
       s.job = next.id;
@@ -799,7 +810,7 @@ export function executeCommand(
         "Alto Aprendiz indisponível.",
       );
       spend(s, 50000);
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       s.branch ??= s.job;
       s.family ??= c.classes[s.job].family;
       s.reborn = true;
@@ -880,7 +891,7 @@ export function executeCommand(
       );
       requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP primeiro.");
       requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de iniciar um desafio.');
-      interruptSageEnchantCast(s, c, now);
+      cancelSageEnchantCast(s, c, now, 'Conjuração encerrada pela mudança de atividade.');
       s.status = "challenge";
       beginBattle(s, c, ch.monsterId, now, ch.id, context);
       break;

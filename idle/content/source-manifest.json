@@ -12797,10 +12797,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Manual self cast:1200ms modified by DEX,10SP; active recast ends immediately for no SP. Main status persists, drains10+2*level SP each10s and adds35-5*level percent walking delay. Only when absent, a paid pulse grants2^(level-1) STR for30s without refresh. Child survives main ending but has NoSave; death clears both. Ordinary mobs stop acquisition, bosses/detectors and already-started targeted NPC casts may hit; positive HP damage ends main. No Soul Link/GvG adaptation or AFK auto-toggle."
     },
     "st_rejectsword": {
       "id": 390,
@@ -13910,8 +13910,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 255,
-    "unsupported": 93,
+    "supported": 256,
+    "unsupported": 92,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14110,8 +14110,8 @@
       },
       "stalker": {
         "sourceTree": 37,
-        "supported": 30,
-        "unsupported": 7
+        "supported": 31,
+        "unsupported": 6
       }
     },
     "supportedSourceNames": [
@@ -14367,6 +14367,7 @@
       "RG_COMPULSION",
       "RG_PLAGIARISM",
       "RG_CLOSECONFINE",
+      "ST_CHASEWALK",
       "ST_REJECTSWORD",
       "ST_PRESERVE",
       "ST_FULLSTRIP"
@@ -14831,11 +14832,6 @@
         "skillId": "rg_gangster",
         "sourceName": "RG_GANGSTER",
         "reason": "Requer aliados da mesma classe."
-      },
-      {
-        "skillId": "st_chasewalk",
-        "sourceName": "ST_CHASEWALK",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       }
     ],
     "combatExpansion": [
@@ -15407,6 +15403,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "cd5840e8c5508e0903d1e6627942c54da7b9ddeb720305dd9084572c03dbfe75",
+  "catalogSha256": "7e1ced9723950ac18dfdb253d2b38f1a45be71971e82fd45a80419dab4d58414",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
