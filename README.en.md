@@ -21,7 +21,7 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 - A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
 - Players and monsters follow walkable-cell routes across all 29 maps. The server and scene share the route and arrival time, respecting walls and diagonal corners.
 - Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
-- Forty class trees with 348 imported skills, 255 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Forty class trees with 348 imported skills, 256 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
 - Plagiarism copies the four Mage spells produced by the modeled NPC attacks without spending skill points. Players can add the copied spell to their rotation; Preserve protects it for ten minutes. Reconnecting retains the copy and clears its protection, following Hercules NoSave status behavior.
 - Manual Back Slide for the Thief family moves up to five terrain-clipped cells, costs 7 SP and preserves facing. Presentation follows the native animation clock.
 - Books, Advanced Book and all four Sage elemental endows include casting, reagents, failure chance and weapon breakage. The blacksmith repairs broken equipment while retaining refining, cards and rarity.
@@ -144,3 +144,5 @@ Vite serves the app at `http://localhost:5173/` and proxies API/assets to the lo
 Project code and adapted GPL components are distributed under the **GNU GPL v3 or later**. See [`LICENSE`](LICENSE) and [`idle/THIRD_PARTY_NOTICES.md`](idle/THIRD_PARTY_NOTICES.md) for attribution and redistribution details.
 
 Ragnarok Online and its visual and audio assets belong to their respective owners. The software license does not grant rights to those assets; provide only client files you are authorized to use.
+
+ChaseWalk is a manual Stalker ability with its original cast, periodic SP cost and independent STR timer. Ordinary monsters lose the concealed target; bosses, detectors and already-started targeted spells remain dangerous.

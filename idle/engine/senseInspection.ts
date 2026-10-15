@@ -15,7 +15,7 @@ export interface SenseEncounterIdentity {
 }
 
 const CONTROL_STATUSES = ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER',
-  'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD'] as const;
+  'ST_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD'] as const;
 
 function senseSkill(catalog: Catalog): Skill | undefined {
   return Object.values(catalog.skills).find(skill => skill.sourceName === 'WZ_ESTIMATION');

@@ -1,3 +1,4 @@
+import { classicBuffActive } from '../../engine/classicBuffs';
 import { resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
@@ -208,6 +209,7 @@ function actorActionDuration(actor: DecodedActor | null, base: number, direction
 }
 
 type SceneActorPaint = {
+  opacity?: number;
   id: string;
   actor: DecodedActor;
   action: ActorAction;
@@ -239,6 +241,7 @@ function drawActorFootShadow(ctx: CanvasRenderingContext2D, paint: SceneActorPai
     axisY = { x: alongY.x - placement.x, y: alongY.y - placement.y };
   }
   ctx.save();
+  ctx.globalAlpha *= paint.opacity ?? 1;
   ctx.transform(axisX.x, axisX.y, axisY.x, axisY.y, paint.x, paint.ground + 0.5);
   const shadow = ctx.createRadialGradient(0, 0, 0.08, 0, 0, 1);
   shadow.addColorStop(0, "rgba(24, 37, 29, 0.24)");
@@ -1725,13 +1728,15 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         }
       }
       canvas.current!.dataset.soloGroundUnits = String(groundUnitCount);
+      for (const actorPaint of actorPaints) if (actorPaint.id === current.id)
+        actorPaint.opacity = classicBuffActive(current, catalog, 'ST_CHASEWALK', serverNow) ? .45 : 1;
       const orderedActors = actorPaints.sort((a, b) => a.ground - b.ground);
       const nativeIds = camera ? nativeActors.current?.submit(orderedActors.filter(actorPaint => !actorPaint.canvasOnly).map(actorPaint => {
         const bounds = actorBounds(actorPaint.actor, actorPaint.direction, false);
         const visualWidth = (bounds.right - bounds.left) * actorPaint.scale * GAME_ACTOR_SCALE;
         const radius = Math.max(4, Math.min(30, visualWidth * 0.28));
         return { ...actorPaint, elapsed: motion.matches ? 0 : actorPaint.elapsed, bottom: actorPaint.particle ? 0 : bounds.bottom,
-          shadow: actorPaint.particle ? undefined : { radius, height: Math.max(2, Math.min(7, radius * 0.26)), opacity: 0.24 } };
+          shadow: actorPaint.particle ? undefined : { radius, height: Math.max(2, Math.min(7, radius * 0.26)), opacity: 0.24 * (actorPaint.opacity ?? 1) } };
       }), camera, width, height, time) ?? new Set<string>() : new Set<string>();
       canvas.current!.dataset.nativeActors = String(nativeIds.size);
       canvas.current!.dataset.canvasActors = String(actorPaints.length - nativeIds.size);
@@ -1788,9 +1793,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         if (nativeIds.has(actorPaint.id)) continue;
         const bounds = actorBounds(actorPaint.actor, actorPaint.direction, false);
         const scale = actorPaint.scale * GAME_ACTOR_SCALE;
+        ctx.save(); ctx.globalAlpha *= actorPaint.opacity ?? 1;
         drawActor(ctx, actorPaint.actor, actorPaint.action, motion.matches ? 0 : actorPaint.elapsed,
           actorPaint.x, actorPaint.ground - (actorPaint.particle ? 0 : bounds.bottom) * scale,
           scale, actorPaint.direction, actorPaint.motionMs);
+        ctx.restore();
       }
       groupLabels.forEach((draw) => draw());
       const assets = visuals.current;

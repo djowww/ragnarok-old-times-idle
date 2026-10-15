@@ -58,7 +58,7 @@ export function converterCraftPreview(s: GameState, c: Catalog, itemId: number, 
   if (s.status !== 'town') return reject('TOWN_REQUIRED', 'Volte à cidade para produzir conversores.');
   if (s.hp <= 0) return reject('RECOVERING', 'Recupere seu HP antes de produzir conversores.');
   if (s.battle?.cast || activePlayerStatus(s, 'SC_SILENCE', at) ||
-    ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD']
+    ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'ST_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD']
       .some(source => classicBuffActive(s, c, source, at)))
     return reject('SKILL_STATUS_BLOCKED', 'Seu estado atual impede produzir conversores.');
   if (load.weight * 10 >= load.maxWeight * 9) return reject('SKILL_WEIGHT_BLOCKED', 'Alivie o peso para ficar abaixo de 90% antes de produzir.');

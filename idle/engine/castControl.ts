@@ -17,7 +17,7 @@ export function castControlEligible(s: GameState, c: Catalog, skill: Skill, leve
     const load = inventoryLoad(s, c);
     return s.hp > 0 && Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel && s.learnedSkills[skill.id] === level && skill.implementation === 'supported' && classSkills(c, s.job).includes(skill.id) &&
         ['hunting', 'challenge'].includes(s.status) && load.weight * 10 < load.maxWeight * 9 && !activePlayerStatus(s, 'SC_SILENCE', at) &&
-        !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD'].some(source => classicBuffActive(s, c, source, at));
+        !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'ST_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD'].some(source => classicBuffActive(s, c, source, at));
 }
 export function castCancelEligible(s: GameState, c: Catalog, skill: Skill, level: number, at: number) {
     if (castControlEligible(s, c, skill, level, at)) return true;
@@ -26,7 +26,7 @@ export function castCancelEligible(s: GameState, c: Catalog, skill: Skill, level
         Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel && s.learnedSkills[skill.id] === level &&
         skill.implementation === 'supported' && classSkills(c, s.job).includes(skill.id) &&
         load.weight * 10 < load.maxWeight * 9 && !activePlayerStatus(s, 'SC_SILENCE', at) &&
-        !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK',
+        !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'ST_CHASEWALK',
           'ST_INVISIBILITY', 'NV_TRICKDEAD'].some(source => classicBuffActive(s, c, source, at));
 }
 export function spellBreakerCastMs(s: GameState, c: Catalog, skill: Skill, level: number, at: number) {

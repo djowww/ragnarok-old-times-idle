@@ -1,3 +1,4 @@
+import chasewalkBaseline from './fixtures/chasewalk389Baseline.json';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import catalog from '../content/catalog.json';
@@ -71,6 +72,7 @@ describe('source-closed manual Sense catalog', () => {
     }
     otherSkills.rg_plagiarism = structuredClone(rogueCopyBaseline.rg_plagiarism);
     otherSkills.st_preserve = structuredClone(rogueCopyBaseline.st_preserve);
+    otherSkills.st_chasewalk = structuredClone(chasewalkBaseline);
     // Restore Magic Rod's pre-promotion export row so the frozen digest continues
     // to verify every unrelated skill value.
     otherSkills.sa_magicrod = structuredClone(magicRodBaseline) as unknown as Record<string, unknown>;
@@ -85,7 +87,7 @@ describe('source-closed manual Sense catalog', () => {
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 255, unsupported: 93 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 256, unsupported: 92 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });

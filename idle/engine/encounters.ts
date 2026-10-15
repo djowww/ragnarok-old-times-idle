@@ -628,10 +628,11 @@ export function playerWalkSpeed(s: GameState, c: Catalog, at: number) {
     if (c.skills[id]?.sourceName === "WS_CARTBOOST") haste = Math.max(haste, 20);
   }
   if (c.classes[s.job]?.family === "thief" && s.job.includes("assassin")) haste = Math.max(haste, learnedBySource(s, c).TF_MISS ?? 0);
+  const chasewalk = activeBySource(s, c, at).ST_CHASEWALK ?? 0;
   const tunnel = classicBuffActive(s, c, 'TF_HIDING', at) ? learnedBySource(s, c).RG_TUNNELDRIVE ?? 0 : 0;
   // Hiding's Tunnel Drive penalty adds to speed_rate after haste (status.c:5448/5531).
   return defenderStats(activeBySource(s, c, at).CR_DEFENDER ?? 0,
-    Math.floor(150 * Math.max(40, baseSpeedRate - haste - (isPecoMounted(s, c) ? 25 : 0) + (tunnel > 0 ? 120 - 6 * tunnel : 0)) / 100), 0).cellSpeedMs;
+    Math.floor(150 * Math.max(40, baseSpeedRate - haste - (isPecoMounted(s, c) ? 25 : 0) + (tunnel > 0 ? 120 - 6 * tunnel : 0) + (chasewalk ? 35 - 5 * chasewalk : 0)) / 100), 0).cellSpeedMs;
 }
 
 function blockFieldHero(s: GameState, at: number, until: number) {
@@ -678,6 +679,10 @@ function updateFieldActors(s: GameState, c: Catalog, at: number, context?: Simul
     if (monsterAttackTarget(s,enemy)!==s.id) continue;
     if (distance > (monster.chaseRange ?? 12) || playerHiddenFrom(s, c, monster, at)) {
       stopEnemyMovement(enemy, point, at);
+      // A targeted spell already committed before concealment may still finish
+      // (skill.c:6567/status.c:1030). Stop chasing without invalidating its owner.
+      if (enemy.npcCombat?.cast && classicBuffActive(s, c, 'ST_CHASEWALK', at) &&
+          !classicBuffActive(s, c, 'TF_HIDING', at)) continue;
       enemy.engaged = false; enemy.hostile = false;
       delete enemy.approachPausedAt;
       continue;
@@ -1129,6 +1134,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   if (damage > 0) {
     cancelClassicBuff(s, c, 'TF_HIDING');
     cancelClassicBuff(s, c, 'AS_CLOAKING');
+    cancelClassicBuff(s, c, 'ST_CHASEWALK');
   }
   if (!s.battle?.challengeId && s.areaId) recordAreaActivity(s, s.areaId, at, { damageTaken: damage });
   const activeCast = s.battle?.cast;
@@ -1169,6 +1175,8 @@ import { activePlayerStatus, treatmentSources, statusTreatmentEligible, resolveS
 import { tryMonsterStatusSkill, takeMonsterStatusCast, applyMonsterStatusEffect, interruptMonsterStatusCast, cancelInvalidMonsterStatusCasts } from './monsterStatusSkills.js';
 import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
 import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
+import { tickChasewalk, CHASEWALK_STRENGTH_ID } from './chasewalk.js';
+import { resolveSupportCast } from './supportCasts.js';
 import type { MonsterStatusSkill } from '../shared/types.js';
 const bodyRelocationReachabilityCache = new WeakMap<GameState, Map<string, boolean>>();
 
@@ -1210,7 +1218,7 @@ function chooseSkill(
   const linkedTarget = bladeStopTarget(s, at);
   if (linkedTarget) target = linkedTarget;
   if (classicBuffActive(s, c, 'MO_STEELBODY', at) || classicBuffActive(s, c, 'LK_BERSERK', at) ||
-    classicBuffActive(s, c, 'KN_AUTOCOUNTER', at)) return;
+    classicBuffActive(s, c, 'KN_AUTOCOUNTER', at) || classicBuffActive(s, c, 'ST_CHASEWALK', at)) return;
   const d = derivedStats(s, c);
   const entry = s.inventory.find((e) => e.uid === s.equipment.weapon);
   const type = entry ? c.items[entry.itemId]?.weaponType : undefined;
@@ -2596,7 +2604,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     enemy.enemyNextAttackAt = at + 500;
     return;
   }
-  if (playerHiddenFrom(s, c, monster, at)) {
+  if (playerHiddenFrom(s, c, monster, at) && !(npcSkill && npcCast && classicBuffActive(s, c, 'ST_CHASEWALK', at) && !classicBuffActive(s, c, 'TF_HIDING', at))) {
     enemy.enemyNextAttackAt = at + 500;
     return;
   }
@@ -2821,6 +2829,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     if (damage > 0) {
       cancelClassicBuff(s, c, "TF_HIDING");
       cancelClassicBuff(s, c, "AS_CLOAKING");
+      cancelClassicBuff(s, c, "ST_CHASEWALK");
       if (s.combatEffects?.endure) {
         s.combatEffects.endure = endureHit(s.combatEffects.endure, at, { damage });
         if (!s.combatEffects.endure) cancelClassicBuff(s, c, "SM_ENDURE");
@@ -2916,6 +2925,8 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
     cancelClassicBuff(s, c, 'AS_POISONREACT');
     cancelClassicBuff(s, c, 'SA_MAGICROD');
     cancelClassicBuff(s, c, 'ST_PRESERVE');
+    cancelClassicBuff(s, c, 'ST_CHASEWALK');
+    delete s.buffs[CHASEWALK_STRENGTH_ID];
     cancelClassicBuff(s, c, 'PA_SACRIFICE');
     clearTrickDead(s, c, at); // SC_TRICKDEAD lacks NoDeathReset.
     s.hp = 0;
@@ -3050,10 +3061,12 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
     b.playerNextAttackAt = b.playerNextSkillAt = at + 250;
     return;
   }
-  if (trickDeadActive(s, c, at)) return;
+  if (trickDeadActive(s, c, at) || classicBuffActive(s, c, 'ST_CHASEWALK', at)) {
+    b.playerNextAttackAt = b.playerNextSkillAt = at + 250; return;
+  }
   const currentCast = currentPlayerCast(s, at);
   if (currentCast?.kind === 'support' && activeFreeCastLevel(s, c, at) === 0) return;
-  if (s.supportCast && s.supportCast.endsAt <= at) resolveSageEnchantCast(s, c, s.supportCast.endsAt);
+  if (s.supportCast && s.supportCast.endsAt <= at) resolveSupportCast(s, c, s.supportCast.endsAt);
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
   const castingWithFreeCast = !!currentPlayerCast(s, at) && activeFreeCastLevel(s, c, at) > 0;
   const bladeLinkedTarget = bladeStopTarget(s, at);
@@ -3217,6 +3230,7 @@ type CombatDeadline = { at: number; priority: number; key: string } & (
 function maintainPlayerBuffs(s: GameState, c: Catalog, at: number) {
   tickTensionRelax(s, c, at);
   tickSoloStances(s, c, at);
+  tickChasewalk(s, c, at);
   tickClassicBuffs(s, c, at);
   if ([s.combatEffects?.pneumaGround, s.combatEffects?.safetyWallGround, ...(s.combatEffects?.defensiveGrounds ?? [])]
     .some(ground => ground && ground.sceneKey !== defenseSceneKey(s))) clearClassicGrounds(s, c);
@@ -3447,7 +3461,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       s.battle = null; s.status = "town"; s.autoResume = false; s.pendingAreaId = null;
       event(s, cursor, "challenge", "Tempo do desafio esgotado.");
     } else if (next.kind === 'supportCast') {
-      resolveSageEnchantCast(s, c, cursor);
+      resolveSupportCast(s, c, cursor);
     } else if (next.kind === "cast") {
       const cast = b.cast!, skill = c.skills[cast.skillId];
       const castTarget = enemies(s).find(e => e.id === cast.targetId);
@@ -3597,7 +3611,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
     returnForCarry(s, c, Math.max(at - elapsedMs, s.carryReturnRequestedAt ?? at - elapsedMs));
   if (!replayingCombat) {
     if (s.supportCast && s.supportCast.endsAt <= at)
-      resolveSageEnchantCast(s, c, s.supportCast.endsAt);
+      resolveSupportCast(s, c, s.supportCast.endsAt);
     updateFieldHero(s, at);
     updateFieldPopulation(s, c, at, context);
   }
@@ -3617,7 +3631,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
     return;
   }
   if (s.status === "resting" || s.status === "town") {
-    if (!soloRecoveryBlocked(s, c, at) && !playerRecoveryBlocked(s, c, at) && Math.floor(at / 1000) !== Math.floor((at - elapsedMs) / 1000)) {
+    if (!classicBuffActive(s, c, 'ST_CHASEWALK', at) && !soloRecoveryBlocked(s, c, at) && !playerRecoveryBlocked(s, c, at) && Math.floor(at / 1000) !== Math.floor((at - elapsedMs) / 1000)) {
       s.hp = Math.min(d.maxHp, s.hp + Math.max(1, Math.ceil(d.maxHp / 30)));
       s.sp = Math.min(d.maxSp, s.sp + Math.max(1, Math.ceil(d.maxSp / 30)));
     }

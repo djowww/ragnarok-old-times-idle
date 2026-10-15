@@ -14,6 +14,17 @@ function fixture(){
 }
 afterEach(() => vi.restoreAllMocks());
 describe('native reconnect diagnostics', () => {
+ it('fades every equipped layer using its original alpha and changes pose ownership when concealment ends', () => {
+  const {bridge,messages,paint}=fixture();
+  bridge.submit([{...paint,opacity:.45}],camera,100,100,100);
+  const faded=[...messages].reverse().find(message=>message.type==='ragidle-map-actors')?.actors[0];
+  expect(faded).toBeDefined();
+  expect(faded.layers.every((layer:any)=>layer.color[3]===.45)).toBe(true);
+  bridge.submit([{...paint,opacity:1}],camera,100,100,120);
+  const visible=[...messages].reverse().find(message=>message.type==='ragidle-map-actors')?.actors[0];
+  expect(visible.layers.every((layer:any)=>layer.color[3]===1)).toBe(true);
+  expect(visible.poseToken).not.toBe(faded.poseToken);
+ });
  it('distinguishes a not-yet-supported bridge from ready and failed without changing ownership', () => {
   const messages:any[]=[];
   const bridge=new NativeActorsBridge({postMessage:(data:any)=>messages.push(data)} as any,'https://fixture','fixture');
