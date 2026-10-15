@@ -122,6 +122,7 @@ const magicRatios = {
     WZ_EARTHSPIKE: () => 100, WZ_HEAVENDRIVE: () => 100, HW_NAPALMVULCAN: l => 70 + 10 * l,
     WZ_SIGHTBLASTER: () => 100, AL_HOLYLIGHT: () => 125, AL_RUWACH: () => 145, PR_MAGNUS: () => 100,
 };
+const spellBalanceSources = new Set(['PR_TURNUNDEAD', 'CR_GRANDCROSS', 'HW_GRAVITATION', 'HW_MAGICCRASHER']);
 const weaponRatios = {
     SM_BASH: l => 100 + 30 * l, SM_MAGNUM: l => 100 + 20 * l, MC_MAMMONITE: l => 100 + 50 * l,
     AC_DOUBLE: l => 90 + 10 * l, AC_SHOWER: l => 75 + 5 * l, AC_CHARGEARROW: () => 150,
@@ -191,6 +192,9 @@ for (const name of skillNames) {
     const hitCount = rawHits.map(Math.abs);
     const itemCostByLevel = Array.from({ length: maxLevel }, (_, i) => Object.entries(src.Requirements?.Items ?? {}).flatMap(([itemName, amount]) => { const item = itemByName[itemName]; if (!item) throw new Error('Missing reagent: ' + itemName); const quantity = byLevel(amount, maxLevel)[i]; return quantity > 0 ? [{ itemId: item.Id, quantity }] : []; }));
     const power = Array.from({ length: maxLevel }, (_, i) => (magicRatios[name] ?? weaponRatios[name] ?? (name === 'NV_FIRSTAID' ? () => 5 : name === 'PR_SANCTUARY' ? l => l > 6 ? 777 : 100 * l : () => 0))(i + 1));
+    const idleDamageMultiplierPct = damageType === 'magic' || spellBalanceSources.has(name)
+        ? Array.from({ length: maxLevel }, (_, i) => Number(rule?.idleDamageMultiplierPct?.[i] ?? 100))
+        : undefined;
     const inheritedEffect = name === 'AC_OWL' ? { dex: 1 } : name === 'TF_MISS' ? { flee: 3 } : undefined;
     // A negative SplashRange selects the default AREA_SIZE (14). Negative
     // Unit.Layout values instead select special cell layouts and are not radii.
@@ -216,6 +220,7 @@ for (const name of skillNames) {
         prerequisites: Object.values(prerequisitesByClass)[0] ?? [], prerequisitesByClass,
         minimumJobLevel: Math.max(1, ...Object.values(treeByClass).map(tree => tree[name]?.MinJobLevel ?? 0)),
         ...(src.Element && { element: src.Element.replace('Ele_', '').toLowerCase() }),
+        ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }),
         ...(src.CastTimeOptions?.IgnoreDex && { ignoresDex: true }),
         ...(src.DamageType?.SplitDamage && { splitDamage: true }), ...(src.DamageType?.IgnoreDefense && { ignoreDefense: true }),
         ...(src.DamageType?.IgnoreElement && { ignoreElement: true }),
@@ -238,7 +243,7 @@ for (const name of skillNames) {
         ...(rule?.requiredSlot && { requiredSlot: rule.requiredSlot }),
         ...(inheritedEffect && { effects: inheritedEffect }),
     };
-    manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(unsupportedReason && { unsupportedReason }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
+    manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
 }
 manifest.skillCoverage = { classes: rules.classes.length, skills: skillNames.length, supported: Object.values(catalog.skills).filter(s => s.implementation === 'supported').length, unsupported: Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').length };
 manifest.skillCoverage.byClass = Object.fromEntries(Object.values(catalog.classes).map(job => [job.id, { sourceTree: job.skills.length, supported: job.skills.filter(id => catalog.skills[id].implementation === 'supported').length, unsupported: job.skills.filter(id => catalog.skills[id].implementation === 'unsupported').length }]));

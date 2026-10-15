@@ -164,6 +164,8 @@ export interface Skill {
   cooldownMs: number;
   /** Original client BMP from the skill's Hercules source name. */
   iconResource?: string;
+  /** Idle-only damage scaling applied after the pinned source formula. */
+  idleDamageMultiplierPct?: number[];
   element?: string;
   effects?: Effects;
   durationMs?: number;
