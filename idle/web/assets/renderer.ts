@@ -184,7 +184,7 @@ function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: nu
     const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
     // Keep the requested body direction whenever its ACT provides it. Optional
     // head and weapon layers independently choose a same-facing fallback.
-    const candidates = [...new Set([base + dir, base, dir, 0])];
+    const candidates = [...new Set([base + dir, dir, base, 0])];
     const index = candidates.find((candidate) => actionFrames(actor.body!, candidate));
     if (index === undefined) return undefined;
     const bodyFrames = actionFrames(actor.body, index);
