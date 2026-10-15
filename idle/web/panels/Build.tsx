@@ -7,11 +7,14 @@ import { classicCastTime } from "../../engine/classic";
 import { automaticSpellChoices } from "../../engine/sageCasting";
 import { classicBuffActive } from "../../engine/classicBuffs";
 import { canPaySkillResources } from '../../engine/skillResources';
-import { castControlEligible } from '../../engine/castControl';
+import { castCancelEligible } from '../../engine/castControl';
 import { castCancelAdditionalSp } from '../../engine/castControlRules';
+import { currentPlayerCast } from '../../engine/playerCast';
 import { isPecoMounted } from '../../engine/mountedPeco';
 import { senseManualTarget } from '../../engine/senseInspection';
+import { sageEnchantCanStart } from '../../engine/sageEnchantments';
 import type { GameCommand } from '../../shared/types';
+import '../styles/sage-enchant.css';
 
 export function senseInspectCommand(skillId: string, expectedEnemyId: string): GameCommand {
   return { type: 'useSkill', skillId, expectedEnemyId };
@@ -47,9 +50,9 @@ export default function Build({
             const costAt = Math.max(0, level - 1);
             const active = rotation.includes(skill.id);
             const unsupported = skill.implementation === "unsupported";
-            const ownCast=state.battle?.cast;
+            const ownCast=currentPlayerCast(state,snapshot.serverTime);
             const cancelAvailable=!!ownCast&&ownCast.startedAt<=snapshot.serverTime&&snapshot.serverTime<ownCast.endsAt&&
-              castControlEligible(state,catalog,skill,level,snapshot.serverTime)&&canPaySkillResources(state,catalog,skill,level,snapshot.serverTime);
+              castCancelEligible(state,catalog,skill,level,snapshot.serverTime)&&canPaySkillResources(state,catalog,skill,level,snapshot.serverTime);
             const canceledSkill=ownCast?catalog.skills[ownCast.skillId]:undefined;
             const cancelExtra=ownCast?castCancelAdditionalSp(canceledSkill?.spCost[ownCast.level-1]??canceledSkill?.spCost.at(-1)??0,level):0;
             const prerequisites = skill.prerequisitesByClass?.[state.job] ?? skill.prerequisites ?? [];
@@ -89,6 +92,10 @@ export default function Build({
               : undefined;
             const senseCanInspect = !!senseTarget && ids.has(skill.id) && level === 1 &&
               !unsupported && canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
+            const sageEnchantSkill = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
+            const sageEnchantCast = sageEnchantSkill && state.supportCast?.skillId === skill.id ? state.supportCast : undefined;
+            const sageEnchantReady = sageEnchantSkill && level > 0 && !unsupported &&
+              sageEnchantCanStart(state, catalog, skill, level, snapshot.serverTime);
             const mechanics = [
               castTime > 0 ? `${(castTime / 1000).toLocaleString("pt-BR", {maximumFractionDigits: 1})}s de conjuração` : "",
               afterCast > 0 ? `${(afterCast / 1000).toLocaleString("pt-BR", {maximumFractionDigits: 1})}s após conjurar` : "",
@@ -194,6 +201,18 @@ export default function Build({
                         onClick={() => void command({type:'useSkill',skillId:skill.id,expectedCastActionId:ownCast?.actionId})}>Cancelar conjuração</button>
                       {ownCast && <small>{canceledSkill?.name ?? ownCast.skillId} · {cancelExtra} SP adicionais</small>}
                     </>}
+                  {sageEnchantSkill && <>
+                    <button disabled={busy || !sageEnchantReady || !!state.supportCast || !!state.battle?.cast}
+                      onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                      {sageEnchantCast ? 'Conjurando…' : 'Encantar arma'}
+                    </button>
+                    {sageEnchantCast && <div className="support-cast-progress" role="status" aria-live="polite">
+                      <span>{skill.name} · {((Math.max(0, sageEnchantCast.endsAt - snapshot.serverTime)) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s restantes</span>
+                      <progress aria-label={`Conjuração de ${skill.name}`} max={Math.max(1, sageEnchantCast.endsAt - sageEnchantCast.startedAt)}
+                        value={Math.max(0, Math.min(sageEnchantCast.endsAt - sageEnchantCast.startedAt,
+                          snapshot.serverTime - sageEnchantCast.startedAt))} />
+                    </div>}
+                  </>}
                     {skill.manualUse === 'inspect' && <button type="button"
                       disabled={busy || !senseCanInspect}
                       onClick={() => senseTarget && void command(senseInspectCommand(skill.id, senseTarget.id))}>

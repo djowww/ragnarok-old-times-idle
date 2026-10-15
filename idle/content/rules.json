@@ -15,6 +15,7 @@
     "Deterministic healing uses midpoints of source ranges.",
     "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
     "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Book 1550 is supplied by the aggregated Idle shop at its pinned 30,000 zeny item_db price because the selected Hercules merchant shop file does not sell books.",
     "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
@@ -474,7 +475,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "hindsight",
@@ -493,7 +495,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "hindsight",
@@ -638,7 +641,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "kyrie",
@@ -657,7 +661,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "kyrie",
@@ -1207,25 +1212,6 @@
       },
       "durationMs": 60000,
       "description": "Aumenta temporariamente seu ataque mágico. Prepare esse bônus antes de priorizar suas magias ofensivas."
-    },
-    {
-      "id": "flame_enchant",
-      "source": "SA_FLAMELAUNCHER",
-      "name": "Encantar com Chama",
-      "kind": "buff",
-      "maxLevel": 5,
-      "powerStart": 0,
-      "powerStep": 0,
-      "cooldownMs": 30000,
-      "effects": {
-        "damagePct": 5
-      },
-      "durationMs": 60000,
-      "itemCost": {
-        "itemId": 990,
-        "quantity": 1
-      },
-      "description": "Aumenta temporariamente o dano causado. Consome uma unidade de Sangue Escarlate a cada uso."
     },
     {
       "id": "blitz_beat",
@@ -2083,6 +2069,7 @@
     }
   },
   "shop": [
+    1550,
     716,
     1025,
     678,
@@ -2376,6 +2363,7 @@
     "npc/pre-re/mobs/fields/prontera.txt": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791",
     "npc/pre-re/mobs/fields/geffen.txt": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63",
     "npc/pre-re/mobs/fields/payon.txt": "f448e15667f770b0eef3592652b814cf94ff1b5dda0f6c4abe88cc025c7189fa",
+    "npc/merchants/refine.txt": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1",
     "db/job_db2.txt": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56",
     "src/map/battle.c": "7c4916a043223e39ec35fdcb040c62f274d312a1d5ccd4802e5a60f7a5076d78",
     "src/map/status.c": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
@@ -2423,7 +2411,15 @@
     "HW_GANBANTEIN": "ganbantein",
     "HW_GRAVITATION": "gravitation_field"
   },
+  "skillIdOverrides": {
+    "SA_FLAMELAUNCHER": "flame_enchant"
+  },
   "skillNames": {
+    "SA_ADVANCEDBOOK": "Perícia com Livro",
+    "SA_FLAMELAUNCHER": "Encantar com Chama",
+    "SA_FROSTWEAPON": "Encantar com Geada",
+    "SA_LIGHTNINGLOADER": "Encantar com Relâmpago",
+    "SA_SEISMICWEAPON": "Encantar com Terremoto",
     "DC_DONTFORGETME": "Graça Lenta",
     "CR_SHRINK": "Encolher",
     "PA_SACRIFICE": "Sacrifício do Mártir",
@@ -2472,6 +2468,11 @@
     "PF_FOGWALL": "Nevoeiro Ofuscante"
   },
   "skillDescriptions": {
+    "SA_ADVANCEDBOOK": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",
+    "SA_FLAMELAUNCHER": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Fogo por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Sangue Vermelho. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_FROSTWEAPON": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Água por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Cristal Azul. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_LIGHTNINGLOADER": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Vento por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Frescor do Vento. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
+    "SA_SEISMICWEAPON": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Terra por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Vida Verdejante. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
     "TF_PICKSTONE": "Coleta 1 Pedra para Arremessar Pedra. Custa 3 SP e tem conjuração base de 500 ms, reduzida por DEX. Na rotação AFK, coleta somente quando Arremessar Pedra está aprendida e na rotação, sem Pedra na mochila e com peso abaixo de 50%. Recusa a coleta se não houver capacidade para guardar a Pedra.",
     "SM_FATALBLOW": "Passiva que permite que Bash nos níveis 6 a 10 atordoe o alvo. Chance base: 5% × (nível de Bash − 5) × nível Base / 50; duração base de 5 segundos antes das resistências.",
     "AL_CRUCIS": "Reduz a DEF de demônios e monstros de propriedade Morto-Vivo em 10 + 4 × nível %. Chance base: 23 + 4 × nível + nível Base do usuário − nível do alvo. O efeito dura até o alvo morrer.",

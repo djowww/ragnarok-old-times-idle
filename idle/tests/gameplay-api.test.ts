@@ -96,6 +96,21 @@ describe('idle HTTP intentions', () => {
     expect(retry.json().state.zeny).toBe(100);
     expect(retry.json().state.inventory.filter((i: { itemId: number }) => i.itemId === 501).reduce((n: number, i: { quantity: number }) => n + i.quantity, 0)).toBe(22);
   });
+  it('repairs broken gear once across a request retry', async () => {
+    const { app, repository } = setup();
+    const weapon = repository.state.inventory.find(entry => entry.itemId === 1201)!;
+    weapon.broken = true;
+    delete repository.state.equipment.weapon;
+    repository.state.zeny = 5000;
+    const payload = { requestId: 'repair-all-0001', command: { type: 'repairAll' } };
+    const first = await app.inject({ method: 'POST', url: '/api/command', payload });
+    expect(first.statusCode).toBe(200);
+    expect(first.json().state.zeny).toBe(0);
+    expect(first.json().state.inventory.find((entry: { uid: string }) => entry.uid === weapon.uid)).not.toHaveProperty('broken');
+    const retry = await app.inject({ method: 'POST', url: '/api/command', payload });
+    expect(retry.statusCode).toBe(200);
+    expect(retry.json().state.zeny).toBe(0);
+  });
   it('replays a manual Sacrifice activation receipt without charging SP twice or resetting charges twice', async () => {
     const { app, repository } = setup();
     const state = repository.state;

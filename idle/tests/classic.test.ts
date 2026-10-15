@@ -69,6 +69,18 @@ describe('pinned pre-renewal skill export', () => {
 });
 
 describe('Hercules integer arithmetic golden cases', () => {
+  it('applies Advanced Book only to books and only when the passive is supported', () => {
+    for (let level = 1; level <= 10; level++) {
+      const base = { ...attacker, baseAttack: 40, weaponAttack: 100, weaponType: 'book' as const,
+        skillLevelsBySource: { SA_ADVANCEDBOOK: level } };
+      const book = classicPhysicalDamage(base, monster, undefined, 1, fixedRng);
+      const staff = classicPhysicalDamage({ ...base, weaponType: 'staff' }, monster, undefined, 1, fixedRng);
+      const unavailable = classicPhysicalDamage({ ...base, skillLevelsBySource: {} }, monster, undefined, 1, fixedRng);
+      expect(book - staff).toBe(3 * level);
+      expect(staff).toBe(unavailable);
+    }
+  });
+
   it('enables Fatal Blow stun on Bash only above level 5 using the attacker base level', () => {
     expect(classicBashStunChance(5, 99, 1)).toBe(0);
     expect(classicBashStunChance(6, 99, 1)).toBe(9.9);

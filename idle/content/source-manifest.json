@@ -58,6 +58,11 @@
       "sha256": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792"
     },
     {
+      "path": "npc/merchants/refine.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/refine.txt",
+      "sha256": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1"
+    },
+    {
       "path": "npc/pre-re/mobs/fields/geffen.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
       "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
@@ -142,6 +147,7 @@
     "Deterministic healing uses midpoints of source ranges.",
     "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
     "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+    "Book 1550 is supplied by the aggregated Idle shop at its pinned 30,000 zeny item_db price because the selected Hercules merchant shop file does not sell books.",
     "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
@@ -6186,8 +6192,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6334,8 +6339,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6361,8 +6365,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6388,8 +6391,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6415,8 +6417,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10672,7 +10673,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "unsupportedReason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13496,6 +13497,12 @@
       "EVENT_"
     ]
   },
+  "npcRepair": {
+    "source": "npc/merchants/refine.txt:1145..1229",
+    "pricePerEquipment": 5000,
+    "repairs": "all broken equipment in one NPC transaction",
+    "discount": false
+  },
   "itemResources": {
     "path": "data/idnum2itemresnametable.txt",
     "encoding": "CP949 (WHATWG euc-kr)",
@@ -13593,6 +13600,30 @@
       "ALL_INCCARRY"
     ],
     "reason": "Family skills disabled for all idle classes; Increase Weight Limit R retained only for Merchant and evolutions. Native MC_INCCARRY preserved."
+  },
+  "bookWeapon": {
+    "source": "db/pre-re/item_db.conf:1550..1582 + job_db.conf:BaseASPD + size_fix.txt:Book",
+    "classes": [
+      "Sage",
+      "Professor",
+      "Priest",
+      "High Priest"
+    ],
+    "shopItem": {
+      "id": 1550,
+      "sourceBuyPrice": 30000,
+      "acquisition": "Idle aggregated shop; npc/merchants/shops.txt contains no Book sale"
+    },
+    "advancedBook": {
+      "masteryAttackPerLevel": 3,
+      "masterySource": "src/map/battle.c:804..806",
+      "aspdRatePerLevel": -5,
+      "aspdRateScale": 1000,
+      "aspdSource": "src/map/status.c:2141..2142",
+      "hitBonus": false
+    },
+    "actorSource": "roBrowserLegacy d88a3cd4 DB/Items/WeaponTable.js:28, DB/Items/WeaponType.js:25",
+    "attackActionSource": "roBrowserLegacy d88a3cd4 DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; direction-group offset 8*11=88"
   },
   "elementalConversion": {
     "sources": [
@@ -13855,8 +13886,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 247,
-    "unsupported": 101,
+    "supported": 252,
+    "unsupported": 96,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -13960,13 +13991,13 @@
       },
       "sage": {
         "sourceTree": 41,
-        "supported": 29,
-        "unsupported": 12
+        "supported": 34,
+        "unsupported": 7
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 36,
-        "unsupported": 13
+        "supported": 41,
+        "unsupported": 8
       },
       "hunter": {
         "sourceTree": 28,
@@ -14172,11 +14203,16 @@
       "HW_MAGICPOWER",
       "HW_NAPALMVULCAN",
       "HW_GRAVITATION",
+      "SA_ADVANCEDBOOK",
       "SA_CASTCANCEL",
       "SA_MAGICROD",
       "SA_SPELLBREAKER",
       "SA_FREECAST",
       "SA_AUTOSPELL",
+      "SA_FLAMELAUNCHER",
+      "SA_FROSTWEAPON",
+      "SA_LIGHTNINGLOADER",
+      "SA_SEISMICWEAPON",
       "SA_DRAGONOLOGY",
       "SA_CREATECON",
       "SA_ELEMENTWATER",
@@ -14388,31 +14424,6 @@
         "skillId": "ganbantein",
         "sourceName": "HW_GANBANTEIN",
         "reason": "Requer remoção de unidades de habilidades em células do mapa."
-      },
-      {
-        "skillId": "sa_advancedbook",
-        "sourceName": "SA_ADVANCEDBOOK",
-        "reason": "Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis."
-      },
-      {
-        "skillId": "flame_enchant",
-        "sourceName": "SA_FLAMELAUNCHER",
-        "reason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem."
-      },
-      {
-        "skillId": "sa_frostweapon",
-        "sourceName": "SA_FROSTWEAPON",
-        "reason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem."
-      },
-      {
-        "skillId": "sa_lightningloader",
-        "sourceName": "SA_LIGHTNINGLOADER",
-        "reason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem."
-      },
-      {
-        "skillId": "sa_seismicweapon",
-        "sourceName": "SA_SEISMICWEAPON",
-        "reason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem."
       },
       {
         "skillId": "sa_volcano",
@@ -14647,7 +14658,7 @@
       {
         "skillId": "bs_repairweapon",
         "sourceName": "BS_REPAIRWEAPON",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+        "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
       },
       {
         "skillId": "bs_greed",
@@ -15348,7 +15359,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "e7697f2524f7e4a26808a8314887a5e72cc47a938e7055e22e39e1824987d551",
+  "rulesSha256": "e2032402473bb397e3f55d8fc7f0a094c0a6b656b79390587c304acd5cd7f294",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15384,6 +15395,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "4721ba0a787358f2dd26d6cf6acd6be3532be3ed78171372e2a647ac25cc56fb",
+  "catalogSha256": "05887687c77dce8a2dadca44725291f694aa5e66f75c74892945200d2e3c95e6",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

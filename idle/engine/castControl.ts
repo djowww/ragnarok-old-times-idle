@@ -7,6 +7,8 @@ import { canPaySkillResources, paySkillResources } from './skillResources.js';
 import { castCancelAdditionalSp, spellBreakerEffects } from './castControlRules.js';
 import { event, random, requireRule } from './state.js';
 import { classicCastTime } from './classic.js';
+import { currentPlayerCast } from './playerCast.js';
+import { cancelSageEnchantCast } from './sageEnchantments.js';
 export type CastSubject = {
     kind: 'player' | 'monster';
     actorId: string;
@@ -16,6 +18,16 @@ export function castControlEligible(s: GameState, c: Catalog, skill: Skill, leve
     return s.hp > 0 && Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel && s.learnedSkills[skill.id] === level && skill.implementation === 'supported' && classSkills(c, s.job).includes(skill.id) &&
         ['hunting', 'challenge'].includes(s.status) && load.weight * 10 < load.maxWeight * 9 && !activePlayerStatus(s, 'SC_SILENCE', at) &&
         !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD'].some(source => classicBuffActive(s, c, source, at));
+}
+export function castCancelEligible(s: GameState, c: Catalog, skill: Skill, level: number, at: number) {
+    if (castControlEligible(s, c, skill, level, at)) return true;
+    const cast = currentPlayerCast(s, at), load = inventoryLoad(s, c);
+    return cast?.kind === 'support' && s.status === 'town' && s.hp > 0 &&
+        Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel && s.learnedSkills[skill.id] === level &&
+        skill.implementation === 'supported' && classSkills(c, s.job).includes(skill.id) &&
+        load.weight * 10 < load.maxWeight * 9 && !activePlayerStatus(s, 'SC_SILENCE', at) &&
+        !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK',
+          'ST_INVISIBILITY', 'NV_TRICKDEAD'].some(source => classicBuffActive(s, c, source, at));
 }
 export function spellBreakerCastMs(s: GameState, c: Catalog, skill: Skill, level: number, at: number) {
     const d = derivedStats(at === s.lastSimulatedAt ? s : { ...s, lastSimulatedAt: at }, c), base = skill.castTimeMs?.[level - 1] ?? 700;
@@ -74,14 +86,17 @@ export function cancelActorCast(s: GameState, c: Catalog, subject: CastSubject, 
     return cast;
 }
 export function useCastCancel(s: GameState, c: Catalog, skill: Skill, level: number, at: number, expectedCastActionId?: string) {
-    const cast = s.battle?.cast;
-    requireRule(castControlEligible(s, c, skill, level, at), 'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
-    requireRule(cast && cast.startedAt <= at && at < cast.endsAt && (expectedCastActionId === undefined || cast.actionId === expectedCastActionId), 'CAST_REQUIRED', 'A conjuração escolhida já terminou ou mudou.');
+    const cast = currentPlayerCast(s, at);
+    requireRule(castCancelEligible(s, c, skill, level, at),
+        'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+    requireRule(cast && (expectedCastActionId === undefined || cast.actionId === expectedCastActionId),
+        'CAST_REQUIRED', 'A conjuração escolhida já terminou ou mudou.');
     requireRule(canPaySkillResources(s, c, skill, level, at), 'SP_REQUIRED', 'Tenha SP suficiente para cancelar a conjuração.');
     const base = c.skills[cast.skillId]?.spCost[cast.level - 1] ?? c.skills[cast.skillId]?.spCost.at(-1) ?? 0;
     paySkillResources(s, c, skill, level, at);
     s.sp = Math.max(0, s.sp - castCancelAdditionalSp(base, level));
-    cancelActorCast(s, c, { kind: 'player', actorId: s.id }, at, 'manual');
+    if (cast.kind === 'support') cancelSageEnchantCast(s, c, at, 'Conjuração cancelada por Cast Cancel.');
+    else cancelActorCast(s, c, { kind: 'player', actorId: s.id }, at, 'manual');
     event(s, at, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level, sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
 }
 export function resolveSpellBreaker(s: GameState, c: Catalog, skill: Skill, level: number, enemy: BattleEnemy, at: number) {

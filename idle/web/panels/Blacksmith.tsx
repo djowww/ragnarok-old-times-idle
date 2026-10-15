@@ -8,12 +8,19 @@ const ORE_IDS = [984, 985] as const;
 export default function Blacksmith({ catalog, snapshot, busy, command }: PanelProps) {
   const { state } = snapshot;
   const town = state.status === "town";
+  const brokenEquipment = state.inventory.filter(entry => entry.broken && catalog.items[entry.itemId]?.type === "equipment");
+  const repairCost = brokenEquipment.length * 5000;
   const oreQuantity = (id: number) => state.inventory
     .filter(entry => entry.itemId === id)
     .reduce((total, entry) => total + entry.quantity, 0);
   const refinable = state.inventory.filter(entry => {
     const item = catalog.items[entry.itemId];
-    return item?.type === "equipment" && item.equipSupported !== false && item.slot &&
+    return !entry.broken && item?.type === "equipment" && item.equipSupported !== false && item.slot &&
+      item.slot !== "accessory" && item.refinable !== false && entry.refine < 7 && isItemIdentified(entry);
+  });
+  const repairFirst = state.inventory.some(entry => {
+    const item = catalog.items[entry.itemId];
+    return entry.broken && item?.type === "equipment" && item.equipSupported !== false && item.slot &&
       item.slot !== "accessory" && item.refinable !== false && entry.refine < 7 && isItemIdentified(entry);
   });
 
@@ -22,6 +29,18 @@ export default function Blacksmith({ catalog, snapshot, busy, command }: PanelPr
       <span className="service-panel-mark" aria-hidden="true">⚒</span>
       <div><h3>Oficina do ferreiro</h3><p>Minérios e refinamento clássico de equipamentos.</p></div>
     </header>
+    <section className="blacksmith-refine" aria-labelledby="blacksmith-repair-title">
+      <div className="service-section-heading">
+        <div><h4 id="blacksmith-repair-title">Reparo geral</h4>
+          <p>O ferreiro conserta todos os equipamentos quebrados por 5.000 zeny cada.</p></div>
+        <span>{brokenEquipment.length} quebrado(s) · {number(repairCost)} z</span>
+      </div>
+      <button type="button" className="primary" disabled={busy || !town || !brokenEquipment.length || state.zeny < repairCost}
+        title={brokenEquipment.length && state.zeny < repairCost ? "Zeny insuficiente." : undefined}
+        onClick={() => void command({ type: "repairAll" })}>
+        Reparar todos
+      </button>
+    </section>
     <section className="blacksmith-ore-shop" aria-labelledby="blacksmith-ores-title">
       <div className="service-section-heading">
         <div><h4 id="blacksmith-ores-title">Minérios</h4><p>Oridecon para armas · Elunium para armaduras</p></div>
@@ -74,7 +93,8 @@ export default function Blacksmith({ catalog, snapshot, busy, command }: PanelPr
             </button>
           </article>;
         })}
-      </div> : <p className="service-empty-note">Não há equipamento identificado que possa receber outro refino. Equipamentos não identificados devem ser identificados na Mochila primeiro.</p>}
+      </div> : repairFirst ? <p className="service-empty-note">Repare antes de refinar.</p> :
+        <p className="service-empty-note">Não há equipamento identificado que possa receber outro refino. Equipamentos não identificados devem ser identificados na Mochila primeiro.</p>}
     </section>
     {!town && <p className="service-town-note" role="status">O ferreiro atende somente em Prontera.</p>}
   </div>;

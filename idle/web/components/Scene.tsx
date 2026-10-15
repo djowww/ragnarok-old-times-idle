@@ -1,4 +1,5 @@
 import { resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
+import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1229,7 +1230,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && scene !== "town" && current.status !== "challenge";
       // A source cast may already have begun while the previous swing is still
       // being presented. Its body and facing wait for the current visual turn.
-      const casting = !soloPosture.playDead && !groupHeroCue && current.battle?.cast && serverNow < current.battle.cast.endsAt ? current.battle.cast : undefined;
+      const casting = !soloPosture.playDead && !groupHeroCue ? currentPlayerCast(current, serverNow) : undefined;
       const facingTargetId = casting?.targetId ?? groupHeroCue?.effectEnemyId ?? groupHeroCue?.enemyId ?? current.battle?.targetId;
       const primaryEnemy = groupEnemies.find((entry) => entry.enemy.id === facingTargetId) ??
         groupEnemies.find((entry) => entry.enemy.id === current.battle?.targetId) ??
@@ -1780,7 +1781,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       }
       if (casting) {
         const skill = castingSkill;
-        const target = groupPositions.get(casting.targetId);
+        const target = casting.targetId ? groupPositions.get(casting.targetId) : undefined;
         const groundTarget = castPoint ? { x: castPlacement?.x ?? castPoint.x * width, y: castPlacement?.y ?? castPoint.y * height } : undefined;
         if (skill) drawSkillEffect(ctx, assets, {
           skillId: skill.id, sourceName: skill.sourceName, name: skill.name,
@@ -1802,6 +1803,29 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         ctx.strokeStyle = "#d2e4d5";
         ctx.lineWidth = 1;
         ctx.strokeRect(heroX - 40, barY, 80, 7);
+      }
+      const supportCasting = !casting && current.supportCast &&
+        current.supportCast.startedAt <= serverNow && serverNow < current.supportCast.endsAt
+        ? current.supportCast : undefined;
+      const supportSkill = supportCasting ? catalog.skills[supportCasting.skillId] : undefined;
+      if (supportCasting && supportSkill) {
+        const progress = Math.max(0, Math.min(1,
+          (serverNow - supportCasting.startedAt) / Math.max(1, supportCasting.endsAt - supportCasting.startedAt)));
+        const centerY = heroGround - heroVisualHeight * 0.55;
+        const pulse = motion.matches ? 1 : 0.65 + 0.35 * Math.sin((serverNow - supportCasting.startedAt) / 140);
+        ctx.save();
+        ctx.globalAlpha = 0.3 + 0.35 * pulse;
+        ctx.strokeStyle = supportSkill.element === 'fire' ? '#ff9a52' : supportSkill.element === 'water' ? '#70d9ee' :
+          supportSkill.element === 'wind' ? '#c5ee91' : '#e2be80';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(heroX, centerY, 13 + 5 * pulse, 5 + 3 * pulse, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        const barY = heroGround - heroVisualHeight - 14;
+        ctx.fillStyle = '#18323bbf'; ctx.fillRect(heroX - 40, barY, 80, 7);
+        ctx.fillStyle = '#85d4e9'; ctx.fillRect(heroX - 39, barY + 1, 78 * progress, 5);
+        ctx.strokeStyle = '#d2e4d5'; ctx.lineWidth = 1; ctx.strokeRect(heroX - 40, barY, 80, 7);
       }
       for (const enemy of current.battle?.enemies ?? []) {
         const progress = npcStatusCastProgress(enemy, current.id, current.areaId, serverNow), position = groupPositions.get(enemy.id);
