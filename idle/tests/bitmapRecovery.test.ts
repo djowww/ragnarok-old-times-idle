@@ -20,6 +20,17 @@ function canvas() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('bitmap requests recover after a failed load', () => {
+  it('requests a CPU readback canvas for native bitmap encoding', async () => {
+    const getContext = vi.fn(() => ({
+      createImageData: () => ({ data: new Uint8ClampedArray(4) }),
+      putImageData: vi.fn(),
+    }));
+    vi.stubGlobal('document', { createElement: () => ({ getContext, toDataURL: () => png }) });
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(bitmap())));
+    expect(await getBitmapUrl('data/texture/cpu-readback.bmp')).toBe(png);
+    expect(getContext).toHaveBeenCalledWith('2d', { willReadFrequently: true });
+  });
+
   it('shares an in-flight request and retains a decoded successful bitmap', async () => {
     const draw = canvas();
     let resolve!: (response: Response) => void;

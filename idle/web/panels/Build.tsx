@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import {detectingCanStart} from '../../engine/falconDetect';
 import {canEquipFalcon,isFalconEquipped,FALCON_RENTAL_ZENY} from '../../engine/falcon';
 import { chasewalkCanStart } from '../../engine/chasewalk';
@@ -10,7 +11,7 @@ import { classSkills } from "../../engine/stats";
 import { classicCastTime } from "../../engine/classic";
 import { automaticSpellChoices } from "../../engine/sageCasting";
 import { classicBuffActive } from "../../engine/classicBuffs";
-import { canPaySkillResources } from '../../engine/skillResources';
+import { canPaySkillResources, skillResourceCosts } from '../../engine/skillResources';
 import { castCancelEligible } from '../../engine/castControl';
 import { castCancelAdditionalSp } from '../../engine/castControlRules';
 import { currentPlayerCast } from '../../engine/playerCast';
@@ -39,8 +40,11 @@ export default function Build({
   mode = "all",
   onOpenConverters,
   onOpenPharmacy,
-}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenPharmacy?: (trigger: HTMLElement) => void }) {
+  onOpenWeaponRefine,
+}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void }) {
   const { state, stats } = snapshot;
+  const openingRefine = useRef(false);
+  const [refineOpening, setRefineOpening] = useState(false);
   const manualSilenced = activePlayerStatus(state, 'SC_SILENCE', snapshot.serverTime);
   const ids = new Set(classSkills(catalog, state.job));
   const copy = copiedSpell(state, catalog);
@@ -246,6 +250,25 @@ export default function Build({
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
+                    {skill.manualUse === "weaponRefine" && <div className="weapon-refine-launch">
+                      <button type="button" disabled={busy || refineOpening || unsupported || level === 0 || !onOpenWeaponRefine ||
+                        (!state.weaponRefineMenu && (state.status === 'resting' || state.hp <= 0 || manualSilenced ||
+                          !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)))}
+                        onClick={async event => {
+                          if (openingRefine.current || busy || !onOpenWeaponRefine) return;
+                          const trigger = event.currentTarget;
+                          if (state.weaponRefineMenu) { onOpenWeaponRefine(trigger); return; }
+                          if (state.status === 'resting') return;
+                          openingRefine.current = true; setRefineOpening(true);
+                          try {
+                            if (await command({type: 'useSkill', skillId: skill.id})) onOpenWeaponRefine(trigger);
+                          } finally { openingRefine.current = false; setRefineOpening(false); }
+                        }}>
+                        {refineOpening ? 'Abrindo…' : state.weaponRefineMenu ? 'Retomar refino' : 'Refinar arma'}
+                      </button>
+                      <small>{state.weaponRefineMenu ? 'SP já pago. Retome a seleção sem novo custo.' :
+                        `${skillResourceCosts(state, catalog, skill, Math.max(1, level), snapshot.serverTime)?.sp ?? spCost} SP para abrir o menu`}</small>
+                    </div>}
                     {skill.manualUse === "inventory" && <small>Use na mochila para identificar equipamentos.</small>}
                     {skill.sourceName === 'HT_DETECTING' && <button type="button"
                       disabled={busy || !detectingCanStart(state,catalog,skill,level,snapshot.serverTime)}

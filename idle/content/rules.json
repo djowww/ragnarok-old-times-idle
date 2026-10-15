@@ -2461,7 +2461,10 @@
     "src/map/map.h": "8630c59ed86d3101261f5b8a30fd93956364a607fdc752f8ddb7ac43f50dc2e6",
     "conf/map/battle/player.conf": "4f94e006aaf1dfe38362a0d06c157d0c2a87a9c364fe8bc18377839efa8953b9",
     "conf/map/battle/skill.conf": "04ae7b40ddb6ff0aed6759c0b074d8a57c7090088fbf58cb4ff2eda5cfe84533",
-    "conf/map/battle/battle.conf": "4786220d83b0ef3c12e186f01483eb72dc371d8e72a3009a5435eec9e764e9ef"
+    "conf/map/battle/battle.conf": "4786220d83b0ef3c12e186f01483eb72dc371d8e72a3009a5435eec9e764e9ef",
+    "db/pre-re/refine_db.conf": "379b165bb1885627a7d0838ace7a9c6c6748e2ef5eb6a02d540aeb5d29c9349e",
+    "src/map/refine.c": "f37278ea0f021009c6a5a75983cbc44fed2bcd62c3767f05481c6303005a0bc0",
+    "src/map/clif.h": "625470b65d182fc5bdd3f4c62545d6271bcf6fe041eaa773dd24ce9be88476e3"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",

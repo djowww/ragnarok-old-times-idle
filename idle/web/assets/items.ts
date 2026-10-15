@@ -73,7 +73,8 @@ export function getBitmapUrl(path: string): Promise<string> {
         const canvas = document.createElement('canvas');
         canvas.width = decoded.width;
         canvas.height = decoded.height;
-        const ctx = canvas.getContext('2d');
+        // Icon encoding reads pixels immediately; avoid a synchronous GPU readback.
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx)
             throw new Error('Canvas unavailable');
         const image = ctx.createImageData(decoded.width, decoded.height);

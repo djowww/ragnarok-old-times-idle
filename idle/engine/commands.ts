@@ -1,3 +1,4 @@
+import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
 import {useDetecting} from './falconDetect.js';
 import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
 import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
@@ -107,6 +108,8 @@ export function executeCommand(
     requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
   }
   switch (command.type) {
+    case 'weaponRefine': answerWeaponRefine(s,c,command.menuId,command.uid,now);break;
+    case 'cancelWeaponRefine': cancelWeaponRefine(s,c,command.menuId,now);break;
     case 'consumeItem': {
       consumeItem(s,c,command.uid,now);
       break;
@@ -148,6 +151,7 @@ export function executeCommand(
       break;
     }
     case 'useSkill': {
+      if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
       if (skill?.sourceName === 'HT_DETECTING') {
         requireRule(useDetecting(s,c,skill,level,now),'SKILL_UNAVAILABLE',
@@ -971,6 +975,8 @@ export function executeCommand(
     default:
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
+  if(command.type==='teleport'&&s.weaponRefineMenu){const id=s.weaponRefineMenu.id;cancelWeaponRefine(s,c,id,now);}
+  reconcileWeaponRefine(s,c,now);
   reconcileFalcon(s,c);
   discardAloeveraUnderAutoBerserk(s,c,now);
   if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
