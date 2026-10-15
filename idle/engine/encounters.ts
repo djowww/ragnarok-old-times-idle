@@ -1,3 +1,6 @@
+import { applyMeltdownHit } from './meltdown.js';
+import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
+import { soloAlchemyAfkUseful, startSoloAlchemyCast } from './soloAlchemy.js';
 import type {
   BattleEnemy,
   Battle,
@@ -734,14 +737,14 @@ function updateFieldActors(s: GameState, c: Catalog, at: number, context?: Simul
   const offensive = !activeCast && at >= (b.playerNextSkillAt ?? 0) ? chooseSkill(s, c, at, target, true, true, context) : undefined;
   const movementTarget = offensive?.sourceName === 'BA_PANGVOICE' ? pangVoiceTarget(s, c, at) ?? target
     : offensive?.sourceName === 'DC_WINKCHARM' ? winkCharmTarget(s, c, at) ?? target : target;
-  const inRange = offensive ? skillTargetInRange(s, c, offensive, effectiveSkillLevel(s, c, offensive.id), movementTarget, at)
+  const inRange = offensive ? skillTargetInRange(s, c, offensive, skillUseLevel(s, c, offensive.id), movementTarget, at)
     : playerBattleDistance(heroPoint, enemyPositionAt(movementTarget, at)) <= basicAttackRange(s, c);
   if (inRange) {
     freezeFieldHero(s, at); hero.phase = "fighting";
   } else if (classicBuffActive(s, c, "TF_HIDING", at) && !(learnedBySource(s, c).RG_TUNNELDRIVE > 0)) {
     freezeFieldHero(s, at); hero.phase = "waiting";
   } else {
-    const range = offensive ? skillAttackRange(s, c, offensive, effectiveSkillLevel(s, c, offensive.id)) : basicAttackRange(s, c);
+    const range = offensive ? skillAttackRange(s, c, offensive, skillUseLevel(s, c, offensive.id)) : basicAttackRange(s, c);
     const enemyPoint = enemyPositionAt(movementTarget, at);
     const routed = moveOnFieldRoute(hero, context, s.areaId!, heroPoint, enemyPoint, `enemy:${movementTarget.id}`,
       range, 'player', playerWalkSpeed(s, c, at), at);
@@ -1231,7 +1234,7 @@ function chooseSkill(
   const type = entry ? c.items[entry.itemId]?.weaponType : undefined;
   for (const id of s.rotation) {
     const skill = c.skills[id],
-      level = effectiveSkillLevel(s, c, id);
+      level = skillUseLevel(s, c, id);
     if (skill?.sourceName === 'KN_AUTOCOUNTER' && type === 'bow') continue;
     if (skill?.sourceName === 'CR_SHRINK') {
       const autoGuard = Object.values(c.skills).find(candidate => candidate.sourceName === 'CR_AUTOGUARD');
@@ -1257,7 +1260,7 @@ function chooseSkill(
       !skill ||
       !level ||
       skill.kind === "passive" ||
-      skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
+      skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
@@ -1265,6 +1268,7 @@ function chooseSkill(
       (s.skillReadyAt[id] ?? 0) > at
     )
       continue;
+    if (configurableSkillUseLevel(skill) && !soloAlchemyAfkUseful(s, c, skill, level, at)) continue;
     if (skill.targetType === 'enemy' && target.hp <= 0) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
     if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
@@ -1331,7 +1335,7 @@ function chooseSkill(
     if (skill.sourceName === 'AL_RUWACH' && (classicBuffActive(s, c, 'AL_RUWACH', at) ||
       !ruwachTargetWithinAura(s, skill, level, at))) continue;
     if (!['WZ_SIGHTBLASTER', 'AL_RUWACH'].includes(skill.sourceName ?? '') && !winkCharm &&
-      !breaker && !sageEnchant && !sageField && !treatment && !priestControl && !pangVoice && !conversion &&
+      !breaker && !sageEnchant && !sageField && !configurableSkillUseLevel(skill) && !treatment && !priestControl && !pangVoice && !conversion &&
       !ignoreRange && !skillTargetInRange(s, c, skill, level, target, at)) continue;
     if (skill.sourceName === "AL_CRUCIS" && !targets(s, skill, level, target, at).some((enemy) =>
       classicCrucisAffects(combatStatus(c,enemy,at).monster) &&
@@ -1398,7 +1402,7 @@ function chooseSkill(
       )
         continue;
     }
-    if (skill.kind === "heal" && s.hp > d.maxHp * 0.7) continue;
+    if (skill.kind === "heal" && skill.sourceName !== "AM_POTIONPITCHER" && s.hp > d.maxHp * 0.7) continue;
     if (
       !conversion && !pangVoice && !winkCharm && skill.statusEffect &&
       skill.targetType === "enemy" &&
@@ -1937,6 +1941,7 @@ function damageEnemies(
       },
     );
     if (skill?.sourceName === 'PA_SACRIFICE') {
+      applyMeltdownHit(s, c, enemy, at, damage, skill);
       const playerHpBefore = s.hp;
       s.hp = Math.max(0, s.hp - sacrificeHpCost(d.maxHp));
       event(s, at, 'damage', 'Custo próprio do Sacrifício do Mártir', playerHpBefore - s.hp, 'player', {
@@ -2001,6 +2006,7 @@ function damageEnemies(
         }
       }
     }
+    applyMeltdownHit(s, c, enemy, at, damage, skill);
     if (enemy.hp <= 0 && s.battle) awardKill(s, c, enemy, at, skill);
     else if (skill?.sourceName === 'KN_BRANDISHSPEAR' && damage > 0 && !monster.boss && !monster.noKnockback &&
       !c.areas.find(area => area.id === s.areaId)?.noKnockback) {
@@ -3138,11 +3144,15 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
   const skill = skillDecisionDue ? chooseSkill(s, c, at, target, false, false, context) : undefined;
   if (skill) {
+    if (configurableSkillUseLevel(skill)) {
+      startSoloAlchemyCast(s, c, skill, skillUseLevel(s, c, skill.id), at);
+      return;
+    }
     if (sageFieldSource(skill.sourceName)) {
       startSageFieldCast(s, c, skill, s.learnedSkills[skill.id], at, context);
       return;
     }
-    if (['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '')) {
+    if (['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '')) {
       const level = s.learnedSkills[skill.id];
       startSageEnchantCast(s, c, skill, level, at);
       return;
@@ -3160,7 +3170,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       ['BA_PANGVOICE', 'DC_WINKCHARM'].includes(skill.sourceName ?? ''))
       provokeEnemy(s, c, target, at);
     if (skill.sourceName !== "AS_CLOAKING") cancelClassicBuff(s, c, "AS_CLOAKING");
-    const level = effectiveSkillLevel(s, c, skill.id);
+    const level = skillUseLevel(s, c, skill.id);
     const base = val(skill.castTimeMs, level) *
       (skill.sourceName === "MO_FINGEROFFENSIVE" ? 1 + Math.min(level, s.combatEffects?.spiritSpheres ?? 0) : 1);
     let castMs = skill.sourceName === "MO_EXTREMITYFIST" && s.combatEffects?.combo &&

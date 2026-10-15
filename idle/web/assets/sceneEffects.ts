@@ -17,13 +17,15 @@ const BOLT_STAGGER_MS = 60;
 const BOLT_IMPACT_GLOW_MS = 160;
 const MAX_VISIBLE_BOLTS = 5;
 export const EMOTE_ACTIONS = [0, 1, 2, 3, 18, 21, 33] as const;
-export function combatPopupText(event: Pick<GameEvent, 'kind' | 'target' | 'amount' | 'itemId' | 'quantity'>): string {
+export function combatPopupText(event: Pick<GameEvent, 'kind' | 'target' | 'amount' | 'resource' | 'itemId' | 'quantity'>): string {
   if (event.kind === 'skill' && event.target === 'player' && event.itemId === 7049)
     return `Pedra +${event.quantity ?? event.amount ?? 1}`;
+  if (event.kind === 'heal' && event.target === 'player')
+    return event.resource === 'sp' ? `SP +${event.amount}` : `+${event.amount}`;
   return event.kind === 'skill' && event.target === 'player' ? `+${event.amount}` : `${event.amount}`;
 }
 
-type Tint = 'enemy' | 'player' | 'heal' | 'critical';
+type Tint = 'enemy' | 'player' | 'heal' | 'sp' | 'critical';
 type Digits = Record<Tint, HTMLCanvasElement[]>;
 
 export interface SceneEffects {
@@ -51,6 +53,7 @@ export interface DamagePopup {
   x: number;
   y: number;
   elapsedMs: number;
+  resource?: 'hp' | 'sp';
   reducedMotion?: boolean;
 }
 
@@ -127,6 +130,7 @@ async function loadDigits(): Promise<Digits> {
     enemy: sprite.frames.map((frame) => tintFrame(frame, [1, 1, 1])),
     player: sprite.frames.map((frame) => tintFrame(frame, [1, 0.08, 0.08])),
     heal: sprite.frames.map((frame) => tintFrame(frame, [0.08, 1, 0.08])),
+    sp: sprite.frames.map((frame) => tintFrame(frame, [0.15, 0.55, 1])),
     critical: sprite.frames.map((frame) => tintFrame(frame, [0.9, 0.9, 0.15])),
   };
 }
@@ -302,8 +306,9 @@ export function drawDamagePopup(ctx: CanvasRenderingContext2D, assets: SceneEffe
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(frame, x + drift - frame.width / 2, y - rise - frame.height / 2);
   } else {
-    const heal = text.startsWith('+');
-    const tint: Tint = heal ? 'heal' : cue.critical ? 'critical' : cue.target;
+    const spRecovery = cue.resource === 'sp';
+    const heal = text.startsWith('+') || spRecovery;
+    const tint: Tint = spRecovery ? 'sp' : heal ? 'heal' : cue.critical ? 'critical' : cue.target;
     const digitFrames = assets?.digits?.[tint];
     const numeric = text.replace(/[^0-9]/g, '');
     if (digitFrames && numeric) {
@@ -322,8 +327,8 @@ export function drawDamagePopup(ctx: CanvasRenderingContext2D, assets: SceneEffe
       ctx.font = 'bold 20px Tahoma, sans-serif';
       ctx.textAlign = 'center';
       ctx.lineWidth = 3;
-      ctx.strokeStyle = '#25302b';
-      ctx.fillStyle = heal ? '#77f173' : cue.critical ? '#ffe653' : cue.target === 'player' ? '#ff8171' : '#fff7d9';
+      ctx.strokeStyle = spRecovery ? '#3979a5' : '#25302b';
+      ctx.fillStyle = spRecovery ? '#80caff' : heal ? '#77f173' : cue.critical ? '#ffe653' : cue.target === 'player' ? '#ff8171' : '#fff7d9';
       ctx.strokeText(text, x + drift, y - rise);
       ctx.fillText(text, x + drift, y - rise);
     }

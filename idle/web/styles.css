@@ -1567,6 +1567,24 @@ button.full {
   font-size: 10px;
   color: #7c896e;
 }
+.skill-use-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 5px 0;
+  color: #687561;
+  font-size: 10px;
+}
+.skill-use-level select {
+  min-height: 24px;
+  padding: 2px 5px;
+  border: 1px solid #bdc7ad;
+  border-radius: 3px;
+  background: #f5f6e9;
+  color: #425849;
+  font: inherit;
+}
+.skill-use-level select:disabled { opacity: 0.65; }
 .skill-description .action-row {
   gap: 4px;
 }

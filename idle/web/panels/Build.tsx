@@ -21,6 +21,7 @@ import { backslidingStatusBlocked } from '../../engine/backsliding';
 import { activePlayerStatus } from '../../engine/playerStatuses';
 import type { GameCommand } from '../../shared/types';
 import { copiedSpell, effectiveSkillLevel } from '../../shared/copiedSkills';
+import { configurableSkillUseLevel, skillUseLevel } from '../../shared/skillUseLevels';
 import '../styles/sage-enchant.css';
 import '../styles/rogue-copy.css';
 
@@ -59,7 +60,11 @@ export default function Build({
           {skills.map((skill) => {
             const isCopy = copy?.skill.id === skill.id;
             const level = effectiveSkillLevel(state, catalog, skill.id);
-            const costAt = Math.max(0, level - 1);
+            const configurableUseLevel = configurableSkillUseLevel(skill);
+            const useLevel = skillUseLevel(state, catalog, skill.id);
+            const preferredUseLevel = state.skillUseLevels?.[skill.id];
+            const useLevelValue = preferredUseLevel == null ? 'max' : String(useLevel);
+            const costAt = Math.max(0, useLevel - 1);
             const active = rotation.includes(skill.id);
             const unsupported = skill.implementation === "unsupported";
             const ownCast=currentPlayerCast(state,snapshot.serverTime);
@@ -87,7 +92,7 @@ export default function Build({
             const toggleAvailable = chasewalkSkill ? chasewalkCanStart(state, catalog, skill, level, snapshot.serverTime) : toggleActive ||
               (!trickDeadSkill || state.hp > 0 &&
                 (state.status === 'hunting' || state.status === 'resting' && state.restMode === 'field')) &&
-              canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
+              canPaySkillResources(state, catalog, skill, useLevel, snapshot.serverTime);
             const magicRodActivationBlocked = manualSilenced || !!state.battle?.cast ||
               ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
                 .some(source => classicBuffActive(state, catalog, source, snapshot.serverTime));
@@ -123,6 +128,8 @@ export default function Build({
               hits > 1 ? `${hits} golpes` : "",
               area > 0 ? `Área ${area} células` : "",
               range > 1 ? `Alcance ${range} células` : "",
+              configurableUseLevel && skill.sourceName === 'WS_MELTDOWN' && skill.statusDurationMs?.[costAt]
+                ? `${(skill.statusDurationMs[costAt] / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}s de duração` : "",
             ].filter(Boolean);
             return (
               <article className="skill-row" key={skill.id}>
@@ -138,6 +145,23 @@ export default function Build({
                     </span>
                   </h4>
                   <p>{skill.description}</p>
+                  {configurableUseLevel && level > 0 && <label className="skill-use-level">
+                    <span>Nível de uso</span>
+                    <select aria-label={`Nível de uso de ${skill.name}`} disabled={busy || unsupported}
+                      value={useLevelValue}
+                      onChange={event => void command({ type: 'setSkillUseLevel', skillId: skill.id,
+                        level: event.currentTarget.value === 'max' ? null : Number(event.currentTarget.value) })}>
+                      <option value="max">Máximo (Nv. {level})</option>
+                      {Array.from({ length: level }, (_, index) => {
+                        const item = skill.sourceName === 'AM_POTIONPITCHER'
+                          ? skill.itemCostByLevel?.[index]?.[0] : undefined;
+                        const itemName = item ? catalog.items[item.itemId]?.name : undefined;
+                        return <option key={index + 1} value={index + 1}>
+                          {`Nv. ${index + 1}${itemName ? ` · ${itemName}` : ''}`}
+                        </option>;
+                      })}
+                    </select>
+                  </label>}
                   {isCopy && <small className="copied-skill-note">Obtida por Plágio. Não consome pontos; uma nova magia recebida pode substituí-la.</small>}
                   {skill.sourceName === 'ST_PRESERVE' && toggleActive && <small role="status">
                     Preservar ativo · {Math.ceil((state.buffs[skill.id].expiresAt - snapshot.serverTime) / 1000)} s
@@ -217,6 +241,11 @@ export default function Build({
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "inventory" && <small>Use na mochila para identificar equipamentos.</small>}
+                    {configurableUseLevel && <button type="button"
+                      disabled={busy || unsupported || level === 0 || missingPrerequisites || missingJobLevel || !ids.has(skill.id)}
+                      onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                      Usar Nv. {useLevel}
+                    </button>}
                     {skill.manualUse === "mount" && <button disabled={busy || unsupported || level === 0}
                       aria-pressed={mounted}
                       onClick={() => void command({ type: 'setMount', mounted: !mounted })}>
@@ -288,10 +317,10 @@ export default function Build({
                       onClick={() => void command({ type: chasewalkSkill ? 'useSkill' : 'toggleBuff', skillId: skill.id })}>
                       {trickDeadSkill ? toggleActive ? 'Levantar' : 'Fingir de morto' : toggleActive ? 'Desativar' : 'Ativar'}
                     </button>}
-                    {skill.kind !== "passive" && skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||
+                    {skill.kind !== "passive" && (configurableUseLevel || skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||
                       sageGroundSkill ||
                       skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate' ||
-                      skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && (
+                      skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate')) && (
                       <button
                         disabled={
                           busy ||

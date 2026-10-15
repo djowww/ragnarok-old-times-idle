@@ -1,4 +1,6 @@
 import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
+import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
+import { soloAlchemyCanStart, startSoloAlchemyCast } from './soloAlchemy.js';
 import { effectiveSkillLevel } from '../shared/copiedSkills.js';
 import { clearCopiedSpell } from './plagiarism.js';
 import {
@@ -123,7 +125,14 @@ export function executeCommand(
       break;
     }
     case 'useSkill': {
-      const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+      const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
+      if (configurableSkillUseLevel(skill)) {
+        requireRule(soloAlchemyCanStart(s, c, skill, level, now), 'SKILL_UNAVAILABLE',
+          'Aprenda a habilidade, tenha SP e a poção correta, e esteja livre para usá-la.');
+        requireRule(startSoloAlchemyCast(s, c, skill, level, now), 'SKILL_UNAVAILABLE',
+          'Não foi possível iniciar a habilidade.');
+        break;
+      }
       if (skill?.sourceName === 'ST_CHASEWALK') {
         requireRule(chasewalkCanStart(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'Tenha 10 SP, esteja vivo e livre para conjurar Furtividade.');
         requireRule(startChasewalkCast(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'Não foi possível iniciar Furtividade.');
@@ -544,6 +553,18 @@ export function executeCommand(
       s.skillPoints--;
       break;
     }
+    case 'setSkillUseLevel': {
+      const skill = c.skills[command.skillId], learned = s.learnedSkills[command.skillId] ?? 0;
+      requireRule(configurableSkillUseLevel(skill) && skill.implementation === 'supported' &&
+        classSkills(c, s.job).includes(skill.id) && Number.isSafeInteger(learned) && learned > 0,
+        'SKILL_UNAVAILABLE', 'Aprenda uma habilidade disponível com seleção de nível.');
+      requireRule(command.level === null || Number.isSafeInteger(command.level) && command.level >= 1 &&
+        command.level <= Math.min(learned, skill.maxLevel), 'INVALID_SKILL_LEVEL', 'Escolha um nível aprendido.');
+      if (command.level === null) {
+        if (s.skillUseLevels) { delete s.skillUseLevels[skill.id]; if (!Object.keys(s.skillUseLevels).length) delete s.skillUseLevels; }
+      } else (s.skillUseLevels ??= {})[skill.id] = command.level;
+      break;
+    }
     case "setRotation": {
       requireRule(
         Array.isArray(command.skillIds) &&
@@ -562,7 +583,7 @@ export function executeCommand(
             c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate' ||
-            ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(c.skills[id].sourceName ?? '')) &&
+            ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(c.skills[id].sourceName ?? '')) &&
             c.skills[id].implementation !== "unsupported",
           "INVALID_ROTATION",
           "A rotação exige habilidades ativas disponíveis e aprendidas.",
@@ -840,6 +861,7 @@ export function executeCommand(
         (id) => c.skills[id]?.kind === "heal",
       );
       s.learnedSkills = firstAid ? { [firstAid]: 1 } : {};
+      delete s.skillUseLevels;
       s.rotation = firstAid ? [firstAid] : [];
       s.skillReadyAt = {};
       s.buffs = {};

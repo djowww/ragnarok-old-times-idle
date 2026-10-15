@@ -557,6 +557,8 @@ export interface GameEvent {
   kind: string;
   text: string;
   amount?: number;
+  /** Restoration resource; absent on historical HP heal events. */
+  resource?: 'hp' | 'sp';
   target?: "player" | "enemy";
   /** Optional presentation metadata. Older persisted events remain valid. */
   skillId?: string;
@@ -667,6 +669,8 @@ export interface GameState {
   statPoints: number;
   skillPoints: number;
   learnedSkills: Record<string, number>;
+  /** Optional cast preferences; absence means the maximum learned level. */
+  skillUseLevels?: Record<string, number>;
   /** Temporary Plagiarism overlay, independent of paid skill levels and points. */
   copiedSkill?: { skillId: string; level: number };
   rotation: string[];
@@ -846,6 +850,7 @@ export type GameCommand =
   | { type: "allocate"; stat: Stat; amount: number }
   | { type: "learnSkill"; skillId: string }
   | { type: "setRotation"; skillIds: string[] }
+  | { type: "setSkillUseLevel"; skillId: string; level: number | null }
   | { type: "setAutospell"; skillId: string | null }
   | { type: "cancelBuff"; skillId: string }
   | { type: "toggleBuff"; skillId: string }

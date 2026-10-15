@@ -1,3 +1,4 @@
+import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import catalog from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
@@ -9,7 +10,7 @@ const candidate = catalog as unknown as Catalog;
 
 describe('Guardian and Sacrifice content promotion', () => {
   it('adds Guardian, Sacrifice, Trick Dead and Free Cast to the frozen 230-skill source catalog', () => {
-    const supported = Object.values(candidate.skills)
+    const supported = Object.values(beforeSoloAlchemySkills(candidate.skills))
       .filter(skill => skill.implementation === 'supported')
       .map(skill => skill.sourceName!)
       .sort();
@@ -18,7 +19,7 @@ describe('Guardian and Sacrifice content promotion', () => {
     expect(supported.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'AL_TELEPORT', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
     expect(Object.keys(candidate.skills)).toHaveLength(348);
     expect(Object.keys(candidate.classes)).toHaveLength(40);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 260, unsupported: 88 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 262, unsupported: 86 });
   });
 
   it('preserves the pinned source rows and keeps Devotion study-only', () => {
