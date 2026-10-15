@@ -172,6 +172,14 @@ describe('combat presentation', () => {
     expect(marks.get('hero').actionId).toBe('next');
     expect(presentedActorActionAt([first, next, late], 'hero', 1100)?.actionId).toBe('first');
   });
+  it('rebases delayed field strikes inside the extended replay window', () => {
+    const delayed = cue(3000, 300);
+    presentActions([delayed], new Map(), 1000, [], 4000);
+    expect(delayed.start).toBe(1000);
+    expect(delayed.impact).toBe(1150);
+    expect((delayed as typeof delayed & { presented?: boolean }).presented).toBe(true);
+  });
+
   it('leaves passive effect ticks and stale actions on their original clocks', () => {
     const stale = cue(2400);
     const tick = { ...cue(), sourceActorId: 'effect', actorAction: 'none' as const };

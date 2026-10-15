@@ -138,6 +138,7 @@ function maxFiniteDuration(...values: number[]): number {
 
 export function presentLatestActorActions<T extends PresentedActorAction>(
   cues: T[], watermarks: Map<string, ActorActionWatermark>, now: number, retained: T[] = [],
+  replayWindowMs = 2000,
 ): Map<number, number> {
   const moved = new Map<number, number>();
   const actors = new Map<string, Map<string, T>>();
@@ -153,7 +154,7 @@ export function presentLatestActorActions<T extends PresentedActorAction>(
     const ordered = [...actions.values()].sort((a, b) => a.actionAt - b.actionAt || a.id - b.id);
     // Live batches have a short history, a bounded action count and a bounded
     // future wait. Reconnect/catch-up cannot grow a seconds-long combat replay.
-    const eligible = new Set(ordered.filter(cue => now - cue.start <= 2000).slice(-3));
+    const eligible = new Set(ordered.filter(cue => now - cue.start <= replayWindowMs).slice(-3));
     for (const cue of ordered) {
       const previous = watermarks.get(cue.sourceActorId);
       const existing = retained.find(entry => entry.sourceActorId === cue.sourceActorId &&

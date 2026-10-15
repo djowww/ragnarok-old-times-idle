@@ -1082,7 +1082,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       batchCues.splice(0,batchCues.length,...retainedCastCues);
       retireTrickDeadPoses(combatCues.current, newEvents, actionWatermarks.current, now);
       retireTrickDeadPoses(batchCues, newEvents, actionWatermarks.current, now);
-      shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current));
+      shiftPresentationAssociates(presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current, 4000));
       for (const cue of batchCues) {
         const popup = effects.current.find(effect => effect.id === cue.id);
         if (popup) popup.start = cue.impact;
