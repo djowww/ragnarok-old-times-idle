@@ -32,7 +32,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "9d3c7b631091674a448b115b8fba10642319e3bd8a14dc7dd927758ace6eb133"
+    "hash": "82d4017f359818443fb41d68a02b1f7d57722e1a102157f5cad5801662929066"
   },
   "rates": {
     "baseExp": 4,
@@ -73075,6 +73075,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "swordsman": [],
@@ -73347,6 +73348,7 @@
       ],
       "targetType": "self",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "bash",
@@ -74049,6 +74051,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "mage": [],
@@ -74480,6 +74483,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "napalm_beat",
@@ -74650,6 +74654,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "mage": [],
@@ -74785,6 +74790,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "cold_bolt",
@@ -75191,6 +75197,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "fire_bolt",
@@ -75361,6 +75368,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "fire_ball",
@@ -75573,6 +75581,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "mage": [],
@@ -75708,6 +75717,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "mage": [],
@@ -75843,6 +75853,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "lightning_bolt",
@@ -76552,6 +76563,7 @@
       "targetType": "enemy",
       "damageType": "weapon",
       "rangeBonusByVulture": true,
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "archer": [],
@@ -77226,6 +77238,7 @@
       ],
       "targetType": "self",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "acolyte": [],
@@ -77686,6 +77699,7 @@
       ],
       "targetType": "support",
       "damageType": "none",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "acolyte": [],
@@ -79752,6 +79766,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "merchant": [],
@@ -80747,6 +80762,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "thief": [],
@@ -82098,6 +82114,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "bash",
@@ -82387,6 +82404,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "knight": [],
@@ -83699,6 +83717,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "cr_autoguard",
@@ -83801,6 +83820,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "cr_shieldcharge",
@@ -84084,6 +84104,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "cr_trust",
@@ -85645,6 +85666,7 @@
       ],
       "targetType": "self",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "lightning_bolt",
@@ -85805,6 +85827,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "sight_rasher",
@@ -86002,6 +86025,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "napalm_beat",
@@ -86160,6 +86184,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "thunder_storm",
@@ -86312,6 +86337,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "cold_bolt",
@@ -86632,6 +86658,7 @@
       ],
       "targetType": "self",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "ice_wall",
@@ -86803,6 +86830,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "frost_diver",
@@ -86943,6 +86971,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "stone_curse",
@@ -87056,6 +87085,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "earth_spike",
@@ -87302,6 +87332,7 @@
       ],
       "targetType": "self",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "wizard": [],
@@ -93423,6 +93454,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "hunter": [],
@@ -98045,6 +98077,7 @@
       ],
       "targetType": "enemy",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "pr_strecovery",
@@ -98467,6 +98500,7 @@
       ],
       "targetType": "support",
       "damageType": "none",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "al_holywater",
@@ -98772,6 +98806,7 @@
       ],
       "targetType": "ground",
       "damageType": "none",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "heal",
@@ -99614,6 +99649,7 @@
       ],
       "targetType": "enemy",
       "damageType": "misc",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "all_resurrection",
@@ -99839,6 +99875,7 @@
       ],
       "targetType": "ground",
       "damageType": "magic",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "safety_wall",
@@ -101078,6 +101115,7 @@
       ],
       "targetType": "passive",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "mo_dodge",
@@ -101405,6 +101443,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "mo_callspirits",
@@ -101506,6 +101545,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "investigate",
@@ -102222,6 +102262,7 @@
       ],
       "targetType": "support",
       "damageType": "none",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "monk": [],
@@ -105884,6 +105925,7 @@
       ],
       "targetType": "ground",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "am_pharmacy",
@@ -106019,6 +106061,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "am_pharmacy",
@@ -109539,6 +109582,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "as_poisonreact",
@@ -109737,6 +109781,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [],
       "prerequisitesByClass": {
         "assassin": [],
@@ -110723,6 +110768,7 @@
       ],
       "targetType": "enemy",
       "damageType": "weapon",
+      "allowPlagiarism": true,
       "prerequisites": [
         {
           "skillId": "snatcher",
@@ -111871,15 +111917,14 @@
     },
     "rg_plagiarism": {
       "id": "rg_plagiarism",
-      "name": "Intimidate",
+      "name": "Plágio",
       "kind": "passive",
       "maxLevel": 10,
       "herculesId": 225,
       "sourceName": "RG_PLAGIARISM",
       "mechanic": "RG_PLAGIARISM",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer habilidades inimigas copiáveis.",
-      "description": "Intimidate. Habilidade passiva. Requer habilidades inimigas copiáveis.",
+      "implementation": "supported",
+      "description": "Copia uma magia de monstro que causar dano sem derrotar você. O nível fica limitado pelo Plágio, sem consumir pontos. Uma nova magia substitui a anterior; receber a mesma não melhora a cópia. As quatro magias de Mago presentes nos ataques NPC são copiáveis; outras fontes ainda não estão simuladas.",
       "iconResource": "data/texture/유저인터페이스/item/rg_plagiarism.bmp",
       "spCost": [
         0,
@@ -112257,15 +112302,14 @@
     },
     "st_preserve": {
       "id": "st_preserve",
-      "name": "Preserve",
+      "name": "Preservar",
       "kind": "buff",
       "maxLevel": 1,
       "herculesId": 475,
       "sourceName": "ST_PRESERVE",
       "mechanic": "ST_PRESERVE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Depende de Intimidate/copiar habilidades.",
-      "description": "Preserve. Aplica PRESERVE. Depende de Intimidate/copiar habilidades.",
+      "implementation": "supported",
+      "description": "Protege a magia copiada contra substituição por dez minutos. Conjuração base de um segundo e custo de 30 SP. A caça automática só ativa após obter uma cópia. O efeito termina na morte, ao sair da conta ou reconectar; a magia copiada continua salva.",
       "iconResource": "data/texture/유저인터페이스/item/st_preserve.bmp",
       "spCost": [
         30

@@ -1,5 +1,6 @@
 import { playerStatusCues } from '../shared/playerStatusView';
 import { treatmentSources, statusTreatmentNeeded } from '../engine/playerStatuses';
+import { copiedSpell, effectiveSkillLevel } from '../shared/copiedSkills';
 import { useEffect, useRef, useState } from "react";
 import type { AccountView } from "../shared/portal-types";
 import { useAuth } from "./portal/AuthProvider";
@@ -88,12 +89,14 @@ function ClassicMenuIcon({ file }: { file: string }) {
     : <span className="ro-book-entry-mark" aria-hidden="true">◇</span>;
 }
 
-function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
-  const level = state.learnedSkills[skill.id] ?? 0;
+export function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
+  const level = effectiveSkillLevel(state, catalog, skill.id);
   const index = Math.max(0, level - 1);
   const sp = Math.max(0, Math.floor((skill.spCost[index] ?? skill.spCost.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.spCostReductionPct ?? 0) / 100)));
   const zeny = skill.zenyCost?.[index] ?? skill.zenyCost?.at(-1) ?? 0;
   const reasons: string[] = [];
+  if (!level || skill.implementation === 'unsupported') reasons.push('habilidade indisponível');
+  if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(state, catalog)) reasons.push('aguardando magia copiada');
   const treatment = treatmentSources.has(skill.sourceName ?? "");
   const treatmentNeeded = treatment && statusTreatmentNeeded(state, catalog, skill, now);
   if (treatment && !treatmentNeeded) reasons.push("aguardando doença tratável no próprio personagem");

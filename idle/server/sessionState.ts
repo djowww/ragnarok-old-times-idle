@@ -5,7 +5,8 @@ import type { StateRepository } from './repository.js';
 export const TRICK_DEAD_BUFF_ID = 'nv_trickdead';
 export const SIGHT_BLASTER_BUFF_ID = 'sight_blaster';
 export const MAGIC_ROD_BUFF_ID = 'sa_magicrod';
-const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID, MAGIC_ROD_BUFF_ID] as const;
+export const PRESERVE_BUFF_ID = 'st_preserve';
+const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID, MAGIC_ROD_BUFF_ID, PRESERVE_BUFF_ID] as const;
 const MAX_REMEMBERED_OPEN_CONNECTIONS = 256;
 type VolatileBuffs = Record<string, GameState['buffs'][string]>;
 type BladeStopStatus = NonNullable<NonNullable<BattleEnemy['statuses']>['SC_BLADESTOP']>;
@@ -52,6 +53,15 @@ export class SessionStateRepository implements StateRepository {
 
   openSession(connectionId: string, action: SyncStateAction): Promise<GameState> {
     return this.withLock(() => this.openSessionUnlocked(connectionId, action));
+  }
+
+  /** Explicit logout releases process-local NoSave state after pending commits. */
+  endSession(): Promise<void> {
+    return this.withLock(async () => {
+      this.volatileBuffs = {};
+      this.volatileBladeStop = { partners: {}, partnerMovement: {} };
+      this.openedConnections.clear();
+    });
   }
 
   read(): Promise<GameState> {
@@ -153,6 +163,7 @@ export class SessionStateRepository implements StateRepository {
     this.stripDurableBladeStop(hydrated, !bladeStop?.link || !Object.keys(bladeStop.partners).length);
     hydrated.buffs ??= {};
     if (buffs) for (const [id, buff] of Object.entries(buffs)) hydrated.buffs[id] = structuredClone(buff);
+    if (buffs?.[PRESERVE_BUFF_ID]) ((hydrated.combatEffects ??= {}).buffLevels ??= {})[PRESERVE_BUFF_ID] = 1;
     if (bladeStop) {
       const effects = (hydrated.combatEffects ??= {});
       if (bladeStop.wait) effects.bladeStopWait = structuredClone(bladeStop.wait);
@@ -226,6 +237,7 @@ export class SessionStateRepository implements StateRepository {
 
   private stripDurableBuff(state: GameState): void {
     if (state.buffs) for (const id of VOLATILE_BUFF_IDS) delete state.buffs[id];
+    if (state.combatEffects?.buffLevels) delete state.combatEffects.buffLevels[PRESERVE_BUFF_ID];
   }
 
   private rememberOpenedConnection(connectionId: string): void {
