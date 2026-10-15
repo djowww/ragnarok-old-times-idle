@@ -82,7 +82,7 @@ for (const [name, value] of Object.entries(jobs))
 const skillByName = Object.fromEntries(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));
 // Source formulas and job bonuses are pinned alongside the databases. They are
 // audited data; the exporter never evaluates Hercules C or item scripts.
-for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'src/map/clif.c']) {
+for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c']) {
     const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
     const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
     if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
@@ -98,6 +98,41 @@ const expectedConverters=[{outputItemId:12114,itemLevel:23,skillId:1007,skillLev
 if(JSON.stringify(converterRecipes)!==JSON.stringify(expectedConverters))throw new Error('Pinned converter recipes differ');
 if(!buffers['npc/merchants/shops.txt'].toString('utf8').includes('sellitem Scroll;'))throw new Error('Pinned Blank Scroll shop absent');
 manifest.converterCraft={recipeSource:'db/produce_db.txt:389..395',shopSource:'npc/merchants/shops.txt:913..916',recipes:converterRecipes,spPerActivation:30,quantityLimit:[1,1000],randomDraws:'1+quantity after validation, even guaranteed100%',acquisitionAdaptation:'Prontera aggregate paid NPC shop:7433/904/947 source prices;946/1013 existing drops',netWeight:true};
+const expectedPharmacyRows = ["501,22,228,1,7144,0,507,1,1093,1", "503,22,228,1,7144,0,508,1,1093,1", "504,22,228,1,7144,0,509,1,1093,1", "505,22,228,1,7144,0,510,1,911,1,1093,1", "545,22,228,1,7133,0,501,1,1092,1,952,1", "546,22,228,1,7133,0,503,1,1092,1,1017,1", "547,22,228,1,7133,0,504,1,1092,1,1061,1", "7135,22,228,1,7128,0,970,1,1059,1,713,1", "7136,22,228,1,7129,0,713,1,929,1", "7137,22,228,1,7130,0,713,1,1032,2", "7138,22,228,1,7131,0,713,1,1050,1,1051,1", "7139,22,228,1,7132,0,970,1,950,1,1044,1,713,1", "12118,22,228,1,7434,0,1012,2,716,1,1093,1", "12119,22,228,1,7434,0,950,3,717,1,1093,1", "12120,22,228,1,7434,0,7126,2,715,1,1093,1", "12121,22,228,1,7434,0,1057,3,717,1,1093,1", "605,22,228,1,7144,0,708,1,970,1,713,1", "606,22,228,1,7144,0,704,1,518,1,713,1", "970,22,228,1,7127,0,713,1,7033,5,905,5,1092,1", "7142,22,228,1,7144,0,7140,1,7141,1,7143,1"];
+const pharmacyRows = buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/).filter(line => /^\d+,\d+,228,/.test(line));
+if (JSON.stringify(pharmacyRows) !== JSON.stringify(expectedPharmacyRows)) throw new Error('Pinned Pharmacy recipes differ');
+const pharmacyRecipes = pharmacyRows.map(line => {
+  const [outputItemId,itemLevel,skillId,skillLevel,...materials]=line.split(',').map(Number),ingredients=[];
+  for(let i=0;i<materials.length;i+=2)ingredients.push({itemId:materials[i],quantity:materials[i+1]});
+  return {outputItemId,itemLevel,skillId,skillLevel,ingredients};
+});
+const pharmacySource=skillByName.AM_PHARMACY;
+if(pharmacySource?.Id!==228||pharmacySource.MaxLevel!==10||pharmacySource.Requirements?.SPCost!==5||
+ JSON.stringify(pharmacySource.Requirements?.Items)!==JSON.stringify({Medicine_Bowl:1}))throw new Error('Pinned Pharmacy activation differs');
+const pharmacyNpcStock=[
+ {itemId:7134,price:8,discount:false,source:'npc/merchants/alchemist.txt'},
+ ...[7144,7127,7128,7129,7130,7131,7132].map(itemId=>({itemId,price:100000,discount:false,source:'npc/merchants/alchemist.txt'})),
+ {itemId:7133,price:240000,discount:false,source:'npc/merchants/alchemist.txt'},
+ ...[[1092,3],[1093,10]].map(([itemId,price])=>({itemId,price,discount:true,source:'npc/pre-re/merchants/shops.txt'})),
+ ...[[7140,60000],[7141,20000],[7143,5000]].map(([itemId,price])=>({itemId,price,discount:true,source:'npc/merchants/shops.txt'}))
+];
+const alchemistShopSource=buffers['npc/merchants/alchemist.txt'].toString('utf8');
+if(!/\.@sell\s*=\s*\.@input\s*\*\s*8\s*;/.test(alchemistShopSource))throw new Error('Pinned Medicine Bowl price differs');
+for(const [name,price] of [['Normal_Potion_Book',100000],['Alcol_Create_Book',100000],['FireBottle_Create_Book',100000],['Acid_Create_Book',100000],['Plant_Create_Book',100000],['Mine_Create_Book',100000],['Coating_Create_Book',100000],['Slim_Potion_Create_Book',240000]])
+ if(!new RegExp('S_SellManual,\\s*'+name+',\\s*'+price).test(alchemistShopSource))throw new Error('Pinned manual price differs:'+name);
+const geffenShopSource=buffers['npc/pre-re/merchants/shops.txt'].toString('utf8').match(/geffen_in,171,123,4\s+trader\s+Tool Dealer#gef2\s+1_M_WIZARD,\{([\s\S]*?)^\}/m)?.[1];
+if(!geffenShopSource||!/sellitem Empty_Cylinder;/.test(geffenShopSource)||!/sellitem Empty_Potion;/.test(geffenShopSource))throw new Error('Pinned Pharmacy trader differs');
+const inertPharmacyOutputIds=new Set([545,546,547,605,606,7142,12118,12119,12120,12121]);
+manifest.pharmacyCraft={recipeSource:'db/produce_db.txt:329..380',recipes:pharmacyRecipes,
+ activationSource:'db/pre-re/skill_db.conf AM_PHARMACY',spPerAttempt:5,activationItem:{itemId:7134,quantity:1},
+ guideRule:'Quantity-zero materials require inventory presence and are not consumed.',
+ chanceSource:'src/map/skill.c:20249..20482 and20553; potion_produce_rate100; no homunculus or Baby system',
+ productionRule:'N repeated qty1 attempts, including costs and RNG on failures; inner RNG on success.',
+ confirmationAdaptation:'Free preview; town-only atomic batch charged on confirmation. Worst-case success weight must permit all activations.',
+ npcStock:pharmacyNpcStock,locationAdaptation:'Paid native NPC stock aggregated into Prontera city services.',
+ scriptRule:'Production never evaluates item scripts; existing explicit handlers only.',inertOutputItemIds:[...inertPharmacyOutputIds],
+ unavailableAcquisition:[{itemId:7434,reason:'Original Pisruik research not yet available; no NPC sale enabled.'}]};
+
 const skillTrees = parsed['skill_tree.conf'];
 function sourceTree(name, trail = []) {
     if (trail.includes(name)) throw new Error('Skill-tree inheritance cycle: ' + name);
@@ -258,7 +293,7 @@ activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
-for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER']) activeSpecial.add(name);
+for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
@@ -356,7 +391,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (name !== 'SA_CREATECON' && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -393,6 +428,7 @@ for (const name of skillNames) {
         ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
+        ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
         ...(name === 'LK_TENSIONRELAX' && { manualUse: 'rest' }),
         ...(name === 'KN_RIDING' && { manualUse: 'mount' }),
@@ -553,6 +589,7 @@ for (const line of buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/))
     for (let i = 4; i < values.length; i += 2)
         if (Number.isSafeInteger(values[i]) && values[i] > 0) protectedReagentIds.add(values[i]);
 }
+for(const recipe of pharmacyRecipes)protectedReagentIds.add(recipe.outputItemId);
 manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY'],
     behavior: 'Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available.' };
 function includeItem(raw, shop = false, drop = false) {
@@ -634,6 +671,16 @@ manifest.bodyElementItems.sort((a, b) => a.itemId - b.itemId);
 // scripts stay inert; presence in a skill cost never enables a script.
 for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostByLevel ?? []).flat().map(cost => cost.itemId))))
     includeItem(itemById[id], false, true);
+const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
+for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
+for(const id of inertPharmacyOutputIds){const item=catalog.items[id];item.type='material';item.unsupportedEffect=true;item.effects={};}
+for(const row of pharmacyNpcStock){
+ if(!itemById[row.itemId]||!includeItem(itemById[row.itemId],true,true))throw new Error('Missing Pharmacy shop item '+row.itemId);
+ const item=catalog.items[row.itemId];if(row.discount&&item.buyPrice!==row.price)throw new Error('Pinned Pharmacy trader price differs:'+row.itemId);
+ item.shopPrice=row.price;item.shopDiscount=row.discount;
+}
+if(catalog.items[7434].shop)throw new Error('Elemental guide requires Pisruik; sale forbidden');
+
 const challengeOverrides = new Map(rules.bosses.map(b => [b.monsterId, b]));
 const miniBossIds = new Set(rules.miniBossMonsterIds);
 const excludedMvpPrefixes = rules.excludedMvpSpritePrefixes ?? [];

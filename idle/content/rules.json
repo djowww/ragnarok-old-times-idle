@@ -2435,7 +2435,9 @@
     "npc/pre-re/mobs/dungeons/orcsdun.txt": "5d389b5f338e9f3bae8a06de780dd8a9d00661cefc71cbe1525db252b40eed44",
     "npc/pre-re/mobs/dungeons/moc_pryd.txt": "0f34a8c8ba2e7abdd5348487b3525a02e1086dc50a3845c8540e104770417cb7",
     "npc/pre-re/mobs/dungeons/gef_dun.txt": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8",
-    "npc/pre-re/mobs/dungeons/glastheim.txt": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
+    "npc/pre-re/mobs/dungeons/glastheim.txt": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313",
+    "npc/merchants/alchemist.txt": "479d77eb8c4729597f2ff54bb1c984fba2befb395c475cc43078ae4b942bdf1f",
+    "npc/pre-re/merchants/shops.txt": "5e8fa251182efe2bd080f2c6b0fe1dd50a41890ab81500d1fcc69bc03a8710b8"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
@@ -2529,7 +2531,8 @@
     "PF_FOGWALL": "Nevoeiro Ofuscante",
     "SA_VOLCANO": "Vulcão",
     "SA_DELUGE": "Dilúvio",
-    "SA_VIOLENTGALE": "Furacão"
+    "SA_VIOLENTGALE": "Furacão",
+    "AM_PHARMACY": "Preparar Poções"
   },
   "skillDescriptions": {
     "SA_ADVANCEDBOOK": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",
@@ -2618,7 +2621,8 @@
     "PF_FOGWALL": "Cria um nevoeiro fixo de 5 × 3 células sob o personagem por 20 segundos; células sobre Dilúvio duram 40 segundos. Até dois campos ativos. Reduz precisão de ataques normais longos em 50 pontos percentuais e seu dano em 75%; magias NPC direcionadas têm 75% de falha e 25% de redução de dano. A Cegueira nos ocupantes ainda não é simulada.",
     "SA_VOLCANO": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Fogo no campo; concede ATQ de arma a ocupantes com armadura de Fogo. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. O efeito termina ao sair do campo ou reconectar.",
     "SA_DELUGE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Água e aumenta o HP máximo de ocupantes com armadura de Água, sem curá-los. Permite Esferas d’Água no campo. Requer Gema Amarela; a substituição preserva o tempo restante sem consumir outra gema. Termina ao sair ou reconectar.",
-    "SA_VIOLENTGALE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Vento e concede esquiva a ocupantes com armadura de Vento. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. Termina ao sair do campo ou reconectar."
+    "SA_VIOLENTGALE": "Cria um campo fixo de 7 × 7 células sob o personagem, por 60 a 300 segundos. Amplifica ataques de Vento e concede esquiva a ocupantes com armadura de Vento. Requer Gema Amarela. Substituir um campo ativo preserva o tempo restante e não consome outra gema. Termina ao sair do campo ou reconectar.",
+    "AM_PHARMACY": "Produção manual de poções e reagentes. Cada tentativa consome SP, uma Vasilha de Mistura e ingredientes, mesmo quando falha. O manual não é consumido. Algumas receitas dependem de materiais, pesquisas ou efeitos ainda indisponíveis."
   },
   "converterMaterials": [
     7433,

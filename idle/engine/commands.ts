@@ -27,7 +27,7 @@ import { grantReward, updateQuests } from "./progression.js";
 import { beginBattle } from "./combat.js";
 import type { SimulationContext } from './fieldNavigation.js';
 import { encounterDelay, focusMatches } from "../shared/hunt.js";
-import { merchantPrice } from "../shared/prices.js";
+import { merchantPrice, itemPurchasePrice } from "../shared/prices.js";
 import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
 import { battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
 import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
@@ -38,6 +38,7 @@ import { inventoryLoad } from './stats.js';
 import { paySkillResources } from './skillResources.js';
 import { applyBacksliding } from './backsliding.js';
 import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
+import { craftPharmacy } from "./pharmacyCraft.js";
 import { craftConverter } from "./converterCraft.js";
 import { cancelActorCast, useCastCancel } from './castControl.js';
 import { canPecoMount } from './mountedPeco.js';
@@ -591,6 +592,10 @@ export function executeCommand(
       s.rotation = [...command.skillIds];
       break;
     }
+    case "craftPharmacy": {
+      craftPharmacy(s,c,command.itemId,command.quantity,now);
+      break;
+    }
     case "craftConverter": {
       craftConverter(s,c,command.itemId,command.quantity,now);
       break;
@@ -599,7 +604,7 @@ export function executeCommand(
       town(s);
       const item = c.items[command.itemId];
       requireRule(
-        item?.shop && item.buyPrice > 0,
+        item?.shop && (item.shopPrice ?? item.buyPrice) > 0,
         "NOT_FOR_SALE",
         "Item indisponível na loja.",
       );
@@ -611,7 +616,7 @@ export function executeCommand(
         "Quantidade inválida.",
       );
       requireRule(canReceiveItem(s, c, item.id, command.quantity), 'WEIGHT_LIMIT', 'A compra excede a capacidade da mochila.');
-      spend(s, merchantPrice(s, c, item.buyPrice, "buy") * command.quantity);
+      spend(s, itemPurchasePrice(s, c, item) * command.quantity);
       addItem(s, c, item.id, command.quantity);
       break;
     }

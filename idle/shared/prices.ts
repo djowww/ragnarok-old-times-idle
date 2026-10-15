@@ -1,4 +1,4 @@
-import type { Catalog, GameState } from "./types.js";
+import type { Catalog, GameState, Item } from "./types.js";
 import { classSkills } from "../engine/stats.js";
 
 /** Hercules pc_modifybuyvalue / pc_modifysellvalue, pre-renewal. */
@@ -29,4 +29,10 @@ export function merchantPrice(
     kind === "buy" || base > 0 ? 1 : 0,
     Math.floor((base * (100 + (kind === "buy" ? -appliedPercent : appliedPercent))) / 100),
   );
+}
+
+/** Scripted Guild Dealer sales bypass MC_DISCOUNT; ordinary traders retain it. */
+export function itemPurchasePrice(state: GameState, catalog: Catalog, item: Item): number {
+  const price = item.shopPrice ?? item.buyPrice;
+  return item.shopDiscount === false ? price : merchantPrice(state, catalog, price, "buy");
 }

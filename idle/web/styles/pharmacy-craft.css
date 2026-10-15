@@ -1,0 +1,27 @@
+.ro-window.ro-window-pharmacy{width:min(720px,100%);height:min(560px,calc(100dvh - 76px));max-height:100%}
+.ro-window-pharmacy .ro-window-content{display:flex;padding:10px;overflow:hidden}
+.pharmacy-craft{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:9px;width:100%;min-width:0;min-height:0;color:#2f4854;font:11px/1.4 Tahoma,"Segoe UI",sans-serif}
+.pharmacy-craft h3,.pharmacy-craft h4,.pharmacy-craft h5,.pharmacy-craft p{margin:0}
+.pharmacy-intro,.pharmacy-product,.pharmacy-material,.pharmacy-result{display:flex;align-items:center;gap:8px;min-width:0}
+.pharmacy-intro h3{font:700 14px/1.3 Tahoma,sans-serif}.pharmacy-intro p{color:#667b83}
+.pharmacy-workbench{display:grid;grid-template-columns:minmax(155px,34%) minmax(0,1fr);gap:10px;min-width:0;min-height:0}
+.pharmacy-recipes{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0}
+.pharmacy-recipe-list{display:flex;flex-direction:column;gap:3px;flex:1;min-height:0;padding:3px;overflow:auto;overscroll-behavior:contain;border:1px solid #adbfc3;background:#e4ebeb}
+.pharmacy-craft .pharmacy-recipe{display:flex;align-items:center;gap:7px;flex:0 0 auto;min-height:40px;padding:4px 6px;text-align:left;border:1px solid #c2cdcd;border-radius:2px;color:#36505c;background:#f2f4ed;font:inherit}
+.pharmacy-recipe>span:last-child{min-width:0;overflow-wrap:anywhere}.pharmacy-recipe small{display:block;color:#6b7e84;font-size:10px}
+.pharmacy-craft .pharmacy-recipe[aria-pressed="true"]{border-color:#718f9d;background:#d4e3e8;box-shadow:inset 0 1px #fff}
+.pharmacy-craft .pharmacy-recipe:disabled{opacity:.55}.pharmacy-recipe-select{display:none}
+.pharmacy-detail{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:7px;min-width:0;min-height:0}
+.pharmacy-product{padding-bottom:7px;border-bottom:1px solid #c1caca}.pharmacy-product h4{font:700 12px/1.35 Tahoma,sans-serif}.pharmacy-product p{color:#62767c}
+.pharmacy-materials{min-height:0;overflow:auto;overscroll-behavior:contain}.pharmacy-materials h5{margin:8px 0 4px;color:#5d747c}
+.pharmacy-material{padding:5px;border-bottom:1px solid #d4d9cf}.pharmacy-material>div,.pharmacy-result>div{display:grid;gap:1px;min-width:0}
+.pharmacy-material b,.pharmacy-result span{overflow-wrap:anywhere}.pharmacy-material small{color:#6b7b73;font-size:10px}.pharmacy-material.is-missing small:last-child{color:#975742}
+.pharmacy-guide{align-items:flex-start;border:1px solid #c3cbba;background:#e9eddf}.pharmacy-guide.is-missing{border-color:#d1bca8;background:#f1e9db}
+.pharmacy-craft .pharmacy-product-note{margin:7px 3px 2px;color:#796b4c;font-size:10px}
+.pharmacy-controls{display:grid;gap:5px;padding-top:7px;border-top:1px solid #bdc9c8}.pharmacy-quantity{display:flex;justify-content:space-between;align-items:center;gap:5px}
+.pharmacy-quantity input{width:80px;min-height:28px;padding:4px 6px;font:inherit}.pharmacy-quantity small{color:#6c7d82}.pharmacy-weight,.pharmacy-warning,.pharmacy-reason{font-size:10px}
+.pharmacy-weight{color:#667b7c}.pharmacy-warning{color:#756444}.pharmacy-reason{padding:5px 6px;border-left:2px solid #a27b50;background:#eee7d7;color:#74553e}
+.pharmacy-controls>button{width:100%;min-height:32px}.pharmacy-result{min-height:39px;padding:6px 8px;border:1px solid #bacac6;background:#e5ece5;font-size:10px}
+.pharmacy-result b{color:#405f56}.pharmacy-craft .item-icon{flex:0 0 28px;width:28px;height:28px;min-width:28px;border-radius:2px}.pharmacy-craft .item-icon img{max-width:24px;max-height:24px}
+@media(max-width:640px){.ro-window.ro-window-pharmacy{width:100%;height:min(650px,calc(100dvh - 60px))}.pharmacy-workbench{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.pharmacy-recipe-list{display:none}.pharmacy-recipe-select{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px}.pharmacy-recipe-select select{min-width:0;min-height:30px;font:inherit}.pharmacy-intro h3{font-size:12px}}
+@media(max-height:520px){.pharmacy-intro p{display:none}.pharmacy-workbench{display:block;overflow:auto;overscroll-behavior:contain}.pharmacy-recipe-list{display:none}.pharmacy-recipe-select{display:flex;align-items:center;gap:8px}.pharmacy-recipe-select select{min-width:0;min-height:30px;font:inherit}.pharmacy-detail{display:block;overflow:visible;margin-top:8px}.pharmacy-materials{overflow:visible}.pharmacy-controls{position:static;background:#f0eee2}.pharmacy-result{min-height:31px;padding:4px}}

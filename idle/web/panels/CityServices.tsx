@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Catalog } from '../../shared/types';
 import { ItemIcon } from '../components/common';
 
-export type CityService = "shop" | "blacksmith" | "stylist" | "converters";
+export type CityService = "shop" | "blacksmith" | "stylist" | "converters" | "pharmacy";
 
 function ServiceIcon({ children }: { children: ReactNode }) {
   return <span className="city-service-icon" aria-hidden="true">{children}</span>;
@@ -36,6 +36,11 @@ export default function CityServices({ onOpen, catalog }: { onOpen: (service: Ci
       <button type="button" className="city-service-card" onClick={event => onOpen("converters", event.currentTarget)}>
         <ServiceIcon>{catalog?.items[12114] && <ItemIcon item={catalog.items[12114]} />}</ServiceIcon>
         <span className="city-service-copy"><b>Conversores elementais</b><small>Receitas do Sábio</small></span>
+        <span className="city-service-arrow" aria-hidden="true">›</span>
+      </button>
+      <button type="button" className="city-service-card" onClick={event => onOpen("pharmacy", event.currentTarget)}>
+        <ServiceIcon>{catalog?.items[7134] && <ItemIcon item={catalog.items[7134]} />}</ServiceIcon>
+        <span className="city-service-copy"><b>Preparar poções</b><small>Receitas do Alquimista</small></span>
         <span className="city-service-arrow" aria-hidden="true">›</span>
       </button>
       <div className="city-service-card city-service-unavailable" aria-label="Quadro de quests, em breve">

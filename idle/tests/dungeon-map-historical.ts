@@ -1,9 +1,10 @@
+import { beforePharmacyCatalog, beforePharmacyManifest } from './pharmacy-historical.js';
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/dungeonMapExpansionBaseline.json';
 
 /** Reverse only this audited world delta so older package snapshots stay strict. */
 export function beforeDungeonExpansionCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforePharmacyCatalog(input) as Record<string, any>;
   const same = (value: unknown, hash: string) => value !== undefined &&
     createHash('sha256').update(JSON.stringify(value)).digest('hex') === hash;
   for (const [id, hash] of Object.entries(baseline.newEntryHashes.items))
@@ -24,7 +25,7 @@ export function beforeDungeonExpansionCatalog<T>(input: T): T {
   return result as T;
 }
 export function beforeDungeonExpansionManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforePharmacyManifest(input) as Record<string, any>;
   result.sources = result.sources.filter((source: unknown) =>
     !baseline.addedSources.some(added => JSON.stringify(source) === JSON.stringify(added)));
   return result as T;
