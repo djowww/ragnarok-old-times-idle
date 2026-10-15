@@ -37,6 +37,7 @@ import Challenges, { type ChallengeFilter } from "./panels/Challenges";
 import CityServices, { type CityService } from "./panels/CityServices";
 import Blacksmith from "./panels/Blacksmith";
 import Stylist from "./panels/Stylist";
+import Admin from "./panels/Admin";
 import { inventoryLoad } from "../engine/stats";
 import { offensiveSkill, skillTargetInRange } from "../shared/combatRange";
 import ClassicLoading from "./components/ClassicLoading";
@@ -44,13 +45,14 @@ import type { MapStatus } from "./components/OriginalMap";
 import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "admin";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
   city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
+  admin: "Administração",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -64,6 +66,7 @@ const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
   { destination: "bestiary", label: "Bestiário" },
   { destination: "classes", label: "Classes" },
   { destination: "challenges", label: "Desafios" },
+  { destination: "admin", label: "Administração" },
 ];
 function ClassicMenuIcon({ file }: { file: string }) {
   const [source, setSource] = useState<string>();
@@ -612,10 +615,11 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         onClick={event => state.status === "town"
                           ? openWindow("city", event.currentTarget)
                           : void game.command({ type: "stop" })}>
-                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                          <path d="M3.5 10.2 12 4l8.5 6.2v9.3h-17z" />
-                          <path d="M8 19.5v-5.8h8v5.8M10 10h4M12 8v4M5.7 11h12.6" />
-                          <circle cx="12" cy="15" r="1.2" />
+                        <svg className="hud-city-gate" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                          <path className="hud-city-gate-wall" d="M3.5 20V8.8l3.4-2.4v3.2L12 5.8l5.1 3.8V6.4l3.4 2.4V20H3.5Z" />
+                          <path className="hud-city-gate-door" d="M8.8 20v-5a3.2 3.2 0 0 1 6.4 0v5" />
+                          <path className="hud-city-gate-detail" d="M3.8 11.4h4m8.4 0h4M5.1 15h2.7m8.4 0h2.7M6.9 6.6v3m10.2-3v3M2.7 20h18.6" />
+                          <path className="hud-city-gate-emblem" d="m12 6.8 1.1 1.4L12 9.7l-1.1-1.5L12 6.8Z" />
                         </svg>
                       </button>
                       <span className={`hud-save-indicator ${game.sending ? "is-saving" : game.connected ? "is-saved" : "is-reconnecting"}`}
@@ -920,6 +924,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "city" && <CityServices onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
                         {activeWindow === "blacksmith" && <Blacksmith {...props} />}
                         {activeWindow === "stylist" && <Stylist {...props} />}
+                        {activeWindow === "admin" && <Admin {...props} onChanged={() => void game.retry()} />}
                       </div>
                       {rewardedQuest && <QuestReward quest={rewardedQuest}
                         catalog={catalog} onClose={dismissReward} />}

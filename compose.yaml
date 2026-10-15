@@ -9,6 +9,7 @@ services:
       DB_NAME: ${DB_NAME:?Defina DB_NAME em .env}
       DB_USER: ${DB_USER:?Defina DB_USER em .env}
       DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+      RAGIDLE_ADMIN_TOKEN: ${RAGIDLE_ADMIN_TOKEN:-}
       ASSET_ORIGIN: http://asset-service:8080
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3339}
       RAGIDLE_ALLOWED_ORIGINS: ${RAGIDLE_ALLOWED_ORIGINS:-http://localhost:3339}

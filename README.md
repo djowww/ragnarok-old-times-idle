@@ -13,7 +13,7 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 ## O jogo
 
 - Combate idle autoritativo no servidor, com progresso persistido e resumo de até 12 horas offline.
-- Dez áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
+- Quatorze áreas exploráveis, monstros, MVPs e mini-bosses, missões, bestiário e desafios.
 - Evolução de classes clássicas, renascimento, atributos, habilidades, equipamentos, cartas, refino, consumíveis e loot.
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
@@ -44,14 +44,20 @@ Na raiz do repositório:
 Copy-Item .env.example .env
 ```
 
-No macOS ou Linux, use `cp .env.example .env`.
-
 Edite `.env` e substitua as senhas locais de exemplo. Depois, inicie a stack:
 
 ```powershell
 docker compose up --build -d
 docker compose ps
 ```
+
+O painel administrativo é opcional e fica desativado até receber uma chave privada. Gere uma chave aleatória com `openssl rand -base64 32`, adicione `RAGIDLE_ADMIN_TOKEN=<chave>` ao `.env` e recrie apenas o serviço do jogo:
+
+```powershell
+docker compose up -d --force-recreate idle-game
+```
+
+No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas. O painel pode conceder níveis Base, trocar a classe, adicionar zeny e entregar itens do catálogo; ele não altera a conta nem os personagens do Hercules.
 
 Abra o idle em **http://localhost:3339/**. O cliente clássico fica em **http://localhost:3338/applications/pwa/index.html**. O primeiro build compila os serviços e pode levar alguns minutos.
 
