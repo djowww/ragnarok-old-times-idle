@@ -13,9 +13,11 @@ import { callerRepository, registerGameRoutes, resolveGameRepository } from './g
 import type { PortalQueries } from './portal/types.js';
 import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
-export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken }: AppOptions) {
+import { SessionGameProfiles } from './profiles.js';
+export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
+  const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles);
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
   app.addHook('onRequest', async (request, reply) => {
     if (!request.url.startsWith('/api/')) return;
@@ -36,11 +38,11 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
   });
   const secureCookie = (publicOrigin ? new URL(publicOrigin).protocol === 'https:' : false) || configuredOrigins.some(origin => new URL(origin).protocol === 'https:');
   const auth = createAuthService({ accounts, catalog, now, secureCookie });
-  await registerAuthRoutes(app, auth);
+  await registerAuthRoutes(app, auth, trustedProxyAddresses);
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
-  await registerGameRoutes(app, { auth, profiles, catalog, now });
-  registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, profiles), now);
-  registerAdminRoutes(app, request => resolveGameRepository(request, auth, profiles), catalog, now, adminToken);
+  await registerGameRoutes(app, { auth, profiles: gameProfiles, catalog, now });
+  registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, gameProfiles), now);
+  registerAdminRoutes(app, request => resolveGameRepository(request, auth, gameProfiles), catalog, now, adminToken, trustedProxyAddresses);
   app.get('/api/catalog', async () => catalog);
   app.get('/api/health', async (_request, reply) => {
     const healthy = (await accounts.health()) && (await profiles.health());
@@ -80,8 +82,17 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
     } catch { return reply.code(503).send({ error: { code: 'ASSET_UNAVAILABLE', message: 'Recursos do cliente indisponíveis.' } }); }
   } });
   if (webRoot) {
-    app.register(fastifyStatic, { root: webRoot, prefix: '/' });
-    app.setNotFoundHandler((request, reply) => request.url.startsWith('/api/') || request.url.startsWith('/assets/') ? reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Recurso não encontrado.' } }) : reply.sendFile('index.html'));
+    app.addHook('onRequest', async request => {
+      if (!['GET', 'HEAD'].includes(request.method) || ['/api/', '/assets/'].some(prefix => request.url.startsWith(prefix))) return;
+      for (const name of ['if-modified-since', 'if-none-match', 'if-match', 'if-unmodified-since']) delete request.raw.headers[name];
+    });
+    app.register(fastifyStatic, { root: webRoot, prefix: '/', etag: false, lastModified: false, cacheControl: false,
+      setHeaders(response, file) {
+        const hashed = /[\\/]ui-assets[\\/]index-[A-Za-z0-9_-]+\.(?:js|css)$/.test(file);
+        response.header('Cache-Control', hashed ? 'public, max-age=31536000, immutable' : 'no-store');
+      },
+    });
+    app.setNotFoundHandler((request, reply) => ['/api/', '/assets/', '/ui-assets/'].some(prefix => request.url.startsWith(prefix)) ? reply.code(404).send({ error: { code: 'NOT_FOUND', message: 'Recurso não encontrado.' } }) : reply.sendFile('index.html'));
   }
   return app;
 }

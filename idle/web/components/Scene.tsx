@@ -1,3 +1,6 @@
+import { retireInterruptedCastCues, retireTrickDeadPoses, soloPostureAt } from '../assets/combatPresentation';
+import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
+import {monsterControlLabel} from '../../shared/monsterControlView';
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Appearance, Area, BattleEnemy, GameEvent, GameState, Skill, SpriteAsset, WeaponType } from "../../shared/types";
 import { BATTLE_CELLS_PER_UNIT, BATTLE_HERO, battleHeroAt, enemyApproachProgress, enemyPositionAt, type BattlePoint } from "../../shared/battleSpatial";
@@ -6,6 +9,8 @@ import {
   GAME_ACTOR_SCALE,
   getAttackAction,
   getActorActionDuration,
+  getActorPlaybackDuration,
+  getCombatActorAction,
   getActorPose,
   loadActor,
   type ActorAction,
@@ -13,8 +18,12 @@ import {
 } from "../assets/renderer";
 import {
   drawDamagePopup,
+  combatPopupText,
   drawEmotion,
   drawSkillEffect,
+  drawGroundTexture,
+  spiderWebRadius,
+  venomDustPose,
   EMOTE_ACTIONS,
   loadSceneEffects,
   SKILL_CAST_MS,
@@ -22,17 +31,22 @@ import {
   type SceneEffects,
 } from "../assets/sceneEffects";
 import { loadGroundLoot, type GroundLootVisual } from "../assets/groundLoot";
-import { mapGroundHeight, mapGroundWalkable, projectMapArea, projectMapPoint, sceneGroundPoint, screenGroundPoint, walkableSceneGroundPoint, type MapProjection, type WorldPoint } from "../assets/mapProjection";
+import { groundTrapVisualState, loadGroundTrap, spentGroundTrap, hasSceneAction, trapCueAction } from "../assets/groundTraps";
+import { ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectMapArea, projectMapPoint, sceneGroundPoint, screenGroundPoint, walkableSceneGroundPoint, type MapProjection, type WorldPoint } from "../assets/mapProjection";
 import { getMapLife, mapLifeCanWalk, mapLifePoseAt, mapLifeSpeechAt, prepareMapLife } from "../assets/mapLife";
 import { POST_WAVE_SEARCH_MS } from "../../shared/hunt";
 import { isTownScene } from "../../shared/worldScene";
+import { isPecoMounted } from "../../engine/mountedPeco";
 import { number, type PanelProps } from "./common";
 import OriginalMap, { type MapStatus } from "./OriginalMap";
 import { NativeActorsBridge } from "../assets/nativeActors";
+import { corpseFrameAt, startCorpsePresentation, shiftCorpsePresentation, type CorpsePresentation } from "../assets/corpsePresentation";
+import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame } from "../assets/enemyActionPresentation";
+import { movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
 import "../styles/scene-polish-world.css";
 
-type EquippedWeapon = { type: WeaponType; gender: "male" | "female"; job: string };
-function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon, appearance?: Appearance) {
+type EquippedWeapon = { type: WeaponType; gender: "male" | "female"; job: string; mounted?: boolean };
+function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon, appearance?: Appearance, identity?: DecodedActor['identity']) {
   const [actor, setActor] = useState<DecodedActor | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
@@ -48,7 +62,7 @@ function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon, appearance?: App
     };
     const load = () => {
       if (!asset || !live) return;
-      void loadActor(asset, weapon, appearance)
+      void loadActor(asset, weapon, appearance, identity)
         .then((value) => {
           if (!live) return;
           const failed = value.fallback || !!value.error;
@@ -67,8 +81,8 @@ function useActor(asset?: SpriteAsset, weapon?: EquippedWeapon, appearance?: App
       live = false;
       window.clearTimeout(retryTimer);
     };
-  }, [asset, weapon?.type, weapon?.gender, weapon?.job,
-    appearance?.hairStyle, appearance?.hairColor, appearance?.clothesColor]);
+  }, [asset, weapon?.type, weapon?.gender, weapon?.job, weapon?.mounted,
+    appearance?.hairStyle, appearance?.hairColor, appearance?.clothesColor, identity?.job, identity?.gender]);
   return { actor, error };
 }
 
@@ -202,6 +216,8 @@ type SceneActorPaint = {
   direction: number;
   elapsed: number;
   motionMs?: number;
+  particle?: boolean;
+  canvasOnly?: boolean;
 };
 
 /** A small, feathered footprint follows the real terrain plane and ACT feet. */
@@ -428,7 +444,7 @@ function advanceRoaming(motion: RoamingMotion, route: readonly NormalizedPoint[]
   }
   motion.position = motion.target;
   motion.walking = false;
-  if (!motion.pauseUntil) motion.pauseUntil = time + 260;
+  if (!motion.pauseUntil) motion.pauseUntil = time + 80;
   if (time < motion.pauseUntil) return;
   motion.routeIndex = (motion.routeIndex + 1) % route.length;
   motion.from = motion.position;
@@ -444,6 +460,9 @@ type CombatCue = {
   start: number;
   duration: number;
   actionDuration: number;
+  motionMs: number;
+  reactionSuppressed?: boolean;
+  presentationDirection?: number;
   impact: number;
   reactionDuration: number;
   effectStart: number;
@@ -460,21 +479,18 @@ type CombatCue = {
   blocked?: boolean;
   enemyId?: string;
   castMs?: number;
+  castAction?: boolean;
   hitCount?: number;
   eventAt?: number;
   effectEnemyId?: string;
   effectPosition?: GroundPosition;
+  presented?: boolean;
+  sourceGround?: GroundPosition;
+  sourcePosition?: NormalizedPoint;
+  actionAreaId?: string;
+  targetHpBefore?: number;
+  amount?: number;
 };
-type ActorActionWatermark = Pick<CombatCue, "actionAt" | "actionId" | "id">;
-function rememberActorActions(watermarks: Map<string, ActorActionWatermark>, cues: CombatCue[]): void {
-  for (const cue of cues) {
-    if (cue.actorAction === "none") continue;
-    const previous = watermarks.get(cue.sourceActorId);
-    if (!previous || cue.actionAt > previous.actionAt ||
-      (cue.actionAt === previous.actionAt && cue.actionId !== previous.actionId && cue.id > previous.id))
-      watermarks.set(cue.sourceActorId, { actionAt: cue.actionAt, actionId: cue.actionId, id: cue.id });
-  }
-}
 function pruneActionWatermarks(watermarks: Map<string, ActorActionWatermark>, cues: CombatCue[]): void {
   // A watermark is needed only while a retained cue could revive an older
   // body action. Effects keep their own lifetimes without retaining actors.
@@ -488,41 +504,11 @@ function newestCue(cues: CombatCue[], predicate: (cue: CombatCue) => boolean): C
       (cue.actionAt === latest.actionAt && cue.actionId !== latest.actionId && cue.id > latest.id))) latest = cue;
   return latest;
 }
-function actorActionCue(cues: CombatCue[], watermarks: ReadonlyMap<string, ActorActionWatermark>, actorId: string, time: number): CombatCue | undefined {
-  // Deduplicate the source action while every target keeps its own reaction.
-  const lastAction = watermarks.get(actorId);
-  const latest = newestCue(cues, cue => !cue.blocked && cue.sourceActorId === actorId && cue.actorAction !== "none" && cue.start <= time &&
-    !!lastAction && cue.actionAt === lastAction.actionAt && cue.actionId === lastAction.actionId);
-  return latest && time < latest.start + latest.actionDuration ? latest : undefined;
+function actorActionCue(cues: CombatCue[], _watermarks: ReadonlyMap<string, ActorActionWatermark>, actorId: string, time: number): CombatCue | undefined {
+  return presentedActorActionAt(cues.filter(cue => !cue.blocked), actorId, time);
 }
 function actorReactionCue(cues: CombatCue[], actorId: string, time: number): CombatCue | undefined {
-  let latest: CombatCue | undefined;
-  for (const cue of cues) {
-    if (cue.blocked || cue.targetActorId !== actorId || !cue.hit || cue.impact > time || time >= cue.impact + cue.reactionDuration) continue;
-    if (!latest || cue.impact > latest.impact || (cue.impact === latest.impact && cue.id > latest.id)) latest = cue;
-  }
-  return latest;
-}
-function replayLatestActions(cues: CombatCue[], watermarks: ReadonlyMap<string, ActorActionWatermark>, now: number): void {
-  const newestByActor = new Map<string, CombatCue>();
-  for (const cue of cues) {
-    if (cue.actorAction === "none") continue;
-    const previous = newestByActor.get(cue.sourceActorId);
-    if (!previous || cue.actionAt > previous.actionAt || (cue.actionAt === previous.actionAt && cue.id > previous.id)) newestByActor.set(cue.sourceActorId, cue);
-  }
-  for (const cue of newestByActor.values()) {
-    const lastAction = watermarks.get(cue.sourceActorId);
-    if (!lastAction || cue.actionAt !== lastAction.actionAt || cue.actionId !== lastAction.actionId) continue;
-    if (cue.start + cue.actionDuration > now || cue.actionDuration > 500 || now - cue.start > 750) continue;
-    // A short ACT may finish between polls. Replay only the newest action for
-    // at most 160 ms; old batches never build a queue of delayed swings.
-    const shift = now - (cue.start + cue.actionDuration - Math.min(160, cue.actionDuration));
-    for (const sibling of cues.filter(entry => entry.sourceActorId === cue.sourceActorId && entry.actionId === cue.actionId)) {
-      sibling.start += shift;
-      sibling.impact += shift;
-      sibling.duration = Math.max(sibling.duration, sibling.impact - sibling.start + sibling.reactionDuration);
-    }
-  }
+  return presentedActorReactionAt(cues, actorId, time);
 }
 type LootCue = {
   id: number;
@@ -534,8 +520,9 @@ type LootCue = {
   killId: number;
   enemyId?: string;
   origin?: GroundPosition;
+  presentationCueId?: number;
 };
-type GroundPosition = { point: NormalizedPoint; world?: WorldPoint };
+type GroundPosition = { point: NormalizedPoint; world?: WorldPoint; tangent?: WorldPoint };
 type GroundLootReadout = { id: number; label: string };
 const LOOT_LAND_MS = 190;
 const LOOT_GROUND_MS = 4000;
@@ -580,9 +567,15 @@ function enemyArrival(enemy: BattleEnemy, serverNow: number, hero: NormalizedPoi
   };
 }
 
-function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, sourceOnly = false): GroundPosition {
+function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, sourceOnly = false, movement?: ConnectedMapMovement): GroundPosition {
   const arrival = enemyArrival(enemy, serverNow, hero, sourceOnly);
   if (!camera) return { point: arrival.point };
+  if (enemy.fieldSlot !== undefined && movement) {
+    const pose = movement.project(camera, enemy.id,
+      JSON.stringify([enemy.startedAt, enemy.arrivedAt, arrival.from, arrival.target]),
+      sceneGroundPoint(camera, arrival.from, anchor), sceneGroundPoint(camera, arrival.target, anchor), arrival.progress);
+    return { point: arrival.point, ...pose };
+  }
   const source = enemy.fieldSlot !== undefined
     ? walkableSceneGroundPoint(camera, arrival.sourcePoint, anchor)
     : sceneGroundPoint(camera, arrival.sourcePoint, anchor);
@@ -594,8 +587,8 @@ function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, s
   const y = source[2] + (edge[2] - from[2]) * edgeAmount;
   return { point: arrival.point, world: [x, mapGroundHeight(camera, x - 0.5, y - 0.5), y] };
 }
-function projectEnemyArrival(camera: MapProjection, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, width: number, height: number, sourceOnly = false) {
-  return projectMapPoint(camera, enemyGroundPosition(camera, enemy, serverNow, hero, anchor, sourceOnly).world!, width, height);
+function projectEnemyArrival(camera: MapProjection, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, width: number, height: number, sourceOnly = false, movement?: ConnectedMapMovement) {
+  return projectMapPoint(camera, enemyGroundPosition(camera, enemy, serverNow, hero, anchor, sourceOnly, movement).world!, width, height);
 }
 function skillFor(event: GameEvent, skills: Record<string, Skill>): Skill | undefined {
   return event.skillId ? skills[event.skillId] : undefined;
@@ -630,13 +623,30 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     enemy: DecodedActor | null;
   }>({ hero: null, enemy: null });
   const enemyActors = useRef(new Map<number, DecodedActor>());
-  const groupHistory = useRef(new Map<string, { enemy: BattleEnemy; hero?: NormalizedPoint; deadAt?: number; deadServerAt?: number; until?: number; ground?: GroundPosition }>());
+  const groupHistory = useRef(new Map<string, { enemy: BattleEnemy; hero?: NormalizedPoint; deadServerAt?: number; ground?: GroundPosition; presentationCueId?: number } & CorpsePresentation>());
+  const textureStartup = useRef(new ActionTextureStartup());
+  const heroPresentation = useRef(new ActorActionPresentation(textureStartup.current));
+  const enemyPresentation = useRef(new EnemyActionPresentation(textureStartup.current));
   const enemyPositions = useRef(new Map<string, GroundPosition>());
+  const connectedMovement = useRef(new ConnectedMapMovement());
+  const renderedHeroGround = useRef<{ map: string; areaId: string | null; ground: GroundPosition } | null>(null);
   const offensiveTargets = useRef(new Set<string>());
   const legacyOpponentPosition = useRef<GroundPosition | null>(null);
   const legacyOpponentId = useRef("enemy");
   const receivedAt = useRef(performance.now());
   const { state } = snapshot;
+  const combatNow = state.status === 'paused' ? state.pausedAt ?? state.lastSimulatedAt : snapshot.serverTime;
+  const bladeWait = state.combatEffects?.bladeStopWait;
+  const bladeLink = state.combatEffects?.bladeStopLink;
+  const bladePartner = bladeLink && (state.battle?.enemies ?? state.fieldPopulation?.enemies ?? [])
+    .find(enemy => enemy.id === bladeLink.partnerActorId && enemy.hp > 0 &&
+      enemy.statuses?.SC_BLADESTOP?.sourceActorId === state.id &&
+      enemy.statuses.SC_BLADESTOP.partnerActorId === state.id && enemy.statuses.SC_BLADESTOP.expiresAt > combatNow);
+  const bladeStopLabel = bladeWait && bladeWait.expiresAt > combatNow
+    ? `Aguardando ataque · ${Math.ceil((bladeWait.expiresAt - combatNow) / 1000)}s`
+    : bladePartner && bladeLink
+      ? `Vínculo · ${catalog.monsters[bladePartner.monsterId]?.name ?? 'monstro'} · ${Math.ceil((bladeLink.expiresAt - combatNow) / 1000)}s`
+      : undefined;
   const area = catalog.areas.find((a) => a.id === state.areaId);
   const challengeMonsterIds = useMemo(
     () => new Set(catalog.challenges.map((challenge) => challenge.monsterId)),
@@ -648,10 +658,13 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   const engagedCount = state.battle?.enemies?.filter(enemy => enemy.fieldSlot === undefined || enemy.engaged).length ?? 0;
   const equippedEntry = state.inventory.find((entry) => entry.uid === state.equipment.weapon);
   const equippedType = equippedEntry ? catalog.items[equippedEntry.itemId]?.weaponType : undefined;
+  const mounted = isPecoMounted(state, catalog);
+  const heroClass = catalog.classes[state.job];
   const hero = useActor(
-    catalog.classes[state.job].sprite[state.gender],
-    equippedType ? { type: equippedType, gender: state.gender, job: state.job } : undefined,
+    (mounted ? heroClass.mountedSprite?.[state.gender] : undefined) ?? heroClass.sprite[state.gender],
+    equippedType ? { type: equippedType, gender: state.gender, job: state.job, mounted } : undefined,
     state.appearance,
+    { job: state.job, gender: state.gender },
   );
   const enemy = useActor(monster?.sprite);
   const enemyAssetIds = [...new Set([...sceneEnemies(state).map((entry) => entry.monsterId),
@@ -730,6 +743,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   }, [mapReady, state.areaId, state.status]);
   const effects = useRef<PopupCue[]>([]);
   const visuals = useRef<SceneEffects | null>(null);
+  const trapVisual = useRef<DecodedActor | null>(null);
+  const spentTrapVisual = useRef<DecodedActor | null>(null);
   const lootCues = useRef<LootCue[]>([]);
   const lootVisuals = useRef(new Map<number, GroundLootVisual>());
   const emote = useRef({ action: -1, start: 0, next: performance.now() + 6000 + Math.random() * 6000 });
@@ -749,7 +764,26 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     terminalId: number;
     until: number;
     deadAt?: number;
+    presentationCueId?: number;
+    deathPaintAt?: number;
+    deathCanvas?: boolean;
   } | null>(null);
+  const shiftPresentationAssociates = (moved: Map<number, number>) => {
+    for (const popup of effects.current) popup.start += moved.get(popup.id) ?? 0;
+    for (const entry of groupHistory.current.values()) {
+      const delta = entry.presentationCueId === undefined ? 0 : moved.get(entry.presentationCueId) ?? 0;
+      shiftCorpsePresentation(entry, delta);
+    }
+    const corpse = defeatedOpponent.current;
+    if (corpse) {
+      const delta = corpse.presentationCueId === undefined ? 0 : moved.get(corpse.presentationCueId) ?? 0;
+      shiftCorpsePresentation(corpse, delta);
+    }
+    for (const drop of lootCues.current) {
+      const delta = drop.presentationCueId === undefined ? 0 : moved.get(drop.presentationCueId) ?? 0;
+      drop.start += delta; drop.until += delta;
+    }
+  };
   useEffect(() => {
     let hiddenAt: number | null = document.hidden ? performance.now() : null;
     const onVisibility = () => {
@@ -768,6 +802,12 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     let live = true;
     void loadSceneEffects().then((loaded) => {
       if (live) visuals.current = loaded;
+    });
+    void loadGroundTrap().then((loaded) => {
+      if (live) {
+        trapVisual.current = loaded;
+        spentTrapVisual.current = loaded ? spentGroundTrap(loaded) : null;
+      }
     });
     return () => { live = false; };
   }, []);
@@ -790,8 +830,34 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     const newEvents = state.events.filter((e) => e.id > eventCursor.current);
     eventCursor.current = state.events.at(-1)?.id ?? eventCursor.current;
     const now = performance.now();
+    if (previous.areaId !== state.areaId || isTownScene(state) || state.status === "resting") {
+      renderedHeroGround.current = null;
+    }
+    const holdHeroStrike = () => {
+      const rendered = renderedHeroGround.current;
+      // Capture contact while both snapshots are available, including actions
+      // whose visual turn begins later without another response arriving.
+      for (const cue of combatCues.current.filter(entry => entry.sourceActorId === state.id &&
+        entry.presented && entry.actorAction !== 'none' && !entry.sourceGround && entry.start + entry.actionDuration > now)) {
+      const strike = state.status !== "challenge" ? movementAtAction(
+        state.fieldHero?.areaId === state.areaId ? state.fieldHero : undefined,
+        previous.areaId === state.areaId && previous.fieldHero?.areaId === state.areaId ? previous.fieldHero : undefined,
+        cue.actionAt, cue.actionAreaId === state.areaId ? cue.sourcePosition : undefined) : undefined;
+      let ground = rendered?.map === mapName && rendered.areaId === state.areaId ? rendered.ground : undefined;
+      if (strike) {
+        const point = battleScenePoint(strike.point, FIELD_SCENE_ORIGIN);
+        const camera = projection.current?.map === mapName ? projection.current : null;
+        const { movement } = strike;
+        const world = camera ? projectStrikeContact(connectedMovement.current, camera, state.id, cue.actionId, strike,
+          sceneGroundPoint(camera, battleScenePoint(movement.from, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN),
+          sceneGroundPoint(camera, battleScenePoint(movement.position, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN), ground?.world) : undefined;
+        ground = { point, world };
+      }
+      if (ground) cue.sourceGround = ground;
+      }
+    };
     combatCues.current = combatCues.current.filter(
-      (cue) => cue.blocked || cue.start + cue.duration > now,
+      (cue) => cue.blocked || cue.start + cue.duration > now || textureStartup.current.hasPendingDebut(cue, now) || heroPresentation.current.hasPendingFrame(cue, now) || enemyPresentation.current.hasPendingFrame(cue, now),
     );
     lootCues.current = lootCues.current.filter((cue) => cue.until > now || cue.killId === blockedTerminalId.current);
     const actor = actorsRef.current.hero;
@@ -800,12 +866,12 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     );
     const serverOffset = now - snapshot.serverTime;
     const cueFor = (event: GameEvent, skill: Skill | undefined, enemyId = event.enemyId ?? legacyOpponentId.current): CombatCue => {
-      const incoming = event.target === "player" && event.kind === "damage" || event.kind === "dodge";
-      const selfSkill = event.kind === "skill" && (skill?.kind === "heal" || skill?.kind === "buff");
+      const incoming = isNpcStatusAction(event, state.id) || event.target === "player" && event.kind === "damage" || event.kind === "dodge";
+      const selfSkill = ["skill", "treatment"].includes(event.kind) && event.sourceActorId !== enemyId && (skill?.kind === "heal" || skill?.kind === "buff");
       const effectTick = ["Veneno", "Reflexão"].includes(event.text) || (!!skill &&
         [...(state.battle?.groundEffects ?? []), ...(previous.battle?.groundEffects ?? [])].some(effect => effect.skillId === skill.id) &&
         !state.events.some(entry => entry.kind === "skill" && entry.skillId === skill.id && entry.at === event.at));
-      const actorAction = event.actorAction ?? (effectTick ? "none" : skill && skill.kind !== "physical" ? "skill" : "attack");
+      const actorAction = trapCueAction(event.kind) ?? event.actorAction ?? (effectTick ? "none" : skill && skill.kind !== "physical" ? "skill" : "attack");
       const monsterId = event.monsterId ?? groupHistory.current.get(enemyId)?.enemy.monsterId ?? previous.battle?.monsterId ?? state.battle?.monsterId;
       const sourceMonster = monsterId === undefined ? undefined : catalog.monsters[monsterId];
       const sourceActorId = event.sourceActorId ?? (incoming ? enemyId : state.id);
@@ -813,15 +879,21 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const fallbackMotion = sourceActorId === state.id
         ? actorAction === "skill" ? 400 : snapshot.stats.attackIntervalMs / 2 || attackDuration
         : sourceMonster?.attackMotionMs ?? actorActionDuration(enemyActors.current.get(monsterId ?? -1) ?? actorsRef.current.enemy, 16, ENEMY_COMBAT_DIRECTION, 700);
-      const actionDuration = Math.max(1, event.actionMotionMs ?? fallbackMotion);
+      const motionMs = Math.max(1, event.actionMotionMs ?? fallbackMotion);
+      const sourceActor = sourceActorId === state.id ? actorsRef.current.hero : undefined;
+      const actionDuration = sourceActor && actorAction !== 'none'
+        ? getActorPlaybackDuration(sourceActor, getCombatActorAction(actorAction, skill?.sourceName), motionMs, HERO_COMBAT_DIRECTION) : motionMs;
       const start = serverOffset + (event.actionStartedAt ?? event.at);
       const effectStart = serverOffset + event.at;
-      const impact = actorAction !== "none" && !selfSkill ? Math.max(effectStart, start + actionDuration * 0.5) : effectStart;
+      const impact = actorAction !== "none" && !selfSkill
+        ? Math.max(effectStart, start + (actorAction === 'attack' ? motionMs : actionDuration * 0.5)) : effectStart;
       const reactionDuration = Math.max(0, event.hitMotionMs ?? (targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320));
       return {
-        id: event.id, start, effectStart, impact, actionDuration, reactionDuration,
+        id: event.id, start, effectStart, impact, actionDuration, motionMs, reactionDuration,
+        targetHpBefore: event.targetHpBefore, amount: event.kind === 'damage' ? event.amount : undefined,
+        sourcePosition: event.actionSourcePosition, actionAreaId: event.areaId,
         duration: Math.max(actionDuration, impact - start + reactionDuration, skill ? effectStart - start + SKILL_EFFECT_MS : 0),
-        sourceActorId, targetActorId, actorAction,
+        sourceActorId, targetActorId, actorAction, castAction:event.kind === "cast",
         actionId: event.actionId ?? (skill ? `${sourceActorId}:${skill.id}:${event.at}` : `${event.id}`),
         actionAt: event.actionStartedAt ?? event.at,
         action: incoming ? "enemyAttack" : skill ? "skill" : "attack",
@@ -893,15 +965,19 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         if (alive.has(id)) continue;
         const killed = newEvents.find((event) => event.kind === "kill" && event.enemyId === id);
         if (killed && entry.deadAt === undefined) {
-          entry.deadAt = now;
+          startCorpsePresentation(entry, now);
           entry.deadServerAt = killed.at;
           const hero = entry.hero ?? encounterPose.current?.hero ?? roaming.current.position;
           const camera = projection.current?.map === mapName ? projection.current : null;
-          entry.ground = eventGround(killed) ?? enemyGroundPosition(camera, entry.enemy, killed.at, hero,
-            { x: state.status === "challenge" ? 0.38 : 0.48, y: 0.76 }, offensiveTargets.current.has(id));
-          entry.until = now + Math.max(1500, actorActionDuration(enemyActors.current.get(entry.enemy.monsterId) ?? null, 32, 2, 700) + 150);
+          entry.ground = entry.enemy.fieldSlot !== undefined
+            ? enemyGroundPosition(camera, entry.enemy, killed.at, hero,
+              { x: 0.48, y: 0.76 }, offensiveTargets.current.has(id), connectedMovement.current)
+            : eventGround(killed) ?? enemyGroundPosition(camera, entry.enemy, killed.at, hero,
+              { x: state.status === "challenge" ? 0.38 : 0.48, y: 0.76 }, offensiveTargets.current.has(id));
         }
-        if (entry.until === undefined || entry.until <= now) {
+        const pendingHit = entry.presentationCueId !== undefined && combatCues.current.some(cue =>
+          cue.id === entry.presentationCueId && (textureStartup.current.hasPendingDebut(cue, now) || heroPresentation.current.hasPendingFrame(cue, now)));
+        if (entry.until === undefined || entry.until <= now && !pendingHit) {
           groupHistory.current.delete(id);
           enemyPositions.current.delete(id);
           offensiveTargets.current.delete(id);
@@ -925,14 +1001,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
             void loadGroundLoot(catalog.items[event.itemId]).then((visual) => lootVisuals.current.set(event.itemId!, visual));
         }
         if (state.status === "resting") continue;
-        const heroHit = (event.kind === "damage" || event.kind === "miss") && event.target !== "player";
-        const enemyHit = (event.kind === "damage" && event.target === "player") || event.kind === "dodge";
-        const executedSkill = event.kind === "skill" && !!skill;
         let eventCue: CombatCue | undefined;
-        if (heroHit || enemyHit || executedSkill) {
+        if (hasSceneAction(event.kind, !!skill) || isNpcStatusAction(event, state.id)) {
           const completedCast = skill ? state.events.slice().reverse().find((entry) => entry.kind === "cast" &&
             entry.skillId === skill.id && entry.at + (entry.castMs ?? 0) === event.at) : undefined;
-          const groundSource = skill?.targetType === "ground" ? (
+          const groundSource = trapCueAction(event.kind) !== undefined ? event.enemyPosition : skill?.targetType === "ground" ? (
             previous.battle?.cast?.skillId === skill.id && previous.battle.cast.endsAt === event.at
               ? previous.battle.cast.position
               : [...(state.battle?.groundEffects ?? []), ...(previous.battle?.groundEffects ?? [])].find((entry) => entry.skillId === skill.id)?.position
@@ -948,33 +1021,42 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           batchCues.push(eventCue);
         }
         if (event.amount !== undefined && event.target) {
-          effects.current.push({ id: event.id, text: event.kind === "skill" && event.target === "player" ? `+${event.amount}` : `${event.amount}`,
+          effects.current.push({ id: event.id, text: combatPopupText(event),
             target: event.target, critical: event.critical, start: eventCue?.impact ?? start, enemyId: event.enemyId });
         } else if (event.kind === "miss" || event.kind === "dodge") {
           effects.current.push({ id: event.id, text: "MISS", target: event.kind === "dodge" ? "player" : "enemy", start: eventCue?.impact ?? start, enemyId: event.enemyId });
         }
       }
-      rememberActorActions(actionWatermarks.current, batchCues);
-      replayLatestActions(batchCues, actionWatermarks.current, now);
+      combatCues.current = retireInterruptedCastCues(combatCues.current, newEvents);
+      const retainedCastCues = retireInterruptedCastCues(batchCues, newEvents);
+      batchCues.splice(0,batchCues.length,...retainedCastCues);
+      retireTrickDeadPoses(combatCues.current, newEvents, actionWatermarks.current, now);
+      retireTrickDeadPoses(batchCues, newEvents, actionWatermarks.current, now);
+      presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current);
       for (const cue of batchCues) {
         const popup = effects.current.find(effect => effect.id === cue.id);
         if (popup) popup.start = cue.impact;
       }
       combatCues.current.push(...batchCues);
+      holdHeroStrike();
       for (const event of newEvents.filter(entry => entry.kind === "kill" && entry.enemyId)) {
         const entry = groupHistory.current.get(event.enemyId!);
         const finishing = newestCue(batchCues, cue => cue.targetActorId === event.enemyId && cue.hit && cue.actionAt <= event.at);
         if (!entry || !finishing) continue;
-        entry.deadAt = Math.max(now, finishing.impact);
-        entry.until = entry.deadAt + Math.max(1500, actorActionDuration(enemyActors.current.get(entry.enemy.monsterId) ?? null, 32, ENEMY_COMBAT_DIRECTION, 700) + 150);
+        const impact = Math.max(now, finishing.impact);
+        entry.until! += impact - entry.deadAt!;
+        entry.deadAt = impact;
+        entry.presentationCueId = finishing.id;
         for (const loot of lootCues.current.filter(drop => drop.killId === event.id)) {
           loot.start = entry.deadAt;
+          loot.presentationCueId = finishing.id;
           loot.until = loot.start + LOOT_VISIBLE_MS;
         }
       }
       combatCues.current = combatCues.current.slice(-60);
       pruneActionWatermarks(actionWatermarks.current, combatCues.current);
-      effects.current = effects.current.filter((entry) => now - entry.start < 1500).slice(-60);
+      effects.current = effects.current.filter((entry) => now - entry.start < 1500 || combatCues.current.some(cue =>
+        cue.id === entry.id && (textureStartup.current.hasPendingDebut(cue, now) || heroPresentation.current.hasPendingFrame(cue, now) || enemyPresentation.current.hasPendingFrame(cue, now)))).slice(-60);
       return;
     }
     // Old saves without the population list use the same timestamp projection
@@ -1013,7 +1095,12 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (event.kind === "loot" && event.itemId && catalog.items[event.itemId]) {
         lootCues.current.push({ id: event.id, itemId: event.itemId, quantity: event.quantity ?? 1,
           start: now, until: now + LOOT_VISIBLE_MS, order: lootOrder++, killId: lastKillId,
-          enemyId: event.enemyId, origin: legacyOpponentPosition.current ?? undefined });
+          enemyId: event.enemyId, origin: event.enemyPosition ? {
+            point: battleScenePoint(event.enemyPosition, encounterPose.current?.hero ?? roaming.current.position),
+            world: projection.current?.map === mapName ? sceneGroundPoint(projection.current,
+              battleScenePoint(event.enemyPosition, encounterPose.current?.hero ?? roaming.current.position),
+              { x: state.status === "challenge" ? 0.38 : 0.48, y: 0.76 }) : undefined,
+          } : legacyOpponentPosition.current ?? undefined });
         if (!lootVisuals.current.has(event.itemId))
           void loadGroundLoot(catalog.items[event.itemId]).then(visual => lootVisuals.current.set(event.itemId!, visual));
         continue;
@@ -1021,28 +1108,34 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (event.at < snapshot.serverTime - 2000) continue;
       const skill = skillFor(event, catalog.skills) ?? (event.kind === "skill"
         ? Object.values(catalog.skills).find(entry => entry.name === event.text) : undefined);
-      const visibleAction = ["damage", "miss", "dodge"].includes(event.kind) || event.kind === "skill" && !!skill;
+      const visibleAction = hasSceneAction(event.kind, !!skill);
       const cue = visibleAction ? cueFor(event, skill) : undefined;
+      if (cue && trapCueAction(event.kind) !== undefined && event.enemyPosition) {
+        const point = battleScenePoint(event.enemyPosition, encounterPose.current?.hero ?? roaming.current.position);
+        cue.effectPosition = { point, world: projection.current?.map === mapName ? sceneGroundPoint(projection.current, point,
+          { x: state.status === "challenge" ? 0.38 : 0.48, y: 0.76 }) : undefined };
+      }
       if (cue) {
         if (event.enemyId) legacyOpponentId.current = event.enemyId;
         batchCues.push(cue);
       }
       if (event.amount !== undefined && event.target)
-        effects.current.push({ id: event.id, text: event.kind === "skill" && event.target === "player" ? `+${event.amount}` : `${event.amount}`,
+        effects.current.push({ id: event.id, text: combatPopupText(event),
           target: event.target, critical: event.critical, start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
       else if (event.kind === "miss" || event.kind === "dodge")
         effects.current.push({ id: event.id, text: "MISS", target: event.kind === "dodge" ? "player" : "enemy",
           start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
     }
-    rememberActorActions(actionWatermarks.current, batchCues);
-    replayLatestActions(batchCues, actionWatermarks.current, now);
+    presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current);
     for (const cue of batchCues) {
       const popup = effects.current.find(effect => effect.id === cue.id);
       if (popup) popup.start = cue.impact;
     }
     combatCues.current = [...combatCues.current, ...batchCues].slice(-60);
+    holdHeroStrike();
     pruneActionWatermarks(actionWatermarks.current, combatCues.current);
-    effects.current = effects.current.filter(effect => now - effect.start < 1500).slice(-60);
+    effects.current = effects.current.filter(effect => now - effect.start < 1500 || combatCues.current.some(cue =>
+      cue.id === effect.id && (textureStartup.current.hasPendingDebut(cue, now) || heroPresentation.current.hasPendingFrame(cue, now) || enemyPresentation.current.hasPendingFrame(cue, now)))).slice(-60);
     if (terminal) {
       const terminalEvent = terminal;
       const monsterId = terminal.monsterId ?? previous.battle?.monsterId ?? state.battle?.monsterId;
@@ -1054,9 +1147,14 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const areaId = state.areaId;
       const keepCorpse = (actor: DecodedActor) => {
         if (request !== opponentRequest.current || stateRef.current.state.areaId !== areaId || !opponent) return;
-        const deathStart = deadAt === undefined ? undefined : Math.max(deadAt, performance.now());
+        const clock: CorpsePresentation = {};
+        if (deadAt !== undefined) {
+          startCorpsePresentation(clock, Math.max(now, finishing?.impact ?? deadAt));
+          if (performance.now() >= clock.until!) return;
+        }
         defeatedOpponent.current = { actor, monsterId: opponent.id, terminalId: terminalEvent.id,
-          deadAt: deathStart, until: (deathStart ?? now) + actorActionDuration(actor, 32, ENEMY_COMBAT_DIRECTION, 700) + 200 };
+          presentationCueId: finishing?.id,
+          ...clock, until: clock.until ?? now + actorActionDuration(actor, 32, ENEMY_COMBAT_DIRECTION, 700) + 200 };
       };
       if (opponent) {
         const ready = lastOpponent.current?.monsterId === opponent.id ? lastOpponent.current.actor
@@ -1066,6 +1164,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       }
       for (const loot of lootCues.current.filter(drop => drop.killId === terminalEvent.id)) {
         loot.start = deadAt ?? now;
+        loot.presentationCueId = finishing?.id;
         loot.until = loot.start + LOOT_VISIBLE_MS;
       }
     }
@@ -1073,6 +1172,12 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   useEffect(() => () => { opponentRequest.current++; }, []);
   useEffect(() => {
     actorsRef.current = { hero: hero.actor, enemy: enemy.actor };
+    if (hero.actor && !hero.actor.fallback) {
+      const actions = presentedActorActions(combatCues.current, state.id);
+      for (const cue of actions) shiftPresentationAssociates(reconcileActorPlayback(combatCues.current, actionWatermarks.current, cue,
+        getActorPlaybackDuration(hero.actor, getCombatActorAction(cue.actorAction, cue.skill?.sourceName), cue.motionMs,
+          cue.presentationDirection ?? HERO_COMBAT_DIRECTION)));
+    }
     if (enemy.actor && state.battle)
       lastOpponent.current = {
         actor: enemy.actor,
@@ -1116,12 +1221,15 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       ).sort((a, b) => Number(a.deadAt !== undefined) - Number(b.deadAt !== undefined));
       const visibleEnemyIds = new Set(groupEnemies.map((entry) => entry.enemy.id));
       const groupMode = !!current.battle?.enemies || groupEnemies.length > 0;
-      const groupHeroCue = isArriving ? undefined : actorActionCue(combatCues.current, actionWatermarks.current, current.id, time);
+      const soloPosture = soloPostureAt(current, catalog, serverNow);
+      const groupHeroCue = isArriving || soloPosture.playDead ? undefined : heroPresentation.current.actionAt(combatCues.current.filter(cue => !cue.blocked), current.id, time);
       const camera = projection.current?.map === mapName ? projection.current : null;
       // The scene origin stays stable through roaming and combat.
       const formationAnchor = { x: current.status === "challenge" ? 0.38 : 0.48, y: 0.76 };
       const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && scene !== "town" && current.status !== "challenge";
-      const casting = current.battle?.cast && serverNow < current.battle.cast.endsAt ? current.battle.cast : undefined;
+      // A source cast may already have begun while the previous swing is still
+      // being presented. Its body and facing wait for the current visual turn.
+      const casting = !soloPosture.playDead && !groupHeroCue && current.battle?.cast && serverNow < current.battle.cast.endsAt ? current.battle.cast : undefined;
       const facingTargetId = casting?.targetId ?? groupHeroCue?.effectEnemyId ?? groupHeroCue?.enemyId ?? current.battle?.targetId;
       const primaryEnemy = groupEnemies.find((entry) => entry.enemy.id === facingTargetId) ??
         groupEnemies.find((entry) => entry.enemy.id === current.battle?.targetId) ??
@@ -1162,13 +1270,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const cue = newestCue(isArriving ? [] : combatCues.current,
         (entry) => !entry.blocked && time >= entry.start && time < entry.start + entry.duration,
       );
-      const activeLoot = (isArriving ? [] : lootCues.current).filter((entry) =>
-        time >= entry.start && time < entry.until &&
-        (blockedTerminalId.current === null || entry.killId !== blockedTerminalId.current),
-      );
       const battleVisible = !!current.battle && !isArriving;
       const showDefeated = !isArriving && !!lingering && (!current.battle || !cue || cue.id <= lingering.terminalId);
-      const fighting = battleVisible || !!showDefeated;
+      const fighting = battleVisible || !!showDefeated || !!groupHeroCue;
       const roamAllowed = huntActive && !battleVisible && !showDefeated;
       advanceRoaming(motionState, route, time, roamAllowed && !fieldPopulation && !motion.matches, camera, formationAnchor);
       if (fieldPopulation) motionState.walking = huntActive && !!current.fieldHero &&
@@ -1201,13 +1305,26 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const encounter = !fieldPopulation && huntLocation && encounterPose.current?.areaId === current.areaId && fighting
         ? encounterPose.current
         : null;
-      const heroPoint = encounter?.hero ?? (huntLocation ? motionState.position : { x: fighting ? 0.38 : 0.48, y: 0.76 });
+      const strikePose = groupHeroCue?.sourceGround ? { ground: groupHeroCue.sourceGround } : null;
+      const heroPoint = strikePose?.ground.point ?? encounter?.hero ?? (huntLocation ? motionState.position : { x: fighting ? 0.38 : 0.48, y: 0.76 });
       const primaryHero = primaryEnemy?.hero ?? heroPoint;
       const primaryArrival = primaryEnemy ? enemyArrival(primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, offensiveTargets.current.has(primaryEnemy.enemy.id)) : undefined;
       const enemyPoint = primaryEnemy?.ground?.point ?? primaryArrival?.point ?? encounter?.enemy ?? { x: 0.66, y: 0.76 };
-      const heroPlacement = camera ? projectMapPoint(camera, fieldPopulation
-        ? walkableSceneGroundPoint(camera, heroPoint, formationAnchor)
-        : sceneGroundPoint(camera, heroPoint, formationAnchor), width, height) : null;
+      const heroFromWorld = camera ? sceneGroundPoint(camera, motionState.from, formationAnchor) : null;
+      const heroToWorld = camera ? sceneGroundPoint(camera, motionState.target, formationAnchor) : null;
+      const heroMovement = camera && !strikePose && fieldPopulation && current.fieldHero
+        ? connectedMovement.current.project(camera, current.id,
+          JSON.stringify([current.fieldHero.startedAt, current.fieldHero.arrivedAt, current.fieldHero.from, current.fieldHero.position]),
+          heroFromWorld!, heroToWorld!,
+          ((current.status === "paused" ? current.pausedAt ?? current.lastSimulatedAt : serverNow) - current.fieldHero.startedAt) /
+            Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt),
+          { now: time, maxSpeed: current.status === 'paused' || serverNow < current.fieldHero.startedAt ? 0 : Math.hypot(heroToWorld![0] - heroFromWorld![0], heroToWorld![2] - heroFromWorld![2]) /
+            Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt) }) : null;
+      const heroPlacement = camera ? projectMapPoint(camera, strikePose?.ground.world ?? (fieldPopulation
+        ? heroMovement?.world ?? walkableSceneGroundPoint(camera, heroPoint, formationAnchor)
+        : sceneGroundPoint(camera, heroPoint, formationAnchor)), width, height) : null;
+      renderedHeroGround.current = { map: mapName, areaId: current.areaId,
+        ground: { point: { ...heroPoint }, world: heroPlacement?.world } };
       mapFollow.current = fieldPopulation ? heroPlacement?.world ?? null : null;
       const castingSkill = casting ? catalog.skills[casting.skillId] : undefined;
       const castPoint = casting?.position && castingSkill?.targetType === "ground" ? battleScenePoint(casting.position, fieldPopulation ? formationAnchor : heroPoint) : undefined;
@@ -1218,7 +1335,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       };
       const enemyPlacement = camera ? primaryEnemy
         ? primaryEnemy.ground?.world ? projectMapPoint(camera, primaryEnemy.ground.world, width, height)
-          : projectEnemyArrival(camera, primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, formationAnchor, width, height, offensiveTargets.current.has(primaryEnemy.enemy.id))
+          : projectEnemyArrival(camera, primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, formationAnchor, width, height, offensiveTargets.current.has(primaryEnemy.enemy.id), connectedMovement.current)
         : projectMapPoint(camera, sceneGroundPoint(camera, enemyContactPoint, formationAnchor), width, height) : null;
       const heroBaseX = heroPlacement?.x ?? width * heroPoint.x;
       const enemyX = enemyPlacement?.x ?? width * enemyPoint.x;
@@ -1227,14 +1344,25 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (!groupMode && fighting) legacyOpponentPosition.current = {
         point: camera ? enemyContactPoint : enemyPoint, world: enemyPlacement?.world,
       };
-      const roamingDirection = camera && huntLocation
+      const roamingDirection = camera && heroMovement && heroPlacement
+        ? walkDirection(heroPlacement, projectMapPoint(camera, heroMovement.tangent, width, height)) : camera && huntLocation
         ? walkDirection(
           projectMapPoint(camera, sceneGroundPoint(camera, motionState.from, formationAnchor), width, height),
           projectMapPoint(camera, sceneGroundPoint(camera, motionState.target, formationAnchor), width, height),
         )
         : motionState.direction;
-      const heroWalking = motionState.walking && huntActive && !casting && !groupHeroCue;
-      const heroDirection = heroWalking ? roamingDirection : camera && fighting ? walkDirection({ x: heroBaseX, y: heroGround }, { x: castPlacement?.x ?? enemyX, y: castPlacement?.y ?? enemyGround }) : groupMode && fighting ? walkDirection(heroPoint, castPoint ?? enemyPoint) : encounter?.heroDirection ?? (huntLocation ? roamingDirection : HERO_COMBAT_DIRECTION);
+      const heroWalking = movementIsWalking(heroMovement, motionState.walking,
+        !fieldPopulation || !current.fieldHero || serverNow >= current.fieldHero.startedAt) && huntActive && !soloPosture.playDead && (!casting || soloPosture.castWalking) && !groupHeroCue && !strikePose;
+      const counterPosture = !isArriving && !soloPosture.playDead && !casting && !groupHeroCue ? autoCounterPostureAt(current, catalog, serverNow) : undefined;
+      let heroDirection = heroWalking ? roamingDirection : camera && fighting ? walkDirection({ x: heroBaseX, y: heroGround }, { x: castPlacement?.x ?? enemyX, y: castPlacement?.y ?? enemyGround }) : groupMode && fighting ? walkDirection(heroPoint, castPoint ?? enemyPoint) : encounter?.heroDirection ?? (huntLocation ? roamingDirection : HERO_COMBAT_DIRECTION);
+      if (counterPosture) {
+        const towards = postureFacingPoint(heroPoint, counterPosture.facing);
+        heroDirection = camera ? walkDirection({ x: heroBaseX, y: heroGround },
+          projectMapPoint(camera, sceneGroundPoint(camera, towards, formationAnchor), width, height)) : walkDirection(heroPoint, towards);
+      }
+      if (groupHeroCue) {
+        heroDirection = lockActorDirection(combatCues.current, groupHeroCue, heroDirection);
+      }
       const enemyDirection = encounter ? (heroDirection + 4) % 8 : ENEMY_COMBAT_DIRECTION;
       const heroActor = actorsRef.current.hero;
       const opponentActor = showDefeated ? lingering!.actor : actorsRef.current.enemy;
@@ -1255,7 +1383,68 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       );
       const enemyVisualHeight = enemyHeight * enemyScale;
       const heroCue = groupHeroCue;
-      const enemySwing = actorActionCue(isArriving ? [] : combatCues.current, actionWatermarks.current, legacyOpponentId.current, time);
+      let heroFrame: EnemyActionFrame<CombatCue> | undefined;
+      if (heroCue && current.hp > 0 &&
+        current.status !== 'resting' && current.status !== 'paused') {
+        heroFrame = heroPresentation.current.frame(combatCues.current.filter(cue => !cue.blocked),
+          actionWatermarks.current, current.id, time, {
+            decoded: !!heroActor && !heroActor.fallback,
+            direction: heroDirection,
+            hasPose: (cue, facing) => !!heroActor && getActorPose(heroActor,
+              getCombatActorAction(cue.actorAction, cue.skill?.sourceName), 0, facing, cue.motionMs).length > 0,
+            playbackDuration: (cue, facing) => getActorPlaybackDuration(heroActor!,
+              getCombatActorAction(cue.actorAction, cue.skill?.sourceName), cue.motionMs, facing),
+            nativeState: (cue, facing) => {
+              if (!camera || !heroPlacement?.world || motion.matches || !nativeActors.current) return 'canvas';
+              const paint = { id: current.id, actor: heroActor!, action: getCombatActorAction(cue.actorAction, cue.skill?.sourceName), direction: facing };
+              return nativeActors.current.canPaintActionNatively(paint, time) ? 'ready'
+                : nativeActors.current.mayRecoverActionOwnership(paint, time) ? 'pending'
+                : nativeActors.current.areActionTexturesReady(paint, time) ? 'canvas' : 'pending';
+            },
+          });
+        if (heroFrame) { shiftPresentationAssociates(heroFrame.moved); heroDirection = heroFrame.direction; }
+      }
+      // Prepare incoming offense before health, reactions and popups consume its
+      // impact clock. Monster decode and native idle ACKs must not spend the swing.
+      const enemyFrames = new Map<string, EnemyActionFrame<CombatCue>>();
+      const prepareEnemyAction = (id: string, actor: DecodedActor | null, direction: number, hasWorld: boolean) => {
+        const frame = enemyPresentation.current.frame(combatCues.current.filter(cue => !cue.blocked),
+          actionWatermarks.current, id, time, {
+            decoded: !!actor && !actor.fallback,
+            direction,
+            hasPose: (cue, facing) => !!actor && getActorPose(actor, cue.actorAction === 'attack' ? 'attack' : 'skill', 0, facing, cue.motionMs).length > 0,
+            playbackDuration: (cue, facing) => getActorPlaybackDuration(actor!, cue.actorAction === 'attack' ? 'attack' : 'skill', cue.motionMs, facing),
+            nativeState: (cue, facing) => {
+              if (!camera || !hasWorld || motion.matches || !nativeActors.current) return 'canvas';
+              const paint = { id, actor: actor!, action: cue.actorAction === 'attack' ? 'attack' as const : 'skill' as const, direction: facing };
+              return nativeActors.current.canPaintActionNatively(paint, time) ? 'ready'
+                : nativeActors.current.mayRecoverActionOwnership(paint, time) ? 'pending'
+                : nativeActors.current.areActionTexturesReady(paint, time) ? 'canvas' : 'pending';
+            },
+          });
+        if (frame) { shiftPresentationAssociates(frame.moved); enemyFrames.set(id, frame); }
+      };
+      if (!isArriving && current.status !== 'paused') {
+        if (groupMode) for (const entry of groupEnemies) {
+          if (entry.deadAt !== undefined && time >= entry.deadAt) continue;
+          const actor = enemyActors.current.get(entry.enemy.monsterId) ?? (entry.enemy.monsterId === current.battle?.monsterId ? actorsRef.current.enemy : null);
+          entry.hero ??= { ...heroPoint };
+          const sourceOnly = offensiveTargets.current.has(entry.enemy.id);
+          const arrival = enemyArrival(entry.enemy, entry.deadServerAt ?? serverNow, entry.hero, sourceOnly);
+          const ground = entry.ground ?? enemyGroundPosition(camera, entry.enemy, entry.deadServerAt ?? serverNow,
+            entry.hero, formationAnchor, sourceOnly, connectedMovement.current);
+          const placement = camera && ground.world ? projectMapPoint(camera, ground.world, width, height) : null;
+          const facing = placement ? walkDirection({ x: placement.x, y: placement.y }, { x: heroBaseX, y: heroGround })
+            : walkDirection(arrival.target, heroPoint);
+          prepareEnemyAction(entry.enemy.id, actor, facing, !!ground.world);
+        } else if (opponentActor && !showDefeated) prepareEnemyAction(legacyOpponentId.current, opponentActor, enemyDirection, !!enemyPlacement?.world);
+      }
+      const activeLoot = (isArriving ? [] : lootCues.current).filter((entry) =>
+        time >= entry.start && time < entry.until &&
+        (blockedTerminalId.current === null || entry.killId !== blockedTerminalId.current),
+      );
+      const legacyEnemyFrame = enemyFrames.get(legacyOpponentId.current);
+      const enemySwing = legacyEnemyFrame?.cue ?? actorActionCue(isArriving ? [] : combatCues.current, actionWatermarks.current, legacyOpponentId.current, time);
       // Original ACT layers animate the swing around the standing map cell.
       // A synthetic horizontal lunge broke diagonal facing and crossed walls.
       const heroX = heroBaseX;
@@ -1264,11 +1453,14 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         !(blockedTerminalId.current !== null && e.id > blockedTerminalId.current) &&
         time >= e.start && time - e.start < 1500,
       );
+      suppressActorReactions(combatCues.current, current.id, time, !!casting || !!heroCue);
       const heroHurt = actorReactionCue(isArriving ? [] : combatCues.current, current.id, time);
       const enemyHurt = actorReactionCue(isArriving ? [] : combatCues.current, legacyOpponentId.current, time);
       const actorPaints: SceneActorPaint[] = [];
       const groupLabels: Array<() => void> = [];
       let selectedTarget: TargetPlacement | undefined;
+      let selectedTargetId = "";
+      let preImpactHealthBars = 0;
       const paint = (
         id: string,
         actor: DecodedActor,
@@ -1280,9 +1472,16 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         elapsed = time,
         motionMs?: number,
         world?: WorldPoint,
+        particle?: boolean,
+        canvasOnly?: boolean,
       ) => {
-        actorPaints.push({ id, actor, action, x, ground, scale, direction, elapsed, motionMs, world });
+        actorPaints.push({ id, actor, action, x, ground, scale, direction, elapsed, motionMs, world, particle, canvasOnly });
       };
+      const heroAction: ActorAction = current.hp <= 0 || soloPosture.playDead ? "dead"
+        : current.status === "resting" || (current.status === "paused" && current.areaId) ? 16
+          : casting ? (heroWalking ? 8 : "cast")
+            : heroCue ? getCombatActorAction(heroCue.actorAction, heroCue.skill?.sourceName)
+              : counterPosture ? counterPosture.action : heroHurt ? "hurt" : heroWalking ? 8 : "idle";
       const groupPositions = new Map<string, { x: number; ground: number; visualHeight: number; world?: WorldPoint }>();
       if (camera) for (const route of prepareMapLife(mapLife, camera, formationAnchor)) {
         const actor = ambientActors.current.get(route.id);
@@ -1327,16 +1526,16 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         paint(
           current.id,
           heroActor,
-          current.hp <= 0 ? "dead" : current.status === "resting" || (current.status === "paused" && current.areaId) ? 16
-            : casting ? "cast" : heroCue ? heroCue.actorAction === "attack" ? "attack" : "skill"
-              : heroHurt ? "hurt" : heroWalking ? 8 : "idle",
+          heroAction,
           heroX,
           heroGround,
           heroScale,
           heroDirection,
-          casting ? serverNow - casting.startedAt : heroCue ? time - heroCue.start : heroHurt ? time - heroHurt.impact : heroWalking ? time : 0,
-          casting ? undefined : heroCue?.actionDuration ?? heroHurt?.reactionDuration,
+          casting ? serverNow - casting.startedAt : heroFrame ? heroFrame.elapsed : heroCue ? time - heroCue.start : counterPosture ? counterPosture.elapsed : heroHurt ? time - heroHurt.impact : heroWalking ? time : 0,
+          casting ? undefined : heroCue?.motionMs ?? heroHurt?.reactionDuration,
           heroFeetWorld,
+          undefined,
+          heroFrame?.canvasOnly,
         );
       const opponentDead = showDefeated && lingering!.deadAt !== undefined && time >= lingering!.deadAt;
       if (groupMode && !isArriving) {
@@ -1346,11 +1545,14 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           entry.hero ??= { ...heroPoint };
           const sourceOnly = offensiveTargets.current.has(entry.enemy.id);
           const arrival = enemyArrival(entry.enemy, entry.deadServerAt ?? serverNow, entry.hero, sourceOnly);
-          const placement = camera ? entry.ground?.world
-            ? projectMapPoint(camera, entry.ground.world, width, height)
-            : projectEnemyArrival(camera, entry.enemy, entry.deadServerAt ?? serverNow, entry.hero, formationAnchor, width, height, sourceOnly) : null;
-          const destination = camera ? projectMapPoint(camera, sceneGroundPoint(camera, arrival.target, formationAnchor), width, height) : null;
-          const direction = placement ? walkDirection({ x: placement.x, y: placement.y }, arrival.walking && destination ? destination : { x: heroBaseX, y: heroGround }) : arrival.walking ? arrival.direction : walkDirection(arrival.target, heroPoint);
+          const groundPose = entry.ground ?? enemyGroundPosition(camera, entry.enemy, entry.deadServerAt ?? serverNow,
+            entry.hero, formationAnchor, sourceOnly, connectedMovement.current);
+          const placement = camera && groundPose.world ? projectMapPoint(camera, groundPose.world, width, height) : null;
+          const destination = camera ? projectMapPoint(camera, groundPose.tangent ?? sceneGroundPoint(camera, arrival.target, formationAnchor), width, height) : null;
+          const walking = arrival.walking && (!groundPose.tangent || !groundPose.world ||
+            Math.hypot(groundPose.tangent[0] - groundPose.world[0], groundPose.tangent[2] - groundPose.world[2]) > .0001);
+          const enemyFrame = enemyFrames.get(entry.enemy.id);
+          const direction = enemyFrame?.direction ?? (placement ? walkDirection({ x: placement.x, y: placement.y }, walking && destination ? destination : { x: heroBaseX, y: heroGround }) : walking ? arrival.direction : walkDirection(arrival.target, heroPoint));
           const bounds = actorBounds(actor, direction, false);
           const nativeHeight = Math.max(1, bounds.bottom - bounds.top);
           const scale = Math.min(placement?.scale ?? worldScale, height * 0.3 / nativeHeight,
@@ -1362,30 +1564,43 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           groupPositions.set(entry.enemy.id, { x, ground, visualHeight, world: placement?.world });
           enemyPositions.current.set(entry.enemy.id, { point: position, world: placement?.world });
           if (!visibleEnemyIds.has(entry.enemy.id)) continue;
-          const targetCue = actorActionCue(combatCues.current, actionWatermarks.current, entry.enemy.id, time);
+          const targetCue = enemyFrame?.cue ?? actorActionCue(combatCues.current, actionWatermarks.current, entry.enemy.id, time);
           const hurt = actorReactionCue(combatCues.current, entry.enemy.id, time);
           const dead = entry.deadAt !== undefined && time >= entry.deadAt;
-          paint(entry.enemy.id, actor, dead ? "dead" : targetCue ? targetCue.actorAction === "attack" ? "attack" : "skill" : hurt ? "hurt" : arrival.walking ? 8 : "idle",
-            x, ground, scale, direction, dead ? time - entry.deadAt! : targetCue ? time - targetCue.start : hurt ? time - hurt.impact : time,
-            dead ? undefined : targetCue?.actionDuration ?? hurt?.reactionDuration, placement?.world);
-          if (entry.deadAt === undefined && entry.enemy.hp > 0 && (entry.enemy.engaged || entry.enemy.id === current.battle?.targetId || entry.enemy.id === casting?.targetId)) {
-            const selected = entry.enemy.id === current.battle?.targetId;
+          const deathFrame = dead && !actor.fallback && getActorPose(actor, 'dead', 0, direction).length
+            ? corpseFrameAt(entry, time, getActorActionDuration(actor, 'dead', direction),
+              nativeActors.current?.canPaintActionNatively({ id:entry.enemy.id, actor, action:'dead', direction }, time) ?? false)
+            : undefined;
+          if (dead && !deathFrame) continue;
+          paint(entry.enemy.id, actor, dead ? "dead" : targetCue ? targetCue.actorAction === "attack" ? "attack" : "skill" : hurt ? "hurt" : walking ? 8 : "idle",
+            x, ground, scale, direction, deathFrame ? deathFrame.elapsed : enemyFrame ? enemyFrame.elapsed : targetCue ? time - targetCue.start : hurt ? time - hurt.impact : time,
+            dead ? undefined : targetCue?.motionMs ?? hurt?.reactionDuration, placement?.world, undefined, deathFrame?.canvasOnly ?? enemyFrame?.canvasOnly);
+          const visualHp = targetHealthAt(entry.deadAt === undefined ? entry.enemy.hp : 0, entry.enemy.maxHp, combatCues.current, entry.enemy.id, time);
+          if (!dead && visualHp > 0 && (entry.enemy.engaged || entry.enemy.id === facingTargetId)) {
+            const selected = entry.enemy.id === facingTargetId;
             const target = { x, ground, scale, visualHeight, world: placement?.world, width: bounds.right - bounds.left };
-            if (selected) selectedTarget = target;
+            if (selected) { selectedTarget = target; selectedTargetId = entry.enemy.id; }
+            if (entry.deadAt !== undefined && time < entry.deadAt) preImpactHealthBars++;
             groupLabels.push(() => {
               if (selected) {
-                drawTargetHealth(ctx, target, catalog.monsters[entry.enemy.monsterId]?.name ?? "Monstro", entry.enemy.hp, entry.enemy.maxHp, width);
+                const control=monsterControlLabel(entry.enemy,serverNow);
+                drawTargetHealth(ctx, target, `${catalog.monsters[entry.enemy.monsterId]?.name ?? "Monstro"}${control?` · ${control}`:''}`, visualHp, entry.enemy.maxHp, width);
                 return;
               }
               const barWidth = 24;
               ctx.fillStyle = "#cbd8cd";
               ctx.fillRect(x - barWidth / 2, ground + 12, barWidth, 4);
               ctx.fillStyle = "#739358";
-              ctx.fillRect(x - barWidth / 2, ground + 12, barWidth * Math.max(0, entry.enemy.hp / entry.enemy.maxHp), 4);
+              ctx.fillRect(x - barWidth / 2, ground + 12, barWidth * Math.max(0, visualHp / entry.enemy.maxHp), 4);
             });
           }
         }
-      } else if (fighting && opponentActor)
+      } else if (fighting && opponentActor) {
+        const deathFrame = opponentDead && !opponentActor.fallback && getActorPose(opponentActor,'dead',0,enemyDirection).length
+          ? corpseFrameAt(lingering!,time,getActorActionDuration(opponentActor,'dead',enemyDirection),
+            nativeActors.current?.canPaintActionNatively({id:legacyOpponentId.current,actor:opponentActor,action:'dead',direction:enemyDirection},time) ?? false)
+          : undefined;
+        if (!opponentDead || deathFrame)
         paint(
           legacyOpponentId.current,
           opponentActor,
@@ -1393,35 +1608,118 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           enemyX,
           enemyGround,
           enemyScale,
-          enemyDirection,
-          opponentDead ? time - lingering!.deadAt!
-            : enemySwing ? time - enemySwing.start : enemyHurt ? time - enemyHurt.impact : 0,
-          opponentDead ? undefined : enemySwing?.actionDuration ?? enemyHurt?.reactionDuration,
+          legacyEnemyFrame?.direction ?? enemyDirection,
+          deathFrame ? deathFrame.elapsed
+            : legacyEnemyFrame ? legacyEnemyFrame.elapsed : enemySwing ? time - enemySwing.start : enemyHurt ? time - enemyHurt.impact : 0,
+          opponentDead ? undefined : enemySwing?.motionMs ?? enemyHurt?.reactionDuration,
           enemyPlacement?.world,
+          undefined,
+          deathFrame?.canvasOnly ?? legacyEnemyFrame?.canvasOnly,
         );
+      }
       if (!groupMode && fighting && !showDefeated && current.battle && current.battle.hp > 0) {
+        selectedTargetId = legacyOpponentId.current;
         selectedTarget = { x: enemyX, ground: enemyGround, scale: enemyScale,
           visualHeight: enemyVisualHeight * GAME_ACTOR_SCALE, world: enemyPlacement?.world,
           width: enemyBounds.right - enemyBounds.left };
         const target = selectedTarget;
         groupLabels.push(() => drawTargetHealth(ctx, target, catalog.monsters[current.battle!.monsterId]?.name ?? "Monstro", current.battle!.hp, current.battle!.maxHp, width));
       }
+      let armedTrapCount = 0;
+      if (!isArriving && trapVisual.current) for (const trap of current.battle?.traps ?? []) {
+        const skill = catalog.skills[trap.skillId];
+        const phase = groundTrapVisualState({ ...trap, skillId: skill?.sourceName ?? trap.skillId }, serverNow);
+        if (!phase) continue;
+        const point = battleScenePoint(trap.position, formationAnchor);
+        const placement = camera ? projectMapPoint(camera, sceneGroundPoint(camera, point, formationAnchor), width, height) : null;
+        paint(`trap:${trap.id}`, phase === 'spent' ? spentTrapVisual.current ?? trapVisual.current : trapVisual.current, 0, placement?.x ?? point.x * width,
+          placement?.y ?? point.y * height, (placement?.scale ?? 1) / GAME_ACTOR_SCALE, 0, 0, undefined, placement?.world);
+        armedTrapCount++;
+      }
+      canvas.current!.dataset.groundTraps = String(armedTrapCount);
+      let groundUnitCount = 0;
+      if (!isArriving) for (const unit of current.battle?.skillUnits ?? []) {
+        if (serverNow < unit.placedAt || serverNow >= unit.expiresAt) continue;
+        const source = catalog.skills[unit.skillId]?.sourceName;
+        for (const cell of unit.cells) {
+          const point = battleScenePoint(cell, formationAnchor);
+          const placement = camera ? projectMapPoint(camera, sceneGroundPoint(camera, point, formationAnchor), width, height) : null;
+          if (source === 'AS_VENOMDUST' && visuals.current?.venomDust) {
+            const pose = venomDustPose(serverNow - unit.placedAt, motion.matches);
+            const world: WorldPoint | undefined = placement?.world ? [placement.world[0], placement.world[1] + pose.height, placement.world[2]] : undefined;
+            const lifted = camera && world ? projectMapPoint(camera, world, width, height) : placement;
+            paint(`unit:${unit.id}:${cell.x}:${cell.y}`, visuals.current.venomDust, 0, lifted?.x ?? point.x * width,
+              lifted?.y ?? point.y * height, (lifted?.scale ?? 1) * pose.scale / GAME_ACTOR_SCALE,
+              0, serverNow - unit.placedAt, undefined, world, true);
+            groundUnitCount++;
+          } else if (source === 'PF_SPIDERWEB' && visuals.current?.spiderWeb) {
+            const radius = spiderWebRadius(serverNow - unit.placedAt, 0, motion.matches);
+            const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => {
+              const p = battleScenePoint({ x: cell.x + x * radius / BATTLE_CELLS_PER_UNIT, y: cell.y + y * radius / BATTLE_CELLS_PER_UNIT }, formationAnchor);
+              return camera ? projectMapPoint(camera, sceneGroundPoint(camera, p, formationAnchor), width, height) : { x: p.x * width, y: p.y * height };
+            });
+            if (corners.every(p => p !== null)) { drawGroundTexture(ctx, visuals.current.spiderWeb, corners as { x: number; y: number }[]); groundUnitCount++; }
+          }
+        }
+      }
+      canvas.current!.dataset.soloGroundUnits = String(groundUnitCount);
       const orderedActors = actorPaints.sort((a, b) => a.ground - b.ground);
-      const nativeIds = camera ? nativeActors.current?.submit(orderedActors.map(actorPaint => {
+      const nativeIds = camera ? nativeActors.current?.submit(orderedActors.filter(actorPaint => !actorPaint.canvasOnly).map(actorPaint => {
         const bounds = actorBounds(actorPaint.actor, actorPaint.direction, false);
         const visualWidth = (bounds.right - bounds.left) * actorPaint.scale * GAME_ACTOR_SCALE;
         const radius = Math.max(4, Math.min(30, visualWidth * 0.28));
-        return { ...actorPaint, elapsed: motion.matches ? 0 : actorPaint.elapsed, bottom: bounds.bottom,
-          shadow: { radius, height: Math.max(2, Math.min(7, radius * 0.26)), opacity: 0.24 } };
+        return { ...actorPaint, elapsed: motion.matches ? 0 : actorPaint.elapsed, bottom: actorPaint.particle ? 0 : bounds.bottom,
+          shadow: actorPaint.particle ? undefined : { radius, height: Math.max(2, Math.min(7, radius * 0.26)), opacity: 0.24 } };
       }), camera, width, height, time) ?? new Set<string>() : new Set<string>();
       canvas.current!.dataset.nativeActors = String(nativeIds.size);
       canvas.current!.dataset.canvasActors = String(actorPaints.length - nativeIds.size);
       canvas.current!.dataset.heroRenderer = nativeIds.has(current.id) ? "native" : "canvas";
-      const nativeDiagnostics = nativeActors.current?.getDiagnostics();
+      canvas.current!.dataset.heroAction = String(heroAction);
+      canvas.current!.dataset.heroActionElapsedMs = String(motion.matches ? 0 : Math.max(0, heroCue ? time - heroCue.start : 0));
+      canvas.current!.dataset.heroActionMotionMs = String(heroCue?.motionMs ?? 0);
+      canvas.current!.dataset.heroActionPlaybackMs = String(heroCue?.actionDuration ?? 0);
+      canvas.current!.dataset.heroActionId = heroCue?.actionId ?? "";
+      canvas.current!.dataset.heroTextureStartupMs = String(heroCue ? textureStartup.current.waitedFor(heroCue) : 0);
+      canvas.current!.dataset.heroFirstFrameDelayMs = String(heroCue ? textureStartup.current.debutDelayFor(heroCue) : 0);
+      canvas.current!.dataset.heroDirection = String(heroDirection);
+      canvas.current!.dataset.heroVisualX = String(heroX);
+      canvas.current!.dataset.heroVisualY = String(heroGround);
+      canvas.current!.dataset.heroWorldX = String(heroPlacement?.world[0] ?? "");
+      canvas.current!.dataset.heroWorldZ = String(heroPlacement?.world[2] ?? "");
+      canvas.current!.dataset.visualTargetId = selectedTargetId;
+      canvas.current!.dataset.preImpactHealthBars = String(preImpactHealthBars);
+      canvas.current!.dataset.pendingDeaths = String(groupEnemies.filter(entry => entry.deadAt !== undefined && time < entry.deadAt).length);
+      canvas.current!.dataset.deathPaints = JSON.stringify(actorPaints.filter(paint => paint.action === 'dead').map(paint => ({
+        id:paint.id, elapsed:paint.elapsed, canvasOnly:paint.canvasOnly === true,
+        impact:groupHistory.current.get(paint.id)?.deadAt,
+        paintAt:groupHistory.current.get(paint.id)?.deathPaintAt,
+        until:groupHistory.current.get(paint.id)?.until,
+      })));
+      canvas.current!.dataset.enemyActionPaints = JSON.stringify([...enemyFrames].map(([id, frame]) => ({
+        id, actionId: frame.cue.actionId, actionAt: frame.cue.actionAt, elapsed: frame.elapsed,
+        motionMs: frame.cue.motionMs, playbackMs: frame.cue.actionDuration, direction: frame.direction,
+        impact: frame.cue.impact, waited: frame.waited, firstFrameDelay: frame.firstFrameDelay,
+        renderer: nativeIds.has(id) ? 'native' : 'canvas', canvasOnly: frame.canvasOnly,
+      })));
+      const nativeDiagnostics = nativeActors.current?.getDiagnostics(current.id, time);
+      canvas.current!.dataset.nativeSupported = String(nativeDiagnostics?.supported ?? false);
+      canvas.current!.dataset.nativeFailed = String(nativeDiagnostics?.failed ?? false);
+      canvas.current!.dataset.nativeErrorReason = nativeDiagnostics?.errorReason ?? '';
+      canvas.current!.dataset.nativeLastAckAt = String(nativeDiagnostics?.lastAckAt ?? '');
+      canvas.current!.dataset.nativeLastAckAgeMs = String(nativeDiagnostics?.lastAckAgeMs ?? '');
+      canvas.current!.dataset.nativeAckSequence = String(nativeDiagnostics?.ackSequence ?? '');
+      canvas.current!.dataset.nativeAckActors = String(nativeDiagnostics?.ackActorCount ?? 0);
+      canvas.current!.dataset.nativeReadyFrames = String(nativeDiagnostics?.readyFrames ?? 0);
+      canvas.current!.dataset.nativePendingFrames = String(nativeDiagnostics?.pendingFrames ?? 0);
+      canvas.current!.dataset.nativeAcknowledgements = String(nativeDiagnostics?.acknowledgements ?? 0);
       canvas.current!.dataset.nativeTextureWaits = String(nativeDiagnostics?.textureWaits ?? 0);
       canvas.current!.dataset.nativeOwnershipChanges = String(nativeDiagnostics?.ownershipChanges ?? 0);
+      canvas.current!.dataset.heroRequestedPose = nativeDiagnostics?.requestedPose ?? '';
+      canvas.current!.dataset.heroDrawnPose = nativeDiagnostics?.drawnPose ?? '';
+      canvas.current!.dataset.heroPoseHeld = String(nativeDiagnostics?.poseHeld ?? 'unknown');
+      canvas.current!.dataset.nativeHeldPoseAcks = String(nativeDiagnostics?.heldPoseAcks ?? 0);
       actorPaints.forEach((actorPaint) => {
-        if (!nativeIds.has(actorPaint.id)) drawActorFootShadow(ctx, actorPaint, camera, width, height);
+        if (!nativeIds.has(actorPaint.id) && !actorPaint.particle) drawActorFootShadow(ctx, actorPaint, camera, width, height);
       });
       if (selectedTarget) drawTargetMarker(ctx, selectedTarget, camera, width, height);
       for (const actorPaint of orderedActors) {
@@ -1429,7 +1727,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         const bounds = actorBounds(actorPaint.actor, actorPaint.direction, false);
         const scale = actorPaint.scale * GAME_ACTOR_SCALE;
         drawActor(ctx, actorPaint.actor, actorPaint.action, motion.matches ? 0 : actorPaint.elapsed,
-          actorPaint.x, actorPaint.ground - bounds.bottom * scale,
+          actorPaint.x, actorPaint.ground - (actorPaint.particle ? 0 : bounds.bottom) * scale,
           scale, actorPaint.direction, actorPaint.motionMs);
       }
       groupLabels.forEach((draw) => draw());
@@ -1500,6 +1798,14 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         ctx.strokeStyle = "#d2e4d5";
         ctx.lineWidth = 1;
         ctx.strokeRect(heroX - 40, barY, 80, 7);
+      }
+      for (const enemy of current.battle?.enemies ?? []) {
+        const progress = npcStatusCastProgress(enemy, current.id, current.areaId, serverNow), position = groupPositions.get(enemy.id);
+        if (progress === undefined || !position) continue;
+        const y = position.ground - position.visualHeight - 14;
+        ctx.fillStyle = '#18323bbf'; ctx.fillRect(position.x - 30, y, 60, 7);
+        ctx.fillStyle = '#85d4e9'; ctx.fillRect(position.x - 29, y + 1, 58 * progress, 5);
+        ctx.strokeStyle = '#d2e4d5'; ctx.lineWidth = 1; ctx.strokeRect(position.x - 30, y, 60, 7);
       }
       const sceneRect = activeLoot.length ? element.getBoundingClientRect() : null;
       const destinations = activeLoot.length ? Array.from(document.querySelectorAll<HTMLElement>("[data-loot-destination]")) : [];
@@ -1689,6 +1995,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           </span>
         ))}
       </div>
+      {bladeStopLabel && <div className="scene-blade-stop" role="status">Imobilizar · {bladeStopLabel}</div>}
       {state.battle?.cast && <span className="sr-only" role="status">
         Conjurando {catalog.skills[state.battle.cast.skillId]?.name ?? "habilidade"}.
       </span>}
@@ -1723,6 +2030,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       {monster && state.battle && !isArriving && (
         <span className="sr-only">
           Alvo: {monster.name}. HP: {number(state.battle.hp)} de {number(state.battle.maxHp)}.
+          {monsterControlLabel(state.battle.enemies?.find(enemy=>enemy.id===state.battle?.targetId),state.status==='paused'?state.pausedAt??state.lastSimulatedAt:snapshot.serverTime)}
         </span>
       )}
       {(hero.error || enemy.error) && (

@@ -7,16 +7,23 @@
  * undead_detect_type=0. Buff/item immunity and existing opt1 conflicts belong
  * to the caller; this module models the monster's natural status resistance.
  */
-import type { Monster } from '../shared/types.js';
+import type { JointBeatPart, Monster } from '../shared/types.js';
+import { effectiveConvertedElement } from './elementalConversionRules.js';
+import { mindBreakerValues } from './mindBreakerRules.js';
 
 export type ClassicResistedStatus =
-  | 'SC_FREEZE' | 'SC_STONE' | 'SC_STUN' | 'SC_SLEEP' | 'SC_POISON' | 'SC_BLIND'
-  | 'SC_PROVOKE' | 'SC_DEC_AGI';
+  | 'SC_FREEZE' | 'SC_STONE' | 'SC_STUN' | 'SC_SLEEP' | 'SC_POISON' | 'SC_BLIND' | 'SC_CONFUSION'
+  | 'SC_PROVOKE' | 'SC_DEC_AGI' | 'SC_CRUCIS' | 'SC_BLOODING';
 
 export function isClassicResistedStatus(status: string | undefined): status is ClassicResistedStatus {
   return status === 'SC_FREEZE' || status === 'SC_STONE' || status === 'SC_STUN' ||
-    status === 'SC_SLEEP' || status === 'SC_POISON' || status === 'SC_BLIND' ||
-    status === 'SC_PROVOKE' || status === 'SC_DEC_AGI';
+    status === 'SC_SLEEP' || status === 'SC_POISON' || status === 'SC_BLIND' || status === 'SC_CONFUSION' ||
+    status === 'SC_PROVOKE' || status === 'SC_DEC_AGI' || status === 'SC_CRUCIS' || status === 'SC_BLOODING';
+}
+
+/** status.c:6997..6999 with pinned undead_detect_type=0: demon race or undead element. */
+export function classicCrucisAffects(monster: Monster): boolean {
+  return monster.race.toLowerCase() === 'demon' || monster.element.toLowerCase() === 'undead';
 }
 
 /** skill.c:7686..7698. The pinned source calls the level term a TODO/dummy
@@ -69,6 +76,10 @@ export function classicStatusResistance(
     return { chancePct: 0, durationMs: 0 };
   }
   if (!source || source.noAvoid) return { chancePct: 100, durationMs: Math.max(1, duration) };
+  // SC_CRUCIS has no VIT/MDEF/LUK resistance in status_get_sc_def. Its
+  // level-based success rate is calculated by AL_CRUCIS before this call.
+  if (status === 'SC_CRUCIS')
+    return { chancePct: Math.max(0, Math.min(100, chancePct)), durationMs: Math.max(1, duration) };
   // SC_PROVOKE follows status_get_sc_def's default branch: no natural stat
   // resistance, level correction or Aegis chance rounding. Its skill applies
   // the separate level formula and undead immunity before starting the status.
@@ -85,6 +96,8 @@ export function classicStatusResistance(
     case 'SC_DEC_AGI': resistance = monster.mdef * 100; break;
     case 'SC_SLEEP': resistance = intelligence * 100; break;
     case 'SC_BLIND': resistance = (vit + intelligence) * 50; break;
+    case 'SC_CONFUSION': resistance = (monster.stats.str + intelligence) * 50; break;
+    case 'SC_BLOODING': resistance = vit * 100; break;
     default: resistance = vit * 100;
   }
   const percentageResistance = Math.min(resistance, 10000);
@@ -108,7 +121,7 @@ export function classicStatusResistance(
     const tickResistance = status === 'SC_STONE' || status === 'SC_DEC_AGI' ? 0 : status === 'SC_POISON'
       ? Math.trunc(vit * 200 / 3) : percentageResistance;
     const linearTickResistance = status === 'SC_FREEZE' ? -source.luk * 10
-      : status === 'SC_STUN' || status === 'SC_SLEEP' || status === 'SC_BLIND' ? luk * 10 : 0;
+      : status === 'SC_STUN' || status === 'SC_SLEEP' || status === 'SC_BLIND' || status === 'SC_CONFUSION' || status === 'SC_BLOODING' ? luk * 10 : 0;
     tick -= Math.trunc(tick * tickResistance / 10000);
     tick -= linearTickResistance;
   }
@@ -121,6 +134,16 @@ export interface ClassicActiveMonsterStatus {
   /** Supply this for Stone sources whose petrifying delay differs from Mage's. */
   petrifiesAt?: number;
   level?: number;
+  webHeld?: boolean;
+  element?: string;
+  elementLevel?: number;
+  parts?: JointBeatPart[];
+  skillId?: string;
+  sourceActorId?: string;
+  sourceActionId?: string;
+  groundId?: string;
+  attackDelayPct?: number;
+  moveSlowPct?: number;
 }
 
 export type ClassicMonsterStatuses = Readonly<Record<string, ClassicActiveMonsterStatus>>;
@@ -175,6 +198,8 @@ export function effectiveMonsterStatus(
   const frozen = active('SC_FREEZE');
   const stonePetrified = classicStoneIsPetrified(statuses?.SC_STONE, at, petrifyingDelayMs);
   const clone: Monster = { ...monster, stats: { ...monster.stats }, attack: [...monster.attack] };
+  if (active('SC_MINDBREAKER'))
+    clone.mdefPercent = mindBreakerValues(statuses!.SC_MINDBREAKER.level ?? 1).mdefPercent;
   // status.c:7846..7848, 4095..4096; AGI recalculation also changes FLEE.
   if (active('SC_DEC_AGI')) clone.stats.agi = Math.max(0, Math.min(65535,
     clone.stats.agi - 2 - (statuses!.SC_DEC_AGI.level ?? 0)));
@@ -187,29 +212,51 @@ export function effectiveMonsterStatus(
     clone.def = Math.floor(clone.def / 2);
     clone.mdef += Math.trunc(clone.mdef * 25 / 100);
   }
-  // status.c:6084..6108, precedence Freeze before petrified Stone.
-  if (frozen || stonePetrified) {
-    clone.element = frozen ? 'water' : 'earth';
-    clone.elementLevel = 1;
+  // status.c:5187..5197. Stone/Freeze precede Crucis so integer truncation
+  // matches Hercules. Crucis reduces hard DEF, not the VIT-derived soft DEF.
+  if (active('SC_CRUCIS')) {
+    const reductionPct = 10 + 4 * (statuses!.SC_CRUCIS.level ?? 0);
+    clone.def = Math.max(0, clone.def - Math.trunc(clone.def * reductionPct / 100));
   }
+  // status.c:6084..6108, precedence Freeze before petrified Stone.
+  const property=statuses?.SC_ARMOR_PROPERTY;
+  Object.assign(clone,effectiveConvertedElement({element:monster.element,elementLevel:monster.elementLevel},{freeze:frozen,stonePetrified,
+    conversion:active('SC_ARMOR_PROPERTY')&&property?.element&&Number.isInteger(property.elementLevel)&&property.elementLevel!>=1&&property.elementLevel!<=4
+      ?{element:property.element,level:property.elementLevel!}:undefined}));
   let hit = clone.level + clone.stats.dex;
   let flee = clone.level + clone.stats.agi;
   if (active('SC_BLIND')) {
     hit -= Math.trunc(hit * 25 / 100);
     flee -= Math.trunc(flee * 25 / 100);
   }
+  // SC_SPIDERWEB's FLEE reduction applies while val1 marks the target held.
+  if (active('SC_SPIDERWEB') && statuses?.SC_SPIDERWEB.webHeld) flee -= Math.trunc(flee * 50 / 100);
   const provokeLevel = active('SC_PROVOKE') ? statuses!.SC_PROVOKE.level ?? 0 : undefined;
-  const atkPercent = provokeLevel !== undefined ? 100 + 2 + 3 * provokeLevel : 100;
+  const jointBeatParts: readonly JointBeatPart[] = active('SC_JOINTBEAT') ? statuses?.SC_JOINTBEAT.parts ?? [] : [];
+  const atkPercent = Math.max(0, (provokeLevel !== undefined ? 100 + 2 + 3 * provokeLevel : 100)
+    - (active('SC_NOEQUIPWEAPON') ? 25 : 0)
+    - (jointBeatParts.includes('waist') ? 25 : 0));
   // status_calc_def_percent subtracts these in the same additive category.
   // Applying two independent multipliers would give a different result.
   const defPercent = Math.max(0, 100 - (provokeLevel !== undefined ? 5 + 5 * provokeLevel : 0)
-    - (active('SC_POISON') || active('SC_DPOISON') ? 25 : 0));
+    - (active('SC_POISON') || active('SC_DPOISON') ? 25 : 0)
+    - (active('SC_NOEQUIPSHIELD') ? 15 : 0)
+    - (jointBeatParts.includes('shoulder') ? 50 : jointBeatParts.includes('waist') ? 25 : 0));
+  const jointMoveSlowPct = (jointBeatParts.includes('ankle') ? 50 : 0) + (jointBeatParts.includes('knee') ? 30 : 0);
+  const slowGrace = active('SC_DONTFORGETME') ? statuses?.SC_DONTFORGETME : undefined;
+  const attackDelayPct = (jointBeatParts.includes('wrist') ? 25 : 0) + (jointBeatParts.includes('knee') ? 10 : 0) +
+    (slowGrace?.attackDelayPct ?? 0);
+  // status.c combines dance slow with other movement modifiers using max().
+  const moveSlowPct = Math.max(jointMoveSlowPct, slowGrace?.moveSlowPct ?? 0);
   return {
     monster: clone,
     hit,
     flee,
     defPercent,
     atkPercent,
+    attackDelayPct,
+    moveSlowPct,
+    confused: active('SC_CONFUSION'),
     stonePetrified,
     immobilized: frozen || stonePetrified || active('SC_STUN') || active('SC_SLEEP'),
   };

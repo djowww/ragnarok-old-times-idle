@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import { DEFAULT_APPEARANCE, type GameState } from '../shared/types.js';
+import { characterKey } from './identity/validation.js';
 export interface StateRepository {
   transact(requestId: string | null, action: (state: GameState) => GameState, fingerprint?: string): Promise<GameState>;
   transactCooperatively?(requestId: string | null, action: (state: GameState) => Promise<GameState>, fingerprint?: string): Promise<GameState>;
@@ -16,12 +17,30 @@ export async function migrate(pool: Pool): Promise<void> {
   const schema = await readFile(new URL('./schema.sql', import.meta.url), 'utf8')
     .catch(() => readFile(new URL('../../server/schema.sql', import.meta.url), 'utf8'));
   for (const statement of schema.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(statement);
-  // Reserve the legacy identity without rewriting its state, timestamps or receipts.
-  await pool.execute("UPDATE idle_profiles SET character_name_key = 'djow', updated_at = updated_at WHERE id = 'local-djow' AND character_name_key IS NULL");
+  // Reserve the selected legacy character name without rewriting its state, timestamps or receipts.
+  const legacyProfileId = await resolveLegacyProfileId(pool);
+  const [rows] = await pool.query<RowDataPacket[]>('SELECT state_json FROM idle_profiles WHERE id = ?', [legacyProfileId]);
+  if (rows.length) {
+    const state = (typeof rows[0].state_json === 'string' ? JSON.parse(rows[0].state_json) : rows[0].state_json) as { name?: unknown } | null;
+    const nameKey = typeof state?.name === 'string' ? characterKey(state.name) : '';
+    if (nameKey) {
+      const [owners] = await pool.query<RowDataPacket[]>('SELECT id FROM idle_profiles WHERE character_name_key = ? AND id <> ? LIMIT 1', [nameKey, legacyProfileId]);
+      if (owners.length) throw new Error(`Cannot reserve legacy character name "${nameKey}": name key already belongs to another profile`);
+      try {
+        await pool.execute('UPDATE idle_profiles SET character_name_key = ?, updated_at = updated_at WHERE id = ? AND character_name_key IS NULL', [nameKey, legacyProfileId]);
+      } catch (error) {
+        if ((error as { code?: string }).code === 'ER_DUP_ENTRY') {
+          throw new Error(`Cannot reserve legacy character name "${nameKey}": name key already belongs to another profile`);
+        }
+        throw error;
+      }
+    }
+  }
 }
 function decode(value: unknown): GameState {
   const state = (typeof value === 'string' ? JSON.parse(value) : value) as GameState;
   if (state.schemaVersion !== 1) throw new Error('Unsupported idle state schema');
+  state.mounted = state.mounted === true;
   const appearance = state.appearance;
   state.appearance = appearance &&
     Number.isInteger(appearance.hairStyle) && appearance.hairStyle >= 0 && appearance.hairStyle <= 27 &&

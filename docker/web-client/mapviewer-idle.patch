@@ -2,7 +2,7 @@ diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
 index 4e3faeb..6281733 100644
 --- a/src/App/MapViewer.js
 +++ b/src/App/MapViewer.js
-@@ -22,12 +22,167 @@ import Entity from 'Renderer/Entity/Entity.js';
+@@ -22,12 +22,182 @@ import Entity from 'Renderer/Entity/Entity.js';
  import Mouse from 'Controls/MouseEventHandler.js';
  import MapControl from 'Controls/MapControl.js';
  import Intro from 'UI/Components/Intro/Intro.js';
@@ -18,10 +18,25 @@ index 4e3faeb..6281733 100644
 +const idleSceneMaps = Object.freeze({
 +	prontera: [155, 187],
 +	prt_in: [130, 76],
++	prt_fild00: [199, 199],
++	prt_fild01: [199, 199],
++	prt_fild02: [199, 199],
 +	prt_fild08: [199, 199],
 +	prt_sewb1: [178, 186],
 +	prt_fild04: [243, 155],
 +	prt_fild03: [199, 149],
++	prt_fild05: [199, 199],
++	prt_fild06: [199, 199],
++	prt_fild07: [225, 200],
++	prt_fild09: [200, 200],
++	prt_fild10: [200, 200],
++	prt_fild11: [200, 200],
++	gef_fild00: [200, 200],
++	gef_fild02: [227, 209],
++	gef_fild09: [200, 200],
++	pay_fild01: [200, 200],
++	pay_fild04: [200, 200],
++	pay_fild09: [200, 200],
 +	pay_dun00: [127, 85],
 +	iz_dun01: [143, 169],
 +	gef_fild10: [205, 211],
@@ -170,7 +185,7 @@ index 4e3faeb..6281733 100644
  /**
   * @var {object} Entity to target
   */
-@@ -45,6 +196,47 @@ MapViewer.dropDown = null;
+@@ -45,6 +211,47 @@ MapViewer.dropDown = null;
  MapViewer.init = function Init() {
  	// Increase max intersection test (because of the max zoom)
  	Altitude.MAX_INTERSECT_COUNT = 500;
@@ -218,7 +233,7 @@ index 4e3faeb..6281733 100644
  
  	let ready = false;
  	let maptoload = '';
-@@ -111,12 +303,27 @@ MapViewer.init = function Init() {
+@@ -111,12 +318,27 @@ MapViewer.init = function Init() {
  
  		// Initialize renderer
  		q.add(function () {
@@ -248,7 +263,7 @@ index 4e3faeb..6281733 100644
  			Intro.onFilesSubmit = function (files) {
  				Client.onFilesLoaded = q.next;
  				Client.init(files);
-@@ -132,6 +339,14 @@ MapViewer.init = function Init() {
+@@ -132,6 +354,14 @@ MapViewer.init = function Init() {
  		MapRenderer.onLoad = MapViewer.onLoad;
  		MapControl.init();
  		MapControl.onRequestWalk = MapViewer.onMouseDown;
@@ -263,7 +278,7 @@ index 4e3faeb..6281733 100644
  
  		// Direct access from API
  		if (Configs.get('api')) {
-@@ -175,16 +390,27 @@ MapViewer.init = function Init() {
+@@ -175,16 +405,27 @@ MapViewer.init = function Init() {
  MapViewer.onLoad = function () {
  	BGM.stop();
  
@@ -299,7 +314,7 @@ new file mode 100644
 index 0000000..02a18d9
 --- /dev/null
 +++ b/src/Renderer/IdleActors.js
-@@ -0,0 +1,338 @@
+@@ -0,0 +1,349 @@
 +/** RagIDLE presentation bridge. Simulation and animation poses stay in the parent. */
 +import SpriteRenderer from 'Renderer/SpriteRenderer.js';
 +import Ground from 'Renderer/Map/Ground.js';
@@ -319,7 +334,9 @@ index 0000000..02a18d9
 +let sequence = -1;
 +let actors = [];
 +const completeLayers = new Map();
++const completePoseTokens = new Map();
 +let ownedActors = [];
++let acknowledgedPoses = '';
 +let stateAt = -Infinity;
 +let lastAck = -Infinity;
 +let evicted = [];
@@ -343,6 +360,8 @@ index 0000000..02a18d9
 +  textureBytes = 0;
 +  actors = [];
 +  completeLayers.clear();
++  completePoseTokens.clear();
++  acknowledgedPoses = '';
 +  ownedActors = [];
 +  sequence = -1;
 +  stateAt = lastAck = -Infinity;
@@ -469,13 +488,14 @@ index 0000000..02a18d9
 +    layers += actor.layers.length;
 +    if (layers > MAX_LAYERS) break;
 +    const shadow = actor.shadow;
-+    next.push({ id: actor.id, world: actor.world, layers: actor.layers,
++    next.push({ id: actor.id, poseToken: typeof actor.poseToken === 'string' && actor.poseToken.length <= 160 ? actor.poseToken : '', world: actor.world, layers: actor.layers,
 +      shadow: shadow && finite(shadow.radius, 128) && shadow.radius > 0 && finite(shadow.opacity, 1) && shadow.opacity >= 0 ? shadow : null });
 +  }
 +  sequence = data.sequence;
 +  actors = next;
 +  const active = new Set(next.map(actor => actor.id));
 +  for (const id of completeLayers.keys()) if (!active.has(id)) completeLayers.delete(id);
++  for (const id of completePoseTokens.keys()) if (!active.has(id)) completePoseTokens.delete(id);
 +  stateAt = performance.now();
 +  return true;
 +}
@@ -567,13 +587,15 @@ index 0000000..02a18d9
 +  }
 +}
 +
-+function acknowledge(tick, drawn, missing = new Set()) {
++function acknowledge(tick, drawn, missing = new Set(), poses = []) {
 +  const changed = drawn.length !== ownedActors.length || drawn.some((id, index) => id !== ownedActors[index]);
-+  if (changed || tick - lastAck >= 50 || evicted.length) {
++  const poseSignature = JSON.stringify(poses);
++  if (changed || poseSignature !== acknowledgedPoses || tick - lastAck >= 50 || evicted.length) {
 +    lastAck = tick;
 +    ownedActors = drawn;
++    acknowledgedPoses = poseSignature;
 +    notify('ragidle-map-actors-rendered', { sequence, actors: drawn, frames: [...textures.keys()],
-+      missing: [...missing], evicted: evicted.filter(id => !textures.has(id)) });
++      poses, missing: [...missing], evicted: evicted.filter(id => !textures.has(id)) });
 +    evicted = [];
 +  }
 +}
@@ -583,15 +605,17 @@ index 0000000..02a18d9
 +  if (!actors.length || performance.now() - stateAt > 350) {
 +    // Release ownership before dropping the draw, so the parent restores its fallback.
 +    completeLayers.clear();
++    completePoseTokens.clear();
 +    acknowledge(tick, []);
 +    return;
 +  }
 +  const drawn = [];
++  const poses = [];
 +  const missing = new Set();
 +  const ready = actors.flatMap(actor => {
 +    const available = actor.layers.every(layer => textures.has(layer.frame));
 +    if (!available) for (const layer of actor.layers) if (!textures.has(layer.frame)) missing.add(layer.frame);
-+    if (available) completeLayers.set(actor.id, actor.layers);
++    if (available) { completeLayers.set(actor.id, actor.layers); completePoseTokens.set(actor.id, actor.poseToken); }
 +    const layers = completeLayers.get(actor.id);
 +    // A new action frame stays in this depth pass while its textures upload.
 +    // Apply the latest world position to the last complete pose.
@@ -624,12 +648,14 @@ index 0000000..02a18d9
 +        SpriteRenderer.render(false);
 +      }
 +      drawn.push(actor.id);
++      const drawnToken = completePoseTokens.get(actor.id) || '';
++      poses.push({ id: actor.id, requested: actor.poseToken, drawn: drawnToken, held: drawnToken !== actor.poseToken });
 +    }
 +  });
 +  SpriteRenderer.unbind(gl);
 +  // Failed/context-lost draws must keep the parent canvas fallback visible.
 +  if (gl.isContextLost() || gl.getError() !== gl.NO_ERROR) throw new Error('Idle sprite draw failed');
-+  acknowledge(tick, drawn, missing);
++  acknowledge(tick, drawn, missing, poses);
 +}
 +
 +function render(tick, gl, modelView, projection, fog) {

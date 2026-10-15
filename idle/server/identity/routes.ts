@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
+import { isIP } from 'node:net';
 import type { AuthResult, AuthService } from './service.js';
 import { PortalError } from './types.js';
 import { AttemptLimiter, AuthLimitError } from './limits.js';
@@ -17,8 +18,14 @@ export function assertAllowedMutation(headers: { origin?: string; secFetchSite?:
 }
 
 /** Task 3 applies assertAllowedMutation globally with its configured origins. */
-export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService): Promise<void> {
+export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService, trustedProxyAddresses: readonly string[] = []): Promise<void> {
   const limits = new AttemptLimiter(auth.now);
+  const trustedProxies = new Set(trustedProxyAddresses.filter(address => isIP(address)));
+  const requestIp = (request: import('fastify').FastifyRequest): string => {
+    const forwardedIp = request.headers['x-real-ip'];
+    return trustedProxies.has(request.socket.remoteAddress ?? '') && typeof forwardedIp === 'string' && isIP(forwardedIp)
+      ? forwardedIp : request.ip;
+  };
   const cookieOptions = { httpOnly: true, sameSite: 'lax' as const, path: '/', secure: auth.secureCookie };
   if (!app.hasRequestDecorator('cookies')) await app.register(cookie);
   await app.register(async scope => {
@@ -40,11 +47,11 @@ export async function registerAuthRoutes(app: FastifyInstance, auth: AuthService
       return reply.code(status).send(result.account);
     };
     scope.post('/api/auth/register', async (request, reply) => {
-      limits.consume(`register:ip:${request.ip}`, 5, 3600000);
+      limits.consume(`register:ip:${requestIp(request)}`, 5, 3600000);
       return sendSession(reply, await auth.register(validateRegistration(request.body)), 201);
     });
     scope.post('/api/auth/login', async (request, reply) => {
-      limits.consume(`login:ip:${request.ip}`, 10, 900000);
+      limits.consume(`login:ip:${requestIp(request)}`, 10, 900000);
       const input = validateLogin(request.body);
       limits.consume(`login:user:${input.username}`, 5, 900000);
       return sendSession(reply, await auth.login(input));

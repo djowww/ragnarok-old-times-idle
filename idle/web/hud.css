@@ -170,14 +170,19 @@
 }
 
 .hud-city-access svg {
-  width: 17px;
-  height: 17px;
-  fill: #aec3b4;
+  width: 18px;
+  height: 18px;
+  fill: none;
   stroke: currentColor;
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.hud-city-access .hud-city-gate-wall { fill: #d5dfd1; }
+.hud-city-access .hud-city-gate-door { fill: #607b73; }
+.hud-city-access .hud-city-gate-detail { stroke-width: 0.9; }
+.hud-city-access .hud-city-gate-emblem { fill: #c8a455; stroke: #836b39; stroke-width: 0.7; }
 
 .hero-panel .hero-vitals {
   display: grid;
@@ -757,3 +762,5 @@
     box-shadow: 0 0 0 2px #fff7cb;
   }
 }
+
+.player-disease { display: inline-block; color: #663a66; font-size: 11px; margin-right: 7px; }

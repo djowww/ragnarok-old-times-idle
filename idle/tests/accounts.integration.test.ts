@@ -28,7 +28,10 @@ describe.skipIf(process.env.IDLE_DB_TEST !== '1')('SQL accounts', () => {
     expect(Number(metadata[0].created_at_ms)).toBe(1000);
     const restored = await new GameRepository(db.pool, () => { throw new Error('must not reset'); }, account.profileId).read();
     expect(restored).toMatchObject({ baseLevel: 1, jobLevel: 1, zeny: 200 });
-    expect(restored).toEqual(input.profile);
+    // The advanced engine normalizes old saves with an absent mount field.
+    expect(restored).toEqual({ ...input.profile, mounted: false });
+    const [stored] = await db.pool.query<RowDataPacket[]>('SELECT state_json FROM idle_profiles WHERE id = ?', [account.profileId]);
+    expect(typeof stored[0].state_json === 'string' ? JSON.parse(stored[0].state_json) : stored[0].state_json).toEqual(input.profile);
     expect(await store.findCredentials(input.username.toUpperCase())).toMatchObject({ ...account, passwordHash: 'test-hash', credentialVersion: 1 });
   });
   it('rolls back duplicate canonical username and NFC character name', async () => {

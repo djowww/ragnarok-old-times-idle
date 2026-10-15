@@ -3,8 +3,10 @@
  * 410b9738c049ab1825d67b36b072d837c1d0b33a. GPL-3.0-or-later.
  */
 import type { Catalog, GameState, Monster, Skill } from "../shared/types.js";
+import { bladeStopSkillAllowed, bladeStopTarget } from './bladeStop.js';
 
 const lifecycleSources = new Set(["TF_HIDING", "AS_CLOAKING", "BS_MAXIMIZE"]);
+const toggleSources = new Set([...lifecycleSources, "CR_DEFENDER", "SM_AUTOBERSERK", "CR_SHRINK", "NV_TRICKDEAD"]);
 const hiddenActions = new Set([
   "TF_HIDING",
   "AS_GRIMTOOTH",
@@ -82,6 +84,29 @@ export function cancelClassicBuff(
     if (effects?.buffDrainAt) delete effects.buffDrainAt[id];
     if (effects?.buffLevels) delete effects.buffLevels[id];
   }
+  if (effects) {
+    if (canonical === "ST_REJECTSWORD") delete effects.rejectSword;
+    if (canonical === "AS_POISONREACT") delete effects.poisonReact;
+    if (canonical === "LK_TENSIONRELAX") delete effects.tensionRelax;
+    if (canonical === "SA_AUTOSPELL") delete effects.autospell;
+    if (canonical === "PF_MEMORIZE") effects.memorizeCharges = 0;
+    if (canonical === "SM_ENDURE") delete effects.endure;
+    if (canonical === "PA_SACRIFICE") delete effects.sacrifice;
+    if (canonical === "AL_PNEUMA") delete effects.pneumaGround;
+    if (canonical === "MG_SAFETYWALL") { effects.safetyWallHits = 0; delete effects.safetyWallGround; }
+    if (canonical === "AL_PNEUMA" || canonical === "MG_SAFETYWALL")
+      effects.defensiveGrounds = effects.defensiveGrounds?.filter(ground =>
+        ground.kind !== (canonical === "AL_PNEUMA" ? "pneumaGround" : "safetyWallGround"));
+  }
+}
+/** Hercules clears a caster's ground groups on warp under the default setting. */
+export function clearClassicGrounds(s: GameState, c: Catalog) {
+  cancelClassicBuff(s, c, "AL_PNEUMA");
+  cancelClassicBuff(s, c, "MG_SAFETYWALL");
+}
+export function classicGroundSceneKey(s: GameState): string {
+  if (s.battle?.challengeId) return `challenge:${s.battle.attemptId ?? s.battle.challengeId}`;
+  return s.status === "hunting" || s.status === "resting" && s.restMode === "field" ? s.areaId ?? "town" : "town";
 }
 
 /** status.c permits this list while hidden; an undefined skill is a basic attack. */
@@ -121,7 +146,7 @@ export function toggleClassicBuff(
   at: number,
 ): boolean {
   const source = sourceName(skill);
-  if (!lifecycleSources.has(source) || !classicBuffActive(s, c, source, at))
+  if (!toggleSources.has(source) || !classicBuffActive(s, c, source, at))
     return false;
   cancelClassicBuff(s, c, source);
   return true;
@@ -272,7 +297,10 @@ export function comboAllowed(
   const previous = activeCombo(s, c, at);
   switch (sourceName(skill)) {
     case "MO_CHAINCOMBO":
-      return previous === "MO_TRIPLEATTACK";
+      return previous === "MO_TRIPLEATTACK" || (() => {
+        const link = s.combatEffects?.bladeStopLink;
+        return !!link && !!bladeStopTarget(s, at) && bladeStopSkillAllowed('MO_CHAINCOMBO', link.level);
+      })();
     case "MO_COMBOFINISH":
       return previous === "MO_CHAINCOMBO";
     case "CH_TIGERFIST":
@@ -302,7 +330,11 @@ export function sphereCostForSkill(
   const cost = Math.max(
     0,
     Math.floor(
-      value(skill.sphereCost, level, source === "MO_EXTREMITYFIST" ? 5 : 0),
+      value(
+        skill.sphereCost,
+        level,
+        source === "MO_EXTREMITYFIST" ? 5 : source === "MO_BODYRELOCATION" ? 1 : 0,
+      ),
     ),
   );
   if (source === "MO_FINGEROFFENSIVE")
@@ -313,6 +345,9 @@ export function sphereCostForSkill(
   )
     return 0;
   if (source !== "MO_EXTREMITYFIST") return cost;
+  const bladeLink = s.combatEffects?.bladeStopLink;
+  if (bladeLink && bladeStopTarget(s, at) && bladeStopSkillAllowed('MO_EXTREMITYFIST', bladeLink.level))
+    return Math.max(1, cost - 1);
   switch (activeCombo(s, c, at)) {
     case "MO_COMBOFINISH":
       return 4;

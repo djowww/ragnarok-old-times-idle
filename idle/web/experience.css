@@ -6,7 +6,7 @@
   --ro-window-paper: #f0eee2;
 }
 
-html.game-route body {
+body {
   min-width: 300px;
   background-color: #1b3036;
   background-image:

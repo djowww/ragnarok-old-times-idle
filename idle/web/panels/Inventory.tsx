@@ -12,6 +12,8 @@ import {
   type PanelProps,
 } from "../components/common";
 import { isItemIdentified, MAGNIFIER_ITEM_ID } from "../../shared/loot";
+import { classSkills } from "../../engine/stats";
+import { classicBuffActive } from "../../engine/classicBuffs";
 
 export default function Inventory({
   catalog,
@@ -20,6 +22,8 @@ export default function Inventory({
   command,
 }: PanelProps) {
   const { state } = snapshot;
+  const identifySkill = classSkills(catalog, state.job).map(id => catalog.skills[id]).find(skill => skill?.sourceName === "MC_IDENTIFY" && skill.implementation === "supported" && (state.learnedSkills[skill.id] ?? 0) > 0);
+  const identifyCost = identifySkill?.spCost[(state.learnedSkills[identifySkill.id] ?? 1) - 1] ?? identifySkill?.spCost.at(-1) ?? 10;
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -226,6 +230,11 @@ export default function Inventory({
                 >
                   Identificar · 1 Lupa
                 </button>
+                {identifySkill && (
+                  <button disabled={busy || state.hp <= 0 || state.sp < identifyCost || ["TF_HIDING", "MO_STEELBODY", "LK_BERSERK"].some(source => classicBuffActive(state, catalog, source, state.lastSimulatedAt))} onClick={() => void command({ type: "identify", uid: entry.uid, method: "skill" })}>
+                    Identificar por habilidade · {identifyCost} SP
+                  </button>
+                )}
                 <p className="note">Lupas na mochila: {number(magnifiers)}{magnifiers < 1 ? ". Compre uma na loja da cidade." : "."}</p>
               </div>
             )}

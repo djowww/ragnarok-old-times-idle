@@ -1,6 +1,24 @@
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import type { GameProfiles } from './identity/types.js';
 import { GameRepository, LEGACY_PROFILE_IDS } from './repository.js';
+import { SessionStateRepository } from './sessionState.js';
+
+/** One process-local NoSave status store per authenticated profile. */
+export class SessionGameProfiles implements GameProfiles {
+  private readonly repositories = new Map<string, SessionStateRepository>();
+  constructor(private readonly durable: GameProfiles) {}
+  forProfile(id: string): SessionStateRepository {
+    let repository = this.repositories.get(id);
+    if (!repository) {
+      const source = this.durable.forProfile(id);
+      repository = source instanceof SessionStateRepository ? source : new SessionStateRepository(source);
+      this.repositories.set(id, repository);
+    }
+    return repository;
+  }
+  eligible(after: string | null, limit: number): Promise<string[]> { return this.durable.eligible(after, limit); }
+  health(): Promise<boolean> { return this.durable.health(); }
+}
 export class SqlGameProfiles implements GameProfiles {
   constructor(private readonly pool: Pool) {}
   forProfile(id: string): GameRepository {
