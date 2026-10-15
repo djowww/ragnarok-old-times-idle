@@ -4,7 +4,14 @@
   "mapSpawnSources": [
     "npc/pre-re/mobs/fields/geffen.txt",
     "npc/pre-re/mobs/fields/payon.txt",
-    "npc/pre-re/mobs/fields/prontera.txt"
+    "npc/pre-re/mobs/fields/prontera.txt",
+    "npc/pre-re/mobs/dungeons/prt_sew.txt",
+    "npc/pre-re/mobs/dungeons/pay_dun.txt",
+    "npc/pre-re/mobs/dungeons/iz_dun.txt",
+    "npc/pre-re/mobs/dungeons/orcsdun.txt",
+    "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+    "npc/pre-re/mobs/dungeons/gef_dun.txt",
+    "npc/pre-re/mobs/dungeons/glastheim.txt"
   ],
   "rates": {
     "baseExp": 4,
@@ -1799,9 +1806,10 @@
       "map": "pay_dun01",
       "minLevel": 25,
       "monsters": [
-        1015,
-        1076,
-        1028
+        1111,
+        1116,
+        1028,
+        1016
       ],
       "scene": "cave",
       "description": "Esqueletos e mortos-vivos guardam as galerias profundas."
@@ -1812,9 +1820,10 @@
       "map": "iz_dun02",
       "minLevel": 30,
       "monsters": [
-        1070,
-        1066,
-        1141
+        1068,
+        1067,
+        1144,
+        1044
       ],
       "scene": "sea",
       "description": "As correntes subterrâneas escondem criaturas marinhas mais resistentes."
@@ -1825,8 +1834,11 @@
       "map": "orcsdun01",
       "minLevel": 32,
       "monsters": [
-        1023,
-        1273
+        1042,
+        1005,
+        1111,
+        1153,
+        1152
       ],
       "scene": "orc",
       "description": "Avance para dentro do território dos Orcs e enfrente seus guerreiros."
@@ -2046,6 +2058,35 @@
       ],
       "scene": "forest",
       "description": "Smokies e bigfoots habitam os bosques mais densos de Payon."
+    },
+    {
+      "id": "pyramid_depths",
+      "name": "Pirâmide — Câmara Profunda",
+      "map": "moc_pryd05",
+      "minLevel": 55,
+      "monsters": [
+        1149,
+        1041,
+        1032
+      ],
+      "scene": "desert",
+      "description": "Explore as galerias profundas da Pirâmide, onde Minorous, Mummy e Verit guardam vestígios de uma antiga civilização."
+    },
+    {
+      "id": "glast_heim_cemetery",
+      "name": "Cemitério de Glast Heim",
+      "map": "gl_chyard",
+      "minLevel": 60,
+      "monsters": [
+        1036,
+        1015,
+        1192,
+        1117,
+        1035,
+        1191
+      ],
+      "scene": "castle",
+      "description": "Enfrente os mortos-vivos de Glast Heim. Entre lápides esquecidas, Wraith pode deixar Tecido e os antigos guardiões ainda rondam o cemitério."
     }
   ],
   "cards": {
@@ -2387,7 +2428,14 @@
     "unit_parameters_db.conf": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792",
     "src/map/pc.h": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f",
     "src/map/clif.c": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42",
-    "npc/mapflag/noteleport.txt": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
+    "npc/mapflag/noteleport.txt": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2",
+    "npc/pre-re/mobs/dungeons/prt_sew.txt": "83b86756f210b65ba6b5ee1d01a59760d5423263b07f8995da62476a7f9b0662",
+    "npc/pre-re/mobs/dungeons/pay_dun.txt": "c767bdff9fdb8d92405eb42485d075b12c625e79c0f0985861a455a377b30b6f",
+    "npc/pre-re/mobs/dungeons/iz_dun.txt": "6a2f0a093ee56f3efa5ff3dba5301c975397eaa4b2a8354279f4960d432ff38e",
+    "npc/pre-re/mobs/dungeons/orcsdun.txt": "5d389b5f338e9f3bae8a06de780dd8a9d00661cefc71cbe1525db252b40eed44",
+    "npc/pre-re/mobs/dungeons/moc_pryd.txt": "0f34a8c8ba2e7abdd5348487b3525a02e1086dc50a3845c8540e104770417cb7",
+    "npc/pre-re/mobs/dungeons/gef_dun.txt": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8",
+    "npc/pre-re/mobs/dungeons/glastheim.txt": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",

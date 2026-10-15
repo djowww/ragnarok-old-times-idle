@@ -164,8 +164,8 @@ describe('playable source catalog', () => {
         });
     });
     it('offers valid drops, all areas, supported cards and a useful weapon for every branch', () => {
-        expect(data.areas).toHaveLength(29);
-        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(101);
+        expect(data.areas).toHaveLength(31);
+        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(115);
         expect(data.challenges).toHaveLength(81);
         expect(Object.values(data.items).filter(i => i.type === 'card' && i.cardSlots?.length && !i.unsupportedEffect)).toHaveLength(10);
         for (const mob of Object.values(data.monsters))
@@ -284,10 +284,10 @@ describe('generated source manifest', () => {
         expect(data.source.commit).toBe('410b9738c049ab1825d67b36b072d837c1d0b33a');
         expect(Object.keys(data.classes)).toHaveLength(40);
         expect(Object.keys(data.skills)).toHaveLength(348);
-        expect(Object.keys(data.items)).toHaveLength(711);
-        expect(data.areas).toHaveLength(29);
+        expect(Object.keys(data.items)).toHaveLength(763);
+        expect(data.areas).toHaveLength(31);
         expect(manifest.skillCoverage).toMatchObject({ supported: 262, unsupported: 86 });
-        expect(manifest.sources).toHaveLength(29);
+        expect(manifest.sources).toHaveLength(36);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',
         }));

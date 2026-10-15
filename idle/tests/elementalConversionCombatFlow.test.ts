@@ -23,6 +23,7 @@ describe('source elemental conversion runtime',()=>{
  });
  it.each(['conversion','freeze','stone','expired','converted-away'] as const)('field elemental focus uses the effective body for %s',mode=>{
   const {s,c,e}=conversionSetup();s.status='hunting';delete s.battle!.challengeId;delete s.battle!.targetId;
+  c.areas.find(area=>area.id===s.areaId)!.monsters=[1175,1002];
   s.rotation=[];s.battle!.playerNextSkillAt=s.battle!.playerActionReadyAt=999999;
   delete e.npcCombat!.cast;c.monsters[1175].canMove=false;c.monsters[1002].canMove=false;
   const focus=mode==='freeze'?'water':mode==='stone'?'earth':'fire';

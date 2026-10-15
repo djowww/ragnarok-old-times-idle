@@ -1,7 +1,11 @@
+import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 import { describe, expect, it } from 'vitest';
-import rawCatalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import dungeonCurrentRawCatalog from '../content/catalog.json';
+import dungeonCurrentManifest from '../content/source-manifest.json';
 import type { Catalog } from '../shared/types';
+const rawCatalog = beforeDungeonExpansionCatalog(dungeonCurrentRawCatalog);
+const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+
 const c = rawCatalog as unknown as Catalog;
 describe('Pick Stone source export', () => {
   it('supports the real production dispatcher while retaining source timing, cost and tree', () => {

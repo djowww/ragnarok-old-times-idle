@@ -51,7 +51,7 @@ const GUIDE = npcAsset("4_f_kafra1");
 const TRAVELER = npcAsset("4_m_01");
 const EXPLORER = npcAsset("4_m_04");
 const TOWN_POINTS = [{ x: 0.22, y: 0.54 }, { x: 0.67, y: 0.5 }, { x: 0.35, y: 0.32 }, { x: 0.83, y: 0.34 }];
-const DUNGEON_MAPS = new Set(["prt_sewb1", "pay_dun00", "iz_dun01", "moc_pryd02", "gef_dun02", "gl_knt01"]);
+const DUNGEON_MAPS = new Set(["prt_sewb1", "pay_dun00", "iz_dun01", "moc_pryd02", "moc_pryd05", "gef_dun02", "gl_knt01"]);
 // Area metadata also covers additional dungeon floors without a per-map list.
 const DUNGEON_SCENES = new Set<Area["scene"]>(["sewer", "cave", "sea", "castle"]);
 const walkActionCache = new WeakMap<DecodedActor, boolean>();

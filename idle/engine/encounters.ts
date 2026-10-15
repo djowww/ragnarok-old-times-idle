@@ -773,6 +773,10 @@ function updateFieldPopulation(s: GameState, c: Catalog, at: number, context?: S
   const population = s.fieldPopulation!;
   const count = ["sewer", "cave", "sea", "castle"].includes(area.scene) ? 3 : 4;
   if (s.battle && !s.battle.challengeId) enemies(s);
+  // Keep an encounter already in progress. Refresh obsolete ambient actors only
+  // after it finishes, preserving generation and pending respawn deadlines.
+  if (!s.battle || !s.battle.enemies?.length)
+    population.enemies = population.enemies.filter(enemy => area.monsters.includes(enemy.monsterId));
   // Adopt a saved encounter from before map populations existed without changing ids.
   if (s.battle && !s.battle.challengeId && !population.enemies.length && !population.respawns.length)
     for (const [slot, enemy] of (s.battle.enemies ?? []).slice(0, count).entries()) {

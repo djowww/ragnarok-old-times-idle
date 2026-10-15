@@ -83,6 +83,41 @@
       "sha256": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791"
     },
     {
+      "path": "npc/pre-re/mobs/dungeons/prt_sew.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/prt_sew.txt",
+      "sha256": "83b86756f210b65ba6b5ee1d01a59760d5423263b07f8995da62476a7f9b0662"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/pay_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/pay_dun.txt",
+      "sha256": "c767bdff9fdb8d92405eb42485d075b12c625e79c0f0985861a455a377b30b6f"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/iz_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/iz_dun.txt",
+      "sha256": "6a2f0a093ee56f3efa5ff3dba5301c975397eaa4b2a8354279f4960d432ff38e"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/orcsdun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/orcsdun.txt",
+      "sha256": "5d389b5f338e9f3bae8a06de780dd8a9d00661cefc71cbe1525db252b40eed44"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/moc_pryd.txt",
+      "sha256": "0f34a8c8ba2e7abdd5348487b3525a02e1086dc50a3845c8540e104770417cb7"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/gef_dun.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/gef_dun.txt",
+      "sha256": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8"
+    },
+    {
+      "path": "npc/pre-re/mobs/dungeons/glastheim.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/glastheim.txt",
+      "sha256": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
+    },
+    {
       "path": "db/job_db2.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/job_db2.txt",
       "sha256": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56"
@@ -478,6 +513,81 @@
       "sourceType": "IT_CARD"
     },
     {
+      "itemId": 4069,
+      "aegisName": "Drainliar_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 643,
+      "aegisName": "Pet_Incubator",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 645,
+      "aegisName": "Center_Potion",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4070,
+      "aegisName": "Eggyra_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4035,
+      "aegisName": "Hydra_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4061,
+      "aegisName": "Cornutus_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4095,
+      "aegisName": "Marse_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2326,
+      "aegisName": "Saint_Robe_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4093,
+      "aegisName": "Obeaune_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4042,
+      "aegisName": "Steel_Chonchon_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2209,
+      "aegisName": "Ribbon_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 601,
+      "aegisName": "Wing_Of_Fly",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4020,
+      "aegisName": "Farmiliar_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4071,
+      "aegisName": "Orc_Zombie_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4085,
+      "aegisName": "Orc_Skeleton_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
       "itemId": 4002,
       "aegisName": "Fabre_Card",
       "sourceType": "IT_CARD"
@@ -648,9 +758,89 @@
       "sourceType": "IT_CARD"
     },
     {
+      "itemId": 568,
+      "aegisName": "Lemon",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4126,
+      "aegisName": "Minorous_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 639,
+      "aegisName": "Armlet_Of_Obedience",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4107,
+      "aegisName": "Verit_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1260,
+      "aegisName": "Ghoul_Leg",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4110,
+      "aegisName": "Ghoul_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4190,
+      "aegisName": "Wraith_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1615,
+      "aegisName": "Bone_Wand",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 2508,
+      "aegisName": "Ragamuffin_Cape",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1551,
+      "aegisName": "Bible",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 610,
+      "aegisName": "Leaf_Of_Yggdrasil",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4141,
+      "aegisName": "Evil_Druid_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1226,
+      "aegisName": "Damascus_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4115,
+      "aegisName": "Hunter_Fly_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
       "itemId": 617,
       "aegisName": "Old_Violet_Box",
       "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2626,
+      "aegisName": "Rosary_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4205,
+      "aegisName": "Mimic_Card",
+      "sourceType": "IT_CARD"
     },
     {
       "itemId": 1232,
@@ -798,11 +988,6 @@
       "sourceType": "IT_ARMOR"
     },
     {
-      "itemId": 645,
-      "aegisName": "Center_Potion",
-      "sourceType": "IT_USABLE"
-    },
-    {
       "itemId": 1917,
       "aegisName": "Guitar_Of_Gentle_Breeze",
       "sourceType": "IT_WEAPON"
@@ -898,11 +1083,6 @@
       "sourceType": "IT_ARMOR"
     },
     {
-      "itemId": 610,
-      "aegisName": "Leaf_Of_Yggdrasil",
-      "sourceType": "IT_USABLE"
-    },
-    {
       "itemId": 2282,
       "aegisName": "Spirit_Chain",
       "sourceType": "IT_ARMOR"
@@ -996,11 +1176,6 @@
       "itemId": 2234,
       "aegisName": "Tiara",
       "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 639,
-      "aegisName": "Armlet_Of_Obedience",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 2005,
@@ -1218,11 +1393,6 @@
       "sourceType": "IT_CARD"
     },
     {
-      "itemId": 1615,
-      "aegisName": "Bone_Wand",
-      "sourceType": "IT_WEAPON"
-    },
-    {
       "itemId": 2004,
       "aegisName": "Kronos",
       "sourceType": "IT_WEAPON"
@@ -1258,11 +1428,6 @@
       "sourceType": "IT_ARMOR"
     },
     {
-      "itemId": 568,
-      "aegisName": "Lemon",
-      "sourceType": "IT_HEALING"
-    },
-    {
       "itemId": 1306,
       "aegisName": "War_Axe",
       "sourceType": "IT_WEAPON"
@@ -1281,11 +1446,6 @@
       "itemId": 4198,
       "aegisName": "Maya_Puple_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 2508,
-      "aegisName": "Ragamuffin_Cape",
-      "sourceType": "IT_ARMOR"
     },
     {
       "itemId": 522,
@@ -13478,6 +13638,42 @@
     "repairs": "all broken equipment in one NPC transaction",
     "discount": false
   },
+  "mapSpawnValidation": {
+    "maps": [
+      "prt_fild08",
+      "prt_sewb1",
+      "prt_fild04",
+      "prt_fild03",
+      "pay_dun00",
+      "iz_dun01",
+      "gef_fild10",
+      "moc_pryd02",
+      "gef_dun02",
+      "gl_knt01",
+      "prt_sewb2",
+      "pay_dun01",
+      "iz_dun02",
+      "orcsdun01",
+      "prt_fild00",
+      "prt_fild01",
+      "prt_fild02",
+      "prt_fild05",
+      "prt_fild06",
+      "prt_fild07",
+      "prt_fild09",
+      "prt_fild10",
+      "prt_fild11",
+      "gef_fild00",
+      "gef_fild02",
+      "gef_fild09",
+      "pay_fild01",
+      "pay_fild04",
+      "pay_fild09",
+      "moc_pryd05",
+      "gl_chyard"
+    ],
+    "selection": "All selected monsters must appear on their configured map in the pinned spawn scripts; missing maps are rejected."
+  },
   "itemResources": {
     "path": "data/idnum2itemresnametable.txt",
     "encoding": "CP949 (WHATWG euc-kr)",
@@ -15082,6 +15278,13 @@
       "item_db.conf Range"
     ]
   },
+  "materialProtection": {
+    "sources": [
+      "db/pre-re/skill_db.conf ItemCost",
+      "db/produce_db.txt AM_PHARMACY"
+    ],
+    "behavior": "Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available."
+  },
   "bodyElementItems": [
     {
       "itemId": 2344,
@@ -15139,17 +15342,22 @@
     "movementSource": "db/pre-re/mob_db.conf:MoveSpeed/ViewRange/ChaseRange/Mode.CanMove",
     "aggressiveDefault": false,
     "aggressiveMonsterIds": [
+      1005,
       1015,
       1016,
       1020,
       1023,
       1028,
+      1035,
+      1036,
       1038,
       1039,
       1041,
+      1044,
       1046,
       1059,
       1061,
+      1068,
       1077,
       1087,
       1088,
@@ -15160,8 +15368,10 @@
       1093,
       1096,
       1109,
+      1111,
       1112,
       1115,
+      1117,
       1120,
       1122,
       1123,
@@ -15170,11 +15380,16 @@
       1126,
       1132,
       1147,
+      1149,
       1150,
+      1152,
+      1153,
       1157,
       1159,
       1163,
       1190,
+      1191,
+      1192,
       1200,
       1203,
       1204,
@@ -15249,6 +15464,8 @@
       1014,
       1018,
       1031,
+      1032,
+      1042,
       1047,
       1048,
       1049,
@@ -15259,6 +15476,7 @@
       1060,
       1063,
       1066,
+      1067,
       1070,
       1076,
       1086,
@@ -15266,7 +15484,9 @@
       1104,
       1107,
       1113,
+      1116,
       1141,
+      1144,
       1166,
       1167,
       1175,
@@ -15278,8 +15498,10 @@
       1007,
       1008,
       1018,
+      1035,
       1038,
       1039,
+      1042,
       1046,
       1048,
       1051,
@@ -15374,7 +15596,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "f14e75cb5b49bc667ab412e24293cf8014b37b9133263ab36a11acb008f29d0e",
+  "rulesSha256": "eaf45e9b8189a5ebfe3bbb1f443d76ef982bbefd6cd64ac0bc7f0f833f5de3b4",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15429,6 +15651,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "f45e5f3a34cac1068ec170db3d4c3ec3fbc349a0c9585583ad1a9aee6fa9d993",
+  "catalogSha256": "c5d9d142e564b3ee96dcbbcbf08141a7937e6f3e4236e256397ddcf26adf0db1",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -878,6 +878,69 @@
       ],
       "originRemapped": false,
       "remappedHomeSlots": []
+    },
+    {
+      "areaId": "pyramid_depths",
+      "map": "moc_pryd05",
+      "origin": {
+        "x": 117,
+        "y": 116
+      },
+      "homeOffsets": [
+        {
+          "x": -1,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0
+      ]
+    },
+    {
+      "areaId": "glast_heim_cemetery",
+      "map": "gl_chyard",
+      "origin": {
+        "x": 150,
+        "y": 149
+      },
+      "homeOffsets": [
+        {
+          "x": -3,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -1
+        },
+        {
+          "x": -10,
+          "y": 0
+        },
+        {
+          "x": 10,
+          "y": 0
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1,
+        2,
+        3
+      ]
     }
   ]
 }
