@@ -44,6 +44,7 @@ import { NativeActorsBridge } from "../assets/nativeActors";
 import { corpseFrameAt, startCorpsePresentation, shiftCorpsePresentation, type CorpsePresentation } from "../assets/corpsePresentation";
 import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame } from "../assets/enemyActionPresentation";
 import { movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
+import { backslidingFacingDirection, backslidingPresentationPoint } from '../assets/backslidingPresentation';
 import "../styles/scene-polish-world.css";
 
 type EquippedWeapon = { type: WeaponType; gender: "male" | "female"; job: string; mounted?: boolean };
@@ -488,6 +489,8 @@ type CombatCue = {
   presented?: boolean;
   sourceGround?: GroundPosition;
   sourcePosition?: NormalizedPoint;
+  movementDestination?: NormalizedPoint;
+  actionFacing?: NormalizedPoint;
   actionAreaId?: string;
   targetHpBefore?: number;
   amount?: number;
@@ -901,7 +904,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       return {
         id: event.id, start, effectStart, impact, actionDuration, motionMs, reactionDuration,
         targetHpBefore: event.targetHpBefore, amount: event.kind === 'damage' ? event.amount : undefined,
-        sourcePosition: event.actionSourcePosition, actionAreaId: event.areaId,
+        sourcePosition: event.actionSourcePosition, movementDestination: event.movementDestination,
+        actionFacing: event.actionFacing, actionAreaId: event.areaId,
         duration: Math.max(actionDuration, impact - start + reactionDuration, skill ? effectStart - start + SKILL_EFFECT_MS : 0),
         sourceActorId, targetActorId, actorAction, castAction:event.kind === "cast",
         actionId: event.actionId ?? (skill ? `${sourceActorId}:${skill.id}:${event.at}` : `${event.id}`),
@@ -1233,9 +1237,42 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const groupMode = !!current.battle?.enemies || groupEnemies.length > 0;
       const soloPosture = soloPostureAt(current, catalog, serverNow);
       const groupHeroCue = isArriving || soloPosture.playDead ? undefined : heroPresentation.current.actionAt(combatCues.current.filter(cue => !cue.blocked), current.id, time);
+      const backslidingCue = groupHeroCue?.skill?.sourceName === 'TF_BACKSLIDING' &&
+        groupHeroCue.sourcePosition && groupHeroCue.movementDestination ? groupHeroCue : undefined;
       const camera = projection.current?.map === mapName ? projection.current : null;
       const currentArea = catalog.areas.find(candidate => candidate.id === current.areaId);
       const fieldOrigin = currentArea?.fieldNavigation?.map === mapName ? currentArea.fieldNavigation.origin : undefined;
+      const backslidingDirection = backslidingCue ? backslidingFacingDirection(
+        backslidingCue.sourcePosition!, backslidingCue.actionFacing ?? { x: 0, y: 1 },
+        camera && fieldOrigin ? point => projectMapPoint(camera,
+          projectBattlePoint(camera, point, fieldOrigin), width, height) : undefined,
+      ) : undefined;
+      let heroFrame: EnemyActionFrame<CombatCue> | undefined;
+      if (backslidingCue && current.hp > 0 && current.status !== 'resting' && current.status !== 'paused') {
+        const actor = actorsRef.current.hero;
+        heroFrame = heroPresentation.current.frame(combatCues.current.filter(cue => !cue.blocked),
+          actionWatermarks.current, current.id, time, {
+            decoded: !!actor && !actor.fallback,
+            direction: backslidingDirection!,
+            hasPose: (cue, look) => !!actor && getActorPose(actor,
+              getCombatActorAction(cue.actorAction, cue.skill?.sourceName), 0, look, cue.motionMs).length > 0,
+            playbackDuration: (cue, look) => getActorPlaybackDuration(actor!,
+              getCombatActorAction(cue.actorAction, cue.skill?.sourceName), cue.motionMs, look),
+            nativeState: (cue, look) => {
+              if (!camera || motion.matches || !nativeActors.current || !actor) return 'canvas';
+              const paint = { id: current.id, actor, action: getCombatActorAction(cue.actorAction, cue.skill?.sourceName), direction: look };
+              return nativeActors.current.canPaintActionNatively(paint, time) ? 'ready'
+                : nativeActors.current.mayRecoverActionOwnership(paint, time) ? 'pending'
+                : nativeActors.current.areActionTexturesReady(paint, time) ? 'canvas' : 'pending';
+            },
+          });
+        if (heroFrame) shiftPresentationAssociates(heroFrame.moved);
+      }
+      const backslidingPoint = backslidingCue ? backslidingPresentationPoint({
+        origin: backslidingCue.sourcePosition!, destination: backslidingCue.movementDestination!,
+        startedAt: heroFrame?.cue.start ?? backslidingCue.start,
+        nativePlaybackMs: heroFrame?.cue.actionDuration ?? backslidingCue.actionDuration,
+      }, time) : undefined;
       // The scene origin stays stable through roaming and combat.
       const formationAnchor = { x: current.status === "challenge" ? 0.38 : 0.48, y: 0.76 };
       const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && scene !== "town" && current.status !== "challenge";
@@ -1254,7 +1291,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         target: { ...formationAnchor }, walking: false, wasHunting: false,
       });
       if (fieldPopulation && current.fieldHero) {
-        motionState.position = battleScenePoint(battleHeroAt(current, serverNow), formationAnchor);
+        motionState.position = battleScenePoint(backslidingPoint ?? battleHeroAt(current, serverNow), formationAnchor);
         motionState.from = battleScenePoint(current.fieldHero.from, formationAnchor);
         motionState.target = battleScenePoint(current.fieldHero.position, formationAnchor);
       }
@@ -1317,14 +1354,15 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const encounter = !fieldPopulation && huntLocation && encounterPose.current?.areaId === current.areaId && fighting
         ? encounterPose.current
         : null;
-      const strikePose = groupHeroCue?.sourceGround ? { ground: groupHeroCue.sourceGround } : null;
-      const heroPoint = strikePose?.ground.point ?? encounter?.hero ?? (huntLocation ? motionState.position : { x: fighting ? 0.38 : 0.48, y: 0.76 });
+      const strikePose = !backslidingCue && groupHeroCue?.sourceGround ? { ground: groupHeroCue.sourceGround } : null;
+      const heroPoint = backslidingPoint && !camera ? battleScenePoint(backslidingPoint, formationAnchor) :
+        strikePose?.ground.point ?? encounter?.hero ?? (huntLocation ? motionState.position : { x: fighting ? 0.38 : 0.48, y: 0.76 });
       const primaryHero = primaryEnemy?.hero ?? heroPoint;
       const primaryArrival = primaryEnemy ? enemyArrival(primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, offensiveTargets.current.has(primaryEnemy.enemy.id)) : undefined;
       const enemyPoint = primaryEnemy?.ground?.point ?? primaryArrival?.point ?? encounter?.enemy ?? { x: 0.66, y: 0.76 };
       const heroFromWorld = camera ? sceneGroundPoint(camera, motionState.from, formationAnchor) : null;
       const heroToWorld = camera ? sceneGroundPoint(camera, motionState.target, formationAnchor) : null;
-      const fieldHeroPoint = fieldPopulation && current.fieldHero ? battleHeroAt(current, serverNow) : undefined;
+      const fieldHeroPoint = fieldPopulation && current.fieldHero ? backslidingPoint ?? battleHeroAt(current, serverNow) : undefined;
       const fieldHeroWorld = camera && fieldOrigin && fieldHeroPoint ? projectBattlePoint(camera, fieldHeroPoint, fieldOrigin) : undefined;
       const fieldHeroTangent = camera && fieldOrigin && current.fieldHero
         ? current.fieldHero.movementRoute?.length
@@ -1385,6 +1423,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       if (groupHeroCue) {
         heroDirection = lockActorDirection(combatCues.current, groupHeroCue, heroDirection);
       }
+      if (backslidingCue && backslidingDirection !== undefined) {
+        heroDirection = heroFrame?.direction ?? backslidingDirection;
+      }
       const enemyDirection = encounter ? (heroDirection + 4) % 8 : ENEMY_COMBAT_DIRECTION;
       const heroActor = actorsRef.current.hero;
       const opponentActor = showDefeated ? lingering!.actor : actorsRef.current.enemy;
@@ -1405,8 +1446,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       );
       const enemyVisualHeight = enemyHeight * enemyScale;
       const heroCue = groupHeroCue;
-      let heroFrame: EnemyActionFrame<CombatCue> | undefined;
-      if (heroCue && current.hp > 0 &&
+      if (!backslidingCue && heroCue && current.hp > 0 &&
         current.status !== 'resting' && current.status !== 'paused') {
         heroFrame = heroPresentation.current.frame(combatCues.current.filter(cue => !cue.blocked),
           actionWatermarks.current, current.id, time, {

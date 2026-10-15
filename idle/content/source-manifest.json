@@ -4128,8 +4128,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13886,8 +13885,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 252,
-    "unsupported": 96,
+    "supported": 253,
+    "unsupported": 95,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -13951,13 +13950,13 @@
       },
       "thief": {
         "sourceTree": 12,
-        "supported": 10,
-        "unsupported": 2
+        "supported": 11,
+        "unsupported": 1
       },
       "high_thief": {
         "sourceTree": 12,
-        "supported": 10,
-        "unsupported": 2
+        "supported": 11,
+        "unsupported": 1
       },
       "knight": {
         "sourceTree": 24,
@@ -14071,23 +14070,23 @@
       },
       "assassin": {
         "sourceTree": 24,
-        "supported": 20,
-        "unsupported": 4
+        "supported": 21,
+        "unsupported": 3
       },
       "assassin_cross": {
         "sourceTree": 29,
-        "supported": 24,
-        "unsupported": 5
+        "supported": 25,
+        "unsupported": 4
       },
       "rogue": {
         "sourceTree": 33,
-        "supported": 25,
-        "unsupported": 8
+        "supported": 26,
+        "unsupported": 7
       },
       "stalker": {
         "sourceTree": 37,
-        "supported": 27,
-        "unsupported": 10
+        "supported": 28,
+        "unsupported": 9
       }
     },
     "supportedSourceNames": [
@@ -14151,6 +14150,7 @@
       "TF_POISON",
       "TF_DETOXIFY",
       "TF_SPRINKLESAND",
+      "TF_BACKSLIDING",
       "TF_PICKSTONE",
       "TF_THROWSTONE",
       "KN_SPEARMASTERY",
@@ -14389,11 +14389,6 @@
         "skillId": "all_buying_store",
         "sourceName": "ALL_BUYING_STORE",
         "reason": "Requer comércio com outros personagens."
-      },
-      {
-        "skillId": "tf_backsliding",
-        "sourceName": "TF_BACKSLIDING",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "kn_onehand",
@@ -15395,6 +15390,6 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
-  "catalogSha256": "05887687c77dce8a2dadca44725291f694aa5e66f75c74892945200d2e3c95e6",
+  "catalogSha256": "f7434d38e2521508711477250c62f047c6978b86806041713905a5b675adc460",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

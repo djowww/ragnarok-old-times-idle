@@ -20,8 +20,8 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     const names = Object.values(candidate.skills).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!).sort();
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
-    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 252, unsupported: 96, classes: 40, skills: 348 });
+    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+    expect(manifest.skillCoverage).toMatchObject({ supported: 253, unsupported: 95, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();
