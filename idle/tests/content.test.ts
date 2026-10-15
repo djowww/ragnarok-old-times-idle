@@ -5,6 +5,7 @@ import { orderedConfigEntries, parseConfig, resolveInheritance } from '../tools/
 import catalog from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
+import fieldNavigation from '../content/field-navigation.json';
 import type { Catalog } from '../shared/types';
 import { bgmForMap } from '../web/components/mapBgm';
 describe('Hercules import', () => {
@@ -214,7 +215,8 @@ describe('playable source catalog', () => {
             expect(area?.scene, map).toBe(sourceArea?.scene);
             expect(bgmForMap(map), map).toMatch(/^\d+\.mp3$/);
             expect(originalMap, map).toContain(`"${map}"`);
-            expect(mapViewerPatch, map).toContain(`${map}: [`);
+            expect(mapViewerPatch, map).toContain(`${map}: true`);
+            expect(fieldNavigation.areas.find(layout => layout.areaId === area?.id)?.map, map).toBe(map);
         }
         for (const sourcePath of (rules as any).mapSpawnSources as string[])
             expect(manifest.sources, sourcePath).toContainEqual(expect.objectContaining({
@@ -228,10 +230,19 @@ describe('playable source catalog', () => {
     it('connects every playable area to its original BGM and MapViewer route', () => {
         const originalMap = readFileSync(new URL('../web/components/OriginalMap.tsx', import.meta.url), 'utf8');
         const mapViewerPatch = readFileSync(new URL('../../docker/web-client/mapviewer-idle.patch', import.meta.url), 'utf8');
+        expect(fieldNavigation.version).toBe(1);
+        expect(fieldNavigation.areas).toHaveLength(data.areas.length);
+        expect(new Set(fieldNavigation.areas.map(layout => layout.areaId)).size).toBe(data.areas.length);
         for (const area of data.areas) {
             expect(bgmForMap(area.map), area.map).toMatch(/^\d+\.mp3$/);
             expect(originalMap, area.map).toContain(`"${area.map}"`);
-            expect(mapViewerPatch, area.map).toContain(`${area.map}: [`);
+            expect(mapViewerPatch, area.map).toContain(`${area.map}: true`);
+            expect(mapViewerPatch, area.map).not.toContain(`${area.map}: [`);
+            const layout = fieldNavigation.areas.find(candidate => candidate.areaId === area.id);
+            expect(layout?.map, area.id).toBe(area.map);
+            expect(Number.isSafeInteger(layout?.origin.x) && Number.isSafeInteger(layout?.origin.y), area.id).toBe(true);
+            expect(layout?.homeOffsets, area.id).toHaveLength(4);
+            expect(new Set(layout?.homeOffsets.map(point => `${point.x},${point.y}`)).size, area.id).toBe(4);
         }
     });
 });

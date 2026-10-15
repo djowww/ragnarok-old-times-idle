@@ -43,12 +43,14 @@ export type MapStatus = { map: string; phase: "loading" | "ready" | "error"; pro
 /** The local roBrowserLegacy MapViewer is a scenery layer; idle combat stays in React. */
 export default function OriginalMap({
   map,
+  fieldOrigin,
   onStatusChange,
   onProjection,
   followTarget,
   nativeActors,
 }: {
   map: string;
+  fieldOrigin?: { x: number; y: number };
   onStatusChange?: (status: MapStatus) => void;
   onProjection?: (projection: MapProjection | null) => void;
   followTarget?: { current: WorldPoint | null };
@@ -62,23 +64,23 @@ export default function OriginalMap({
   const [attempt, setAttempt] = useState(0);
   const allowed = localMaps.has(map);
   const [status, setStatus] = useState<MapStatus>({ map, phase: allowed ? "loading" : "error" });
-  const { origin, mapViewer } = getClassicClientPaths(window.location);
+  const { origin: sourceOrigin, mapViewer } = getClassicClientPaths(window.location);
   const phase = status.map === map ? status.phase : allowed ? "loading" : "error";
   const resetActors = (connect = false) => {
     actorBridge.current?.dispose();
     actorBridge.current = connect && allowed && nativeActors && frame.current?.contentWindow
-      ? new NativeActorsBridge(frame.current.contentWindow, origin, map) : null;
+      ? new NativeActorsBridge(frame.current.contentWindow, sourceOrigin, map) : null;
     if (nativeActors) nativeActors.current = actorBridge.current;
   };
 
   useEffect(() => {
     if (!followTarget || phase !== "ready") return;
     const timer = window.setInterval(() => {
-      frame.current?.contentWindow?.postMessage({ type: "ragidle-map-follow", map,
-        world: followTarget.current }, origin);
+        frame.current?.contentWindow?.postMessage({ type: "ragidle-map-follow", map,
+        world: followTarget.current }, sourceOrigin);
     }, 100);
     return () => window.clearInterval(timer);
-  }, [map, origin, phase, followTarget]);
+  }, [map, sourceOrigin, phase, followTarget]);
 
   useEffect(() => {
     const element = host.current;
@@ -109,11 +111,10 @@ export default function OriginalMap({
       return;
     }
     setStatus({ map, phase: "loading" });
-    // Terrain is static for this iframe. The native bridge sends it once so
-    // follow-camera matrix updates stay small enough for animation frames.
+    // The iframe refreshes its sampled terrain window as follow-camera focus moves.
     let ground: MapProjection["ground"];
     const onMessage = (event: MessageEvent) => {
-      if (event.origin !== origin || event.source !== frame.current?.contentWindow)
+      if (event.origin !== sourceOrigin || event.source !== frame.current?.contentWindow)
         return;
       const data = event.data as Record<string, unknown> | null;
       if (!data || data.map !== map) return;
@@ -147,7 +148,7 @@ export default function OriginalMap({
       window.removeEventListener("message", onMessage);
       window.clearTimeout(timeout);
     };
-  }, [map, attempt, allowed, origin, nativeActors]);
+  }, [map, attempt, allowed, sourceOrigin, nativeActors, fieldOrigin?.x, fieldOrigin?.y]);
 
   useEffect(() => {
     onStatusChange?.({ map, phase, progress: status.map === map ? status.progress ?? 0 : 0 });
@@ -164,9 +165,9 @@ export default function OriginalMap({
     <div ref={host} className="original-map" aria-hidden={phase === "ready"}>
       {allowed && (
         <iframe
-          key={`${map}:${attempt}`}
+          key={`${map}:${fieldOrigin?.x ?? ""}:${fieldOrigin?.y ?? ""}:${attempt}`}
           ref={frame}
-          src={`${mapViewer}?v=20261012-cloudsync&attempt=${attempt}#${map}.rsw`}
+          src={`${mapViewer}?v=20261013-field-navigation&attempt=${attempt}${fieldOrigin ? `&originX=${fieldOrigin.x}&originY=${fieldOrigin.y}` : ""}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
           onLoad={() => resetActors(true)}

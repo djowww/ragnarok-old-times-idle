@@ -7,6 +7,8 @@ import { sphereCostForSkill } from '../engine/classicBuffs';
 import { derivedStats } from '../engine/stats';
 import { BATTLE_HERO } from '../shared/battleSpatial';
 import { skillTargetInRange } from '../shared/combatRange';
+import { createFieldNavigationRuntime } from '../engine/fieldNavigation.js';
+import type { FieldNavigationGrid } from '../shared/fieldNavigation.js';
 import * as stateTools from '../engine/state';
 import { fixture } from './engine-fixture';
 
@@ -47,6 +49,16 @@ function setup(distanceCells = 12, spheres = 1) {
   Object.assign(s.fieldHero!, { from: { ...BATTLE_HERO }, position: { ...BATTLE_HERO }, startedAt: 0,
     arrivedAt: 0, phase: 'chasing', targetId: target.id });
   return { c, s, target, relocation, extremityFist };
+}
+
+function islandNavigation() {
+  const width = 20, height = 7, walkable = new Uint8Array(Math.ceil(width * height / 8));
+  for (let id = 0; id < width * height; id++) walkable[id >> 3] |= 1 << (id & 7);
+  for (let y = 0; y < height; y++) { const id = y * width + 10; walkable[id >> 3] &= ~(1 << (id & 7)); }
+  const grid: FieldNavigationGrid = { map: 'prt_fild08', width, height, walkable, sourceSha256: 'a'.repeat(64) };
+  return createFieldNavigationRuntime([{ areaId: 'prontera', map: 'prt_fild08', origin: { x: 2, y: 3 },
+    homeOffsets: [{ x: -1, y: -1 }, { x: 1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: 1 }] }],
+  new Map([['prt_fild08', grid]]));
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -121,6 +133,48 @@ describe('MO_BODYRELOCATION solo hunt integration', () => {
 
     expect(next.events.some(event => event.kind === 'skill' && event.skillId === relocation.id)).toBe(false);
     expect(next.sp).toBe(s.sp);
+    expect(next.combatEffects?.spiritSpheres).toBe(1);
+  });
+
+  it('does not consume a Snap to an unreachable island inside the skill range', () => {
+    const { c, s, target } = setup(12, 1);
+    const navigation = islandNavigation();
+    const island = navigation.toBattlePoint('prontera', { x: 14.5, y: 3.5 });
+    Object.assign(target, { position: island, approachFrom: island });
+    s.fieldHero!.moveBlockedUntil = 5000;
+    const initialPosition = { ...s.fieldHero!.position };
+
+    const next = advanceState(s, c, 1000, { navigation });
+
+    expect(next.events.some(event => event.kind === 'skill' && event.skillId === sourceSkill('MO_BODYRELOCATION').id)).toBe(false);
+    expect(next.sp).toBe(s.sp);
+    expect(next.combatEffects?.spiritSpheres).toBe(1);
+    expect(next.fieldHero!.position).toEqual(initialPosition);
+    expect(navigation.toGridPoint('prontera', next.fieldHero!.position).x).toBeLessThan(10);
+    expect(next.fieldHero!.movementRoute).toBeUndefined();
+    expect(next.battle!.playerNextSkillAt).toBeGreaterThan(1000);
+  });
+
+  it('keeps basic attacks on a reachable target while an isolated target is nearby', () => {
+    const { c, s, target } = setup(1, 1);
+    const navigation = islandNavigation();
+    const isolated = structuredClone(target);
+    isolated.id = 'isolated-nearby';
+    isolated.position = navigation.toBattlePoint('prontera', { x: 14.5, y: 3.5 });
+    isolated.approachFrom = { ...isolated.position };
+    isolated.fieldSlot = 3;
+    s.battle!.enemies!.push(isolated);
+    s.fieldPopulation = { areaId: 'prontera', generation: 4, enemies: [target, isolated], respawns: [] };
+    s.battle!.targetId = target.id;
+    s.battle!.playerNextAttackAt = 1000;
+    target.position = navigation.toBattlePoint('prontera', { x: 3.5, y: 3.5 });
+    target.approachFrom = { ...target.position };
+    target.startedAt = target.arrivedAt = 0;
+
+    const next = advanceState(s, c, 1000, { navigation });
+
+    expect(next.events.some(event => event.kind === 'damage' && event.enemyId === target.id && event.actorAction === 'attack')).toBe(true);
+    expect(next.events.some(event => event.kind === 'skill' && event.skillId === sourceSkill('MO_BODYRELOCATION').id)).toBe(false);
     expect(next.combatEffects?.spiritSpheres).toBe(1);
   });
 });

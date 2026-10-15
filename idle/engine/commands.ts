@@ -21,10 +21,11 @@ import {
 } from "./stats.js";
 import { grantReward, updateQuests } from "./progression.js";
 import { beginBattle } from "./combat.js";
+import type { SimulationContext } from './fieldNavigation.js';
 import { encounterDelay, focusMatches } from "../shared/hunt.js";
 import { merchantPrice } from "../shared/prices.js";
 import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
-import { battleHeroAt } from "../shared/battleSpatial.js";
+import { battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
 import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
 import { automaticSpellChoices } from "./sageCasting.js";
 import { inventoryLoad } from './stats.js';
@@ -71,6 +72,7 @@ export function executeCommand(
   c: Catalog,
   command: GameCommand,
   now: number,
+  context?: SimulationContext,
 ) {
   const previousScene = classicGroundSceneKey(s);
   const trickDead = trickDeadActive(s, c, now);
@@ -229,7 +231,7 @@ export function executeCommand(
         if (cast) cancelActorCast(s, c, { kind: 'player', actorId: s.id }, now, 'manual');
         if (s.fieldHero?.areaId === s.areaId) {
           const position = battleHeroAt(s, now);
-          Object.assign(s.fieldHero, { from: position, position, startedAt: now, arrivedAt: now, phase: 'waiting' });
+          stopHeroMovement(s.fieldHero, position, now); s.fieldHero.phase = 'waiting';
           delete s.fieldHero.moveBlockedUntil;
         }
         // The scheduler skips own offense while this status is active. Keep
@@ -360,7 +362,7 @@ export function executeCommand(
       s.pendingAreaId = null;
       if (s.fieldHero?.areaId === s.areaId) {
         const position = battleHeroAt(s, now);
-        Object.assign(s.fieldHero, { from: position, position, startedAt: now, arrivedAt: now, phase: "waiting" });
+        stopHeroMovement(s.fieldHero, position, now); s.fieldHero.phase = 'waiting';
         delete s.fieldHero.targetId;
         delete s.fieldHero.moveBlockedUntil;
       }
@@ -850,7 +852,7 @@ export function executeCommand(
       requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP primeiro.");
       interruptSageEnchantCast(s, c, now);
       s.status = "challenge";
-      beginBattle(s, c, ch.monsterId, now, ch.id);
+      beginBattle(s, c, ch.monsterId, now, ch.id, context);
       break;
     }
     case "dismissOffline":

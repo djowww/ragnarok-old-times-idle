@@ -7,7 +7,7 @@ import { event, random } from './state.js';
 import { cancelClassicBuff } from './classicBuffs.js';
 import { elementalEnchantReplacements } from './enchantPoison.js';
 import { activePlayerStatus } from './playerStatuses.js';
-import { battleHeroAt } from '../shared/battleSpatial.js';
+import { battleHeroAt, stopHeroMovement } from '../shared/battleSpatial.js';
 
 const SAGE_ENCHANTS = {
   SA_FLAMELAUNCHER: { element: 'fire', reagentId: 990 },
@@ -85,7 +85,7 @@ export function startSageEnchantCast(s: GameState, c: Catalog, skill: Skill, lev
   }
   if (!freeCast && s.status === 'hunting' && s.fieldHero?.areaId === s.areaId) {
     const point = battleHeroAt(s, at);
-    Object.assign(s.fieldHero, { from: point, position: point, startedAt: at, arrivedAt: at, phase: 'fighting' });
+    stopHeroMovement(s.fieldHero, point, at); s.fieldHero.phase = 'fighting';
   }
   event(s, at, 'cast', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
     sourceActorId: s.id, targetActorId: s.id, actionId, actorAction: 'none', castMs });

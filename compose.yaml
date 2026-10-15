@@ -12,6 +12,7 @@ services:
       RAGIDLE_ADMIN_TOKEN: ${RAGIDLE_ADMIN_TOKEN:-}
       RAGIDLE_TRUSTED_PROXY_ADDRESSES: ${RAGIDLE_TRUSTED_PROXY_ADDRESSES:-}
       ASSET_ORIGIN: http://asset-service:8080
+      FIELD_NAV_CACHE_DIR: /var/cache/ragidle/field-navigation
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3339}
       RAGIDLE_ALLOWED_ORIGINS: ${RAGIDLE_ALLOWED_ORIGINS:-http://localhost:3339}
     depends_on:
@@ -23,6 +24,8 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:3339:3339"
+    volumes:
+      - ragidle_field_navigation:/var/cache/ragidle/field-navigation
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3339/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
@@ -126,6 +129,7 @@ services:
 
 volumes:
   mariadb_data:
+  ragidle_field_navigation:
 
 networks:
   ragnarok_local:

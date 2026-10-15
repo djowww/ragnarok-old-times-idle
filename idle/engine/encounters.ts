@@ -28,6 +28,8 @@ import {
   playerBattleDistance,
   enemyPositionAt,
   enemyDistanceAt,
+  stopHeroMovement,
+  stopEnemyMovement,
 } from "../shared/battleSpatial.js";
 import {
   offensiveSkill,
@@ -95,7 +97,9 @@ import { createPneuma, pneumaBlocks, defenderDamage, defenderStats, createEndure
 import { autoGuardChance, autoGuardWalkDelayMs, sacrificeBaseDamage, sacrificeHpCost, shrinkRollAccepted } from './guardianSacrificeRules.js';
 import { activeSacrifice, applyGuardianStatus, consumeSacrificeCharge, guardianShieldEquipped, guardianSkillEligible, guardianStatusActive } from './guardianSacrifice.js';
 import { currentPlayerCast } from './playerCast.js';
+import { gridRouteLength } from '../shared/fieldNavigation.js';
 import { fieldHome, fieldWanderPoint } from "../shared/fieldPopulation.js";
+import type { SimulationContext } from './fieldNavigation.js';
 import {
   classicStatusResistance,
   classicCrucisAffects,
@@ -207,11 +211,8 @@ function engageFieldEnemy(s: GameState, enemy: BattleEnemy, at: number, hostile 
   if (enemy.fieldSlot === undefined) return;
   if (enemy.engaged) { if (hostile) enemy.hostile = true; return; }
   const from = enemyPositionAt(enemy, at);
-  enemy.approachFrom = from;
-  enemy.position = { ...from };
+  stopEnemyMovement(enemy, from, at);
   enemy.homePosition ??= fieldHome(enemy.fieldSlot);
-  enemy.startedAt = at;
-  enemy.arrivedAt = at;
   enemy.engaged = true;
   enemy.hostile = hostile;
   enemy.enemyNextAttackAt = at;
@@ -240,7 +241,7 @@ function fieldTarget(s: GameState, c: Catalog, candidates: BattleEnemy[], at: nu
 function freezeFieldHero(s: GameState, at: number) {
   if (!s.fieldHero || s.fieldHero.areaId !== s.areaId) return;
   const point = battleHeroAt(s, at);
-  Object.assign(s.fieldHero, { from: point, position: point, startedAt: at, arrivedAt: at });
+  stopHeroMovement(s.fieldHero, point, at);
 }
 function faceHeroTowards(s: GameState, point: { x: number; y: number }, at: number) {
   const hero = sourceCell(battleHeroAt(s, at)), target = sourceCell(point);
@@ -263,6 +264,81 @@ function walkDuration(from: { x: number; y: number }, to: { x: number; y: number
   return Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) * BATTLE_CELLS_PER_UNIT * speedMs));
 }
 
+interface RoutedActor {
+  from?: { x: number; y: number };
+  approachFrom?: { x: number; y: number };
+  position: { x: number; y: number };
+  startedAt: number;
+  arrivedAt: number;
+  movementRoute?: { x: number; y: number }[];
+  movementTargetKey?: string;
+  movementTargetWithinRange?: boolean;
+  movementSpeedMs?: number;
+}
+
+/** Persist one legal graph segment; unchanged targets keep the active route. */
+function moveOnFieldRoute(actor: RoutedActor, context: SimulationContext | undefined, areaId: string,
+  from: { x: number; y: number }, target: { x: number; y: number }, targetId: string,
+  range: number, metric: 'player' | 'square', speedMs: number, at: number): { available: boolean; withinRange: boolean; moving: boolean } {
+  const navigation = context?.navigation;
+  if (!navigation) return { available: false, withinRange: false, moving: false };
+  const gridTarget = navigation.toGridPoint(areaId, target);
+  const key = `${targetId}:${Math.floor(gridTarget.x)},${Math.floor(gridTarget.y)}:${range}:${metric}`;
+  if (actor.movementTargetKey === key && at < actor.arrivedAt) {
+    if (actor.movementSpeedMs !== speedMs && actor.movementRoute?.length) {
+      const gridRoute = actor.movementRoute.map(point => navigation.toGridPoint(areaId, point));
+      const total = gridRouteLength(gridRoute);
+      const progress = Math.max(0, Math.min(1, (at - actor.startedAt) / Math.max(1, actor.arrivedAt - actor.startedAt)));
+      let distanceAlong = total * progress, segment = 0;
+      while (segment < gridRoute.length - 1) {
+        const a = gridRoute[segment], b = gridRoute[segment + 1], length = Math.hypot(b.x - a.x, b.y - a.y);
+        if (distanceAlong <= length) break;
+        distanceAlong -= length;
+        segment++;
+      }
+      const suffix = [navigation.toGridPoint(areaId, from), ...gridRoute.slice(segment + 1)];
+      const remaining = gridRouteLength(suffix);
+      const routePoints = [from, ...gridRoute.slice(segment + 1).map(point => navigation.toBattlePoint(areaId, point))];
+      actor.from = { ...from }; actor.approachFrom = { ...from };
+      actor.startedAt = at;
+      actor.arrivedAt = at + Math.max(1, Math.ceil(remaining * speedMs));
+      actor.movementRoute = routePoints;
+      actor.movementSpeedMs = speedMs;
+    }
+    return { available: true, withinRange: actor.movementTargetWithinRange ?? false, moving: true };
+  }
+  const approach = navigation.routeToRange(areaId, from, target, range, metric);
+  actor.movementTargetKey = key;
+  if (!approach) {
+    actor.from = { ...from }; actor.approachFrom = { ...from }; actor.position = { ...from };
+    actor.startedAt = at; actor.arrivedAt = at + Math.max(250, speedMs);
+    actor.movementTargetWithinRange = false;
+    delete actor.movementRoute;
+    delete actor.movementSpeedMs;
+    return { available: true, withinRange: false, moving: true };
+  }
+  actor.movementTargetWithinRange = approach.withinRange;
+  const route = approach.route;
+  const destination = route.points.at(-1) ?? from;
+  actor.from = { ...route.points[0] ?? from };
+  actor.approachFrom = { ...route.points[0] ?? from };
+  actor.position = { ...destination };
+  actor.startedAt = at;
+  actor.arrivedAt = at + Math.max(1, Math.ceil(route.distanceCells * speedMs));
+  actor.movementRoute = route.points.map(point => ({ ...point }));
+  actor.movementSpeedMs = speedMs;
+  return { available: true, withinRange: approach.withinRange, moving: route.distanceCells > 1e-9 };
+}
+
+function stopRoutedMovement(actor: RoutedActor, at: number, point: { x: number; y: number }): void {
+  actor.from = { ...point }; actor.approachFrom = { ...point }; actor.position = { ...point };
+  actor.startedAt = actor.arrivedAt = at;
+  delete actor.movementRoute;
+  delete actor.movementTargetKey;
+  delete actor.movementTargetWithinRange;
+  delete actor.movementSpeedMs;
+}
+
 function sourceCell(point: { x: number; y: number }) {
   return { x: Math.floor(point.x * BATTLE_CELLS_PER_UNIT), y: Math.floor(point.y * BATTLE_CELLS_PER_UNIT) };
 }
@@ -273,14 +349,15 @@ function enemyWalkBlocked(c: Catalog, enemy: BattleEnemy, at: number) {
     !!enemy.statuses?.SC_SPIDERWEB?.webHeld && enemy.statuses.SC_SPIDERWEB.expiresAt > at;
 }
 
-function shrinkRecoil(s: GameState, c: Catalog, enemy: BattleEnemy, at: number) {
+function shrinkRecoil(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, context?: SimulationContext) {
   const monster = c.monsters[enemy.monsterId], area = c.areas.find(entry => entry.id === s.areaId);
   if (monster.boss || monster.noKnockback || area?.noKnockback || monster.canMove === false || enemyWalkBlocked(c, enemy, at)) return;
   const point = enemyPositionAt(enemy, at), cell = sourceCell(point), hero = sourceCell(battleHeroAt(s, at));
   const away = sourceFacing(cell.x - hero.x, cell.y - hero.y);
-  const pushed = { x: point.x + away.x * 2 / BATTLE_CELLS_PER_UNIT,
-    y: point.y + away.y * 2 / BATTLE_CELLS_PER_UNIT };
-  enemy.approachFrom = pushed; enemy.position = pushed; enemy.startedAt = enemy.arrivedAt = at;
+  const pushed = context?.navigation && s.areaId
+    ? context.navigation.displace(s.areaId, point, away.x * 2, away.y * 2)
+    : { x: point.x + away.x * 2 / BATTLE_CELLS_PER_UNIT, y: point.y + away.y * 2 / BATTLE_CELLS_PER_UNIT };
+  stopEnemyMovement(enemy, pushed, at);
   delete enemy.approachPausedAt;
   if (s.battle) s.battle.fieldDecisionAt = at;
   event(s, at, 'knockback', 'Shrink', undefined, 'enemy', { enemyId: enemy.id, monsterId: monster.id,
@@ -472,7 +549,7 @@ function expireHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["tr
 }
 
 /** Source skill_unit_onplace_timer, not a second player action or resource payment. */
-function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["traps"]>[number], at: number) {
+function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["traps"]>[number], at: number, context?: SimulationContext) {
   if (trap.expiresAt <= at) { expireHunterTrap(s, c, trap, at); return; }
   if (trap.triggeredAt !== undefined) return;
   const skill = c.skills[trap.skillId], source = skill?.sourceName;
@@ -491,9 +568,11 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
     const monster = c.monsters[target.monsterId];
     if (monster.boss || monster.noKnockback) return;
     const point = enemyPositionAt(target, at), facing = rememberEnemyFacing(target, undefined, at);
-    const pushed = { x: point.x - facing.x * spec.knockbackTiles / BATTLE_CELLS_PER_UNIT,
-      y: point.y - facing.y * spec.knockbackTiles / BATTLE_CELLS_PER_UNIT };
-    target.approachFrom = pushed; target.position = pushed; target.startedAt = target.arrivedAt = at;
+    const pushed = context?.navigation && s.areaId
+      ? context.navigation.displace(s.areaId, point, -facing.x * spec.knockbackTiles, -facing.y * spec.knockbackTiles)
+      : { x: point.x - facing.x * spec.knockbackTiles / BATTLE_CELLS_PER_UNIT,
+        y: point.y - facing.y * spec.knockbackTiles / BATTLE_CELLS_PER_UNIT };
+    stopEnemyMovement(target, pushed, at);
     delete target.approachPausedAt;
     if (s.battle) s.battle.fieldDecisionAt = at;
     return;
@@ -558,11 +637,11 @@ function blockFieldHero(s: GameState, at: number, until: number) {
 }
 
 /** Every segment is planned at its own deadline, never at the end of a replay window. */
-function updateFieldActors(s: GameState, c: Catalog, at: number) {
+function updateFieldActors(s: GameState, c: Catalog, at: number, context?: SimulationContext) {
   if (s.fieldHero && at < s.fieldHero.arrivedAt && at >= s.fieldHero.startedAt)
     faceHeroTowards(s, s.fieldHero.position, at);
   updateFieldHero(s, at);
-  updateFieldPopulation(s, c, at);
+  updateFieldPopulation(s, c, at, context);
   const b = s.battle;
   if (s.status !== "hunting" || !b || b.challengeId || !s.fieldHero) return;
   const hero = s.fieldHero;
@@ -593,7 +672,7 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
     if (!enemy.engaged || !enemy.hostile) continue;
     if (monsterAttackTarget(s,enemy)!==s.id) continue;
     if (distance > (monster.chaseRange ?? 12) || playerHiddenFrom(s, c, monster, at)) {
-      enemy.approachFrom = point; enemy.position = point; enemy.startedAt = enemy.arrivedAt = at;
+      stopEnemyMovement(enemy, point, at);
       enemy.engaged = false; enemy.hostile = false;
       delete enemy.approachPausedAt;
       continue;
@@ -601,17 +680,20 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
     const immobilized = enemyWalkBlocked(c, enemy, at);
     const range = monster.attackRange ?? 1;
     if (immobilized || monster.canMove === false || distance <= range) {
-      enemy.approachFrom = point; enemy.position = point; enemy.startedAt = enemy.arrivedAt = at;
+      stopRoutedMovement(enemy, at, point);
       delete enemy.approachPausedAt;
       continue;
     }
-    const position = stopAtRange(point, heroPoint, range * 0.9);
     const status = combatStatus(c, enemy, at);
     const slow = Math.max((enemy.statuses?.quagmire?.expiresAt ?? 0) > at ? 50 : 0,
       (enemy.statuses?.SC_DEC_AGI?.expiresAt ?? 0) > at ? 25 : 0, status.moveSlowPct);
     const speed = Math.floor((monster.moveSpeedMs ?? 400) * (100 + slow) / 100);
-    Object.assign(enemy, { approachFrom: point, position, startedAt: at,
-      arrivedAt: at + walkDuration(point, position, speed) });
+    const routed = moveOnFieldRoute(enemy, context, s.areaId!, point, heroPoint, `hero:${s.id}`, range, 'square', speed, at);
+    if (!routed.available) {
+      const position = stopAtRange(point, heroPoint, range * 0.9);
+      Object.assign(enemy, { approachFrom: point, position, startedAt: at,
+        arrivedAt: at + walkDuration(point, position, speed) });
+    }
     rememberEnemyFacing(enemy, undefined, at);
     delete enemy.approachPausedAt;
   }
@@ -636,7 +718,7 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
   if ((playerCast && !castFreeLevel) || at < (hero.moveBlockedUntil ?? 0) || classicBuffActive(s, c, 'KN_AUTOCOUNTER', at)) {
     freezeFieldHero(s, at); hero.phase = "fighting"; syncBattle(s); return;
   }
-  const offensive = !activeCast && at >= (b.playerNextSkillAt ?? 0) ? chooseSkill(s, c, at, target, true, true) : undefined;
+  const offensive = !activeCast && at >= (b.playerNextSkillAt ?? 0) ? chooseSkill(s, c, at, target, true, true, context) : undefined;
   const movementTarget = offensive?.sourceName === 'BA_PANGVOICE' ? pangVoiceTarget(s, c, at) ?? target
     : offensive?.sourceName === 'DC_WINKCHARM' ? winkCharmTarget(s, c, at) ?? target : target;
   const inRange = offensive ? skillTargetInRange(s, c, offensive, s.learnedSkills[offensive.id], movementTarget, at)
@@ -647,16 +729,25 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
     freezeFieldHero(s, at); hero.phase = "waiting";
   } else {
     const range = offensive ? skillAttackRange(s, c, offensive, s.learnedSkills[offensive.id]) : basicAttackRange(s, c);
-    const position = stopAtRange(heroPoint, enemyPositionAt(movementTarget, at), range * 0.9);
-    Object.assign(hero, { from: heroPoint, position, startedAt: at,
-      arrivedAt: at + walkDuration(heroPoint, position, playerWalkSpeed(s, c, at)), phase: "chasing" });
-    faceHeroTowards(s, position, at);
+    const enemyPoint = enemyPositionAt(movementTarget, at);
+    const routed = moveOnFieldRoute(hero, context, s.areaId!, heroPoint, enemyPoint, `enemy:${movementTarget.id}`,
+      range, 'player', playerWalkSpeed(s, c, at), at);
+    if (routed.available) {
+      if (routed.moving && hero.movementRoute?.length) faceHeroTowards(s, hero.position, at);
+      if (routed.withinRange && !routed.moving) { freezeFieldHero(s, at); hero.phase = 'fighting'; }
+      else hero.phase = routed.moving && hero.movementRoute?.length ? 'chasing' : 'waiting';
+    } else {
+      const position = stopAtRange(heroPoint, enemyPoint, range * 0.9);
+      Object.assign(hero, { from: heroPoint, position, startedAt: at,
+        arrivedAt: at + walkDuration(heroPoint, position, playerWalkSpeed(s, c, at)), phase: "chasing" });
+      faceHeroTowards(s, position, at);
+    }
   }
   syncBattle(s);
 }
 
 /** A bounded persisted map population, reused directly by grouped combat. */
-function updateFieldPopulation(s: GameState, c: Catalog, at: number) {
+function updateFieldPopulation(s: GameState, c: Catalog, at: number, context?: SimulationContext) {
   const area = c.areas.find((entry) => entry.id === s.areaId);
   if (!area || s.status === "town" || s.status === "challenge") return;
   if (s.fieldPopulation?.areaId !== area.id) s.fieldPopulation = {
@@ -685,21 +776,19 @@ function updateFieldPopulation(s: GameState, c: Catalog, at: number) {
     const monsterId = chooseAreaMonster(s, c, area, random(s));
     const monster = c.monsters[monsterId];
     if (!monster) continue;
-    const home = fieldHome(slot);
+    const home = context?.navigation ? context.navigation.home(area.id, slot) : fieldHome(slot);
     population.enemies.push({
       id: `field-${area.id}-${++population.generation}-${slot}`,
       fieldSlot: slot, engaged: false, monsterId, hp: monster.hp, maxHp: monster.hp,
       startedAt: at, arrivedAt: at, enemyNextAttackAt: at,
-      spawnDirection: slot * 2, position: home, approachFrom: home, hostile: false,
+      spawnDirection: slot * 2, position: home, approachFrom: home, homePosition: home, hostile: false,
     });
     population.respawns = population.respawns.filter(entry => entry.slot !== slot);
   }
   for (const enemy of population.enemies) {
     if (enemy.engaged && (!s.battle || s.status !== "hunting")) {
       const point = enemyPositionAt(enemy, at);
-      enemy.position = point;
-      enemy.approachFrom = point;
-      enemy.startedAt = enemy.arrivedAt = at;
+      stopEnemyMovement(enemy, point, at);
       enemy.engaged = false;
       enemy.hostile = false;
       delete enemy.approachPausedAt;
@@ -715,29 +804,48 @@ function updateFieldPopulation(s: GameState, c: Catalog, at: number) {
     if (!confused) delete enemy.confusionWalkAt;
     if (confused && enemy.engaged && c.monsters[enemy.monsterId].canMove !== false &&
         !enemyWalkBlocked(c, enemy, at) && at >= enemy.arrivedAt && at >= (enemy.confusionWalkAt ?? at)) {
-      const from = enemyPositionAt(enemy, at), cell = sourceCell(from);
+      const from = enemyPositionAt(enemy, at);
       // Hercules map:get_random_cell_in_range uses AREA_SIZE / 2 (7 cells).
-      // The Idle field has no GAT collision grid, so preserve its source envelope.
       let dx = Math.floor(random(s) * 14) - 7, dy = Math.floor(random(s) * 14) - 7;
-      if (dx === 0 && dy === 0) dx = cell.x < BATTLE_CELLS_PER_UNIT / 2 ? 1 : -1;
-      const x = Math.max(0, Math.min(BATTLE_CELLS_PER_UNIT - 1, cell.x + dx));
-      const y = Math.max(0, Math.min(BATTLE_CELLS_PER_UNIT - 1, cell.y + dy));
-      const destination = { x: (x + 0.5) / BATTLE_CELLS_PER_UNIT, y: (y + 0.5) / BATTLE_CELLS_PER_UNIT };
-      enemy.approachFrom = from; enemy.position = destination; enemy.startedAt = at;
-      enemy.arrivedAt = at + walkDuration(from, destination, c.monsters[enemy.monsterId].moveSpeedMs ?? 400);
+      if (dx === 0 && dy === 0) dx = 1;
+      const navigation = context?.navigation;
+      if (navigation) {
+        const selected = navigation.area(area.id), gridFrom = navigation.toGridPoint(area.id, from);
+        const x = Math.max(0, Math.min(selected.grid.width - 1, Math.floor(gridFrom.x) + dx));
+        const y = Math.max(0, Math.min(selected.grid.height - 1, Math.floor(gridFrom.y) + dy));
+        const destination = navigation.toBattlePoint(area.id, { x: x + 0.5, y: y + 0.5 });
+        const speed = c.monsters[enemy.monsterId].moveSpeedMs ?? 400;
+        moveOnFieldRoute(enemy, context, area.id, from, destination, `confusion:${enemy.id}:${x},${y}`, 0, 'square', speed, at);
+      } else {
+        const cell = sourceCell(from);
+        const x = Math.max(0, Math.min(BATTLE_CELLS_PER_UNIT - 1, cell.x + dx));
+        const y = Math.max(0, Math.min(BATTLE_CELLS_PER_UNIT - 1, cell.y + dy));
+        const destination = { x: (x + 0.5) / BATTLE_CELLS_PER_UNIT, y: (y + 0.5) / BATTLE_CELLS_PER_UNIT };
+        enemy.approachFrom = from; enemy.position = destination; enemy.startedAt = at;
+        enemy.arrivedAt = at + walkDuration(from, destination, c.monsters[enemy.monsterId].moveSpeedMs ?? 400);
+      }
       enemy.confusionWalkAt = enemy.arrivedAt;
     }
     if (!enemy.engaged && !combatStatus(c, enemy, at).immobilized &&
         c.monsters[enemy.monsterId].canMove !== false && at >= enemy.arrivedAt + 2200) {
       const from = enemyPositionAt(enemy, at);
-      enemy.approachFrom = from;
-      enemy.position = fieldWanderPoint(enemy.fieldSlot!, at);
-      enemy.startedAt = at;
       const status = combatStatus(c, enemy, at);
       const slow = Math.max((enemy.statuses?.quagmire?.expiresAt ?? 0) > at ? 50 : 0,
         (enemy.statuses?.SC_DEC_AGI?.expiresAt ?? 0) > at ? 25 : 0, status.moveSlowPct);
       const speed = Math.floor((c.monsters[enemy.monsterId].moveSpeedMs ?? 400) * (100 + slow) / 100);
-      enemy.arrivedAt = at + walkDuration(from, enemy.position, speed);
+      if (context?.navigation) {
+        const selected = context.navigation.area(area.id), fromCell = context.navigation.toGridPoint(area.id, from);
+        const dx = Math.floor(random(s) * 11) - 5, dy = Math.floor(random(s) * 11) - 5;
+        const x = Math.max(0, Math.min(selected.grid.width - 1, Math.floor(fromCell.x) + dx));
+        const y = Math.max(0, Math.min(selected.grid.height - 1, Math.floor(fromCell.y) + dy));
+        const destination = context.navigation.toBattlePoint(area.id, { x: x + 0.5, y: y + 0.5 });
+        moveOnFieldRoute(enemy, context, area.id, from, destination, `patrol:${enemy.id}:${x},${y}`, 0, 'square', speed, at);
+      } else {
+        enemy.approachFrom = from;
+        enemy.position = fieldWanderPoint(enemy.fieldSlot!, at);
+        enemy.startedAt = at;
+        enemy.arrivedAt = at + walkDuration(from, enemy.position, speed);
+      }
     }
   }
   if (s.battle && !s.battle.challengeId) s.battle.enemies = population.enemies.slice();
@@ -777,6 +885,7 @@ export function beginBattle(
   monsterId: number,
   at: number,
   challengeId?: string,
+  context?: SimulationContext,
 ) {
   const monster = c.monsters[monsterId];
   s.battle = {
@@ -800,13 +909,13 @@ export function beginBattle(
   }
   const area = c.areas.find((a) => a.id === s.areaId);
   if (!challengeId && area) {
-    updateFieldPopulation(s, c, at);
+    updateFieldPopulation(s, c, at, context);
     const population = s.fieldPopulation!;
     const target = fieldTarget(s, c, population.enemies, at);
     s.battle.enemies = population.enemies.slice();
     s.battle.targetId = target?.id;
     s.battle.fieldDecisionAt = at;
-    updateFieldActors(s, c, at);
+    updateFieldActors(s, c, at, context);
     syncBattle(s);
     if (target) event(s, at, "encounter", c.monsters[target.monsterId].name, undefined, "enemy", {
       enemyId: target.id, monsterId: target.monsterId,
@@ -1055,6 +1164,33 @@ import { tryMonsterStatusSkill, takeMonsterStatusCast, applyMonsterStatusEffect,
 import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
 import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import type { MonsterStatusSkill } from '../shared/types.js';
+const bodyRelocationReachabilityCache = new WeakMap<GameState, Map<string, boolean>>();
+
+function bodyRelocationCanReach(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
+  at: number, context?: SimulationContext, refresh = false): boolean {
+  if (!skillTargetInRange(s, c, skill, level, target, at)) return false;
+  // Omitted context is reserved for deterministic legacy unit fixtures.
+  if (!context) return true;
+  const navigation = context.navigation;
+  if (!navigation || !s.areaId) return false;
+  const from = battleHeroAt(s, at), targetPoint = enemyPositionAt(target, at);
+  const area = navigation.area(s.areaId), gridFrom = navigation.toGridPoint(s.areaId, from);
+  const startCell = Math.floor(gridFrom.y) * area.grid.width + Math.floor(gridFrom.x);
+  const startInOrigin = startCell >= 0 &&
+    (area.component[startCell >> 3] & (1 << (startCell & 7))) !== 0;
+  const gridTarget = navigation.toGridPoint(s.areaId, targetPoint);
+  const key = `${s.areaId}:${startInOrigin ? 'origin' : startCell}:${target.id}:${Math.floor(gridTarget.x)},${Math.floor(gridTarget.y)}`;
+  let cache = bodyRelocationReachabilityCache.get(s);
+  if (!cache) { cache = new Map(); bodyRelocationReachabilityCache.set(s, cache); }
+  const known = refresh ? undefined : cache.get(key);
+  if (known !== undefined) return known;
+  const approach = navigation.routeToRange(s.areaId, from, targetPoint, 1, 'player');
+  const reachable = !!approach?.withinRange;
+  if (cache.size >= 128) cache.delete(cache.keys().next().value!);
+  cache.set(key, reachable);
+  return reachable;
+}
+
 function chooseSkill(
   s: GameState,
   c: Catalog,
@@ -1062,6 +1198,7 @@ function chooseSkill(
   target: BattleEnemy,
   ignoreRange = false,
   offenseOnly = false,
+  context?: SimulationContext,
 ): Skill | undefined {
   const bladeLink = s.combatEffects?.bladeStopLink;
   const linkedTarget = bladeStopTarget(s, at);
@@ -1126,7 +1263,7 @@ function chooseSkill(
     const closeConfine = skill.sourceName === 'RG_CLOSECONFINE' && closeConfineEligible(s, skill, target, at);
     if (skill.sourceName === 'RG_CLOSECONFINE' && !closeConfine) continue;
     const bodyRelocation = skill.sourceName === 'MO_BODYRELOCATION' &&
-      skillTargetInRange(s, c, skill, level, target, at);
+      bodyRelocationCanReach(s, c, skill, level, target, at, context);
     if (skill.sourceName === 'MO_BODYRELOCATION' && !bodyRelocation) continue;
     const breakerTarget = breaker && castControlEligible(s,c,skill,level,at)
       ? findInterruptibleNpcCast(s,c,at,spellBreakerCastMs(s,c,skill,level,at)) : undefined;
@@ -1581,6 +1718,7 @@ function damageEnemies(
   action = playerAction(s, c, at, "attack"),
   repeated = false,
   jointBeatPart?: JointBeatPart,
+  context?: SimulationContext,
 ) {
   if (jointBeatPart && skill?.sourceName === 'LK_JOINTBEAT')
     skill = { ...skill, power: [jointBeatDamagePercent(level, jointBeatPart)] };
@@ -1836,9 +1974,11 @@ function damageEnemies(
       const point = enemyPositionAt(enemy, at), cell = sourceCell(point), hero = sourceCell(battleHeroAt(s, at));
       // skill.c:3140..3142 calculates target→caster, then reverses that source direction.
       const towardsCaster = sourceFacing(hero.x - cell.x, hero.y - cell.y);
-      const pushed = { x: point.x - towardsCaster.x * 3 / BATTLE_CELLS_PER_UNIT,
-        y: point.y - towardsCaster.y * 3 / BATTLE_CELLS_PER_UNIT };
-      enemy.approachFrom = pushed; enemy.position = pushed; enemy.startedAt = enemy.arrivedAt = at;
+      const pushed = context?.navigation && s.areaId
+        ? context.navigation.displace(s.areaId, point, -towardsCaster.x * 3, -towardsCaster.y * 3)
+        : { x: point.x - towardsCaster.x * 3 / BATTLE_CELLS_PER_UNIT,
+          y: point.y - towardsCaster.y * 3 / BATTLE_CELLS_PER_UNIT };
+      stopEnemyMovement(enemy, pushed, at);
       delete enemy.approachPausedAt;
       if (s.battle) s.battle.fieldDecisionAt = at;
     }
@@ -1846,9 +1986,11 @@ function damageEnemies(
       !c.areas.find(area => area.id === s.areaId)?.noKnockback) {
       const point = enemyPositionAt(enemy, at), cell = sourceCell(point), hero = sourceCell(battleHeroAt(s, at));
       const towardsCaster = sourceFacing(hero.x - cell.x, hero.y - cell.y);
-      const pushed = { x: point.x - towardsCaster.x * 3 / BATTLE_CELLS_PER_UNIT,
-        y: point.y - towardsCaster.y * 3 / BATTLE_CELLS_PER_UNIT };
-      enemy.approachFrom = pushed; enemy.position = pushed; enemy.startedAt = enemy.arrivedAt = at;
+      const pushed = context?.navigation && s.areaId
+        ? context.navigation.displace(s.areaId, point, -towardsCaster.x * 3, -towardsCaster.y * 3)
+        : { x: point.x - towardsCaster.x * 3 / BATTLE_CELLS_PER_UNIT,
+          y: point.y - towardsCaster.y * 3 / BATTLE_CELLS_PER_UNIT };
+      stopEnemyMovement(enemy, pushed, at);
       delete enemy.approachPausedAt;
       if (s.battle) s.battle.fieldDecisionAt = at;
       event(s, at, 'knockback', skill.name, undefined, 'enemy', { skillId: skill.id, skillLevel: level,
@@ -1865,16 +2007,16 @@ function damageEnemies(
       const dx = point.x - battleHeroAt(s, at).x,
         dy = point.y - battleHeroAt(s, at).y,
         length = Math.hypot(dx, dy) || 1;
-      const pushed = {
-        x: point.x + dx / length / BATTLE_CELLS_PER_UNIT,
-        y: point.y + dy / length / BATTLE_CELLS_PER_UNIT,
-      };
-      if (at < enemy.arrivedAt) {
+      const pushed = context?.navigation && s.areaId
+        ? context.navigation.displace(s.areaId, point, dx / length, dy / length)
+        : { x: point.x + dx / length / BATTLE_CELLS_PER_UNIT,
+          y: point.y + dy / length / BATTLE_CELLS_PER_UNIT };
+      if (!context?.navigation && at < enemy.arrivedAt) {
         const remaining = Math.max(1, enemy.arrivedAt - at);
         enemy.approachFrom = pushed;
         enemy.startedAt = at;
         enemy.arrivedAt = at + remaining * battleDistance(pushed, enemy.position) / Math.max(1, battleDistance(point, enemy.position));
-      } else enemy.position = pushed;
+      } else stopEnemyMovement(enemy, pushed, at);
     }
   }
   if (magical && s.combatEffects) s.combatEffects.magicPower = 0;
@@ -1894,7 +2036,7 @@ function damageEnemies(
   if (s.battle) syncBattle(s);
 }
 /** Automatic magic is a secondary effect of the swing, never a new actor action. */
-function hindsightAttack(s: GameState, c: Catalog, target: BattleEnemy, at: number, normalAttack: boolean) {
+function hindsightAttack(s: GameState, c: Catalog, target: BattleEnemy, at: number, normalAttack: boolean, context?: SimulationContext) {
   const selected = s.combatEffects?.autospell;
   const spell = selected && c.skills[selected.skillId];
   const active = Object.entries(s.buffs).find(([id, buff]) =>
@@ -1910,7 +2052,7 @@ function hindsightAttack(s: GameState, c: Catalog, target: BattleEnemy, at: numb
   const action = playerAction(s, c, at, "none");
   event(s, at, "skill", spell.name, undefined, "enemy", { skillId: spell.id, skillLevel: proc.level,
     enemyId: target.id, monsterId: target.monsterId, targetActorId: target.id, ...action });
-  damageEnemies(s, c, target, at, spell, proc.level, undefined, action);
+  damageEnemies(s, c, target, at, spell, proc.level, undefined, action, false, undefined, context);
 }
 function resolveSkill(
   s: GameState,
@@ -1922,6 +2064,7 @@ function resolveSkill(
   groundTick = false,
   center?: { x: number; y: number },
   action = playerAction(s, c, at, groundTick ? "none" : "skill"),
+  context?: SimulationContext,
 ) {
   const d = derivedStats(s, c),
     mechanic = skill.sourceName ?? skill.mechanic;
@@ -1940,7 +2083,7 @@ function resolveSkill(
     const activeTarget = s.battle?.enemies?.some(enemy => enemy.id === target.id && enemy.hp > 0);
     if (s.status !== 'hunting' || s.battle?.challengeId || s.battle?.targetId !== target.id ||
       !activeTarget || s.fieldHero?.areaId !== s.areaId ||
-      !skillTargetInRange(s, c, skill, level, target, at)) return false;
+      !bodyRelocationCanReach(s, c, skill, level, target, at, context, true)) return false;
   }
   if (!groundTick && ['CR_SHRINK', 'PA_SACRIFICE'].includes(mechanic ?? '') &&
     (!guardianSkillEligible(s, c, skill) || skill.implementation === 'unsupported')) return false;
@@ -2026,12 +2169,16 @@ function resolveSkill(
   }
   if (!groundTick && mechanic === 'MO_BODYRELOCATION') {
     const point = enemyPositionAt(target, at);
-    const position = stopAtRange(battleHeroAt(s, at), point, 1);
+    const current = battleHeroAt(s, at);
+    const legalApproach = context?.navigation && s.areaId
+      ? context.navigation.routeToRange(s.areaId, current, point, 1, 'player')
+      : undefined;
+    if (context && !legalApproach?.withinRange) return false;
+    const position = context?.navigation
+      ? legalApproach!.route.points.at(-1) ?? current
+      : stopAtRange(current, point, 1);
+    stopHeroMovement(s.fieldHero!, position, at);
     Object.assign(s.fieldHero!, {
-      from: position,
-      position,
-      startedAt: at,
-      arrivedAt: at,
       phase: 'fighting',
       targetId: target.id,
     });
@@ -2346,7 +2493,7 @@ function resolveSkill(
       },
     );
   if (skill.kind === "physical" || skill.kind === "magical")
-    damageEnemies(s, c, target, at, skill, level, center, action, false, jointBeatPart);
+    damageEnemies(s, c, target, at, skill, level, center, action, false, jointBeatPart, context);
   if (mechanic === "RG_RAID") cancelClassicBuff(s, c, "TF_HIDING");
   if (skill.kind === "buff" && enemyControl && s.battle) {
     if (delayedControl)
@@ -2418,7 +2565,7 @@ function resolveSkill(
     });
   return true;
 }
-function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, npcSkill?: MonsterStatusSkill, npcCast?: NonNullable<NonNullable<BattleEnemy["npcCombat"]>["cast"]>) {
+function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, npcSkill?: MonsterStatusSkill, npcCast?: NonNullable<NonNullable<BattleEnemy["npcCombat"]>["cast"]>, context?: SimulationContext) {
   const enemyStatus = combatStatus(c, enemy, at);
   const b = s.battle!,
     monster = enemyStatus.monster,
@@ -2453,7 +2600,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     if (enemy.npcCombat?.cast?.endsAt === at) {
       const cast = enemy.npcCombat.cast;
       const instant = takeMonsterStatusCast(s, c, enemy, at);
-      if (instant) enemyAttack(s, c, enemy, at, instant, cast);
+      if (instant) enemyAttack(s, c, enemy, at, instant, cast, context);
     }
     return;
   }
@@ -2495,7 +2642,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     blockFieldHero(s, at, at + counterAction.actionMotionMs);
     damageEnemies(s, c, enemy, at, { ...c.skills[counterId], kind: 'physical', damageType: 'weapon',
       targetType: 'enemy', power: [100], sourceHitCount: [1], hitCount: [1], aoeRadius: [0], statusEffect: undefined },
-      level, undefined, counterAction);
+      level, undefined, counterAction, false, undefined, context);
     return; // No incoming RNG/Endure/reflect/Poison React after ATK_BLOCK.
   }
   const wait = s.combatEffects?.bladeStopWait;
@@ -2608,7 +2755,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
       blockFieldHero(s, at, at + autoGuardWalkDelayMs(autoGuardLevel));
       if (classicBuffActive(s, c, 'CR_SHRINK', at)) {
         const shrinkRoll = Math.floor(random(s) * 100);
-        if (shrinkRollAccepted(autoGuardLevel, shrinkRoll)) shrinkRecoil(s, c, enemy, at);
+        if (shrinkRollAccepted(autoGuardLevel, shrinkRoll)) shrinkRecoil(s, c, enemy, at, context);
       }
     }
     const parryLevel = activeDefenses.LK_PARRYING ?? 0;
@@ -2736,7 +2883,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
       if (hit && enemy.hp > 0) damageEnemies(s, c, enemy, at,
         { ...hit, kind: 'physical', damageType: 'weapon', targetType: 'enemy',
           ...(counter.source === 'AS_POISONREACT' && { element: 'neutral', statusEffect: undefined }) },
-        counter.level, undefined, playerAction(s, c, at, 'attack'));
+        counter.level, undefined, playerAction(s, c, at, 'attack'), false, undefined, context);
       if (!runtime.charges) cancelClassicBuff(s, c, 'AS_POISONREACT');
     }
   }
@@ -2870,10 +3017,10 @@ function sightBlasterContactWithinCast(s: GameState, c: Catalog, skill: Skill, l
 }
 
 function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
-  at: number, actionId?: string, center?: { x: number; y: number }) {
+  at: number, actionId?: string, center?: { x: number; y: number }, context?: SimulationContext) {
   const b = s.battle!;
   const succeeded = resolveSkill(s, c, skill, level, target, at, false, center,
-    playerAction(s, c, at, "skill", actionId));
+    playerAction(s, c, at, "skill", actionId), context);
   if (succeeded) {
     if (['MO_FINGEROFFENSIVE', 'MO_INVESTIGATE', 'MO_CHAINCOMBO', 'MO_EXTREMITYFIST'].includes(skill.sourceName ?? '') &&
       s.combatEffects?.bladeStopLink?.partnerActorId === target.id) clearBladeStop(s, at);
@@ -2883,7 +3030,7 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
   }
 }
 
-function playerCombatAction(s: GameState, c: Catalog, at: number) {
+function playerCombatAction(s: GameState, c: Catalog, at: number, context?: SimulationContext) {
   const b = s.battle!;
   if (trickDeadActive(s, c, at)) return;
   const currentCast = currentPlayerCast(s, at);
@@ -2906,7 +3053,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
   const stats = derivedStats(s, c);
   const motion = stats.attackMotionMs;
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
-  const skill = skillDecisionDue ? chooseSkill(s, c, at, target) : undefined;
+  const skill = skillDecisionDue ? chooseSkill(s, c, at, target, false, false, context) : undefined;
   if (skill) {
     if (['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '')) {
       const level = s.learnedSkills[skill.id];
@@ -2964,7 +3111,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
         skillId: skill.id, skillLevel: level, castMs, enemyId: target.id, monsterId: target.monsterId,
         ...playerAction(s, c, at, "none", actionId), targetActorId: skill.targetType === "self" ? s.id : target.id,
       });
-    } else completePlayerSkill(s, c, skill, level, target, at, actionId);
+    } else completePlayerSkill(s, c, skill, level, target, at, actionId, undefined, context);
     return;
   }
   // This is the automation's next decision, not a skill cooldown.
@@ -3000,7 +3147,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
         ignoreDefense: true, ignoreFlee: true, statusEffect: undefined, implementation: 'supported' };
       const action = playerAction(s, c, at, 'attack');
       if (!castingWithFreeCast) blockFieldHero(s, at, at + motion);
-      damageEnemies(s, c, target, at, strike, consumed.level, undefined, action);
+      damageEnemies(s, c, target, at, strike, consumed.level, undefined, action, false, undefined, context);
       b.playerNextAttackAt = at + stats.attackIntervalMs;
       if (!activeCast) {
         b.playerActionReadyAt = at + motion;
@@ -3021,10 +3168,10 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
       ...passive, kind: "physical", damageType: "weapon",
       ...(proc === "TF_DOUBLE" && { power: [100], sourceHitCount: [2] }),
       hitCount: [proc === "TF_DOUBLE" ? 2 : 3],
-    }, levels[proc!], undefined, action);
+    }, levels[proc!], undefined, action, false, undefined, context);
     if (proc === "MO_TRIPLEATTACK") (s.combatEffects ??= {}).combo = { sourceName: proc, expiresAt: at + 2000 };
-  } else damageEnemies(s, c, target, at, undefined, 1, undefined, action);
-  hindsightAttack(s, c, target, at, proc !== "MO_TRIPLEATTACK");
+  } else damageEnemies(s, c, target, at, undefined, 1, undefined, action, false, undefined, context);
+  hindsightAttack(s, c, target, at, proc !== "MO_TRIPLEATTACK", context);
   b.playerNextAttackAt = at + stats.attackIntervalMs;
   if (!activeCast) {
     b.playerActionReadyAt = at + motion;
@@ -3086,7 +3233,7 @@ function maintainPlayerBuffs(s: GameState, c: Catalog, at: number) {
 }
 
 /** One persisted, synchronous timeline; no actor waits for another actor's animation. */
-function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart: number) {
+function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart: number, context?: SimulationContext) {
   const persistedAt = s.lastSimulatedAt;
   try {
   let cursor = windowStart;
@@ -3223,7 +3370,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     s.lastSimulatedAt = cursor;
     const target = enemies(s).find(e => e.id === b.targetId) ?? enemies(s)[0];
     if (next.kind === "field") {
-      updateFieldActors(s, c, cursor);
+      updateFieldActors(s, c, cursor, context);
       b.fieldDecisionAt = cursor + 250;
      } else if (next.kind === 'playerStatus') {
       tickPlayerStatuses(s, c, cursor);
@@ -3241,7 +3388,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
           event(s, cursor, 'skill', skill.name, undefined, 'enemy', { skillId: skill.id, skillLevel: level,
             enemyId: target.id, monsterId: target.monsterId, sourceActorId: s.id, targetActorId: target.id,
             ...action, actorAction: 'none', actionMotionMs: 0, castMs: 0 });
-          damageEnemies(s, c, target, cursor, skill, level, undefined, action);
+          damageEnemies(s, c, target, cursor, skill, level, undefined, action, false, undefined, context);
         }
       }
     }
@@ -3257,19 +3404,19 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
           event(s, cursor, 'skill', skill.name, undefined, 'enemy', { skillId: skill.id, skillLevel: level,
             enemyId: target.id, monsterId: target.monsterId, sourceActorId: s.id, targetActorId: target.id,
             ...action, actorAction: 'none', actionMotionMs: 0, castMs: 0 });
-          damageEnemies(s, c, target, cursor, { ...skill, targetType: 'enemy', aoeRadius: [0], statusEffect: undefined }, level, undefined, action);
+          damageEnemies(s, c, target, cursor, { ...skill, targetType: 'enemy', aoeRadius: [0], statusEffect: undefined }, level, undefined, action, false, undefined, context);
         }
       }
     }
-    else if(next.kind==='controlExpiry') {if(next.status==='SC_ARMOR_PROPERTY')expireElementalConversion(s,c,next.enemy,cursor);else if(next.status==='SC_CONFUSION')expirePangVoice(s,next.enemy,cursor);else if(next.status==='SC_DC_WINKCHARM')expireWinkCharm(s,next.enemy,cursor);else if(next.status===RG_CLOSECONFINE_STATUS){if(expireCloseConfine(s,next.enemy,cursor)&&s.battle&&!s.battle.challengeId)updateFieldActors(s,c,cursor);}else expirePriestMonsterStatus(s,c,next.enemy,next.status,cursor);}
+    else if(next.kind==='controlExpiry') {if(next.status==='SC_ARMOR_PROPERTY')expireElementalConversion(s,c,next.enemy,cursor);else if(next.status==='SC_CONFUSION')expirePangVoice(s,next.enemy,cursor);else if(next.status==='SC_DC_WINKCHARM')expireWinkCharm(s,next.enemy,cursor);else if(next.status===RG_CLOSECONFINE_STATUS){if(expireCloseConfine(s,next.enemy,cursor)&&s.battle&&!s.battle.challengeId)updateFieldActors(s,c,cursor,context);}else expirePriestMonsterStatus(s,c,next.enemy,next.status,cursor);}
     else if(next.kind==='targetCheck') {
       reacquireReleasedMonster(s,c,next.enemy,cursor);
-      if(s.battle&&!s.battle.challengeId)updateFieldActors(s,c,cursor);
+      if(s.battle&&!s.battle.challengeId)updateFieldActors(s,c,cursor,context);
     }
     else if (next.kind === 'npcCast') {
       const cast = next.enemy.npcCombat?.cast;
       const skill = takeMonsterStatusCast(s, c, next.enemy, cursor);
-      if (skill) enemyAttack(s, c, next.enemy, cursor, skill, cast);
+      if (skill) enemyAttack(s, c, next.enemy, cursor, skill, cast, context);
     } else if (next.kind === "buffs") maintainPlayerBuffs(s, c, cursor);
     else if (next.kind === "timeout") {
       clearBladeStop(s, cursor);
@@ -3296,7 +3443,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       };
       if (skill && ((castTarget?.hp ?? 0) > 0 || skill.targetType !== "enemy"))
         completePlayerSkill(s, c, skill, cast.level, resolutionTarget, cursor, cast.actionId,
-          skill.targetType === "ground" ? cast.position : undefined);
+          skill.targetType === "ground" ? cast.position : undefined, context);
       else event(s, cursor, "cast-failed", "O alvo da conjuração foi derrotado.", undefined, "player", {
         skillId: cast.skillId, sourceActorId: s.id, actorAction: "none", actionId: cast.actionId,
       });
@@ -3306,7 +3453,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       const original = enemies(s).find(e => e.id === next.delayed.targetId);
       if (next.delayed.effect === "doublecast") {
         if (skill && original && original.hp > 0)
-          damageEnemies(s, c, original, cursor, skill, next.delayed.level, undefined, playerAction(s, c, cursor, "none"), true);
+          damageEnemies(s, c, original, cursor, skill, next.delayed.level, undefined, playerAction(s, c, cursor, "none"), true, undefined, context);
       } else {
         const delayedTarget = original ?? target;
         if (skill && delayedTarget) applyEnemyStatus(s, c, skill, next.delayed.level, delayedTarget, cursor, next.delayed.position);
@@ -3319,9 +3466,9 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
         damageEnemies(s, c, next.enemy, cursor,
           { ...skill, kind: 'physical', damageType: 'weapon', statusEffect: 'SC_POISON',
             statusChance: Array.from({ length: skill.maxLevel }, (_, i) => 10 + 4 * (i + 1)) },
-          bomb.level, { ...enemyPositionAt(next.enemy, cursor) }, playerAction(s, c, cursor, 'none'));
+          bomb.level, { ...enemyPositionAt(next.enemy, cursor) }, playerAction(s, c, cursor, 'none'), false, undefined, context);
       }
-    } else if (next.kind === "trap") tickHunterTrap(s, c, next.trap, cursor);
+    } else if (next.kind === "trap") tickHunterTrap(s, c, next.trap, cursor, context);
     else if (next.kind === 'unit') tickSoloUnit(s, c, next.unit, cursor);
     else if (next.kind === "ground") {
       const ground = next.ground, skill = c.skills[ground.skillId];
@@ -3330,7 +3477,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
           battleDistance(enemyPositionAt(z, cursor), ground.position) || (a.id < z.id ? -1 : a.id > z.id ? 1 : 0))[0];
       const center = ground.targetId ? undefined : ground.position;
       if (closest && skill && targets(s, skill, ground.level, closest, cursor, center).length) {
-        resolveSkill(s, c, skill, ground.level, closest, cursor, true, center, playerAction(s, c, cursor, "none"));
+        resolveSkill(s, c, skill, ground.level, closest, cursor, true, center, playerAction(s, c, cursor, "none"), context);
         if (ground.remainingHits !== undefined) ground.remainingHits--;
       }
       ground.nextTickAt = cursor + (ground.intervalMs ?? skill?.groundIntervalMs ?? 1000);
@@ -3369,11 +3516,11 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
         if (next.enemy.hp <= 0 && s.battle) awardKill(s, c, next.enemy, cursor, c.skills[bleeding.skillId ?? '']);
       }
     } else if (next.kind === "enemy") {
-      enemyAttack(s, c, next.enemy, cursor);
+      enemyAttack(s, c, next.enemy, cursor, undefined, undefined, context);
       // A rejected stale spatial deadline must still advance the reducer.
       if (s.battle && next.enemy.enemyNextAttackAt <= cursor) next.enemy.enemyNextAttackAt = cursor + 1;
     }
-    else if (next.kind === "player") playerCombatAction(s, c, cursor);
+    else if (next.kind === "player") playerCombatAction(s, c, cursor, context);
     if (s.battle?.fieldTransferReady && s.pendingAreaId) {
       const area = c.areas.find(entry => entry.id === s.pendingAreaId);
       cancelSageEnchantCast(s, c, cursor, 'Conjuração encerrada pela troca de área.');
@@ -3398,7 +3545,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     s.lastSimulatedAt = persistedAt;
   }
 }
-export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000) {
+export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000, context?: SimulationContext) {
   cancelInvalidMonsterStatusCasts(s,at);
   const diseaseTiming = !!Object.keys(s.playerStatuses ?? {}).length || (s.battle?.enemies ?? []).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
   if (!s.battle && diseaseTiming) {
@@ -3413,19 +3560,19 @@ export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000) {
       if (end === at) break;
     }
   }
-  tickWindow(s, c, at, elapsedMs, diseaseTiming);
+  tickWindow(s, c, at, elapsedMs, diseaseTiming, context);
   // Combat deadlines inside this window must see the status that was active at
   // their own timestamp. Cleanup at the window end would otherwise erase a
   // NoSave status before replaying an earlier contact or combo action.
   tickBladeStop(s, at);
 }
-function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, diseaseTiming: boolean) {
+function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, diseaseTiming: boolean, context?: SimulationContext) {
   const replayingCombat = !!s.battle && (s.status === "hunting" || s.status === "challenge");
   if (!replayingCombat) {
     if (s.supportCast && s.supportCast.endsAt <= at)
       resolveSageEnchantCast(s, c, s.supportCast.endsAt);
     updateFieldHero(s, at);
-    updateFieldPopulation(s, c, at);
+    updateFieldPopulation(s, c, at, context);
   }
   // Town, rest and travel have no earlier combat deadlines to replay.
   if (!replayingCombat) maintainPlayerBuffs(s, c, at);
@@ -3474,7 +3621,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
       s.status = "town";
       return;
     }
-    beginBattle(s, c, chooseAreaMonster(s, c, area, random(s)), at);
+    beginBattle(s, c, chooseAreaMonster(s, c, area, random(s)), at, undefined, context);
     if (!s.battle) return;
   }
   const b = s.battle!,
@@ -3512,7 +3659,7 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
       }
     }
   }
-  runCombatTimeline(s, c, at, Math.max(b.startedAt, at - elapsedMs));
+  runCombatTimeline(s, c, at, Math.max(b.startedAt, at - elapsedMs), context);
   if (replayingCombat) {
     // These automations retain the 250 ms outer cadence. Their end-window
     // HP/SP mutations cannot rescue or fund an earlier combat deadline.

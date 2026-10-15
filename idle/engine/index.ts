@@ -12,6 +12,8 @@ import { updateQuests } from "./progression.js";
 import { pruneAreaActivity, recordAreaActivity } from "../shared/hunt.js";
 import { clearStaleSenseInspection } from './senseInspection.js';
 import { bladeStopRules } from './bladeStop.js';
+import { assertSimulationNavigation, type SimulationContext } from './fieldNavigation.js';
+import { migrateFieldNavigationState } from './fieldNavigationMigration.js';
 export { GameError } from "./state.js";
 /** Reconcile only the explicitly removed skills, without resetting progression. */
 function reconcileRemovedSkills(s: GameState, c: Catalog) {
@@ -118,6 +120,7 @@ function* advanceStateSteps(
   state: GameState,
   catalog: Catalog,
   now: number,
+  context?: SimulationContext,
 ): Generator<void, GameState, void> {
   requireRule(
     Number.isFinite(now) && now >= 0,
@@ -125,6 +128,7 @@ function* advanceStateSteps(
     "Relógio inválido.",
   );
   const s = structuredClone(state);
+  migrateFieldNavigationState(s, s.status === 'paused' ? s.pausedAt ?? s.lastSimulatedAt : s.lastSimulatedAt, context);
   reconcileRemovedSkills(s, catalog);
   if (s.status === "paused") return s;
   const limit = s.lastSeenAt + 12 * 3600000;
@@ -150,7 +154,7 @@ function* advanceStateSteps(
       pruneAreaActivity(s, s.lastSimulatedAt);
     if (s.status === "hunting" && s.areaId)
       recordAreaActivity(s, s.areaId, s.lastSimulatedAt, { elapsedMs: 250 });
-    tick(s, catalog, s.lastSimulatedAt, 250);
+    tick(s, catalog, s.lastSimulatedAt, 250, context);
     yield;
   }
   pruneAreaActivity(s, until);
@@ -172,8 +176,10 @@ export function advanceState(
   state: GameState,
   catalog: Catalog,
   now: number,
+  context?: SimulationContext,
 ): GameState {
-  const steps = advanceStateSteps(state, catalog, now);
+  assertSimulationNavigation(state, context);
+  const steps = advanceStateSteps(state, catalog, now, context);
   let step = steps.next();
   while (!step.done) step = steps.next();
   clearStaleSenseInspection(step.value);
@@ -183,8 +189,10 @@ export async function advanceStateCooperatively(
   state: GameState,
   catalog: Catalog,
   now: number,
+  context?: SimulationContext,
 ): Promise<GameState> {
-  const steps = advanceStateSteps(state, catalog, now);
+  assertSimulationNavigation(state, context);
+  const steps = advanceStateSteps(state, catalog, now, context);
   let step = steps.next();
   let batch = 0;
   while (!step.done) {
@@ -202,15 +210,20 @@ export function applyCommand(
   catalog: Catalog,
   command: GameCommand,
   now: number,
+  context?: SimulationContext,
 ): GameState {
-  const s = advanceState(state, catalog, now);
+  const s = advanceState(state, catalog, now, context);
   // A player intention after an offline pause discards the capped gap permanently.
   if (s.status === "paused") {
     if (command.type !== "dismissOffline") {
       resumePausedState(s, now);
     }
   }
-  executeCommand(s, catalog, command, now);
+  if (command.type === 'startHunt') {
+    assertSimulationNavigation({ status: 'hunting', areaId: command.areaId }, context);
+    context?.navigation?.area(command.areaId);
+  }
+  executeCommand(s, catalog, command, now, context);
   clearStaleSenseInspection(s);
   return s;
 }

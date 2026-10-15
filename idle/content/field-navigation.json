@@ -1,0 +1,883 @@
+{
+  "version": 1,
+  "areas": [
+    {
+      "areaId": "prontera_south",
+      "map": "prt_fild08",
+      "origin": {
+        "x": 199,
+        "y": 199
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "sewers",
+      "map": "prt_sewb1",
+      "origin": {
+        "x": 178,
+        "y": 186
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "rocker_fields",
+      "map": "prt_fild04",
+      "origin": {
+        "x": 243,
+        "y": 155
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 8,
+          "y": -9
+        },
+        {
+          "x": -8,
+          "y": 0
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        1,
+        2
+      ]
+    },
+    {
+      "areaId": "prontera_forest",
+      "map": "prt_fild03",
+      "origin": {
+        "x": 199,
+        "y": 149
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 2
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        3
+      ]
+    },
+    {
+      "areaId": "payon_cave",
+      "map": "pay_dun00",
+      "origin": {
+        "x": 127,
+        "y": 85
+      },
+      "homeOffsets": [
+        {
+          "x": -2,
+          "y": -10
+        },
+        {
+          "x": 5,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 1
+        },
+        {
+          "x": 5,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "areaId": "byalan",
+      "map": "iz_dun01",
+      "origin": {
+        "x": 143,
+        "y": 169
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -6
+        },
+        {
+          "x": 9,
+          "y": -5
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        1
+      ]
+    },
+    {
+      "areaId": "orc_village",
+      "map": "gef_fild10",
+      "origin": {
+        "x": 205,
+        "y": 211
+      },
+      "homeOffsets": [
+        {
+          "x": -6,
+          "y": -5
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -6,
+          "y": 2
+        },
+        {
+          "x": 9,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "areaId": "pyramid",
+      "map": "moc_pryd02",
+      "origin": {
+        "x": 101,
+        "y": 77
+      },
+      "homeOffsets": [
+        {
+          "x": -8,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0
+      ]
+    },
+    {
+      "areaId": "geffen_dungeon",
+      "map": "gef_dun02",
+      "origin": {
+        "x": 125,
+        "y": 113
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 5,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 5,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        1,
+        3
+      ]
+    },
+    {
+      "areaId": "glast_heim",
+      "map": "gl_knt01",
+      "origin": {
+        "x": 161,
+        "y": 157
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "sewers_depths",
+      "map": "prt_sewb2",
+      "origin": {
+        "x": 177,
+        "y": 185
+      },
+      "homeOffsets": [
+        {
+          "x": -3,
+          "y": -10
+        },
+        {
+          "x": 8,
+          "y": -9
+        },
+        {
+          "x": -3,
+          "y": 0
+        },
+        {
+          "x": 8,
+          "y": 0
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "areaId": "payon_cave_depths",
+      "map": "pay_dun01",
+      "origin": {
+        "x": 120,
+        "y": 75
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 1,
+          "y": -3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        3
+      ]
+    },
+    {
+      "areaId": "byalan_depths",
+      "map": "iz_dun02",
+      "origin": {
+        "x": 143,
+        "y": 169
+      },
+      "homeOffsets": [
+        {
+          "x": -6,
+          "y": -8
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 1
+        },
+        {
+          "x": 8,
+          "y": -3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "areaId": "orc_dungeon",
+      "map": "orcsdun01",
+      "origin": {
+        "x": 85,
+        "y": 114
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": 0
+        },
+        {
+          "x": 2,
+          "y": 2
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 7,
+          "y": 6
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "areaId": "prontera_field_00",
+      "map": "prt_fild00",
+      "origin": {
+        "x": 198,
+        "y": 198
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -15
+        },
+        {
+          "x": -8,
+          "y": -1
+        },
+        {
+          "x": 1,
+          "y": -3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "areaId": "prontera_field_01",
+      "map": "prt_fild01",
+      "origin": {
+        "x": 197,
+        "y": 201
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -9
+        },
+        {
+          "x": 15,
+          "y": -7
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1
+      ]
+    },
+    {
+      "areaId": "prontera_field_02",
+      "map": "prt_fild02",
+      "origin": {
+        "x": 197,
+        "y": 201
+      },
+      "homeOffsets": [
+        {
+          "x": -8,
+          "y": -7
+        },
+        {
+          "x": 13,
+          "y": -7
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1
+      ]
+    },
+    {
+      "areaId": "prontera_field_05",
+      "map": "prt_fild05",
+      "origin": {
+        "x": 199,
+        "y": 199
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "prontera_field_06",
+      "map": "prt_fild06",
+      "origin": {
+        "x": 199,
+        "y": 199
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -10
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 4,
+          "y": -3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        1,
+        3
+      ]
+    },
+    {
+      "areaId": "prontera_field_07",
+      "map": "prt_fild07",
+      "origin": {
+        "x": 225,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -8,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -8
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        1
+      ]
+    },
+    {
+      "areaId": "prontera_field_09",
+      "map": "prt_fild09",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "prontera_field_10",
+      "map": "prt_fild10",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "prontera_field_11",
+      "map": "prt_fild11",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -7
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        1
+      ]
+    },
+    {
+      "areaId": "geffen_field_00",
+      "map": "gef_fild00",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "geffen_field_02",
+      "map": "gef_fild02",
+      "origin": {
+        "x": 227,
+        "y": 209
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "geffen_field_09",
+      "map": "gef_fild09",
+      "origin": {
+        "x": 221,
+        "y": 220
+      },
+      "homeOffsets": [
+        {
+          "x": 2,
+          "y": -1
+        },
+        {
+          "x": 9,
+          "y": -3
+        },
+        {
+          "x": 0,
+          "y": 3
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "areaId": "payon_field_01",
+      "map": "pay_fild01",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": 0,
+          "y": -4
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -4,
+          "y": 8
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": [
+        0,
+        2
+      ]
+    },
+    {
+      "areaId": "sograt_field_04",
+      "map": "pay_fild04",
+      "origin": {
+        "x": 200,
+        "y": 202
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": 0
+        },
+        {
+          "x": 9,
+          "y": 0
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 9,
+          "y": 3
+        }
+      ],
+      "originRemapped": true,
+      "remappedHomeSlots": [
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "areaId": "payon_field_09",
+      "map": "pay_fild09",
+      "origin": {
+        "x": 200,
+        "y": 200
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    }
+  ]
+}
