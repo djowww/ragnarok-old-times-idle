@@ -6,7 +6,7 @@
 
 Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. Ele combina uma experiência idle independente com o emulador Hercules e o cliente browser roBrowserLegacy. O catálogo do idle é preparado a partir de fontes versionadas do Hercules; mapas, sprites, efeitos, ícones e música vêm do cliente Ragnarok instalado localmente pelo jogador.
 
-[Jogar online](https://203.0.113.10:8443/) · [English summary](README.en.md) · [Instalação](#começar) · [Assets do cliente](#assets-do-cliente-ragnarok) · [Licença](#licença-e-créditos)
+[Acesso aos testes](#acesso-aos-testes) · [English summary](README.en.md) · [Instalação](#começar) · [Assets do cliente](#assets-do-cliente-ragnarok) · [Licença](#licença-e-créditos)
 
 > Projeto independente, sem afiliação ou endosso da Gravity Co., Ltd. Nenhum GRF, sprite, ícone, mapa, efeito ou faixa original de Ragnarok Online é distribuído aqui.
 
