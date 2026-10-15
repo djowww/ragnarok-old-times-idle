@@ -5,6 +5,7 @@ import type { Catalog } from '../shared/types.js';
 import { getSnapshot, GameError } from '../engine/index.js';
 import { ValidationError } from './validation.js';
 import { registerChatRoutes, type ChatRepository } from './chat.js';
+import { registerAdminRoutes } from './admin.js';
 import { PortalError, type AccountStore, type GameProfiles } from './identity/types.js';
 import { createAuthService } from './identity/service.js';
 import { assertAllowedMutation, LOCAL_ORIGINS, registerAuthRoutes } from './identity/routes.js';
@@ -12,8 +13,8 @@ import { callerRepository, registerGameRoutes, resolveGameRepository } from './g
 import type { PortalQueries } from './portal/types.js';
 import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
-export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot }: AppOptions) {
+export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
   app.addHook('onRequest', async (request, reply) => {
@@ -39,6 +40,7 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
   await registerGameRoutes(app, { auth, profiles, catalog, now });
   registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, profiles), now);
+  registerAdminRoutes(app, request => resolveGameRepository(request, auth, profiles), catalog, now, adminToken);
   app.get('/api/catalog', async () => catalog);
   app.get('/api/health', async (_request, reply) => {
     const healthy = (await accounts.health()) && (await profiles.health());

@@ -2,7 +2,7 @@ diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
 index 4e3faeb..6281733 100644
 --- a/src/App/MapViewer.js
 +++ b/src/App/MapViewer.js
-@@ -22,12 +22,163 @@ import Entity from 'Renderer/Entity/Entity.js';
+@@ -22,12 +22,167 @@ import Entity from 'Renderer/Entity/Entity.js';
  import Mouse from 'Controls/MouseEventHandler.js';
  import MapControl from 'Controls/MapControl.js';
  import Intro from 'UI/Components/Intro/Intro.js';
@@ -27,7 +27,11 @@ index 4e3faeb..6281733 100644
 +	gef_fild10: [205, 211],
 +	moc_pryd02: [101, 77],
 +	gef_dun02: [125, 113],
-+	gl_knt01: [161, 157]
++	gl_knt01: [161, 157],
++	prt_sewb2: [178, 186],
++	pay_dun01: [127, 85],
++	iz_dun02: [143, 169],
++	orcsdun01: [100, 100]
 +});
 +const idleScene = Configs.get('idleScene', false);
 +let idleSceneName = '';

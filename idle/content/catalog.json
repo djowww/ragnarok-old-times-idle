@@ -17,7 +17,7 @@
       "src/map/skill.c",
       "src/map/pc.c"
     ],
-    "hash": "0d8c191c30a7dd19ecb10dffdc50d311464409ebf73e34cec894f64d261fd596"
+    "hash": "f5dd2565a009418cca26865655b25b7460e53c820269d7ea5f82fd360a52b03d"
   },
   "rates": {
     "baseExp": 4,
@@ -105338,6 +105338,56 @@
       ],
       "scene": "castle",
       "description": "Caçada em Cavalaria de Glast Heim. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "sewers_depths",
+      "name": "Esgotos — segundo nível",
+      "map": "prt_sewb2",
+      "minLevel": 13,
+      "monsters": [
+        1051,
+        1175
+      ],
+      "scene": "sewer",
+      "description": "Uma descida mais perigosa pelos esgotos de Prontera."
+    },
+    {
+      "id": "payon_cave_depths",
+      "name": "Caverna de Payon — segundo nível",
+      "map": "pay_dun01",
+      "minLevel": 25,
+      "monsters": [
+        1015,
+        1076,
+        1028
+      ],
+      "scene": "cave",
+      "description": "Esqueletos e mortos-vivos guardam as galerias profundas."
+    },
+    {
+      "id": "byalan_depths",
+      "name": "Byalan — segundo nível",
+      "map": "iz_dun02",
+      "minLevel": 30,
+      "monsters": [
+        1070,
+        1066,
+        1141
+      ],
+      "scene": "sea",
+      "description": "As correntes subterrâneas escondem criaturas marinhas mais resistentes."
+    },
+    {
+      "id": "orc_dungeon",
+      "name": "Calabouço dos Orcs",
+      "map": "orcsdun01",
+      "minLevel": 32,
+      "monsters": [
+        1023,
+        1273
+      ],
+      "scene": "orc",
+      "description": "Avance para dentro do território dos Orcs e enfrente seus guerreiros."
     }
   ],
   "quests": [

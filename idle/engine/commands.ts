@@ -42,7 +42,7 @@ function equipAllowed(s: GameState, c: Catalog, i: Item) {
     (!i.weaponType || c.classes[s.job].weapons.includes(i.weaponType))
   );
 }
-function removeIneligible(s: GameState, c: Catalog) {
+export function removeIneligible(s: GameState, c: Catalog) {
   for (const [slot, uid] of Object.entries(s.equipment)) {
     const e = s.inventory.find((e) => e.uid === uid);
     if (!e || !isItemIdentified(e) || !equipAllowed(s, c, c.items[e.itemId]))

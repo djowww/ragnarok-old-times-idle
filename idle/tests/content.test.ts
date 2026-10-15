@@ -24,8 +24,8 @@ describe('playable source catalog', () => {
         expect(data.monsters[1016].sprite.spr).toContain('skel_archer.spr');
     });
     it('offers valid drops, all areas, supported cards and a useful weapon for every branch', () => {
-        expect(data.areas).toHaveLength(10);
-        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(25);
+        expect(data.areas).toHaveLength(14);
+        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(35);
         expect(data.challenges).toHaveLength(81);
         const cards = Object.values(data.items).filter(i => i.type === 'card');
         expect(cards.filter(i => !i.unsupportedEffect)).toHaveLength(8);
