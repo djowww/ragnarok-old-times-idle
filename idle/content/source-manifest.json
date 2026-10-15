@@ -76,6 +76,7 @@
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
     "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
+    "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
     "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
     "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
     "Non-positive element coefficients yield zero damage rather than healing the target.",
@@ -2190,7 +2191,19 @@
       "sourceSplashRange": 1,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "safety_wall": {
       "id": 12,
@@ -2277,7 +2290,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "cold_bolt": {
       "id": 14,
@@ -2314,7 +2339,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "frost_diver": {
       "id": 15,
@@ -2351,7 +2388,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "stone_curse": {
       "id": 16,
@@ -2421,7 +2470,19 @@
       "sourceSplashRange": 2,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "fire_wall": {
       "id": 18,
@@ -2455,7 +2516,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "fire_bolt": {
       "id": 19,
@@ -2492,7 +2565,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "lightning_bolt": {
       "id": 20,
@@ -2529,7 +2614,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "thunder_storm": {
       "id": 21,
@@ -2575,7 +2672,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "energy_coat": {
       "id": 157,
@@ -2883,7 +2992,10 @@
       "implementation": "unsupported",
       "unsupportedReason": "Requer aura que revela alvos e causa dano ao contato.",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "al_pneuma": {
       "id": 25,
@@ -3281,7 +3393,10 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "all_inccarry": {
       "id": 681,
@@ -4661,7 +4776,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "cr_devotion": {
       "id": 255,
@@ -5001,7 +5128,19 @@
       },
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "sight_rasher": {
       "id": 81,
@@ -5039,7 +5178,19 @@
       "sourceSplashRange": 3,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "meteor_storm": {
       "id": 83,
@@ -5095,7 +5246,19 @@
       },
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "jupitel_thunder": {
       "id": 84,
@@ -5132,7 +5295,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "lord_of_vermilion": {
       "id": 85,
@@ -5190,7 +5365,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "water_ball": {
       "id": 86,
@@ -5223,7 +5410,14 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "ice_wall": {
       "id": 87,
@@ -5299,7 +5493,19 @@
       "sourceSplashRange": 2,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "storm_gust": {
       "id": 89,
@@ -5335,7 +5541,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        171,
+        178,
+        182,
+        185,
+        187,
+        189,
+        190,
+        191,
+        191,
+        192
+      ]
     },
     "earth_spike": {
       "id": 90,
@@ -5367,7 +5585,14 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "heavens_drive": {
       "id": 91,
@@ -5407,7 +5632,14 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "quagmire": {
       "id": 92,
@@ -5487,7 +5719,10 @@
       "implementation": "unsupported",
       "unsupportedReason": "Requer carga que detona ao contato com um inimigo.",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "soul_drain": {
       "id": 364,
@@ -5528,7 +5763,10 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "magic_power": {
       "id": 366,
@@ -5602,7 +5840,14 @@
       "sourceSplashRange": 1,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "ganbantein": {
       "id": 483,
@@ -5685,7 +5930,14 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "sa_advancedbook": {
       "id": 274,
@@ -9045,7 +9297,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "pr_lexaeterna": {
       "id": 78,
@@ -9115,7 +9379,19 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "pr_redemptio": {
       "id": 1014,
@@ -14378,12 +14654,12 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "a088dcc3afbb64b8590d822b8cc315d1e1efe914d41e3ffdf685a69c4c3d152f",
+  "rulesSha256": "9ace1dd441ae1440b50910dfbe95be1032502c06139701df26898a2a79d95997",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
   },
-  "catalogSha256": "27b1b8826a809af74646b1feec6edf276f9adb70f07f32d8e9079f13359a7692",
+  "catalogSha256": "db9cd409e45a7ebfd162089ad05dec757c1b792b37cf9bc962ee7608c6fe6c2f",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

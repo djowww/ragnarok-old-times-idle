@@ -63,6 +63,10 @@ const legacySource: Record<string, string> = {
 const sourceOf = (skill: ClassicSkill) => skill.sourceName ?? legacySource[skill.id] ?? skill.id.toUpperCase();
 const integer = (n: number) => Math.trunc(n);
 const atLevel = (values: number[] | undefined, level: number, fallback = 0) => values?.[level - 1] ?? values?.at(-1) ?? fallback;
+const idleBalancedDamage = (damage: number, skill: Skill | undefined, level: number) => {
+  const multiplier = atLevel(skill?.idleDamageMultiplierPct, level, 100);
+  return Math.max(0, integer(damage * Math.max(0, multiplier) / 100));
+};
 /** Hercules rnd()%range excludes the upper endpoint (status.c:13598). */
 const randomExclusive = (min: number, max: number, rng: () => number) => min + (max > min ? Math.floor(rng() * (max - min)) : 0);
 const sourceAliases: Record<string, string> = { SM_RECOVERY: 'hp_recovery', MG_SRECOVERY: 'sp_recovery', TF_DOUBLE: 'double_attack', TF_MISS: 'improve_dodge', AC_OWL: 'owl_eye', HT_BEASTBANE: 'beast_bane', MO_TRIPLEATTACK: 'triple_attack', HW_SOULDRAIN: 'soul_drain' };
@@ -174,7 +178,11 @@ export function classicMagicDamage(stats: ClassicDamageStats, monster: Monster, 
   // Positive NumberOfHits multiplies damage; negative counts only divide the
   // displayed damage into hits (battle.c:3994 and 4310).
   const hits = Math.max(1, atLevel(s.sourceHitCount, level, atLevel((s as Skill & { hitCount?: number[] }).hitCount, level, 1)));
-  return Math.max(0, integer(elemental * hits * (100 + (stats.damagePercent ?? 0)) / 100));
+  return idleBalancedDamage(
+    Math.max(0, integer(elemental * hits * (100 + (stats.damagePercent ?? 0)) / 100)),
+    skill,
+    level,
+  );
 }
 
 function mastery(stats: ClassicDamageStats, monster: Monster): number {
@@ -241,7 +249,11 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
       + (stats.weaponRefineAttack ?? 0) + mastery(stats, monster)
       + 2 * learned(stats, 'BS_WEAPONRESEARCH') + 3 * (stats.spiritSpheres ?? 0);
     const once = integer(magical * element) + integer(physical * element);
-    return Math.max(0, integer(integer(once * element) * (100 + 40 * level) / 100));
+    return idleBalancedDamage(
+      Math.max(0, integer(integer(once * element) * (100 + 40 * level) / 100)),
+      skill,
+      level,
+    );
   }
   switch (name) {
     case 'HT_LANDMINE': raw = integer(level * ((stats.dex ?? 1) + 75) * (100 + (stats.int ?? 1)) / 100); fixed = true; break;
@@ -278,7 +290,11 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
   }
   // battle.c:4650 divides miscellaneous splash damage before element.
   if (s?.splitDamage) raw = integer(raw / Math.max(1, stats.targetCount ?? 1));
-  if (fixed) return Math.max(0, integer(raw * hits * element * (100 + (stats.damagePercent ?? 0)) / 100));
+  if (fixed) return idleBalancedDamage(
+    Math.max(0, integer(raw * hits * element * (100 + (stats.damagePercent ?? 0)) / 100)),
+    skill,
+    level,
+  );
   // Pre-renewal weapon division fix occurs BEFORE defense (battle.c:5822).
   raw = integer(raw * ratio / 100) * hits;
   if (name === 'AS_SONICBLOW' && learned(stats, 'AS_SONICACCEL')) raw += integer(raw * 10 / 100);
@@ -291,7 +307,11 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
   if (!['MO_INVESTIGATE', 'MO_EXTREMITYFIST', 'CR_GRANDCROSS'].includes(name)) raw += 3 * hits * (name === 'MO_FINGEROFFENSIVE' ? stats.consumedSpheres ?? 0 : stats.spiritSpheres ?? 0);
   let weaponPart = Math.max(0, integer(raw * Math.max(0, element) * (100 + (stats.damagePercent ?? 0)) / 100));
   if (monster.race.toLowerCase() === 'dragon') weaponPart = integer(weaponPart * (100 + 4 * learned(stats, 'SA_DRAGONOLOGY')) / 100);
-  return weaponPart + neutralFixed + (name === 'CR_SHIELDBOOMERANG' || name === 'PA_SHIELDCHAIN' ? 10 * (stats.shieldRefine ?? 0) : 0);
+  return idleBalancedDamage(
+    weaponPart + neutralFixed + (name === 'CR_SHIELDBOOMERANG' || name === 'PA_SHIELDCHAIN' ? 10 * (stats.shieldRefine ?? 0) : 0),
+    skill,
+    level,
+  );
 }
 
 /** Exact source bonuses expressible with the shared Effects contract. */

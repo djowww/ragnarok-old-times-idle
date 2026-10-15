@@ -17,7 +17,7 @@
       "src/map/skill.c",
       "src/map/pc.c"
     ],
-    "hash": "f5dd2565a009418cca26865655b25b7460e53c820269d7ea5f82fd360a52b03d"
+    "hash": "8c77ec6d20f5b5d27ae289e3079b60c7eac028b1550066622d1a37fbcf8b96ac"
   },
   "rates": {
     "baseExp": 4,
@@ -67076,7 +67076,19 @@
       },
       "minimumJobLevel": 1,
       "element": "ghost",
-      "splitDamage": true
+      "splitDamage": true,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "safety_wall": {
       "id": "safety_wall",
@@ -67529,7 +67541,19 @@
         ]
       },
       "minimumJobLevel": 1,
-      "element": "ghost"
+      "element": "ghost",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "cold_bolt": {
       "id": "cold_bolt",
@@ -67652,7 +67676,19 @@
         "professor": []
       },
       "minimumJobLevel": 1,
-      "element": "water"
+      "element": "water",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "frost_diver": {
       "id": "frost_diver",
@@ -67835,6 +67871,18 @@
         59,
         62,
         65
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "stone_curse": {
@@ -68204,7 +68252,19 @@
         ]
       },
       "minimumJobLevel": 1,
-      "element": "fire"
+      "element": "fire",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "fire_wall": {
       "id": "fire_wall",
@@ -68404,7 +68464,19 @@
         14000
       ],
       "groundIntervalMs": 20,
-      "durationMs": 5000
+      "durationMs": 5000,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "fire_bolt": {
       "id": "fire_bolt",
@@ -68527,7 +68599,19 @@
         "professor": []
       },
       "minimumJobLevel": 1,
-      "element": "fire"
+      "element": "fire",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "lightning_bolt": {
       "id": "lightning_bolt",
@@ -68650,7 +68734,19 @@
         "professor": []
       },
       "minimumJobLevel": 1,
-      "element": "wind"
+      "element": "wind",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "thunder_storm": {
       "id": "thunder_storm",
@@ -68822,7 +68918,19 @@
         500
       ],
       "groundIntervalMs": 1000,
-      "durationMs": 500
+      "durationMs": 500,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "energy_coat": {
       "id": "energy_coat",
@@ -70159,7 +70267,10 @@
       "statusDurationMs": [
         10000
       ],
-      "durationMs": 10000
+      "durationMs": 10000,
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "al_pneuma": {
       "id": "al_pneuma",
@@ -71705,7 +71816,10 @@
         "champion": []
       },
       "minimumJobLevel": 1,
-      "element": "holy"
+      "element": "holy",
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "all_inccarry": {
       "id": "all_inccarry",
@@ -77221,7 +77335,19 @@
       ],
       "groundIntervalMs": 300,
       "durationMs": 900,
-      "hpCostPercent": 20
+      "hpCostPercent": 20,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "cr_devotion": {
       "id": "cr_devotion",
@@ -78423,6 +78549,18 @@
             "quantity": 1
           }
         ]
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "sight_rasher": {
@@ -78571,7 +78709,19 @@
       "minimumJobLevel": 1,
       "element": "fire",
       "durationMs": 500,
-      "requiredState": "Sight"
+      "requiredState": "Sight",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "meteor_storm": {
       "id": "meteor_storm",
@@ -78756,7 +78906,19 @@
         500
       ],
       "groundIntervalMs": 1000,
-      "durationMs": 500
+      "durationMs": 500,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "jupitel_thunder": {
       "id": "jupitel_thunder",
@@ -78902,7 +79064,19 @@
         ]
       },
       "minimumJobLevel": 1,
-      "element": "wind"
+      "element": "wind",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "lord_of_vermilion": {
       "id": "lord_of_vermilion",
@@ -79087,7 +79261,19 @@
         4000
       ],
       "groundIntervalMs": 1250,
-      "durationMs": 4000
+      "durationMs": 4000,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "water_ball": {
       "id": "water_ball",
@@ -79194,7 +79380,14 @@
       },
       "minimumJobLevel": 1,
       "element": "water",
-      "requiredState": "InWater"
+      "requiredState": "InWater",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "ice_wall": {
       "id": "ice_wall",
@@ -79514,6 +79707,18 @@
         59,
         62,
         65
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "storm_gust": {
@@ -79687,7 +79892,19 @@
         4600
       ],
       "groundIntervalMs": 450,
-      "durationMs": 4600
+      "durationMs": 4600,
+      "idleDamageMultiplierPct": [
+        171,
+        178,
+        182,
+        185,
+        187,
+        189,
+        190,
+        191,
+        191,
+        192
+      ]
     },
     "earth_spike": {
       "id": "earth_spike",
@@ -79793,7 +80010,14 @@
         ]
       },
       "minimumJobLevel": 1,
-      "element": "earth"
+      "element": "earth",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "heavens_drive": {
       "id": "heavens_drive",
@@ -79908,7 +80132,14 @@
         500
       ],
       "groundIntervalMs": 1000,
-      "durationMs": 500
+      "durationMs": 500,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "quagmire": {
       "id": "quagmire",
@@ -80121,7 +80352,10 @@
       "statusDurationMs": [
         120000
       ],
-      "durationMs": 120000
+      "durationMs": 120000,
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "soul_drain": {
       "id": "soul_drain",
@@ -80312,7 +80546,10 @@
         ]
       },
       "minimumJobLevel": 1,
-      "element": "weapon"
+      "element": "weapon",
+      "idleDamageMultiplierPct": [
+        100
+      ]
     },
     "magic_power": {
       "id": "magic_power",
@@ -80548,6 +80785,13 @@
         5,
         5,
         5
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "ganbantein": {
@@ -80778,6 +81022,13 @@
             "quantity": 1
           }
         ]
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "sa_advancedbook": {
@@ -92427,7 +92678,19 @@
       },
       "minimumJobLevel": 1,
       "element": "holy",
-      "ignoreDefense": true
+      "ignoreDefense": true,
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ]
     },
     "pr_lexaeterna": {
       "id": "pr_lexaeterna",
@@ -92728,6 +92991,18 @@
             "quantity": 1
           }
         ]
+      ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
       ]
     },
     "pr_redemptio": {

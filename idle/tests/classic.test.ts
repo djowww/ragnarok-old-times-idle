@@ -86,6 +86,41 @@ describe('Hercules integer arithmetic golden cases', () => {
     expect(classicMagicDamage(attacker, monster, skill('HW_NAPALMVULCAN'), 5, fixedRng)).toBe(600);
   });
 
+  it('applies the idle spell balance after the pinned source damage calculation', () => {
+    const sourceSkill = skill('MG_FIREBOLT');
+    expect(classicMagicDamage(
+      attacker,
+      monster,
+      { ...sourceSkill, idleDamageMultiplierPct: [50] },
+      10,
+      fixedRng,
+    )).toBe(500);
+  });
+
+  it('keeps every supported offensive magic on the idle balance curve', () => {
+    const extraSpellSources = new Set(['PR_TURNUNDEAD', 'CR_GRANDCROSS', 'HW_GRAVITATION', 'HW_MAGICCRASHER']);
+    const offensiveMagic = Object.values(catalog.skills).filter(s =>
+      ((s.kind === 'magical' && s.damageType === 'magic') || extraSpellSources.has(s.sourceName ?? '')) &&
+      s.implementation === 'supported',
+    );
+    expect(offensiveMagic.length).toBeGreaterThan(10);
+    for (const spell of offensiveMagic)
+      expect(spell.idleDamageMultiplierPct, spell.sourceName).toHaveLength(spell.maxLevel);
+    expect(skill('WZ_STORMGUST').idleDamageMultiplierPct)
+      .toEqual([171, 178, 182, 185, 187, 189, 190, 191, 191, 192]);
+    expect(skill('MG_FIREBOLT').idleDamageMultiplierPct).toEqual(Array(10).fill(100));
+  });
+
+  it('applies idle spell scaling to hybrid and fixed magic skill formulas', () => {
+    for (const source of ['CR_GRANDCROSS', 'HW_GRAVITATION']) {
+      const spell = skill(source);
+      const normal = classicPhysicalDamage(attacker, monster, spell, spell.maxLevel, fixedRng);
+      const scaled = classicPhysicalDamage(attacker, monster,
+        { ...spell, idleDamageMultiplierPct: [50] }, spell.maxLevel, fixedRng);
+      expect(scaled, source).toBe(Math.trunc(normal / 2));
+    }
+  });
+
   it('applies magic defense before positive hit multiplication and rejects missing mechanics', () => {
     const resistant = { ...monster, mdef: 80, stats: { ...monster.stats, int: 5, vit: 10 } };
     expect(classicMagicDamage(attacker, resistant, skill('MG_FIREBOLT'), 3, fixedRng)).toBe(30);

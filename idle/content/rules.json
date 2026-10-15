@@ -14,6 +14,7 @@
     "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
     "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
+    "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
     "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
     "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
     "Non-positive element coefficients yield zero damage rather than healing the target.",
@@ -1163,6 +1164,7 @@
       "maxLevel": 10,
       "powerStart": 240,
       "powerStep": 80,
+      "idleDamageMultiplierPct": [171, 178, 182, 185, 187, 189, 190, 191, 191, 192],
       "cooldownMs": 8000,
       "element": "water",
       "description": "Atinge o alvo com uma tempestade de magia de água. Causa dano elevado e exige uma espera maior entre usos."
