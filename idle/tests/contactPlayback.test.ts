@@ -1,0 +1,147 @@
+import { describe, expect, it } from 'vitest';
+import * as render from '../web/assets/renderer';
+import * as presentation from '../web/assets/combatPresentation';
+import type { WeaponAppearance } from '../web/assets/weapon';
+
+function actor(job: string, weapon?: WeaponAppearance['type'], count = 12) {
+  const image = { width: 1, height: 1, type: 0 as const, rgba: new Uint8ClampedArray([255, 0, 0, 255]) };
+  const layer = { x: 0, y: 0, index: 0, mirror: false, color: [255, 255, 255, 255] as [number, number, number, number],
+    scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 };
+  const part = { sprite: { version: 2.1, indexedCount: 1, frames: [image] }, action: { version: 2.5, sounds: [],
+    actions: Array.from({ length: 104 }, () => ({ delayMs: 100,
+      frames: Array.from({ length: count }, (_, i) => ({ layers: [{ ...layer, x: i }], anchors: [], sound: -1 })) })) } };
+  return { kind: 'character' as const, fallback: false, identity: { job, gender: 'male' as const }, body: part, head: part,
+    weapon: weapon ? part : undefined, weaponTrail: weapon ? part : undefined,
+    weaponVisual: weapon ? { type: weapon, job, gender: 'male' as const } : undefined };
+}
+
+function cue(id: number, actionId: string, job: string, motionMs: number, start = 1000, weapon?: WeaponAppearance['type']) {
+  return { id, actionId, actionAt: start, sourceActorId: 'hero', targetActorId: `mob-${id}`,
+    actorAction: 'attack' as const, start, effectStart: start, impact: start + motionMs,
+    actionDuration: render.getActorPlaybackDuration(actor(job, weapon), 'attack', motionMs),
+    duration: motionMs, presented: true, hit: true, targetHpBefore: 30, amount: 30 };
+}
+
+describe('contact-aligned combat playback', () => {
+  it.each(['monk', 'champion'])('%s unarmed attacks keep the final ACT frame through impact in every direction at 300ms and 900ms', job => {
+    const value = actor(job);
+    for (const motionMs of [300, 900]) for (let direction = 0; direction < 8; direction++) {
+      const hit = cue(direction + 1, `${job}-${motionMs}-${direction}`, job, motionMs);
+      const marks = new Map();
+      presentation.presentLatestActorActions([hit], marks, hit.start);
+      const nativeDuration = render.getActorPlaybackDuration(value, 'attack', motionMs, direction);
+      expect(nativeDuration).toBe(motionMs * 5 / 6);
+      presentation.reconcileActorPlayback([hit], marks, hit, nativeDuration);
+
+      expect(hit.actionDuration).toBe(motionMs);
+      expect(presentation.presentedActorActionAt([hit], 'hero', hit.impact - 0.001)).toBe(hit);
+      expect(render.getActorPose(value, 'attack', motionMs - 0.001, direction, motionMs).map(layer => layer.x))
+        .toEqual([4, 4]);
+      expect(presentation.presentedActorActionAt([hit], 'hero', hit.impact)).toBeUndefined();
+      expect(presentation.targetHealthAt(0, 30, [hit], hit.targetActorId, hit.impact - 0.001)).toBe(30);
+      expect(presentation.targetHealthAt(0, 30, [hit], hit.targetActorId, hit.impact)).toBe(0);
+      expect(marks.get('hero')?.end).toBe(hit.impact);
+    }
+  });
+
+  it.each([
+    { job: 'swordsman', weapon: 'sword' as const, motionMs: 300, expected: 600 },
+    { job: 'assassin', weapon: 'katar' as const, motionMs: 300, expected: 1200 },
+  ])('$job/$weapon preserves the pinned ACT playback pace when its pose outlasts contact', ({ job, weapon, motionMs, expected }) => {
+    const value = actor(job, weapon);
+    const hit = cue(1, 'armed', job, motionMs, 1000, weapon);
+    const marks = new Map();
+    presentation.presentLatestActorActions([hit], marks, hit.start);
+    const nativeDuration = render.getActorPlaybackDuration(value, 'attack', motionMs, 0);
+    expect(nativeDuration).toBe(expected);
+    presentation.reconcileActorPlayback([hit], marks, hit, nativeDuration);
+    expect(hit.actionDuration).toBe(expected);
+    expect(hit.impact).toBe(hit.start + motionMs);
+    expect(presentation.presentedActorActionAt([hit], 'hero', hit.impact - 0.001)).toBe(hit);
+    expect(render.getActorPose(value, 'attack', nativeDuration - 0.001, 0, motionMs)[0]?.x).toBe(11);
+    expect(presentation.presentedActorActionAt([hit], 'hero', hit.start + expected)).toBeUndefined();
+  });
+
+  it('extends an AoE contact once, shifts later queued actions and watermarks, and keeps late siblings and health on the impact clock', () => {
+    const first = cue(1, 'aoe', 'monk', 300);
+    const sibling = { ...first, id: 2, targetActorId: 'mob-2' };
+    const next = { ...cue(3, 'next', 'monk', 300, 1250), actionDuration: 300 };
+    const otherActor = { ...cue(4, 'other', 'monk', 300, 1250), sourceActorId: 'other' };
+    const marks = new Map([['hero', { actionAt: 1250, actionId: 'next', id: 3, start: 1250, end: 1550, presented: true }]]);
+    const cues = [first, sibling, next, otherActor];
+    const nativeDuration = render.getActorPlaybackDuration(actor('monk'), 'attack', 300, 0);
+    expect(nativeDuration).toBe(250);
+    presentation.reconcileActorPlayback(cues, marks, first, nativeDuration);
+
+    expect(first.actionDuration).toBe(300);
+    expect(sibling.actionDuration).toBe(300);
+    expect(first.impact).toBe(1300);
+    expect(sibling.impact).toBe(1300);
+    expect(next.start).toBe(1300);
+    expect(next.impact).toBe(1600);
+    expect(otherActor.start).toBe(1250);
+    expect(marks.get('hero')).toMatchObject({ actionId: 'next', start: 1300, end: 1600 });
+    expect(presentation.targetHealthAt(0, 30, cues, first.targetActorId, 1299.999)).toBe(30);
+    expect(presentation.targetHealthAt(0, 30, cues, first.targetActorId, 1300)).toBe(0);
+
+    const lateSibling = { ...first, id: 5, targetActorId: 'mob-late', start: 760, effectStart: 760, impact: 1060 };
+    presentation.presentLatestActorActions([lateSibling], marks, 1100, cues);
+    expect(lateSibling.start).toBe(first.start);
+    expect(lateSibling.impact).toBe(first.impact);
+    expect(lateSibling.actionDuration).toBe(300);
+    expect(presentation.targetHealthAt(0, 30, [lateSibling], 'mob-late', 1299.999)).toBe(30);
+    expect(presentation.targetHealthAt(0, 30, [lateSibling], 'mob-late', 1300)).toBe(0);
+
+    const lateMarkSibling = { ...lateSibling, id: 6, start: 760, effectStart: 760, impact: 1060,
+      actionDuration: 250, duration: 250 };
+    const activeMark = { actionAt: first.actionAt, actionId: first.actionId, id: first.id, start: first.start,
+      end: first.start + 250, presented: true };
+    const lateMarks = new Map([['hero', activeMark]]);
+    presentation.presentLatestActorActions([lateMarkSibling], lateMarks, 1100);
+    expect(lateMarkSibling.actionDuration).toBe(300);
+    expect(lateMarks.get('hero')?.end).toBe(first.start + 300);
+  });
+
+  it('ignores non-finite or non-positive decoded playback durations without corrupting contact clocks', () => {
+    for (const duration of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0, -1]) {
+      const hit = cue(1, `invalid-${duration}`, 'monk', 300);
+      const mark = { actionAt: hit.actionAt, actionId: hit.actionId, id: hit.id, start: hit.start, end: hit.start + hit.actionDuration, presented: true };
+      const marks = new Map([['hero', mark]]);
+      const before = { ...hit };
+      expect(presentation.reconcileActorPlayback([hit], marks, hit, duration).size).toBe(0);
+      expect(hit).toEqual(before);
+      expect(mark.end).toBe(before.start + before.actionDuration);
+    }
+    const invalidImpact = cue(9, 'invalid-impact', 'monk', 300);
+    invalidImpact.impact = Number.POSITIVE_INFINITY;
+    const marks = new Map();
+    presentation.presentLatestActorActions([invalidImpact], marks, invalidImpact.start);
+    expect(invalidImpact.actionDuration).toBe(250);
+    expect(marks.get('hero')?.end).toBe(invalidImpact.start + 250);
+  });
+  it('does not shorten decoded playback when only the action watermark remains', () => {
+    const hit = cue(1, 'long-armed', 'assassin', 300, 1000, 'katar');
+    const marks = new Map([['hero', { actionAt: hit.actionAt, actionId: hit.actionId,
+      id: 1, start: 1000, end: 2200, presented: true }]]);
+    const late = { ...hit, id: 2, actionDuration: 300 };
+    presentation.presentLatestActorActions([late], marks, 1200);
+    expect(late.actionDuration).toBe(1200);
+    expect(marks.get('hero')?.end).toBe(2200);
+  });
+
+  it('extends retained contact before the already queued next swing', () => {
+    const first = { ...cue(1, 'long-contact', 'monk', 300), actionDuration: 300 };
+    const next = { ...cue(2, 'next', 'monk', 300, 1300), actionDuration: 300 };
+    const marks = new Map([['hero', { actionAt: next.actionAt, actionId: next.actionId,
+      id: next.id, start: 1300, end: 1600, presented: true }]]);
+    const late = { ...first, id: 3, targetActorId: 'mob-late', impact: 1900 };
+    const moved = presentation.presentLatestActorActions([late], marks, 1100, [first, next]);
+    expect(first.actionDuration).toBe(900);
+    expect(late.actionDuration).toBe(900);
+    expect(next.start).toBe(1900);
+    expect(next.impact).toBe(2200);
+    expect(marks.get('hero')).toMatchObject({ actionId: 'next', start: 1900, end: 2200 });
+    expect(moved?.get(next.id)).toBe(600);
+  });
+
+});
