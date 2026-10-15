@@ -41,6 +41,7 @@ function decode(value: unknown): GameState {
   const state = (typeof value === 'string' ? JSON.parse(value) : value) as GameState;
   if (state.schemaVersion !== 1) throw new Error('Unsupported idle state schema');
   state.mounted = state.mounted === true;
+  state.falconEquipped = state.falconEquipped === true;
   const appearance = state.appearance;
   state.appearance = appearance &&
     Number.isInteger(appearance.hairStyle) && appearance.hairStyle >= 0 && appearance.hairStyle <= 27 &&

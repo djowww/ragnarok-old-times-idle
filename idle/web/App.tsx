@@ -1,3 +1,5 @@
+import {detectingAfkUseful} from '../engine/falconDetect';
+import {isFalconEquipped} from '../engine/falcon';
 import { playerStatusCues } from '../shared/playerStatusView';
 import { treatmentSources, statusTreatmentNeeded } from '../engine/playerStatuses';
 import { copiedSpell } from '../shared/copiedSkills';
@@ -103,6 +105,8 @@ export function skillReadiness(skill: Skill, state: GameState, stats: DerivedSta
   const treatment = treatmentSources.has(skill.sourceName ?? "");
   const treatmentNeeded = treatment && statusTreatmentNeeded(state, catalog, skill, now);
   if (treatment && !treatmentNeeded) reasons.push("aguardando doença tratável no próprio personagem");
+  if (skill.sourceName === 'HT_DETECTING' && !detectingAfkUseful(state,now))
+    reasons.push('aguardando inimigo oculto na área');
   const cooldown = (state.skillReadyAt[skill.id] ?? 0) - now;
   if (cooldown > 0) reasons.push(`recarga em ${Math.ceil(cooldown / 1000)} s`);
   if (state.sp < sp) reasons.push(`SP insuficiente (${state.sp}/${sp})`);
@@ -116,6 +120,7 @@ export function skillReadiness(skill: Skill, state: GameState, stats: DerivedSta
   for (const itemCost of itemCosts)
     if (state.inventory.filter(entry => entry.itemId === itemCost.itemId).reduce((amount, entry) => amount + entry.quantity, 0) < itemCost.quantity)
       reasons.push(`${catalog.items[itemCost.itemId]?.name ?? "reagente"} insuficiente`);
+  if (skill.requiredState?.toLowerCase() === 'falcon' && !isFalconEquipped(state,catalog)) reasons.push('falcão não equipado');
   if (skill.sourceName === "AS_CLOAKING" && level < 3) reasons.push("níveis 1–2 exigem paredes do mapa; disponível aqui a partir do nível 3");
   if (['AM_POTIONPITCHER','CR_SLIMPITCHER'].includes(skill.sourceName ?? '')) {
     const pitcherUsesSp = itemCosts.some(item => item.itemId === 505);

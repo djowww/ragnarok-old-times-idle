@@ -1,0 +1,1821 @@
+{
+  "skills": {
+    "ht_falcon": {
+      "before": {
+        "id": "ht_falcon",
+        "name": "Falconry Mastery",
+        "kind": "passive",
+        "maxLevel": 1,
+        "herculesId": 127,
+        "sourceName": "HT_FALCON",
+        "mechanic": "HT_FALCON",
+        "implementation": "supported",
+        "description": "Falconry Mastery. Habilidade passiva.",
+        "iconResource": "data/texture/유저인터페이스/item/ht_falcon.bmp",
+        "spCost": [
+          0
+        ],
+        "power": [
+          0
+        ],
+        "cooldownMs": 0,
+        "castTimeMs": [
+          0
+        ],
+        "afterCastDelayMs": [
+          0
+        ],
+        "interruptCast": false,
+        "hitCount": [
+          0
+        ],
+        "sourceHitCount": [
+          0
+        ],
+        "aoeRadius": [
+          0
+        ],
+        "range": [
+          0
+        ],
+        "targetType": "passive",
+        "damageType": "none",
+        "prerequisites": [
+          {
+            "skillId": "beast_bane",
+            "level": 1
+          }
+        ],
+        "prerequisitesByClass": {
+          "hunter": [
+            {
+              "skillId": "beast_bane",
+              "level": 1
+            }
+          ],
+          "sniper": [
+            {
+              "skillId": "beast_bane",
+              "level": 1
+            }
+          ]
+        },
+        "minimumJobLevel": 1
+      },
+      "afterHash": "85164349d6505c4ac603beedfbb5e014d9ae9ed896e8c763c3dfdfdb4e905328"
+    },
+    "ht_steelcrow": {
+      "before": {
+        "id": "ht_steelcrow",
+        "name": "Steel Crow",
+        "kind": "passive",
+        "maxLevel": 10,
+        "herculesId": 128,
+        "sourceName": "HT_STEELCROW",
+        "mechanic": "HT_STEELCROW",
+        "implementation": "supported",
+        "description": "Steel Crow. Habilidade passiva.",
+        "iconResource": "data/texture/유저인터페이스/item/ht_steelcrow.bmp",
+        "spCost": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "power": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "cooldownMs": 0,
+        "castTimeMs": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "afterCastDelayMs": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "interruptCast": false,
+        "hitCount": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "sourceHitCount": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "aoeRadius": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "range": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "targetType": "passive",
+        "damageType": "none",
+        "prerequisites": [
+          {
+            "skillId": "blitz_beat",
+            "level": 5
+          }
+        ],
+        "prerequisitesByClass": {
+          "hunter": [
+            {
+              "skillId": "blitz_beat",
+              "level": 5
+            }
+          ],
+          "sniper": [
+            {
+              "skillId": "blitz_beat",
+              "level": 5
+            }
+          ]
+        },
+        "minimumJobLevel": 1
+      },
+      "afterHash": "ac04e61c4afcefdb69b4faac8f8fb9ee7f094cb0460529ca1ee13993b6a532f6"
+    },
+    "blitz_beat": {
+      "before": {
+        "id": "blitz_beat",
+        "name": "Ataque Aéreo",
+        "kind": "physical",
+        "maxLevel": 5,
+        "herculesId": 129,
+        "sourceName": "HT_BLITZBEAT",
+        "mechanic": "HT_BLITZBEAT",
+        "implementation": "supported",
+        "description": "Blitz Beat. Fórmula específica de dano conforme Hercules pré-renovação.",
+        "iconResource": "data/texture/유저인터페이스/item/ht_blitzbeat.bmp",
+        "spCost": [
+          10,
+          13,
+          16,
+          19,
+          22
+        ],
+        "power": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "cooldownMs": 0,
+        "castTimeMs": [
+          1500,
+          1500,
+          1500,
+          1500,
+          1500
+        ],
+        "afterCastDelayMs": [
+          1000,
+          1000,
+          1000,
+          1000,
+          1000
+        ],
+        "interruptCast": true,
+        "hitCount": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "sourceHitCount": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "aoeRadius": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "range": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "targetType": "enemy",
+        "damageType": "misc",
+        "rangeBonusByVulture": true,
+        "prerequisites": [
+          {
+            "skillId": "ht_falcon",
+            "level": 1
+          }
+        ],
+        "prerequisitesByClass": {
+          "hunter": [
+            {
+              "skillId": "ht_falcon",
+              "level": 1
+            }
+          ],
+          "sniper": [
+            {
+              "skillId": "ht_falcon",
+              "level": 1
+            }
+          ]
+        },
+        "minimumJobLevel": 1,
+        "ignoreFlee": true,
+        "requiredState": "Falcon"
+      },
+      "afterHash": "04f4564f662a4724c5d9169b85f42f0532366e6fc9006ab7ebd54aa8efdd6e77"
+    },
+    "ht_detecting": {
+      "before": {
+        "id": "ht_detecting",
+        "name": "Detect",
+        "kind": "buff",
+        "maxLevel": 4,
+        "herculesId": 130,
+        "sourceName": "HT_DETECTING",
+        "mechanic": "HT_DETECTING",
+        "implementation": "unsupported",
+        "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+        "description": "Detect. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+        "iconResource": "data/texture/유저인터페이스/item/ht_detecting.bmp",
+        "spCost": [
+          8,
+          8,
+          8,
+          8
+        ],
+        "power": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "cooldownMs": 0,
+        "castTimeMs": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "afterCastDelayMs": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "interruptCast": false,
+        "hitCount": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "sourceHitCount": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "aoeRadius": [
+          3,
+          3,
+          3,
+          3
+        ],
+        "range": [
+          3,
+          5,
+          7,
+          9
+        ],
+        "targetType": "ground",
+        "damageType": "none",
+        "prerequisites": [
+          {
+            "skillId": "ac_concentration",
+            "level": 1
+          },
+          {
+            "skillId": "ht_falcon",
+            "level": 1
+          }
+        ],
+        "prerequisitesByClass": {
+          "hunter": [
+            {
+              "skillId": "ac_concentration",
+              "level": 1
+            },
+            {
+              "skillId": "ht_falcon",
+              "level": 1
+            }
+          ],
+          "sniper": [
+            {
+              "skillId": "ac_concentration",
+              "level": 1
+            },
+            {
+              "skillId": "ht_falcon",
+              "level": 1
+            }
+          ]
+        },
+        "minimumJobLevel": 1,
+        "requiredState": "Falcon"
+      },
+      "afterHash": "2492a7585326e9072ec700f552a5aaa488ec7ec501e7b51015482ad08fcf920a"
+    },
+    "sn_falconassault": {
+      "before": {
+        "id": "sn_falconassault",
+        "name": "Falcon Assault",
+        "kind": "physical",
+        "maxLevel": 5,
+        "herculesId": 381,
+        "sourceName": "SN_FALCONASSAULT",
+        "mechanic": "SN_FALCONASSAULT",
+        "implementation": "supported",
+        "description": "Falcon Assault. Fórmula específica de dano conforme Hercules pré-renovação.",
+        "iconResource": "data/texture/유저인터페이스/item/sn_falconassault.bmp",
+        "spCost": [
+          30,
+          34,
+          38,
+          42,
+          46
+        ],
+        "power": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "cooldownMs": 0,
+        "castTimeMs": [
+          1000,
+          1000,
+          1000,
+          1000,
+          1000
+        ],
+        "afterCastDelayMs": [
+          3000,
+          3000,
+          3000,
+          3000,
+          3000
+        ],
+        "interruptCast": true,
+        "hitCount": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "sourceHitCount": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "aoeRadius": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "range": [
+          5,
+          5,
+          5,
+          5,
+          5
+        ],
+        "targetType": "enemy",
+        "damageType": "misc",
+        "rangeBonusByVulture": true,
+        "prerequisites": [
+          {
+            "skillId": "ht_steelcrow",
+            "level": 3
+          },
+          {
+            "skillId": "ac_vulture",
+            "level": 5
+          },
+          {
+            "skillId": "blitz_beat",
+            "level": 5
+          },
+          {
+            "skillId": "ht_falcon",
+            "level": 1
+          }
+        ],
+        "prerequisitesByClass": {
+          "sniper": [
+            {
+              "skillId": "ht_steelcrow",
+              "level": 3
+            },
+            {
+              "skillId": "ac_vulture",
+              "level": 5
+            },
+            {
+              "skillId": "blitz_beat",
+              "level": 5
+            },
+            {
+              "skillId": "ht_falcon",
+              "level": 1
+            }
+          ]
+        },
+        "minimumJobLevel": 1,
+        "ignoreFlee": true,
+        "requiredState": "Falcon"
+      },
+      "afterHash": "96515271fa4214c45857e9a9c5038362b2f11df68407c9af98a3b4fdb515dc3b"
+    }
+  },
+  "source": {
+    "before": {
+      "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+      "files": [
+        "db/pre-re/mob_skill_db.conf",
+        "db/pre-re/mob_db.conf",
+        "db/pre-re/item_db.conf",
+        "db/pre-re/job_db.conf",
+        "db/pre-re/exp_group_db.conf",
+        "db/pre-re/skill_db.conf",
+        "db/pre-re/skill_tree.conf",
+        "db/pre-re/attr_fix.conf",
+        "db/pre-re/size_fix.txt",
+        "db/pre-re/autospell_db.conf",
+        "db/pre-re/unit_parameters_db.conf",
+        "npc/merchants/refine.txt",
+        "npc/mapflag/noteleport.txt",
+        "npc/pre-re/mobs/fields/geffen.txt",
+        "npc/pre-re/mobs/fields/payon.txt",
+        "npc/pre-re/mobs/fields/prontera.txt",
+        "npc/pre-re/mobs/dungeons/prt_sew.txt",
+        "npc/pre-re/mobs/dungeons/pay_dun.txt",
+        "npc/pre-re/mobs/dungeons/iz_dun.txt",
+        "npc/pre-re/mobs/dungeons/orcsdun.txt",
+        "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+        "npc/pre-re/mobs/dungeons/gef_dun.txt",
+        "npc/pre-re/mobs/dungeons/glastheim.txt",
+        "db/job_db2.txt",
+        "db/pre-re/sc_config.conf",
+        "src/map/battle.c",
+        "src/map/status.c",
+        "src/map/skill.c",
+        "src/map/pc.c",
+        "src/map/pc.h",
+        "src/map/unit.c",
+        "src/map/mob.c",
+        "src/map/mob.h",
+        "db/produce_db.txt",
+        "npc/merchants/shops.txt",
+        "npc/merchants/alchemist.txt",
+        "npc/pre-re/merchants/shops.txt",
+        "src/map/clif.c",
+        "db/pre-re/item_chain.conf",
+        "src/map/itemdb.c",
+        "src/map/script.c",
+        "conf/map/battle/drops.conf"
+      ],
+      "hash": "aae0a475e3cc5f99b505f8b003d0bff687e7a8c4cb67f05fd114d35566441ed5"
+    },
+    "afterHash": "35d1346fb3a26abfbf1adacfea56e2dd5dd85f8b2e2e4bc594fde737b7a8e201"
+  },
+  "manifestSkills": {
+    "ht_detecting": {
+      "before": {
+        "id": 130,
+        "name": "HT_DETECTING",
+        "sourceMaxLevel": 4,
+        "sourceRequirements": {
+          "SPCost": 8,
+          "State": "Falcon"
+        },
+        "sourceDamageType": {
+          "NoDamage": true,
+          "SplashArea": true
+        },
+        "sourceUnit": {},
+        "sourceHitCount": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "sourceSplashRange": 3,
+        "implementation": "unsupported",
+        "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+        "ratioSource": "src/map/skill.c and src/map/status.c",
+        "unsupportedRequirements": []
+      },
+      "afterHash": "d8842ef2fcb5299e7cc3ba5689ff29fc4c0006ad8f41a2bcc38dc66d905c909d"
+    }
+  },
+  "manifestFields": {
+    "sources": {
+      "before": [
+        {
+          "path": "db/pre-re/mob_skill_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_skill_db.conf",
+          "sha256": "a7752d8f4bdd1ea12191e70cb53bd5fb335ba3de855adaf30a7d362c3708b21b"
+        },
+        {
+          "path": "db/pre-re/mob_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_db.conf",
+          "sha256": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43"
+        },
+        {
+          "path": "db/pre-re/item_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf",
+          "sha256": "79f9fe1cb96fcfff4f539368b4ca7bc68f89607d4b216a60c2f2d87ebe415e30"
+        },
+        {
+          "path": "db/pre-re/job_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/job_db.conf",
+          "sha256": "38ca10f6ad491d216b9e7603b7ef11fa549ae1651a1200629089c9a8b357b6cc"
+        },
+        {
+          "path": "db/pre-re/exp_group_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/exp_group_db.conf",
+          "sha256": "6e959dcfdebc489d1c7d4714fe2bbf88d437b44ec7bd215fe2bb104aae5a7ced"
+        },
+        {
+          "path": "db/pre-re/skill_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_db.conf",
+          "sha256": "3fb05d6505bca34d916eea9699fbd47ed06a5b44f3c76fa152eeb3f48534ee11"
+        },
+        {
+          "path": "db/pre-re/skill_tree.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/skill_tree.conf",
+          "sha256": "fca2bd9ad96e92e117cdde8b733b608a537d941dfe1fdea74032713a4931fd37"
+        },
+        {
+          "path": "db/pre-re/attr_fix.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/attr_fix.conf",
+          "sha256": "100aa810c90e678c67b39912112ea3eef9aaf5d8c4181c0f98c9fdfb9518dc9c"
+        },
+        {
+          "path": "db/pre-re/size_fix.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/size_fix.txt",
+          "sha256": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
+        },
+        {
+          "path": "db/pre-re/autospell_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/autospell_db.conf",
+          "sha256": "835b806ad0aaaab221c8bcd9a358982081d0bb9220bde0ae4e1a60e6d395612f"
+        },
+        {
+          "path": "db/pre-re/unit_parameters_db.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/unit_parameters_db.conf",
+          "sha256": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792"
+        },
+        {
+          "path": "npc/merchants/refine.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/refine.txt",
+          "sha256": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1"
+        },
+        {
+          "path": "npc/mapflag/noteleport.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/noteleport.txt",
+          "sha256": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
+        },
+        {
+          "path": "npc/pre-re/mobs/fields/geffen.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
+          "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
+        },
+        {
+          "path": "npc/pre-re/mobs/fields/payon.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/payon.txt",
+          "sha256": "f448e15667f770b0eef3592652b814cf94ff1b5dda0f6c4abe88cc025c7189fa"
+        },
+        {
+          "path": "npc/pre-re/mobs/fields/prontera.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/prontera.txt",
+          "sha256": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/prt_sew.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/prt_sew.txt",
+          "sha256": "83b86756f210b65ba6b5ee1d01a59760d5423263b07f8995da62476a7f9b0662"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/pay_dun.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/pay_dun.txt",
+          "sha256": "c767bdff9fdb8d92405eb42485d075b12c625e79c0f0985861a455a377b30b6f"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/iz_dun.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/iz_dun.txt",
+          "sha256": "6a2f0a093ee56f3efa5ff3dba5301c975397eaa4b2a8354279f4960d432ff38e"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/orcsdun.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/orcsdun.txt",
+          "sha256": "5d389b5f338e9f3bae8a06de780dd8a9d00661cefc71cbe1525db252b40eed44"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/moc_pryd.txt",
+          "sha256": "0f34a8c8ba2e7abdd5348487b3525a02e1086dc50a3845c8540e104770417cb7"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/gef_dun.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/gef_dun.txt",
+          "sha256": "43b506b2d7e78dd9f622255ad9f793f87716780eba29c69ece62ae82ee7671f8"
+        },
+        {
+          "path": "npc/pre-re/mobs/dungeons/glastheim.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/glastheim.txt",
+          "sha256": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
+        },
+        {
+          "path": "db/job_db2.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/job_db2.txt",
+          "sha256": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56"
+        },
+        {
+          "path": "db/pre-re/sc_config.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/sc_config.conf",
+          "sha256": "614102c89301968ba2292f682eb46802b2e27f6c22e8f4d8b6709993b0ab713e"
+        },
+        {
+          "path": "src/map/battle.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/battle.c",
+          "sha256": "7c4916a043223e39ec35fdcb040c62f274d312a1d5ccd4802e5a60f7a5076d78"
+        },
+        {
+          "path": "src/map/status.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/status.c",
+          "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
+        },
+        {
+          "path": "src/map/skill.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/skill.c",
+          "sha256": "1987348fa5003e6e6b4e74700ff44c5bb10cf60247d29872ad269f74c3b0e0e3"
+        },
+        {
+          "path": "src/map/pc.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.c",
+          "sha256": "822bdba23749049fac8eab6044ad21f6409d9c81027757761e6efc26a1c07ded"
+        },
+        {
+          "path": "src/map/pc.h",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.h",
+          "sha256": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f"
+        },
+        {
+          "path": "src/map/unit.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/unit.c",
+          "sha256": "2af74d2cf42ab274d394d2e7e43ff05feb2629a65991692fd0f8d77fbd5bdf7b"
+        },
+        {
+          "path": "src/map/mob.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.c",
+          "sha256": "a30af793eb5328ef7787638da5a22458f651b2c0cc5e8f533b3449d7acf6174d"
+        },
+        {
+          "path": "src/map/mob.h",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.h",
+          "sha256": "bb971d72be5a2345438360d8a9004eefd4f34839d4e51ce89a1b05bce1fb9a74"
+        },
+        {
+          "path": "db/produce_db.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/produce_db.txt",
+          "sha256": "122d6ebc9a9451cb731643118bfff99f3a3c9ec2e5fe58d99129dc48c6f2fc2d"
+        },
+        {
+          "path": "npc/merchants/shops.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/shops.txt",
+          "sha256": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5"
+        },
+        {
+          "path": "npc/merchants/alchemist.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/alchemist.txt",
+          "sha256": "479d77eb8c4729597f2ff54bb1c984fba2befb395c475cc43078ae4b942bdf1f"
+        },
+        {
+          "path": "npc/pre-re/merchants/shops.txt",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/merchants/shops.txt",
+          "sha256": "5e8fa251182efe2bd080f2c6b0fe1dd50a41890ab81500d1fcc69bc03a8710b8"
+        },
+        {
+          "path": "src/map/clif.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/clif.c",
+          "sha256": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
+        },
+        {
+          "path": "db/pre-re/item_chain.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_chain.conf",
+          "sha256": "4f754f6f528a6902c759363ce7970ad74d3840ccef6c32024196b9e3c4338f2d"
+        },
+        {
+          "path": "src/map/itemdb.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/itemdb.c",
+          "sha256": "1449a595ebe05c01adc9229e9174ed0fcfe0c7879bb87d0a6c49d810c28033f1"
+        },
+        {
+          "path": "src/map/script.c",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/script.c",
+          "sha256": "b01e0f07b79a804647f5add1fbf63b3daead2a25290b2c1221790b534a23bac8"
+        },
+        {
+          "path": "conf/map/battle/drops.conf",
+          "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/conf/map/battle/drops.conf",
+          "sha256": "066c126f61c231eafc438b18c1e9c8a396f8c98d68e24a0005e691461453fe1d"
+        }
+      ],
+      "afterHash": "346850e74d9bec663f7fade321916d9a61aae70f29d568a466f4de22721b6cff"
+    },
+    "adaptations": {
+      "before": [
+        "Deterministic healing uses midpoints of source ranges.",
+        "High class HP/SP use source inherited tables (Hercules trans modifier adds 25%).",
+        "Equipment supports one representative weapon subtype per catalog WeaponType for size adjustment.",
+        "Book 1550 is supplied by the aggregated Idle shop at its pinned 30,000 zeny item_db price because the selected Hercules merchant shop file does not sell books.",
+        "Potion/herb/food heals use floor of the midpoint of the source itemheal range; only explicitly supported consumables are enabled.",
+        "Bard/Dancer and Clown/Gypsy have a permitted gender; both sprite dictionary keys resolve that permitted avatar, as no opposite-gender client sprite exists.",
+        "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
+        "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
+        "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
+        "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
+        "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
+        "Non-positive element coefficients yield zero damage rather than healing the target.",
+        "Fire Wall uses one contact unit in the idle encounter formation; the full source creates oriented three-cell walls. Map collision and exact contact/knockback paths are outside this formation.",
+        "Solo Bard/Dancer songs apply their source bonuses to the simulated avatar as an idle adaptation; the source uses nearby eligible party targets and caster eligibility rules.",
+        "The 40 resolved source class trees import 348 skills after removing family skills from every class. Increase Weight Limit R is retained only for Merchant and evolutions. Availability requires an explicit arithmetic, passive, status or action implementation; unavailable mechanics remain listed with a reason.",
+        "Hunter combat traps detonate once on contact in the encounter formation. SkillData1 is the maximum armed waiting time, not the duration of repeated damage; full free placement and map-cell pathfinding remain outside the formation.",
+        "Monster attacks use source AttackRange and AttackDelay. Selected Tarou Poison and Nightmare Blind casts use real NPC metadata; full monster AI, equipment breakage, crafting, homunculi and party members remain outside this solo adaptation.",
+        "Encounter entry uses an idle formation with a 3-second arrival plus 750 ms per extra monster, rather than full map pathfinding. Combat and scene share the same timed cell positions; source player circular and monster square range checks use those positions. Exact action deadlines are ordered inside 250 ms simulation windows; actor motion and hit reaction use source milliseconds.",
+        "Snap relocates the selected field-hunt character to a one-cell offset from a living target at up to 18 cells for 14 SP and one spirit sphere, waived by Explosion Spirits; it deals no damage, excludes challenges and blocks Extremity Fist for 2 seconds. Exact GAT collision and cell occupancy are outside the normalized formation.",
+        "Automatic healing yields an offensive action before another heal. This is an idle automation policy; First Aid retains source healing of 5 HP, cost of 3 SP and zero cast time. Basic ASPD, action motion, after-cast delay and individual cooldown have independent clocks.",
+        "Hunt fields use regular monster spawns from the pinned Hercules pre-renewal scripts; plant spawns and long-respawn bosses stay outside the repeating AFK encounter pool.",
+        "Poison Bottle 678 is sold by the Idle shop at its source item price to supply EDP. Create Deadly Poison remains study-only for the original prerequisite; production is not implemented. Berserk follows normal expiry without Bloodylust or enemy dispel, using the pinned default that preserves other buffs.",
+        "Venom Dust uses five source units with range one and a 100 ms unit timer; the Idle timer phase is anchored to epoch multiples of 100 ms, with per-group/per-target one-second eligibility. Spider Web binds its unit and eight-second status to the captured enemy; fire releases movement and consumes a weakness charge. Units use normalized encounter cells, not server GAT walls. AFK avoids duplicate poison fields and webs on already-held targets. Web clocks persist across reconnects without extension, unlike Hercules NoSave. Original particle3 and spiderweb pixels are used; Venom Dust choreography is approximated by ACT playback rather than the original STR/3D particle simulation. Red Gemstones and Cobweb are sold at source prices as an Idle supply adaptation.",
+        "Selected NPC actions only: Tarou NPC_POISON1 and Nightmare NPC_BLINDATTACK3, using existing engaged/hostile attack opportunities. First attack remains normal; later successful NPC attempts replace an attack. This is not full monster AI. Player Cure, Detoxify and Slow Poison treat the own character during solo hunting.",
+        "Cast Cancel is manual and releases only cast-owned locks, preserving basic ASPD and independent effects. Spell Breaker selects a real engaged NPC caster in range9 only with a strict finish-before-NPC window; passive2% zap does not trigger attack hooks or break controls. NPC base SP is zero; Magic Rod and PvP branches are not simulated.",
+        "Priest Recovery releases only the monster attack target, freezes its interpolated position and preserves pending NPC casts, paid cooldowns and instance state. Released monsters check acquisition at100ms deadlines; Blind reduces monster vision to3. Random walk is persisted as4000 plus0..999ms without protection against acquisition. Recent real damage awaiting a minimum100ms think opportunity survives release; older normal-combat memory is discarded. Full loot, slave, assist, rude attack and map-cell AI remain outside this solo adaptation.",
+        "Lex Divina toggles existing monster Silence off in the source dispatcher; AFK instead selects unsilenced nonboss monsters with implemented NPC actions. Silence gates new NPC skills before chance and cooldown; normal attacks and already-started casts retain their source clocks. Recovery AFK targets only effective-undead monsters with an active attack target and no Blind; it is not self Stun escape.",
+        "Haggle applies the larger of the Rogue and Merchant NPC discounts, without stacking, truncates the unit price and retains the source minimum1. Its Gangster prerequisite remains studyable through points without inventing allies.",
+        "Criar Conversor Elemental usa menu apenas na cidade, lote inteiro de 1 a 1000, uma ativação de 30 SP modificada e materiais por unidade, com capacidade líquida após consumo. A loja agregada de Prontera vende Blank Scroll7433 por4000, Scorpion Tail904 por124 e Horn947 por116, preços do item_db fonte. Yuno vende apenas o pergaminho na fonte; a venda agregada de caudas e chifres é adaptação de aquisição do Idle. Snail Shell946 e Rainbow Shell1013 permanecem nos drops existentes, sem novos mapas ou grants.",
+        "As quatro Mudanças Elementais alteram o corpo de uma instância de monstro por30min; não encantam arma. Boss é rejeitado antes de RNG; status garantido consome um roll e uma aplicação aceita outro para nível1 a4. Propriedade ativa nível2 a4 é preservada após apenas o roll de status. Freeze e Stone petrificado precedem conversão. AFK exige um ataque elemental aprendido na rotação com coeficiente estritamente melhor em todos os quatro níveis, evita conversão ativa e estados que a sobrepõem; escolha não consome RNG. NoDispelReset é preservado e Desencantar continua indisponível.",
+        "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
+        "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
+        "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK é aplicado às magias NPC modeladas quando o status está ativo.",
+        "PF_FOGWALL: adaptação solo com colocação fixa de 5 × 3 células sob o personagem, até duas instâncias e defesa apenas dentro das células; rejeita células sobre Vulcão/Furacão e duplica de 20 s para 40 s apenas as células sobre Dilúvio. Efeito NoSave. Ataques normais longos perdem 50 pontos percentuais de hit e causam 25% do dano; magia NPC direcionada tem 75% de falha no fim do cast e redução de dano em 25%. Cegueira nos ocupantes continua sem simulação.",
+        "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido.",
+        "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item."
+      ],
+      "afterHash": "ddad0ab4c08a76d4977578a21dba98dc54968721cb2db5a63f2a49e70f443202"
+    },
+    "skillCoverage": {
+      "before": {
+        "classes": 40,
+        "skills": 348,
+        "supported": 265,
+        "unsupported": 83,
+        "byClass": {
+          "novice": {
+            "sourceTree": 3,
+            "supported": 2,
+            "unsupported": 1
+          },
+          "high_novice": {
+            "sourceTree": 3,
+            "supported": 2,
+            "unsupported": 1
+          },
+          "swordsman": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "high_swordsman": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "mage": {
+            "sourceTree": 16,
+            "supported": 15,
+            "unsupported": 1
+          },
+          "high_mage": {
+            "sourceTree": 16,
+            "supported": 15,
+            "unsupported": 1
+          },
+          "archer": {
+            "sourceTree": 9,
+            "supported": 7,
+            "unsupported": 2
+          },
+          "high_archer": {
+            "sourceTree": 9,
+            "supported": 7,
+            "unsupported": 2
+          },
+          "acolyte": {
+            "sourceTree": 17,
+            "supported": 14,
+            "unsupported": 3
+          },
+          "high_acolyte": {
+            "sourceTree": 17,
+            "supported": 14,
+            "unsupported": 3
+          },
+          "merchant": {
+            "sourceTree": 15,
+            "supported": 10,
+            "unsupported": 5
+          },
+          "high_merchant": {
+            "sourceTree": 15,
+            "supported": 10,
+            "unsupported": 5
+          },
+          "thief": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "high_thief": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "knight": {
+            "sourceTree": 24,
+            "supported": 22,
+            "unsupported": 2
+          },
+          "lord_knight": {
+            "sourceTree": 32,
+            "supported": 30,
+            "unsupported": 2
+          },
+          "crusader": {
+            "sourceTree": 31,
+            "supported": 28,
+            "unsupported": 3
+          },
+          "paladin": {
+            "sourceTree": 35,
+            "supported": 31,
+            "unsupported": 4
+          },
+          "wizard": {
+            "sourceTree": 30,
+            "supported": 28,
+            "unsupported": 2
+          },
+          "high_wizard": {
+            "sourceTree": 36,
+            "supported": 33,
+            "unsupported": 3
+          },
+          "sage": {
+            "sourceTree": 41,
+            "supported": 37,
+            "unsupported": 4
+          },
+          "professor": {
+            "sourceTree": 49,
+            "supported": 44,
+            "unsupported": 5
+          },
+          "hunter": {
+            "sourceTree": 28,
+            "supported": 20,
+            "unsupported": 8
+          },
+          "sniper": {
+            "sourceTree": 32,
+            "supported": 24,
+            "unsupported": 8
+          },
+          "bard": {
+            "sourceTree": 28,
+            "supported": 16,
+            "unsupported": 12
+          },
+          "clown": {
+            "sourceTree": 34,
+            "supported": 17,
+            "unsupported": 17
+          },
+          "dancer": {
+            "sourceTree": 28,
+            "supported": 15,
+            "unsupported": 13
+          },
+          "gypsy": {
+            "sourceTree": 34,
+            "supported": 16,
+            "unsupported": 18
+          },
+          "priest": {
+            "sourceTree": 36,
+            "supported": 30,
+            "unsupported": 6
+          },
+          "high_priest": {
+            "sourceTree": 40,
+            "supported": 33,
+            "unsupported": 7
+          },
+          "monk": {
+            "sourceTree": 34,
+            "supported": 30,
+            "unsupported": 4
+          },
+          "champion": {
+            "sourceTree": 38,
+            "supported": 34,
+            "unsupported": 4
+          },
+          "blacksmith": {
+            "sourceTree": 39,
+            "supported": 20,
+            "unsupported": 19
+          },
+          "whitesmith": {
+            "sourceTree": 44,
+            "supported": 24,
+            "unsupported": 20
+          },
+          "alchemist": {
+            "sourceTree": 35,
+            "supported": 16,
+            "unsupported": 19
+          },
+          "creator": {
+            "sourceTree": 39,
+            "supported": 18,
+            "unsupported": 21
+          },
+          "assassin": {
+            "sourceTree": 24,
+            "supported": 21,
+            "unsupported": 3
+          },
+          "assassin_cross": {
+            "sourceTree": 29,
+            "supported": 25,
+            "unsupported": 4
+          },
+          "rogue": {
+            "sourceTree": 33,
+            "supported": 27,
+            "unsupported": 6
+          },
+          "stalker": {
+            "sourceTree": 37,
+            "supported": 31,
+            "unsupported": 6
+          }
+        },
+        "supportedSourceNames": [
+          "NV_FIRSTAID",
+          "NV_TRICKDEAD",
+          "SM_SWORD",
+          "SM_TWOHAND",
+          "SM_RECOVERY",
+          "SM_BASH",
+          "SM_PROVOKE",
+          "SM_MAGNUM",
+          "SM_ENDURE",
+          "SM_MOVINGRECOVERY",
+          "SM_FATALBLOW",
+          "SM_AUTOBERSERK",
+          "MG_SRECOVERY",
+          "MG_SIGHT",
+          "MG_NAPALMBEAT",
+          "MG_SAFETYWALL",
+          "MG_SOULSTRIKE",
+          "MG_COLDBOLT",
+          "MG_FROSTDIVER",
+          "MG_STONECURSE",
+          "MG_FIREBALL",
+          "MG_FIREWALL",
+          "MG_FIREBOLT",
+          "MG_LIGHTNINGBOLT",
+          "MG_THUNDERSTORM",
+          "MG_ENERGYCOAT",
+          "AC_OWL",
+          "AC_VULTURE",
+          "AC_CONCENTRATION",
+          "AC_DOUBLE",
+          "AC_SHOWER",
+          "AC_CHARGEARROW",
+          "AL_DP",
+          "AL_DEMONBANE",
+          "AL_RUWACH",
+          "AL_PNEUMA",
+          "AL_TELEPORT",
+          "AL_HEAL",
+          "AL_INCAGI",
+          "AL_DECAGI",
+          "AL_CRUCIS",
+          "AL_ANGELUS",
+          "AL_BLESSING",
+          "AL_CURE",
+          "AL_HOLYLIGHT",
+          "ALL_INCCARRY",
+          "MC_INCCARRY",
+          "MC_DISCOUNT",
+          "MC_OVERCHARGE",
+          "MC_PUSHCART",
+          "MC_IDENTIFY",
+          "MC_MAMMONITE",
+          "MC_CARTREVOLUTION",
+          "MC_LOUD",
+          "TF_DOUBLE",
+          "TF_MISS",
+          "TF_STEAL",
+          "TF_HIDING",
+          "TF_POISON",
+          "TF_DETOXIFY",
+          "TF_SPRINKLESAND",
+          "TF_BACKSLIDING",
+          "TF_PICKSTONE",
+          "TF_THROWSTONE",
+          "KN_SPEARMASTERY",
+          "KN_PIERCE",
+          "KN_BRANDISHSPEAR",
+          "KN_SPEARSTAB",
+          "KN_SPEARBOOMERANG",
+          "KN_TWOHANDQUICKEN",
+          "KN_AUTOCOUNTER",
+          "KN_BOWLINGBASH",
+          "KN_RIDING",
+          "KN_CAVALIERMASTERY",
+          "KN_CHARGEATK",
+          "LK_AURABLADE",
+          "LK_PARRYING",
+          "LK_CONCENTRATION",
+          "LK_TENSIONRELAX",
+          "LK_BERSERK",
+          "LK_SPIRALPIERCE",
+          "LK_HEADCRUSH",
+          "LK_JOINTBEAT",
+          "CR_TRUST",
+          "CR_AUTOGUARD",
+          "CR_SHIELDCHARGE",
+          "CR_SHIELDBOOMERANG",
+          "CR_REFLECTSHIELD",
+          "CR_HOLYCROSS",
+          "CR_GRANDCROSS",
+          "CR_DEFENDER",
+          "CR_SPEARQUICKEN",
+          "CR_SHRINK",
+          "PA_PRESSURE",
+          "PA_SACRIFICE",
+          "PA_SHIELDCHAIN",
+          "WZ_FIREPILLAR",
+          "WZ_SIGHTRASHER",
+          "WZ_METEOR",
+          "WZ_JUPITEL",
+          "WZ_VERMILION",
+          "WZ_WATERBALL",
+          "WZ_FROSTNOVA",
+          "WZ_STORMGUST",
+          "WZ_EARTHSPIKE",
+          "WZ_HEAVENDRIVE",
+          "WZ_QUAGMIRE",
+          "WZ_ESTIMATION",
+          "WZ_SIGHTBLASTER",
+          "HW_SOULDRAIN",
+          "HW_MAGICCRASHER",
+          "HW_MAGICPOWER",
+          "HW_NAPALMVULCAN",
+          "HW_GRAVITATION",
+          "SA_ADVANCEDBOOK",
+          "SA_CASTCANCEL",
+          "SA_MAGICROD",
+          "SA_SPELLBREAKER",
+          "SA_FREECAST",
+          "SA_AUTOSPELL",
+          "SA_FLAMELAUNCHER",
+          "SA_FROSTWEAPON",
+          "SA_LIGHTNINGLOADER",
+          "SA_SEISMICWEAPON",
+          "SA_DRAGONOLOGY",
+          "SA_VOLCANO",
+          "SA_DELUGE",
+          "SA_VIOLENTGALE",
+          "SA_CREATECON",
+          "SA_ELEMENTWATER",
+          "SA_ELEMENTGROUND",
+          "SA_ELEMENTFIRE",
+          "SA_ELEMENTWIND",
+          "PF_HPCONVERSION",
+          "PF_SOULCHANGE",
+          "PF_MINDBREAKER",
+          "PF_MEMORIZE",
+          "PF_FOGWALL",
+          "PF_SPIDERWEB",
+          "PF_DOUBLECASTING",
+          "HT_SKIDTRAP",
+          "HT_LANDMINE",
+          "HT_ANKLESNARE",
+          "HT_SANDMAN",
+          "HT_FLASHER",
+          "HT_FREEZINGTRAP",
+          "HT_BLASTMINE",
+          "HT_CLAYMORETRAP",
+          "HT_BEASTBANE",
+          "HT_FALCON",
+          "HT_STEELCROW",
+          "HT_BLITZBEAT",
+          "HT_PHANTASMIC",
+          "SN_SIGHT",
+          "SN_FALCONASSAULT",
+          "SN_SHARPSHOOTING",
+          "SN_WINDWALK",
+          "BA_MUSICALLESSON",
+          "BA_MUSICALSTRIKE",
+          "BA_DISSONANCE",
+          "BA_FROSTJOKE",
+          "BA_WHISTLE",
+          "BA_ASSASSINCROSS",
+          "BA_POEMBRAGI",
+          "BA_APPLEIDUN",
+          "BA_PANGVOICE",
+          "CG_ARROWVULCAN",
+          "DC_DANCINGLESSON",
+          "DC_THROWARROW",
+          "DC_SCREAM",
+          "DC_HUMMING",
+          "DC_DONTFORGETME",
+          "DC_FORTUNEKISS",
+          "DC_SERVICEFORYOU",
+          "DC_WINKCHARM",
+          "ALL_RESURRECTION",
+          "PR_MACEMASTERY",
+          "PR_IMPOSITIO",
+          "PR_ASPERSIO",
+          "PR_SANCTUARY",
+          "PR_SLOWPOISON",
+          "PR_STRECOVERY",
+          "PR_KYRIE",
+          "PR_MAGNIFICAT",
+          "PR_GLORIA",
+          "PR_LEXDIVINA",
+          "PR_TURNUNDEAD",
+          "PR_LEXAETERNA",
+          "PR_MAGNUS",
+          "HP_ASSUMPTIO",
+          "HP_MEDITATIO",
+          "HP_MANARECHARGE",
+          "MO_IRONHAND",
+          "MO_SPIRITSRECOVERY",
+          "MO_CALLSPIRITS",
+          "MO_ABSORBSPIRITS",
+          "MO_TRIPLEATTACK",
+          "MO_BODYRELOCATION",
+          "MO_DODGE",
+          "MO_INVESTIGATE",
+          "MO_FINGEROFFENSIVE",
+          "MO_STEELBODY",
+          "MO_BLADESTOP",
+          "MO_EXPLOSIONSPIRITS",
+          "MO_EXTREMITYFIST",
+          "MO_CHAINCOMBO",
+          "MO_COMBOFINISH",
+          "MO_BALKYOUNG",
+          "CH_PALMSTRIKE",
+          "CH_TIGERFIST",
+          "CH_CHAINCRUSH",
+          "CH_SOULCOLLECT",
+          "BS_HILTBINDING",
+          "BS_FINDINGORE",
+          "BS_WEAPONRESEARCH",
+          "BS_SKINTEMPER",
+          "BS_HAMMERFALL",
+          "BS_ADRENALINE",
+          "BS_WEAPONPERFECT",
+          "BS_OVERTHRUST",
+          "BS_MAXIMIZE",
+          "BS_UNFAIRLYTRICK",
+          "WS_MELTDOWN",
+          "WS_CARTBOOST",
+          "WS_CARTTERMINATION",
+          "WS_OVERTHRUSTMAX",
+          "AM_AXEMASTERY",
+          "AM_LEARNINGPOTION",
+          "AM_PHARMACY",
+          "AM_DEMONSTRATION",
+          "AM_ACIDTERROR",
+          "AM_POTIONPITCHER",
+          "CR_SLIMPITCHER",
+          "CR_ACIDDEMONSTRATION",
+          "AS_KATAR",
+          "AS_CLOAKING",
+          "AS_SONICBLOW",
+          "AS_GRIMTOOTH",
+          "AS_ENCHANTPOISON",
+          "AS_POISONREACT",
+          "AS_VENOMDUST",
+          "AS_SPLASHER",
+          "AS_SONICACCEL",
+          "AS_VENOMKNIFE",
+          "ASC_KATAR",
+          "ASC_EDP",
+          "ASC_BREAKER",
+          "ASC_METEORASSAULT",
+          "RG_SNATCHER",
+          "RG_STEALCOIN",
+          "RG_BACKSTAP",
+          "RG_TUNNELDRIVE",
+          "RG_RAID",
+          "RG_STRIPWEAPON",
+          "RG_STRIPSHIELD",
+          "RG_STRIPARMOR",
+          "RG_STRIPHELM",
+          "RG_INTIMIDATE",
+          "RG_COMPULSION",
+          "RG_PLAGIARISM",
+          "RG_CLOSECONFINE",
+          "ST_CHASEWALK",
+          "ST_REJECTSWORD",
+          "ST_PRESERVE",
+          "ST_FULLSTRIP"
+        ],
+        "unavailable": [
+          {
+            "skillId": "nv_basic",
+            "sourceName": "NV_BASIC",
+            "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
+          },
+          {
+            "skillId": "ac_makingarrow",
+            "sourceName": "AC_MAKINGARROW",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "al_warp",
+            "sourceName": "AL_WARP",
+            "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
+          },
+          {
+            "skillId": "al_holywater",
+            "sourceName": "AL_HOLYWATER",
+            "reason": "Produção de Água Benta exige células de água e Frasco Vazio."
+          },
+          {
+            "skillId": "mc_vending",
+            "sourceName": "MC_VENDING",
+            "reason": "Requer comércio com outros personagens."
+          },
+          {
+            "skillId": "mc_changecart",
+            "sourceName": "MC_CHANGECART",
+            "reason": "Aparência do carrinho exige objetos de carrinho."
+          },
+          {
+            "skillId": "mc_cartdecorate",
+            "sourceName": "MC_CARTDECORATE",
+            "reason": "Decoração de carrinho exige objetos de carrinho."
+          },
+          {
+            "skillId": "all_buying_store",
+            "sourceName": "ALL_BUYING_STORE",
+            "reason": "Requer comércio com outros personagens."
+          },
+          {
+            "skillId": "kn_onehand",
+            "sourceName": "KN_ONEHAND",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "cr_devotion",
+            "sourceName": "CR_DEVOTION",
+            "reason": "Requer outro personagem para transferir dano."
+          },
+          {
+            "skillId": "cr_providence",
+            "sourceName": "CR_PROVIDENCE",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "pa_gospel",
+            "sourceName": "PA_GOSPEL",
+            "reason": "Requer efeitos aleatórios de grupo."
+          },
+          {
+            "skillId": "ice_wall",
+            "sourceName": "WZ_ICEWALL",
+            "reason": "Requer edição de células bloqueadas do mapa."
+          },
+          {
+            "skillId": "ganbantein",
+            "sourceName": "HW_GANBANTEIN",
+            "reason": "Requer remoção de unidades de habilidades em células do mapa."
+          },
+          {
+            "skillId": "sa_landprotector",
+            "sourceName": "SA_LANDPROTECTOR",
+            "reason": "Requer células de mapa e cancelamento de campos."
+          },
+          {
+            "skillId": "sa_dispell",
+            "sourceName": "SA_DISPELL",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "sa_abracadabra",
+            "sourceName": "SA_ABRACADABRA",
+            "reason": "Requer seleção aleatória de habilidades especiais e transformações."
+          },
+          {
+            "skillId": "pf_soulburn",
+            "sourceName": "PF_SOULBURN",
+            "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
+          },
+          {
+            "skillId": "ht_shockwave",
+            "sourceName": "HT_SHOCKWAVE",
+            "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
+          },
+          {
+            "skillId": "ht_removetrap",
+            "sourceName": "HT_REMOVETRAP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "ht_talkiebox",
+            "sourceName": "HT_TALKIEBOX",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "ht_detecting",
+            "sourceName": "HT_DETECTING",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "ht_springtrap",
+            "sourceName": "HT_SPRINGTRAP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "ht_power",
+            "sourceName": "HT_POWER",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "bd_adaptation",
+            "sourceName": "BD_ADAPTATION",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_encore",
+            "sourceName": "BD_ENCORE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_lullaby",
+            "sourceName": "BD_LULLABY",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_richmankim",
+            "sourceName": "BD_RICHMANKIM",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_eternalchaos",
+            "sourceName": "BD_ETERNALCHAOS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_drumbattlefield",
+            "sourceName": "BD_DRUMBATTLEFIELD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_ringnibelungen",
+            "sourceName": "BD_RINGNIBELUNGEN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_rokisweil",
+            "sourceName": "BD_ROKISWEIL",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_intoabyss",
+            "sourceName": "BD_INTOABYSS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_siegfried",
+            "sourceName": "BD_SIEGFRIED",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "cg_moonlit",
+            "sourceName": "CG_MOONLIT",
+            "reason": "Requer parceiro e interação espacial de grupo."
+          },
+          {
+            "skillId": "cg_marionette",
+            "sourceName": "CG_MARIONETTE",
+            "reason": "Requer outro personagem para transferir atributos."
+          },
+          {
+            "skillId": "cg_longingfreedom",
+            "sourceName": "CG_LONGINGFREEDOM",
+            "reason": "Requer parceiro durante dueto."
+          },
+          {
+            "skillId": "cg_hermode",
+            "sourceName": "CG_HERMODE",
+            "reason": "Requer guilda e área de combate entre personagens."
+          },
+          {
+            "skillId": "cg_tarotcard",
+            "sourceName": "CG_TAROTCARD",
+            "reason": "Requer baralho aleatório com efeitos de combate entre personagens."
+          },
+          {
+            "skillId": "dc_uglydance",
+            "sourceName": "DC_UGLYDANCE",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "pr_suffragium",
+            "sourceName": "PR_SUFFRAGIUM",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "pr_benedictio",
+            "sourceName": "PR_BENEDICTIO",
+            "reason": "Requer dois Noviços e células de mapa."
+          },
+          {
+            "skillId": "pr_redemptio",
+            "sourceName": "PR_REDEMPTIO",
+            "reason": "Ressurreição de grupo exige outros personagens."
+          },
+          {
+            "skillId": "hp_basilica",
+            "sourceName": "HP_BASILICA",
+            "reason": "Requer área protegida e interação com vários personagens."
+          },
+          {
+            "skillId": "mo_kitranslation",
+            "sourceName": "MO_KITRANSLATION",
+            "reason": "Requer outro personagem para transferir esferas."
+          },
+          {
+            "skillId": "bs_iron",
+            "sourceName": "BS_IRON",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_steel",
+            "sourceName": "BS_STEEL",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_enchantedstone",
+            "sourceName": "BS_ENCHANTEDSTONE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_orideocon",
+            "sourceName": "BS_ORIDEOCON",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_dagger",
+            "sourceName": "BS_DAGGER",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_sword",
+            "sourceName": "BS_SWORD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_twohandsword",
+            "sourceName": "BS_TWOHANDSWORD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_axe",
+            "sourceName": "BS_AXE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_mace",
+            "sourceName": "BS_MACE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_knuckle",
+            "sourceName": "BS_KNUCKLE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_spear",
+            "sourceName": "BS_SPEAR",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_repairweapon",
+            "sourceName": "BS_REPAIRWEAPON",
+            "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
+          },
+          {
+            "skillId": "bs_greed",
+            "sourceName": "BS_GREED",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "bs_adrenaline2",
+            "sourceName": "BS_ADRENALINE2",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "ws_weaponrefine",
+            "sourceName": "WS_WEAPONREFINE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_cannibalize",
+            "sourceName": "AM_CANNIBALIZE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_spheremine",
+            "sourceName": "AM_SPHEREMINE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_cp_weapon",
+            "sourceName": "AM_CP_WEAPON",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_shield",
+            "sourceName": "AM_CP_SHIELD",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_armor",
+            "sourceName": "AM_CP_ARMOR",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_helm",
+            "sourceName": "AM_CP_HELM",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_bioethics",
+            "sourceName": "AM_BIOETHICS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_callhomun",
+            "sourceName": "AM_CALLHOMUN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_rest",
+            "sourceName": "AM_REST",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_resurrecthomun",
+            "sourceName": "AM_RESURRECTHOMUN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_berserkpitcher",
+            "sourceName": "AM_BERSERKPITCHER",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight1",
+            "sourceName": "AM_TWILIGHT1",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight2",
+            "sourceName": "AM_TWILIGHT2",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight3",
+            "sourceName": "AM_TWILIGHT3",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "cr_fullprotection",
+            "sourceName": "CR_FULLPROTECTION",
+            "reason": "Proteção completa exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "cr_cultivation",
+            "sourceName": "CR_CULTIVATION",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "as_right",
+            "sourceName": "AS_RIGHT",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "as_left",
+            "sourceName": "AS_LEFT",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "asc_cdp",
+            "sourceName": "ASC_CDP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "rg_graffiti",
+            "sourceName": "RG_GRAFFITI",
+            "reason": "Requer inscrições em células do mapa."
+          },
+          {
+            "skillId": "rg_flaggraffiti",
+            "sourceName": "RG_FLAGGRAFFITI",
+            "reason": "Requer bandeiras de guilda no mapa."
+          },
+          {
+            "skillId": "rg_cleaner",
+            "sourceName": "RG_CLEANER",
+            "reason": "Requer inscrições em células do mapa."
+          },
+          {
+            "skillId": "rg_gangster",
+            "sourceName": "RG_GANGSTER",
+            "reason": "Requer aliados da mesma classe."
+          }
+        ],
+        "combatExpansion": [
+          "AM_LEARNINGPOTION",
+          "BS_SKINTEMPER",
+          "BS_WEAPONPERFECT",
+          "BS_MAXIMIZE",
+          "SA_DRAGONOLOGY",
+          "AL_DP",
+          "PR_ASPERSIO",
+          "RG_STRIPWEAPON",
+          "RG_STRIPARMOR",
+          "RG_STRIPHELM",
+          "PF_HPCONVERSION",
+          "HT_LANDMINE",
+          "HT_BLASTMINE",
+          "HT_CLAYMORETRAP",
+          "HT_FREEZINGTRAP",
+          "RG_SNATCHER",
+          "RG_STRIPSHIELD",
+          "AS_ENCHANTPOISON",
+          "MC_IDENTIFY",
+          "SA_AUTOSPELL",
+          "PF_DOUBLECASTING",
+          "PF_MEMORIZE",
+          "AL_PNEUMA",
+          "SM_ENDURE",
+          "CR_DEFENDER",
+          "HT_SKIDTRAP",
+          "HT_ANKLESNARE",
+          "HT_SANDMAN",
+          "HT_FLASHER",
+          "MO_STEELBODY",
+          "LK_BERSERK",
+          "ASC_EDP",
+          "ST_FULLSTRIP",
+          "ST_REJECTSWORD",
+          "SM_AUTOBERSERK",
+          "AS_POISONREACT",
+          "AS_SPLASHER",
+          "KN_AUTOCOUNTER",
+          "BS_UNFAIRLYTRICK",
+          "RG_TUNNELDRIVE",
+          "AL_RUWACH",
+          "DC_DONTFORGETME",
+          "BA_PANGVOICE",
+          "DC_WINKCHARM",
+          "RG_CLOSECONFINE",
+          "PF_MINDBREAKER",
+          "PF_FOGWALL",
+          "SA_VOLCANO",
+          "SA_DELUGE",
+          "SA_VIOLENTGALE",
+          "MO_BODYRELOCATION",
+          "MO_BLADESTOP"
+        ]
+      },
+      "afterHash": "c4a17161f14c2f69bf036aa48b35a779485f12d3b0d5f39a10fc82c54ec0bccd"
+    },
+    "rulesSha256": {
+      "before": "9520343196ea80c50ec6380f2c4a0258b3f8406004ae77ef52b7b48b1e3b8a04",
+      "afterHash": "f09406532caf34e377ba052e8884f5d45f0ce2c11fd7b9bb2342fb74299f4701"
+    },
+    "catalogSha256": {
+      "before": "d05a83f7358f632b692aa6ba65a2abdeffde22508ec2ab5794d45807c2d697f8",
+      "afterHash": "b3a8e4243690b8f1163d7ee3f94c758b09a355c4ebe817b106bc941f8d0e06e4"
+    }
+  },
+  "addedManifest": {
+    "falconRules": "7ef2af2676c3cff6234e68a6780df9956fc08771b4f7cc868189a8c3e859e834"
+  }
+}

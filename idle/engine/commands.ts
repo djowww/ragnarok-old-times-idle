@@ -1,3 +1,5 @@
+import {useDetecting} from './falconDetect.js';
+import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
 import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
 import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
 import { soloAlchemyCanStart, startSoloAlchemyCast } from './soloAlchemy.js';
@@ -118,6 +120,21 @@ export function executeCommand(
       collectPendingLoot(s, c, now);
       break;
     }
+    case 'rentFalcon': {
+      town(s);
+      requireRule(s.hp > 0, 'RECOVERING', 'Recupere seu HP antes de alugar um falcão.');
+      requireRule(canEquipFalcon(s,c), 'FALCON_UNAVAILABLE', 'Aprenda Falcoaria como Caçador ou Atirador de Elite.');
+      requireRule(!isFalconEquipped(s,c), 'FALCON_ALREADY_EQUIPPED', 'Você já está acompanhado por um falcão.');
+      spend(s,FALCON_RENTAL_ZENY);
+      s.falconEquipped = true;
+      event(s,now,'falcon','Falcão equipado.');
+      break;
+    }
+    case 'dismissFalcon': {
+      if(s.falconEquipped === true)event(s,now,'falcon','Falcão dispensado.');
+      s.falconEquipped = false;
+      break;
+    }
     case 'setMount': {
       requireRule(typeof command.mounted === 'boolean', 'INVALID_MOUNT', 'Escolha montar ou desmontar.');
       requireRule(!command.mounted || canPecoMount(s, c), 'MOUNT_UNAVAILABLE',
@@ -132,6 +149,11 @@ export function executeCommand(
     }
     case 'useSkill': {
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
+      if (skill?.sourceName === 'HT_DETECTING') {
+        requireRule(useDetecting(s,c,skill,level,now),'SKILL_UNAVAILABLE',
+          'Aprenda Detectar, equipe seu falcão, tenha 8 SP e esteja livre para usar a habilidade.');
+        break;
+      }
       if (configurableSkillUseLevel(skill)) {
         requireRule(soloAlchemyCanStart(s, c, skill, level, now), 'SKILL_UNAVAILABLE',
           'Aprenda a habilidade, tenha SP e a poção correta, e esteja livre para usá-la.');
@@ -588,6 +610,7 @@ export function executeCommand(
               c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
             c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'HT_DETECTING' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate' ||
             ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(c.skills[id].sourceName ?? '')) &&
             c.skills[id].implementation !== "unsupported",
@@ -825,6 +848,7 @@ export function executeCommand(
       if (s.job !== next.id) clearCopiedSpell(s, c);
       s.job = next.id;
       if (!canPecoMount(s, c)) s.mounted = false;
+      reconcileFalcon(s,c);
       if (next.tier === 1 && !s.family) s.family = next.family;
       if (next.tier === 2 && !s.reborn) s.branch = next.id;
       s.jobLevel = 1;
@@ -860,6 +884,7 @@ export function executeCommand(
       clearCopiedSpell(s, c);
       s.job = "high_novice";
       s.mounted = false;
+      s.falconEquipped = false;
       s.baseLevel = 1;
       s.jobLevel = 1;
       s.baseExp = 0;
@@ -946,6 +971,7 @@ export function executeCommand(
     default:
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
+  reconcileFalcon(s,c);
   discardAloeveraUnderAutoBerserk(s,c,now);
   if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
     returnForCarry(s, c, now);

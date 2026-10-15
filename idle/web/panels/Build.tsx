@@ -1,3 +1,5 @@
+import {detectingCanStart} from '../../engine/falconDetect';
+import {canEquipFalcon,isFalconEquipped,FALCON_RENTAL_ZENY} from '../../engine/falcon';
 import { chasewalkCanStart } from '../../engine/chasewalk';
 import { teleportAvailable } from '../../engine/teleport';
 import { number, type PanelProps } from "../components/common";
@@ -47,6 +49,7 @@ export default function Build({
   const rotation = state.rotation;
   const autospellChoices = automaticSpellChoices(state, catalog);
   const mounted = isPecoMounted(state, catalog);
+  const falconEquipped = isFalconEquipped(state,catalog);
   return (
     <div className={`build-layout build-layout-${mode}`}>
       {mode !== "skills" && <ClassicStatus catalog={catalog} snapshot={snapshot} busy={busy} command={command} />}
@@ -182,6 +185,7 @@ export default function Build({
                   </div>}
                   <small>
                     {skill.manualUse === "mount" ? "Montaria manual · use para montar ou desmontar"
+                      : skill.sourceName === 'HT_FALCON' ? falconEquipped ? 'Falcoaria aprendida · Falcão equipado' : 'Falcão ausente · alugue na cidade após aprender Falcoaria'
                       : skill.kind === "passive"
                       ? unsupported ? "Passiva · efeito indisponível" : level > 0
                         ? skill.sourceName === 'SA_FREECAST' ? 'Passiva · aplicada durante a conjuração' : "Passiva · sempre aplicada"
@@ -243,11 +247,18 @@ export default function Build({
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "inventory" && <small>Use na mochila para identificar equipamentos.</small>}
+                    {skill.sourceName === 'HT_DETECTING' && <button type="button"
+                      disabled={busy || !detectingCanStart(state,catalog,skill,level,snapshot.serverTime)}
+                      onClick={() => void command({type:'useSkill',skillId:skill.id})}>Detectar ao redor</button>}
                     {configurableUseLevel && <button type="button"
                       disabled={busy || unsupported || level === 0 || missingPrerequisites || missingJobLevel || !ids.has(skill.id)}
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
                       Usar Nv. {useLevel}
                     </button>}
+                    {skill.sourceName === 'HT_FALCON' && (falconEquipped ?
+                      <button type="button" disabled={busy} onClick={() => void command({type:'dismissFalcon'})}>Dispensar falcão</button> :
+                      <button type="button" disabled={busy || !canEquipFalcon(state,catalog) || state.status !== 'town' || state.hp <= 0 || state.zeny < FALCON_RENTAL_ZENY}
+                        onClick={() => void command({type:'rentFalcon'})}>Alugar falcão · {number(FALCON_RENTAL_ZENY)} z</button>)}
                     {skill.manualUse === "mount" && <button disabled={busy || unsupported || level === 0}
                       aria-pressed={mounted}
                       onClick={() => void command({ type: 'setMount', mounted: !mounted })}>
@@ -321,6 +332,7 @@ export default function Build({
                     </button>}
                     {skill.kind !== "passive" && (configurableUseLevel || skill.manualUse !== 'inspect' && (!skill.manualUse || skill.sourceName === 'CR_SHRINK' ||
                       sageGroundSkill ||
+                      skill.sourceName === 'HT_DETECTING' && skill.manualUse === 'activate' ||
                       skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate' ||
                       skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate')) && (
                       <button

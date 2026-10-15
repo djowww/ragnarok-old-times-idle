@@ -1,3 +1,4 @@
+import {alignFalconCues} from '../web/assets/falconPresentation';
 import { selectSceneEventBatch } from '../web/assets/sceneEventBootstrap';
 import { shiftCorpsePresentation } from '../web/assets/corpsePresentation';
 import { describe, expect, it, vi } from 'vitest';
@@ -38,7 +39,7 @@ function snapshotFixture(population: boolean) {
     enemyPositions: ref(new Map()), offensiveTargets: ref(new Set()), legacyOpponentPosition: ref(null),
     legacyOpponentId: ref('enemy'), defeatedOpponent: ref(null), blockedTerminalId: ref(null),
     projection: ref(null), encounterPose: ref(null), roaming: ref({ position: { x: .5, y: .5 } }),
-    skillCueCastDuration, selectSceneEventBatch, shiftCorpsePresentation, isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
+    skillCueCastDuration, selectSceneEventBatch, shiftCorpsePresentation, alignFalconCues, isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
     presentLatestActorActions, retireInterruptedCastCues, retireTrickDeadPoses, hasSceneAction, trapCueAction, combatPopupText, SKILL_EFFECT_MS,
   };
   return scope;

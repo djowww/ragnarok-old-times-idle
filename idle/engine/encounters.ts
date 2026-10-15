@@ -1,3 +1,6 @@
+import {falconDamage,finishFalconDamage,autoFalconLevel,autoFalconProc} from './falconCombatRules.js';
+import {detectingCanStart,detectingAfkUseful,useDetecting} from './falconDetect.js';
+import {isFalconEquipped} from './falcon.js';
 import { findingOreItem } from './findingOre.js';
 import { itemElementResistance } from '../shared/consumables.js';
 import { consumeItem, consumeItemBlockReason, discardAloeveraUnderAutoBerserk, clearConsumableStatusesOnDeath } from "./consumables.js";
@@ -6,6 +9,7 @@ import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLeve
 import { soloAlchemyAfkUseful, startSoloAlchemyCast } from './soloAlchemy.js';
 import type {
   BattleEnemy,
+  FalconStrike,
   Battle,
   Catalog,
   GameEvent,
@@ -1244,11 +1248,14 @@ function chooseSkill(
       skill.manualUse && !configurableSkillUseLevel(skill) && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
+        !(skill.sourceName === 'HT_DETECTING' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
       skill.implementation === "unsupported" ||
       (s.skillReadyAt[id] ?? 0) > at
     )
       continue;
+    if (skill.sourceName === 'HT_DETECTING' &&
+      (!detectingCanStart(s,c,skill,level,at) || !detectingAfkUseful(s,at))) continue;
     if (configurableSkillUseLevel(skill) && !soloAlchemyAfkUseful(s, c, skill, level, at)) continue;
     if (skill.targetType === 'enemy' && target.hp <= 0) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
@@ -1352,6 +1359,7 @@ function chooseSkill(
     if (skill.requiredState) {
       const state = skill.requiredState.toLowerCase();
       if (state === 'riding' && !isPecoMounted(s, c)) continue;
+      if (state === 'falcon' && !isFalconEquipped(s,c)) continue;
       const hasBuff = (source: string) =>
         Object.entries(s.buffs).some(
           ([id, b]) => b.expiresAt > at && c.skills[id]?.sourceName === source,
@@ -1414,22 +1422,31 @@ function chooseSkill(
     return skill;
   }
 }
+function removeKilledFieldActor(s: GameState, enemy: BattleEnemy, at: number): boolean {
+  if (enemy.fieldSlot === undefined || s.fieldPopulation?.areaId !== s.areaId) return false;
+  s.fieldPopulation.enemies = s.fieldPopulation.enemies.filter(entry => entry.id !== enemy.id);
+  s.fieldPopulation.respawns = s.fieldPopulation.respawns.filter(entry => entry.slot !== enemy.fieldSlot);
+  s.fieldPopulation.respawns.push({ slot: enemy.fieldSlot, at: at + POST_WAVE_SEARCH_MS });
+  return true;
+}
 function awardKill(
   s: GameState,
   c: Catalog,
   enemy: BattleEnemy,
   at: number,
   skill?: Skill,
+  requireLivingOwner = false,
 ) {
   // XP may level up and healFull; native ore eligibility belongs to the actual kill instant.
   const oreOwnerWasAlive = s.hp > 0;
   if (s.combatEffects?.bladeStopLink?.partnerActorId === enemy.id) clearBladeStop(s, at);
-  const b = s.battle!,
+  // Reward only finalizes the battle that actually owns this actor.
+  const b = s.battle?.enemies?.some(entry => entry.id === enemy.id) ? s.battle : undefined,
     monster = c.monsters[enemy.monsterId];
   releaseCloseConfineTarget(s, enemy, at);
   const enemyPosition = { ...enemyPositionAt(enemy, at) };
-  const areaId = b.challengeId ? undefined : s.areaId ?? undefined;
-  if (b.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
+  const areaId = b?.challengeId ? undefined : s.areaId ?? undefined;
+  if (b?.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
     clearTrickDead(s, c, at);
     cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
     s.battle = null;
@@ -1441,14 +1458,14 @@ function awardKill(
   s.totals.kills++;
   const base = s.totals.baseExp,
     job = s.totals.jobExp;
-  gainExp(
+  if (!requireLivingOwner || oreOwnerWasAlive) gainExp(
     s,
     c,
     monster.baseExp * c.rates.baseExp,
     monster.jobExp * c.rates.jobExp,
     at,
   );
-  if (!b.challengeId && s.areaId)
+  if (!b?.challengeId && s.areaId)
     recordAreaActivity(s, s.areaId, at, {
       kills: 1,
       baseExp: s.totals.baseExp - base,
@@ -1467,7 +1484,7 @@ function awardKill(
     ) {
       pickupItem(s, c, drop.itemId, 1, at, { source: 'monster', areaId, enemyId: enemy.id,
         monsterId: monster.id, position: { ...enemyPosition } });
-      if (!b.challengeId && s.areaId)
+      if (!b?.challengeId && s.areaId)
         recordAreaActivity(s, s.areaId, at, {
           lootZeny: c.items[drop.itemId].sellPrice,
         });
@@ -1483,7 +1500,7 @@ function awardKill(
   const oreItemId=findingOreItem(s,c,oreOwnerWasAlive);
   if(oreItemId!==undefined){
     pickupItem(s,c,oreItemId,1,at,{source:'skill',areaId,enemyId:enemy.id,monsterId:monster.id,position:{...enemyPosition}});
-    if(!b.challengeId&&s.areaId)recordAreaActivity(s,s.areaId,at,{lootZeny:c.items[oreItemId].sellPrice});
+    if(!b?.challengeId&&s.areaId)recordAreaActivity(s,s.areaId,at,{lootZeny:c.items[oreItemId].sellPrice});
     event(s,at,'loot',c.items[oreItemId].name,undefined,undefined,{itemId:oreItemId,quantity:1,enemyId:enemy.id,enemyPosition:{...enemyPosition},areaId,monsterId:monster.id,skillId:'bs_findingore'});
   }
   const drain =
@@ -1499,6 +1516,11 @@ function awardKill(
       derivedStats(s, c).maxSp,
       s.sp + Math.floor((monster.level * (95 + 15 * drain)) / 100),
     );
+  if (!b) {
+    removeKilledFieldActor(s, enemy, at);
+    updateQuests(s, c);
+    return;
+  }
   b.enemies = b.enemies!.filter((e) => e.id !== enemy.id);
   for (const unit of b.skillUnits ?? []) if (unit.capturedEnemyId === enemy.id) {
     delete unit.capturedEnemyId;
@@ -1506,10 +1528,7 @@ function awardKill(
   }
   // Copy the shortened lifetime before the last kill discards this battle.
   pruneGroundPlacements(s, at);
-  if (!b.challengeId && enemy.fieldSlot !== undefined && s.fieldPopulation?.areaId === s.areaId) {
-    s.fieldPopulation.enemies = s.fieldPopulation.enemies.filter(entry => entry.id !== enemy.id);
-    s.fieldPopulation.respawns = s.fieldPopulation.respawns.filter(entry => entry.slot !== enemy.fieldSlot);
-    s.fieldPopulation.respawns.push({ slot: enemy.fieldSlot, at: at + POST_WAVE_SEARCH_MS });
+  if (!b.challengeId && removeKilledFieldActor(s, enemy, at)) {
     if (s.pendingAreaId && b.targetId === enemy.id) b.fieldTransferReady = true;
     if (!b.enemies.some(entry => entry.id === b.targetId))
       b.targetId = fieldTarget(s, c, b.enemies, at)?.id;
@@ -1528,8 +1547,8 @@ function awardKill(
     syncBattle(s);
     return;
   }
-  if (b.challengeId) {
-    if (b.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
+  if (b?.challengeId) {
+    if (b?.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
       clearTrickDead(s, c, at);
       cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
       s.battle = null;
@@ -1537,7 +1556,7 @@ function awardKill(
       return;
     }
     if (b.attemptId) s.rewardedAttempts.push(b.attemptId);
-    const ch = c.challenges.find((ch) => ch.id === b.challengeId)!;
+    const ch = c.challenges.find((ch) => ch.id === b?.challengeId)!;
     const previous = s.challengeWins[ch.id] ?? 0;
     s.challengeWins[ch.id] = previous + 1;
     s.challengeCooldowns[ch.id] = at + ch.cooldownMs;
@@ -1548,7 +1567,7 @@ function awardKill(
     s.autoResume = false;
   }
   s.battle = null;
-  if (!b.challengeId && s.pendingAreaId) {
+  if (!b?.challengeId && s.pendingAreaId) {
     const next = c.areas.find((a) => a.id === s.pendingAreaId);
     if (next) {
       clearCloseConfine(s, at);
@@ -1745,6 +1764,10 @@ function damageEnemies(
   jointBeatPart?: JointBeatPart,
   context?: SimulationContext,
 ) {
+  if (skill && ['HT_BLITZBEAT','SN_FALCONASSAULT'].includes(skill.sourceName ?? '')) {
+    queueFalconStrike(s,c,skill,level,target,at,false,action.actionId);
+    return;
+  }
   if (jointBeatPart && skill?.sourceName === 'LK_JOINTBEAT')
     skill = { ...skill, power: [jointBeatDamagePercent(level, jointBeatPart)] };
   if (skill?.sourceName === "MO_FINGEROFFENSIVE") {
@@ -1995,6 +2018,7 @@ function damageEnemies(
         }
       }
     }
+    if (normalHit && damage > 0 && enemy.hp > 0) tryAutoFalcon(s,c,enemy,at,action.actionId);
     applyMeltdownHit(s, c, enemy, at, damage, skill);
     if (enemy.hp <= 0 && s.battle) awardKill(s, c, enemy, at, skill);
     else if (skill?.sourceName === 'KN_BRANDISHSPEAR' && damage > 0 && !monster.boss && !monster.noKnockback &&
@@ -2063,6 +2087,92 @@ function damageEnemies(
   }
   if (s.battle) syncBattle(s);
 }
+/** Capture BF_MISC damage now; the timer only validates actor/map/distance and applies HP. */
+function queueFalconStrike(s:GameState,c:Catalog,skill:Skill,level:number,primary:BattleEnemy,
+  at:number,automatic:boolean,actionId?:string,triggerActionId?:string){
+ const d=derivedStats(s,c),origin={...battleHeroAt(s,at)},anchor=sourceCell(enemyPositionAt(primary,at));
+ const radius=skill.sourceName==='SN_FALCONASSAULT'?0:1;
+ const selected=new Map<string,BattleEnemy>();
+ for(const enemy of enemies(s)){
+  const cell=sourceCell(enemyPositionAt(enemy,at));
+  if(enemy.hp>0&&enemy.startedAt<=at&&(enemy.id===primary.id||radius>0&&
+    Math.max(Math.abs(cell.x-anchor.x),Math.abs(cell.y-anchor.y))<=radius))selected.set(enemy.id,enemy);
+ }
+ if(!selected.size)return;
+ const levels=learnedBySource(s,c),sourceCellPoint=sourceCell(origin);
+ const id=actionId??`auto-falcon-${s.id}-${at}-${s.nextEventId}`;
+ const strike:FalconStrike={id,triggerActionId,sourceActorId:s.id,sceneKey:classicGroundSceneKey(s),areaId:s.areaId??undefined,
+  skillId:skill.id,level,automatic,launchedAt:at,impactAt:at+d.attackMotionMs,sourcePosition:origin,targets:[]};
+ for(const enemy of selected.values()){
+  provokeEnemy(s,c,enemy,at);
+  const monster=combatStatus(c,enemy,at,sageFieldModifiers(s,enemy.id,at)).monster;
+  const point=sourceCell(enemyPositionAt(enemy,at));
+  let damage=falconDamage({dex:d.attributes?.dex??s.stats.dex,int:d.attributes?.int??s.stats.int,
+   steelCrow:levels.HT_STEELCROW??0,level,kind:automatic?'auto':skill.sourceName==='SN_FALCONASSAULT'?'assault':'manual',
+   targetCount:selected.size,elementRatePct:elementMultiplier(c,'Neutral',monster)*100});
+  // No supported monster skill currently produces Pneuma; do not model a fake player ground on enemies.
+  const lex=Object.entries(enemy.statuses??{}).find(([name,status])=>/LEXAETERNA/i.test(name)&&status.expiresAt>at);
+  if(damage>0&&lex)delete enemy.statuses![lex[0]];
+  damage=finishFalconDamage(damage,skill.sourceName==='SN_FALCONASSAULT'?1:level,!!lex);
+  if(skill.herculesId!==undefined&&monster.npcStatusSkills?.some(row=>row.condition==='MSC_SKILLUSED'))
+   (enemy.npcCombat??={firstAttackDone:false,readyAt:{}}).lastReceivedSkillId=skill.herculesId;
+  strike.targets.push({enemyId:enemy.id,monsterId:enemy.monsterId,damage,
+   maxDistance:Math.max(Math.abs(point.x-sourceCellPoint.x),Math.abs(point.y-sourceCellPoint.y))+14,
+   hitMotionMs:monster.damageMotionMs??400});
+ }
+ (s.falconStrikes??=[]).push(strike);
+ event(s,at,'falcon-flight',skill.name,undefined,'enemy',{skillId:skill.id,skillLevel:level,
+  sourceActorId:s.id,targetActorId:primary.id,enemyId:primary.id,monsterId:primary.monsterId,
+  actionId:id,triggerActionId,actorAction:'none',actionMotionMs:0,castMs:0,actionSourcePosition:origin,
+  movementDestination:{...enemyPositionAt(primary,at)},areaId:strike.areaId});
+}
+function tryAutoFalcon(s:GameState,c:Catalog,target:BattleEnemy,at:number,triggerActionId?:string){
+ if(!isFalconEquipped(s,c))return;
+ const entry=s.inventory.find(item=>item.uid===s.equipment.weapon);
+ if(!entry||c.items[entry.itemId]?.weaponType!=='bow')return;
+ const skill=Object.values(c.skills).find(candidate=>candidate.sourceName==='HT_BLITZBEAT');
+ const learned=skill?s.learnedSkills[skill.id]??0:0,level=autoFalconLevel(learned,s.jobLevel);
+ if(!skill||skill.implementation!=='supported'||level<=0||!classSkills(c,s.job).includes(skill.id))return;
+ const luk=derivedStats(s,c).attributes?.luk??s.stats.luk;
+ if(!autoFalconProc(Math.floor(random(s)*1000),luk))return;
+ queueFalconStrike(s,c,skill,level,target,at,true,undefined,triggerActionId);
+}
+function resolveFalconStrike(s:GameState,c:Catalog,strike:FalconStrike,at:number){
+ // Consume before side effects: JSON/reconnect cannot apply an impact twice.
+ s.falconStrikes=s.falconStrikes?.filter(entry=>entry.id!==strike.id);
+ if(!s.falconStrikes?.length)delete s.falconStrikes;
+ if(strike.sourceActorId!==s.id||strike.sceneKey!==classicGroundSceneKey(s))return;
+ const origin=sourceCell(battleHeroAt(s,at)),skill=c.skills[strike.skillId];
+ for(const captured of strike.targets){
+  const enemy=s.battle?.enemies?.find(entry=>entry.id===captured.enemyId)??
+   s.fieldPopulation?.enemies.find(entry=>entry.id===captured.enemyId);
+  if(!enemy||enemy.hp<=0||enemy.monsterId!==captured.monsterId||enemy.startedAt>at)continue;
+  const point=sourceCell(enemyPositionAt(enemy,at));
+  if(Math.max(Math.abs(point.x-origin.x),Math.abs(point.y-origin.y))>captured.maxDistance)continue;
+  const targetHpBefore=enemy.hp;enemy.hp=Math.max(0,enemy.hp-captured.damage);
+  rememberMonsterAttacker(s,enemy,captured.damage,at);
+  interruptMonsterStatusCast(s,c,enemy,at,captured.damage);breakControlOnDamage(enemy,captured.damage,at);
+  const population=s.fieldPopulation?.enemies.find(entry=>entry.id===enemy.id);
+  if(population&&population!==enemy)Object.assign(population,structuredClone(enemy));
+  event(s,at,'damage','Ataque do falcão',captured.damage,'enemy',{skillId:strike.skillId,skillLevel:strike.level,
+   sourceActorId:s.id,targetActorId:enemy.id,enemyId:enemy.id,monsterId:enemy.monsterId,actionId:strike.id,triggerActionId:strike.triggerActionId,
+   actorAction:'none',actionMotionMs:0,actionStartedAt:strike.launchedAt,actionSourcePosition:strike.sourcePosition,
+   areaId:strike.areaId,hitMotionMs:captured.hitMotionMs,hitCount:skill?.sourceName==='SN_FALCONASSAULT'?1:strike.level,
+   castMs:0,targetHpBefore});
+  if(enemy.hp<=0)awardKill(s,c,enemy,at,skill,true);
+ }
+ if(s.battle)syncBattle(s);
+}
+function resolveUnattachedFalconStrikes(s:GameState,c:Catalog,until:number){
+ const persistedAt=s.lastSimulatedAt;
+ try{
+  for(const strike of [...(s.falconStrikes??[])].sort((a,b)=>a.impactAt-b.impactAt||a.id.localeCompare(b.id))){
+   if(strike.impactAt>until)continue;
+   s.lastSimulatedAt=strike.impactAt;resolveFalconStrike(s,c,strike,strike.impactAt);
+  }
+ }finally{s.lastSimulatedAt=persistedAt;}
+}
+
 /** Automatic magic is a secondary effect of the swing, never a new actor action. */
 function hindsightAttack(s: GameState, c: Catalog, target: BattleEnemy, at: number, normalAttack: boolean, context?: SimulationContext) {
   const selected = s.combatEffects?.autospell;
@@ -3135,6 +3245,10 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
   const skill = skillDecisionDue ? chooseSkill(s, c, at, target, false, false, context) : undefined;
   if (skill) {
+    if (skill.sourceName === 'HT_DETECTING') {
+      useDetecting(s,c,skill,skillUseLevel(s,c,skill.id),at);
+      return;
+    }
     if (configurableSkillUseLevel(skill)) {
       startSoloAlchemyCast(s, c, skill, skillUseLevel(s, c, skill.id), at);
       return;
@@ -3291,6 +3405,7 @@ type CombatDeadline = { at: number; priority: number; key: string } & (
   { kind: "ground"; ground: NonNullable<Battle["groundEffects"]>[number] } |
   { kind: "trap"; trap: NonNullable<Battle["traps"]>[number] } |
   { kind: "unit"; unit: NonNullable<Battle["skillUnits"]>[number] } |
+  { kind: "falcon"; strike: FalconStrike } |
   { kind: "delayed"; delayed: NonNullable<Battle["delayedSkills"]>[number] }
 );
 
@@ -3349,10 +3464,13 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
   initial.playerNextSkillAt ??= initial.playerNextAttackAt;
   initial.playerActionReadyAt ??= initial.cast?.endsAt ?? initial.playerNextAttackAt;
   if (!initial.challengeId) initial.fieldDecisionAt ??= cursor;
-  while (s.battle) {
+  while (s.battle || s.falconStrikes?.some(strike => strike.impactAt <= until)) {
+    if (!s.battle) { resolveUnattachedFalconStrikes(s,c,until); break; }
     const b = s.battle;
     const due: CombatDeadline[] = [];
     const add = (deadline: CombatDeadline) => { if (deadline.at <= until) due.push(deadline); };
+    for (const strike of s.falconStrikes ?? [])
+      add({kind:'falcon',strike,at:Math.max(cursor,strike.impactAt),priority:2.5,key:strike.id});
     const fieldBoundary = nextSageFieldBoundary(s, cursor);
     if (fieldBoundary !== undefined) add({ kind: 'sageField', at: fieldBoundary, priority: -2.15, key: 'sageField' });
     const carryAt = s.carryReturnRequestedAt ?? (overweightForCombat(s, c) ? cursor : undefined);
@@ -3475,6 +3593,10 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     cursor = next.at;
     s.lastSimulatedAt = cursor;
     if (s.elementalField && next.kind !== 'sageField') syncSageField(s, c, cursor);
+    if (next.kind === 'falcon') {
+      resolveFalconStrike(s,c,next.strike,cursor);
+      continue;
+    }
     const target = enemies(s).find(e => e.id === b.targetId) ?? enemies(s)[0];
     if (next.kind === 'sageField') {
       syncSageField(s, c, cursor);
@@ -3675,7 +3797,7 @@ export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000, con
   cancelInvalidMonsterStatusCasts(s,at);
   const diseaseTiming = !!s.elementalField || !!sageFieldSource(c.skills[s.supportCast?.skillId ?? '']?.sourceName) ||
     !!Object.keys(s.playerStatuses ?? {}).length || (s.battle?.enemies ?? []).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
-  if (!s.battle && diseaseTiming) {
+  if (!s.battle && (diseaseTiming || s.falconStrikes?.length)) {
     const persistedAt = s.lastSimulatedAt;
     let cursor = at - elapsedMs;
     try {
@@ -3686,11 +3808,13 @@ export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000, con
       const slowEnds = Object.entries(s.buffs).filter(([id,b]) => c.skills[id]?.sourceName === 'PR_SLOWPOISON' && b.expiresAt > cursor).map(([,b]) => b.expiresAt);
       const fieldBoundary = nextSageFieldBoundary(s, cursor) ?? Number.POSITIVE_INFINITY;
       const castEnd = s.supportCast ? Math.max(cursor, s.supportCast.endsAt) : Number.POSITIVE_INFINITY;
-      const end = Math.min(at, Math.max(cursor, nextPlayerStatusDeadline(s)), ...slowEnds, fieldBoundary, castEnd);
+      const falconAt=Math.min(...(s.falconStrikes??[]).map(strike=>Math.max(cursor,strike.impactAt)));
+      const end = Math.min(at, Math.max(cursor, nextPlayerStatusDeadline(s)), ...slowEnds, fieldBoundary, castEnd, falconAt);
       recoverResources(s, c, end - .001, end - cursor);
       s.lastSimulatedAt = end;
       if (s.elementalField) syncSageField(s, c, end);
       tickPlayerStatuses(s, c, end);
+      resolveUnattachedFalconStrikes(s,c,end);
       if (s.hp <= 0 && s.restMode !== "recovery") { defeatPlayer(s, c, end); if (end === at) return; }
       if (s.supportCast && s.supportCast.endsAt <= end) resolveSupportCast(s, c, end, context);
       cursor = end;

@@ -1,3 +1,4 @@
+import { falconDamage } from './falconCombatRules.js';
 /**
  * Hercules pre-renewal combat arithmetic, pinned at
  * 410b9738c049ab1825d67b36b072d837c1d0b33a. GPL-3.0-or-later.
@@ -282,6 +283,14 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
   if (name === 'PR_TURNUNDEAD') return classicMagicDamage(stats, monster, skill!, level, rng);
   const element = s?.ignoreElement ? 1 : stats.elementMultiplier ?? 1;
   if (element <= 0 && name !== 'ASC_BREAKER') return 0;
+  if (name === 'HT_BLITZBEAT' || name === 'SN_FALCONASSAULT') {
+    return idleBalancedDamage(falconDamage({
+      dex: stats.dex ?? 1, int: stats.int ?? 1,
+      steelCrow: learned(stats, 'HT_STEELCROW'), level,
+      kind: name === 'SN_FALCONASSAULT' ? 'assault' : 'manual',
+      elementRatePct: element * 100,
+    }), skill, level);
+  }
   let raw = name === 'PA_SACRIFICE'
     ? sacrificeBaseDamage(stats.maxHp ?? 0, level)
     : weaponBase(stats, rng);
@@ -309,12 +318,6 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
     case 'HT_LANDMINE': raw = integer(level * ((stats.dex ?? 1) + 75) * (100 + (stats.int ?? 1)) / 100); fixed = true; break;
     case 'HT_BLASTMINE': raw = integer(level * (integer((stats.dex ?? 1) / 2) + 50) * (100 + (stats.int ?? 1)) / 100); fixed = true; break;
     case 'HT_CLAYMORETRAP': raw = integer(level * (integer((stats.dex ?? 1) / 2) + 75) * (100 + (stats.int ?? 1)) / 100); fixed = true; break;
-    case 'HT_BLITZBEAT':
-    case 'SN_FALCONASSAULT': {
-      raw = (integer((stats.dex ?? 1) / 10) + integer((stats.int ?? 1) / 2) + 3 * learned(stats, 'HT_STEELCROW') + 40) * 2;
-      if (name === 'SN_FALCONASSAULT') { raw = integer(raw * 5 * (150 + 70 * level) / 100); hits = 1; }
-      fixed = true; break;
-    }
     case 'TF_THROWSTONE': raw = 50; fixed = true; break;
     case 'PA_PRESSURE': raw = 500 + 300 * level; fixed = true; break;
     case 'BA_DISSONANCE': raw = 30 + 10 * level + 3 * learned(stats, 'BA_MUSICALLESSON'); fixed = true; break;

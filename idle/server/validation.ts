@@ -24,6 +24,7 @@ const rules: Record<string, Record<string, Rule>> = {
   toggleBuff: { skillId: token },
   useSkill: { skillId: token, expectedCastActionId: value => value === undefined || token(value), expectedEnemyId: value => value === undefined || token(value) },
   setMount: { mounted: boolean },
+  rentFalcon: {}, dismissFalcon: {},
   setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token) },
   buy: { itemId: integer(1, 1_000_000), quantity: integer(1, 9999) },
   craftPharmacy: { itemId: oneOf(501,503,504,505,545,546,547,7135,7136,7137,7138,7139,12118,12119,12120,12121,605,606,970,7142), quantity: integer(1,1000) },

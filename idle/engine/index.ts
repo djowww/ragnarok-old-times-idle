@@ -1,3 +1,4 @@
+import {reconcileFalcon} from './falcon.js';
 import type {
   Catalog,
   GameCommand,
@@ -59,6 +60,7 @@ export function createInitialState(
     gender: "male",
     appearance: { hairStyle: 0, hairColor: 0, clothesColor: 0 },
     job: "novice",
+    falconEquipped: false,
     family: null,
     branch: null,
     reborn: false,
@@ -130,6 +132,7 @@ function* advanceStateSteps(
   const s = structuredClone(state);
   migrateFieldNavigationState(s, s.status === 'paused' ? s.pausedAt ?? s.lastSimulatedAt : s.lastSimulatedAt, context);
   reconcileRemovedSkills(s, catalog);
+  reconcileFalcon(s, catalog);
   reconcileHuntFocus(s, catalog);
   if (s.status === "paused") return s;
   const limit = s.lastSeenAt + 12 * 3600000;
@@ -139,7 +142,7 @@ function* advanceStateSteps(
   while (s.lastSimulatedAt + 250 <= until) {
     // A fully recovered avatar in town has no combat deadlines to process.
     // Skip empty offline ticks while preserving the same persisted clock.
-    if (s.status === "town" && !s.supportCast && !s.elementalField && !s.groundPlacements?.length &&
+    if (s.status === "town" && !s.falconStrikes?.length && !s.supportCast && !s.elementalField && !s.groundPlacements?.length &&
       Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
       const stats = derivedStats(s, catalog);
       if (s.hp >= stats.maxHp && s.sp >= stats.maxSp) {
@@ -239,6 +242,9 @@ function resumePausedState(s: GameState, now: number) {
   const shiftSkillOwnership = (ownership: { readyAt: number; previousReadyAt?: number } | undefined) => {
     if (ownership) { ownership.readyAt = shift(ownership.readyAt); ownership.previousReadyAt = optional(ownership.previousReadyAt); }
   };
+  for (const strike of s.falconStrikes ?? []) {
+    strike.launchedAt = shift(strike.launchedAt); strike.impactAt = shift(strike.impactAt);
+  }
   s.nextEncounterAt = shift(s.nextEncounterAt);
   if (s.supportCast) {
     s.supportCast.startedAt = shift(s.supportCast.startedAt);
@@ -364,6 +370,7 @@ export function getSnapshot(
   now: number,
 ): GameSnapshot {
   const copy = structuredClone(state);
+  reconcileFalcon(copy,catalog);
   updateQuests(copy, catalog);
   copy.pendingAreaId ??= null;
   copy.huntFocus ??= {};

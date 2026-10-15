@@ -44,9 +44,14 @@
       "db/pre-re/item_chain.conf",
       "src/map/itemdb.c",
       "src/map/script.c",
-      "conf/map/battle/drops.conf"
+      "conf/map/battle/drops.conf",
+      "npc/merchants/renters.txt",
+      "src/map/map.h",
+      "conf/map/battle/player.conf",
+      "conf/map/battle/skill.conf",
+      "conf/map/battle/battle.conf"
     ],
-    "hash": "aae0a475e3cc5f99b505f8b003d0bff687e7a8c4cb67f05fd114d35566441ed5"
+    "hash": "7183f8098028b6d0886dc4d1b77388d6e610d7376cf3a6e6740c8b40a85cf706"
   },
   "rates": {
     "baseExp": 4,
@@ -99174,14 +99179,14 @@
     },
     "ht_falcon": {
       "id": "ht_falcon",
-      "name": "Falconry Mastery",
+      "name": "Falcoaria",
       "kind": "passive",
       "maxLevel": 1,
       "herculesId": 127,
       "sourceName": "HT_FALCON",
       "mechanic": "HT_FALCON",
       "implementation": "supported",
-      "description": "Falconry Mastery. Habilidade passiva.",
+      "description": "Permite alugar um falcão por 2.500 zeny na cidade. Falcoaria aprendida não equipa o falcão automaticamente. O companheiro permanece até ser dispensado e permite Ataque Aéreo, Detecção e ataques automáticos com arco.",
       "iconResource": "data/texture/유저인터페이스/item/ht_falcon.bmp",
       "spCost": [
         0
@@ -99235,7 +99240,7 @@
     },
     "ht_steelcrow": {
       "id": "ht_steelcrow",
-      "name": "Steel Crow",
+      "name": "Garras de Aço",
       "kind": "passive",
       "maxLevel": 10,
       "herculesId": 128,
@@ -99375,7 +99380,7 @@
       "sourceName": "HT_BLITZBEAT",
       "mechanic": "HT_BLITZBEAT",
       "implementation": "supported",
-      "description": "Blitz Beat. Fórmula específica de dano conforme Hercules pré-renovação.",
+      "description": "Envia o falcão contra o alvo e inimigos no quadrado de 3 × 3 células. Usa DEX, INT e Garras de Aço, com dano Neutro sem redução por DEF. Com arco, ataques básicos que acertam e deixam o alvo vivo podem ativar um ataque automático sem SP, conjuração ou pausa adicional; o dano automático é dividido pelos alvos e seu nível depende do Job.",
       "iconResource": "data/texture/유저인터페이스/item/ht_blitzbeat.bmp",
       "spCost": [
         10,
@@ -99464,15 +99469,15 @@
     },
     "ht_detecting": {
       "id": "ht_detecting",
-      "name": "Detect",
+      "name": "Detectar",
       "kind": "buff",
       "maxLevel": 4,
       "herculesId": 130,
       "sourceName": "HT_DETECTING",
       "mechanic": "HT_DETECTING",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Detect. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Envia o falcão para revelar inimigos ocultos em 7 × 7 células. Nesta caça solo, a área é centrada no personagem. Consome 8 SP sem conjuração, dano ou aura persistente. Na rotação automática, só é usada quando há ocultação ativa na área.",
       "iconResource": "data/texture/유저인터페이스/item/ht_detecting.bmp",
       "spCost": [
         8,
@@ -99953,14 +99958,14 @@
     },
     "sn_falconassault": {
       "id": "sn_falconassault",
-      "name": "Falcon Assault",
+      "name": "Assalto do Falcão",
       "kind": "physical",
       "maxLevel": 5,
       "herculesId": 381,
       "sourceName": "SN_FALCONASSAULT",
       "mechanic": "SN_FALCONASSAULT",
       "implementation": "supported",
-      "description": "Falcon Assault. Fórmula específica de dano conforme Hercules pré-renovação.",
+      "description": "Concentra cinco parcelas do Ataque Aéreo em um único golpe de dano Neutro. Usa DEX, INT e Garras de Aço; requer falcão equipado ao iniciar a conjuração. Bônus percentuais de dano de arma não aumentam o dano do falcão.",
       "iconResource": "data/texture/유저인터페이스/item/sn_falconassault.bmp",
       "spCost": [
         30,
