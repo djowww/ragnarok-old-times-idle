@@ -35,7 +35,8 @@ describe('pinned Pharmacy content and normal paid acquisition',()=>{
   expect(s.events.at(-1)).toMatchObject({attempts:2,itemId:501});
  });
  it('does not advertise unimplemented item effects or sell the quest-only elemental guide',()=>{
-  for(const id of [545,546,547,605,606,7142,12118,12119,12120,12121])expect(c.items[id]).toMatchObject({type:'material',unsupportedEffect:true,effects:{}});
+  expect(c.items[7142]).toMatchObject({type:'material',unsupportedEffect:true,effects:{}});
+  for(const id of [545,546,547,605,606,12118,12119,12120,12121])expect(c.items[id].unsupportedEffect).not.toBe(true);
   expect(c.items[7434]).toMatchObject({shop:false});
  });
 });

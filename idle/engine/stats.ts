@@ -1,3 +1,4 @@
+import { manualItemProvoke } from '../shared/consumables.js';
 import type {
   Catalog,
   DerivedStats,
@@ -166,7 +167,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const maxHp = (berserk ? 3 : 1) * (ordinaryMaxHp + Math.trunc(ordinaryMaxHp * field.hpPercent / 100));
   // A pure projection reconciles every HP/maxHP change, without saved stale bonuses.
   const reactive = autoBerserkModifiers({ enabled: Object.entries(s.buffs).some(([id, buff]) =>
-    c.skills[id]?.sourceName === 'SM_AUTOBERSERK' && buff.expiresAt > s.lastSimulatedAt), hp: s.hp, maxHp });
+    c.skills[id]?.sourceName === 'SM_AUTOBERSERK' && buff.expiresAt > s.lastSimulatedAt), hp: s.hp, maxHp, provoke: manualItemProvoke(s,s.lastSimulatedAt) });
   const poisoned = activePlayerStatus(s, 'SC_POISON', s.lastSimulatedAt) || activePlayerStatus(s, 'SC_DPOISON', s.lastSimulatedAt);
   const blind = activePlayerStatus(s, 'SC_BLIND', s.lastSimulatedAt);
   const disease = playerDiseaseModifiers({ poison: poisoned, blind });

@@ -44,6 +44,11 @@ Habilidades que dependem de sistemas ainda ausentes aparecem como indisponíveis
 
 As regras e suas fontes estão registradas no [catálogo](idle/content/) e no [manifesto do Hercules](idle/content/source-manifest.json).
 
+
+### Consumíveis na mochila
+
+Poções comuns e compactas, Anodyne, Aloevera e resistências elementais podem ser usados pela mochila. A cura automática utiliza o mesmo cálculo do consumo manual. Veja os [efeitos e limites da alquimia](docs/ALCHEMY.md).
+
 ## Para desenvolver ou hospedar
 
 O projeto combina **TypeScript, React, Fastify e MariaDB**, com execução via Docker Compose. O motor Idle tem progresso próprio, e o cliente clássico usa Hercules e roBrowserLegacy.

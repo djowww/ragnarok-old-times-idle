@@ -42,7 +42,7 @@
       "npc/pre-re/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "0b1de4defd2e973f33489d73afce252bb0b9ce0964a8b54497cac03539c3cf8e"
+    "hash": "a3a9fb6717f75b9c8abb661d8eeb8fba0801484f9a641a5ecc742a8f4879a083"
   },
   "rates": {
     "baseExp": 4,
@@ -13729,7 +13729,7 @@
       "id": 545,
       "name": "Condensed Red Potion",
       "aegisName": "Red_Slim_Potion",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -13781,14 +13781,15 @@
       "weight": 2,
       "resource": "data/texture/유저인터페이스/item/레드슬림포션.bmp",
       "effects": {},
-      "unsupportedEffect": true,
+      "healHP": 55,
+      "healSP": 0,
       "shop": false
     },
     "546": {
       "id": 546,
       "name": "Condensed Yellow Potion",
       "aegisName": "Yellow_Slim_Potion",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -13840,14 +13841,15 @@
       "weight": 3,
       "resource": "data/texture/유저인터페이스/item/옐로우슬림포션.bmp",
       "effects": {},
-      "unsupportedEffect": true,
+      "healHP": 205,
+      "healSP": 0,
       "shop": false
     },
     "547": {
       "id": 547,
       "name": "Condensed White Potion",
       "aegisName": "White_Slim_Potion",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -13899,7 +13901,8 @@
       "weight": 5,
       "resource": "data/texture/유저인터페이스/item/화이트슬림포션.bmp",
       "effects": {},
-      "unsupportedEffect": true,
+      "healHP": 365,
+      "healSP": 0,
       "shop": false
     },
     "568": {
@@ -14319,7 +14322,7 @@
       "id": 605,
       "name": "Anodyne",
       "aegisName": "Anodyne",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -14371,14 +14374,13 @@
       "weight": 10,
       "resource": "data/texture/유저인터페이스/item/안티페인멘트.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "606": {
       "id": 606,
       "name": "Aloevera",
       "aegisName": "Aloebera",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -14430,7 +14432,6 @@
       "weight": 10,
       "resource": "data/texture/유저인터페이스/item/알로에베라.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "607": {
@@ -52783,7 +52784,7 @@
       "id": 12118,
       "name": "Fireproof Potion",
       "aegisName": "Resist_Fire",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -52835,14 +52836,13 @@
       "weight": 1,
       "resource": "data/texture/유저인터페이스/item/레지스트_화.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "12119": {
       "id": 12119,
       "name": "Coldproof Potion",
       "aegisName": "Resist_Water",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -52894,14 +52894,13 @@
       "weight": 1,
       "resource": "data/texture/유저인터페이스/item/레지스트_수.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "12120": {
       "id": 12120,
       "name": "Earthproof Potion",
       "aegisName": "Resist_Earth",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -52953,14 +52952,13 @@
       "weight": 1,
       "resource": "data/texture/유저인터페이스/item/레지스트_지.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "12121": {
       "id": 12121,
       "name": "Thunderproof Potion",
       "aegisName": "Resist_Wind",
-      "type": "material",
+      "type": "consumable",
       "attack": 0,
       "def": 0,
       "slots": 0,
@@ -53012,7 +53010,6 @@
       "weight": 1,
       "resource": "data/texture/유저인터페이스/item/레지스트_풍.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "12127": {

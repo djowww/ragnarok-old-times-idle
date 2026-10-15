@@ -122,7 +122,15 @@ for(const [name,price] of [['Normal_Potion_Book',100000],['Alcol_Create_Book',10
  if(!new RegExp('S_SellManual,\\s*'+name+',\\s*'+price).test(alchemistShopSource))throw new Error('Pinned manual price differs:'+name);
 const geffenShopSource=buffers['npc/pre-re/merchants/shops.txt'].toString('utf8').match(/geffen_in,171,123,4\s+trader\s+Tool Dealer#gef2\s+1_M_WIZARD,\{([\s\S]*?)^\}/m)?.[1];
 if(!geffenShopSource||!/sellitem Empty_Cylinder;/.test(geffenShopSource)||!/sellitem Empty_Potion;/.test(geffenShopSource))throw new Error('Pinned Pharmacy trader differs');
-const inertPharmacyOutputIds=new Set([545,546,547,605,606,7142,12118,12119,12120,12121]);
+const supportedPotionScripts = new Map([
+ [545,'itemheal rand(45,65),0;'],[546,'itemheal rand(175,235),0;'],[547,'itemheal rand(325,405),0;'],
+ [605,'itemskill SM_ENDURE,1;'],[606,'itemskill SM_SELFPROVOKE,1;'],
+ [12118,'sc_start2(SC_RESIST_PROPERTY_FIRE,1200000,20,-15);'],
+ [12119,'sc_start2(SC_RESIST_PROPERTY_WATER,1200000,20,-15);'],
+ [12120,'sc_start2(SC_RESIST_PROPERTY_GROUND,1200000,20,-15);'],
+ [12121,'sc_start2(SC_RESIST_PROPERTY_WIND,1200000,20,-15);'],
+]);
+const inertPharmacyOutputIds=new Set([7142]);
 manifest.pharmacyCraft={recipeSource:'db/produce_db.txt:329..380',recipes:pharmacyRecipes,
  activationSource:'db/pre-re/skill_db.conf AM_PHARMACY',spPerAttempt:5,activationItem:{itemId:7134,quantity:1},
  guideRule:'Quantity-zero materials require inventory presence and are not consumed.',
@@ -673,6 +681,17 @@ for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostB
     includeItem(itemById[id], false, true);
 const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
 for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
+for(const [id,script] of supportedPotionScripts){
+ const source=inheritedItem(itemById[id]);
+ if(source.Script?.replace(/\s+/g,'')!==script.replace(/\s+/g,''))throw new Error('Pinned potion script differs:'+id);
+ const item=catalog.items[id];item.type='consumable';delete item.unsupportedEffect;
+ manifest.inertDropItems=manifest.inertDropItems.filter(row=>row.itemId!==id);
+}
+manifest.consumableUse={scriptSource:'db/pre-re/item_db.conf',items:[...supportedPotionScripts.keys()],
+ healing:'Explicit midpoint healing uses the shared native VIT/INT, recovery and LearningPotion formula.',
+ statuses:'Native Endure1, self Provoke1 and four independent20min elemental resistances; source death/expiry/replacement rules.',
+ idleAdaptations:['Shared2000ms item cooldown','Itemskill preconditions reject atomically before charging'],
+ execution:'Explicit handlers only; arbitrary item scripts are never evaluated.'};
 for(const id of inertPharmacyOutputIds){const item=catalog.items[id];item.type='material';item.unsupportedEffect=true;item.effects={};}
 for(const row of pharmacyNpcStock){
  if(!itemById[row.itemId]||!includeItem(itemById[row.itemId],true,true))throw new Error('Missing Pharmacy shop item '+row.itemId);

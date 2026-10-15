@@ -1,3 +1,5 @@
+import { itemElementResistance } from '../shared/consumables.js';
+import { consumeItem, consumeItemBlockReason, discardAloeveraUnderAutoBerserk, clearConsumableStatusesOnDeath } from "./consumables.js";
 import { applyMeltdownHit } from './meltdown.js';
 import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
 import { soloAlchemyAfkUseful, startSoloAlchemyCast } from './soloAlchemy.js';
@@ -1013,34 +1015,7 @@ function autoPotion(s: GameState, c: Catalog, at: number) {
     (hp ? choose("healHP", d.maxHp - s.hp) : undefined) ??
     (sp ? choose("healSP", d.maxSp - s.sp) : undefined);
   if (!entry) return;
-  const item = c.items[entry.itemId];
-  const levels = learnedBySource(s, c);
-  consume(s, entry, 1);
-  s.hp = Math.min(
-    d.maxHp,
-    s.hp +
-      classicPotionHealing(
-        item.healHP ?? 0,
-        d.attributes?.vit ?? s.stats.vit,
-        levels.SM_RECOVERY ?? 0,
-        levels.AM_LEARNINGPOTION ?? 0,
-      ),
-  );
-  s.sp = Math.min(
-    d.maxSp,
-    s.sp +
-      classicPotionHealing(
-        item.healSP ?? 0,
-        d.attributes?.int ?? s.stats.int,
-        levels.MG_SRECOVERY ?? 0,
-        levels.AM_LEARNINGPOTION ?? 0,
-      ),
-  );
-  s.potionReadyAt = at + 2000;
-  s.totals.potions++;
-  event(s, at, "potion", item.name);
-  if (s.status === "hunting" && s.areaId)
-    recordAreaActivity(s, s.areaId, at, { potions: 1 });
+  if (!consumeItemBlockReason(s,c,entry,at)) consumeItem(s,c,entry.uid,at);
 }
 function elementMultiplier(c: Catalog, element: string, monster: Monster) {
   const row =
@@ -1086,7 +1061,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
     elementRate: sageFieldElementRate(monsterMagicElementRate(c, spellElement, playerDefenseElement(s, c)),
       sageFieldModifiers(s, enemy.id, at), spellElement) });
   const passiveReduction = classicIncomingSkillReduction(learnedBySource(s, c), monster.race, spellElement,
-    spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0);
+    (spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0) + itemElementResistance(s,spellElement,at));
   let damage = Math.floor(perHitDamage * passiveReduction) * Math.max(1, skill.hitCount ?? 1);
   // battle.c:3472..3475 uses `damage -= 25 * damage / 100` for direct BF_SKILL.
   if (fogWallActive) damage = Math.max(0, damage - Math.floor(damage * 25 / 100));
@@ -1138,6 +1113,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   const hpBefore = s.hp;
   if (sourceSkill) captureNpcSpell(s, c, sourceSkill, skill.level, damage, hpBefore, at, enemy);
   s.hp = Math.max(0, s.hp - damage);
+  discardAloeveraUnderAutoBerserk(s,c,at);
   if (damage > 0) interruptSageEnchantCast(s, c, at);
   event(s, at, 'damage', monster.name, damage, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
     skillLevel: skill.level, enemyId: enemy.id, monsterId: monster.id, targetActorId: s.id,
@@ -2860,6 +2836,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
       if (result.triggered && !reject.charges) cancelClassicBuff(s, c, 'ST_REJECTSWORD');
     }
     s.hp = Math.max(0, s.hp - damage);
+  discardAloeveraUnderAutoBerserk(s,c,at);
     if (damage > 0) interruptSageEnchantCast(s, c, at);
     if (berserkActive && s.hp <= 100) finishBerserk(s, c, at);
     if (damage > 0) {
@@ -2956,6 +2933,7 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
     // Hercules' paired caster status ends when its owner dies.
     clearCloseConfine(s, at);
     clearPlayerDiseasesOnDeath(s, c, at);
+    clearConsumableStatusesOnDeath(s);
     endFieldRest(s, c);
     resetResourceRecovery(s);
     cancelClassicBuff(s, c, 'KN_AUTOCOUNTER');
@@ -3308,6 +3286,7 @@ type CombatDeadline = { at: number; priority: number; key: string } & (
 );
 
 function maintainPlayerBuffs(s: GameState, c: Catalog, at: number) {
+  discardAloeveraUnderAutoBerserk(s,c,at);
   if (s.elementalField) syncSageField(s, c, at);
   tickTensionRelax(s, c, at);
   tickSoloStances(s, c, at);

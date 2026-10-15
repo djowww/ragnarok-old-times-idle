@@ -13,6 +13,23 @@ Alquimistas e Criadores podem abrir **Preparar poções** pelos serviços de Pro
 
 O manual de resistência elemental depende da pesquisa original de Pisruik; essa aquisição ainda não está disponível e o manual não é vendido. Alguns materiais ainda exigem novas rotas de caça.
 
-Produzir um item não habilita seu script original automaticamente. Poções compactas, resistências, Anodyne, Aloevera e Embrião permanecem materiais com uso indisponível; os frascos de invocação e revestimento também aguardam suas habilidades consumidoras. O painel identifica esses limites. Poções comuns e os reagentes das habilidades já implementadas seguem seus consumidores existentes.
+Embrião ainda depende do sistema de Homunculus. Os frascos de invocação e revestimento aguardam suas habilidades consumidoras. O painel identifica esses limites.
+
+## Usar os produtos
+
+Selecione o item na **Mochila** e clique em **Usar item**. O servidor consome uma unidade e registra o recibo da ação; repetir uma requisição não cobra novamente.
+
+| Produto | Efeito |
+| --- | --- |
+| Poções compactas vermelha, amarela e branca | Cura base de 55, 205 e 365 HP, com VIT, Recuperação de HP e Pesquisa de Poções. Também participam da cura automática. |
+| Anodyne | Vigor 1: 10 segundos, +1 DEFM e supressão da reação de dano por um contador limitado de golpes. Preserva um Vigor mais forte e compartilha sua recarga de 10 segundos. |
+| Aloevera | Provocar 1 em si: 30 segundos, +5% ATQ e −10% defesa de VIT; preserva a defesa do equipamento. Instinto de Sobrevivência pode substituir o efeito. |
+| Fireproof / Coldproof / Earthproof / Thunderproof | 20 minutos: +20% contra o elemento indicado e −15% contra sua vulnerabilidade. Efeitos diferentes coexistem; repetir o mesmo renova o prazo. |
+
+Poções de resistência afetam os ataques elementais suportados pelo motor, sem mudar o elemento da armadura. As quatro juntas oferecem +5% em cada um dos quatro elementos. Morte remove resistências e Aloevera; Vigor conserva seu prazo original.
+
+A cura determinística usa o ponto médio do intervalo original. Consumo manual e automático compartilham a recarga de 2 segundos do Idle. Anodyne e Aloevera não gastam SP; exigem estar em pé e sem conjuração ativa. Nesta interface, uma tentativa bloqueada é rejeitada sem consumir o item. Essas são adaptações explícitas do fluxo de itens do cliente clássico.
+
+Referências: [scripts dos produtos](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/item_db.conf), [status pré-renovação](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/sc_config.conf).
 
 Fonte: [receitas originais](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/db/produce_db.txt#L329-L380), [vendedor do Alquimista](https://github.com/HerculesWS/Hercules/blob/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/alchemist.txt#L42-L179).

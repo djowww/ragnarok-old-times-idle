@@ -1,3 +1,4 @@
+import {beforeConsumablesCatalog} from './consumables-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import raw from '../content/catalog.json';
@@ -13,7 +14,7 @@ describe('audited dungeon delta preserves strict historical snapshots', () => {
   it('keeps the exact declared additions and protects each approved reagent', () => {
     expect(baseline.newItemIds).toHaveLength(52); expect(baseline.newMonsterIds).toHaveLength(17);
     expect(baseline.newAreaIds).toEqual(['pyramid_depths', 'glast_heim_cemetery']);
-    for (const [id, change] of Object.entries(baseline.itemTypes)) expect((raw.items as Record<string, { type: string }>)[id].type).toBe(change.after);
+    for (const [id, change] of Object.entries(baseline.itemTypes)) expect((beforeConsumablesCatalog(raw).items as Record<string, { type: string }>)[id].type).toBe(change.after);
     expect(beforeDungeonExpansionManifest(manifest).sources).toHaveLength(29);
   });
   it('leaves unexpected changes in existing monsters visible to the old hashes', () => {
