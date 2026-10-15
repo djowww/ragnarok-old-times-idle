@@ -25,6 +25,19 @@ import { encounterDelay, focusMatches } from "../shared/hunt.js";
 import { merchantPrice } from "../shared/prices.js";
 import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
 import { battleHeroAt } from "../shared/battleSpatial.js";
+import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
+import { automaticSpellChoices } from "./sageCasting.js";
+import { inventoryLoad } from './stats.js';
+import { paySkillResources } from './skillResources.js';
+import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
+import { craftConverter } from "./converterCraft.js";
+import { cancelActorCast, useCastCancel } from './castControl.js';
+import { canPecoMount } from './mountedPeco.js';
+import { applyGuardianStatus, clearShieldDependentStatuses, guardianShieldEquipped, guardianSkillEligible } from './guardianSacrifice.js';
+import { applyTrickDead, clearTrickDead, trickDeadActive } from './trickDead.js';
+import { makeSenseInspection, senseEncounterIdentity, senseManualTarget } from './senseInspection.js';
+import { clearCloseConfine } from './rgCloseConfine.js';
+import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
 function town(s: GameState) {
   requireRule(
     s.status === "town",
@@ -55,7 +68,203 @@ export function executeCommand(
   command: GameCommand,
   now: number,
 ) {
+  const previousScene = classicGroundSceneKey(s);
+  const trickDead = trickDeadActive(s, c, now);
+  if (trickDead) {
+    const cancelsPosture = command.type === 'rest' || command.type === 'startHunt';
+    const usesItem = command.type === 'identify';
+    const usesOtherSkill = command.type === 'useSkill' || command.type === 'cancelBuff' ||
+      command.type === 'toggleBuff' && c.skills[command.skillId]?.sourceName !== 'NV_TRICKDEAD';
+    requireRule(!cancelsPosture && !usesItem && !usesOtherSkill, 'TRICK_DEAD_ACTION_BLOCKED',
+      'Trick Dead impede movimento, itens e outras habilidades.');
+  }
   switch (command.type) {
+    case 'setMount': {
+      requireRule(typeof command.mounted === 'boolean', 'INVALID_MOUNT', 'Escolha montar ou desmontar.');
+      requireRule(!command.mounted || canPecoMount(s, c), 'MOUNT_UNAVAILABLE',
+        'Aprenda Montaria em uma classe que pode montar Peco Peco.');
+      if ((s.mounted === true) === command.mounted) {
+        s.mounted = command.mounted;
+        break;
+      }
+      s.mounted = command.mounted;
+      event(s, now, 'mount', command.mounted ? 'Montou no Peco Peco.' : 'Desmontou do Peco Peco.');
+      break;
+    }
+    case 'useSkill': {
+      const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+      if (skill?.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
+          'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule((s.status === 'hunting' || s.status === 'challenge') && !!s.battle && !s.battle.cast,
+          'FIELD_REQUIRED', 'Use Parada da Lâmina durante a caça no campo.');
+        requireRule(!s.combatEffects?.bladeStopWait && !s.combatEffects?.bladeStopLink,
+          'SKILL_STATUS_BLOCKED', 'Você já está em uma postura de Parada da Lâmina.');
+        bladeStopRules(level);
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED',
+          'Tenha 10 SP e uma esfera espiritual para usar Parada da Lâmina.');
+        startBladeStopWait(s, level, now);
+        random(s); // status_start's 100% application consumes the source status roll.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id, targetActorId: s.id,
+          actorAction: 'none', actionMotionMs: 0, castMs: 0 });
+        event(s, now, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id, targetActorId: s.id });
+        break;
+      }
+      if (skill?.sourceName === 'WZ_ESTIMATION') {
+        requireRule(skill.id === 'sense' && skill.manualUse === 'inspect' &&
+          skill.implementation === 'supported' && skill.maxLevel === 1 && level === 1 &&
+          classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE',
+        'Esta habilidade manual não está disponível.');
+        requireRule(typeof command.expectedEnemyId === 'string' &&
+          command.expectedEnemyId === s.battle?.targetId, 'SENSE_TARGET_INVALID',
+        'Selecione o mesmo inimigo vivo antes de usar Sentido Sobrenatural.');
+        const target = senseManualTarget(s, c, now);
+        requireRule(target?.id === command.expectedEnemyId, 'SENSE_TARGET_INVALID',
+          'O inimigo selecionado não está disponível para inspeção.');
+        requireRule(paySkillResources(s, c, skill, 1, now), 'SP_REQUIRED',
+          'Tenha SP suficiente para usar Sentido Sobrenatural.');
+        s.senseInspection = makeSenseInspection(c, target, now, senseEncounterIdentity(s));
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+          sourceActorId: s.id, targetActorId: target.id, actorAction: 'none' });
+        break;
+      }
+      if (skill?.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 &&
+          classSkills(c, s.job).includes(skill.id) && guardianSkillEligible(s, c, skill),
+        'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule(!s.battle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'KN_AUTOCOUNTER', 'TF_HIDING', 'AS_CLOAKING']
+          .some(source => classicBuffActive(s, c, source, now)),
+        'SKILL_STATUS_BLOCKED', 'Seu estado atual impede ativar Sacrifício.');
+        requireRule(s.hp > 0 && paySkillResources(s, c, skill, level, now),
+          'SP_REQUIRED', 'Tenha HP e SP suficientes para ativar Sacrifício.');
+        applyGuardianStatus(s, skill, level, now);
+        random(s); // status_start's 100% application still draws RNG.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
+      }
+      if (skill?.sourceName === 'SA_CASTCANCEL' && skill.manualUse === 'castCancel') {
+        useCastCancel(s,c,skill,level,now,command.expectedCastActionId);
+        break;
+      }
+      requireRule(skill?.sourceName === 'LK_TENSIONRELAX' && skill.manualUse === 'rest' &&
+        skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
+        'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+      requireRule(s.status === 'hunting' || isFieldSitting(s), 'FIELD_REQUIRED', 'Use esta habilidade durante a caça ou o descanso na área.');
+      requireRule(!s.battle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD']
+        .some(source => classicBuffActive(s, c, source, now)), 'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar esta habilidade.');
+      const load = inventoryLoad(s, c);
+      requireRule(load.weight * 10 < load.maxWeight * 9, 'SKILL_WEIGHT_BLOCKED', 'Alivie o peso para ficar abaixo de 90% antes de usar a habilidade.');
+      requireRule(s.hp > 0 && paySkillResources(s, c, skill, Math.min(skill.maxLevel, level), now), 'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para usar a habilidade.');
+      startTensionRelax(s, skill, now);
+      event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+        sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+      break;
+    }
+    case 'toggleBuff': {
+      const skill = c.skills[command.skillId];
+      if (skill?.sourceName === 'NV_TRICKDEAD') {
+        const level = s.learnedSkills[skill.id] ?? 0;
+        requireRule(skill.manualUse === 'toggle' && skill.implementation === 'supported' &&
+          level > 0 && classSkills(c, s.job).includes(skill.id) &&
+          ['novice', 'high_novice'].includes(s.job), 'BUFF_UNAVAILABLE',
+        'Esta habilidade manual não está disponível.');
+        if (toggleClassicBuff(s, c, skill, level, now)) {
+          if (s.battle) {
+            s.battle.playerNextAttackAt = now;
+            s.battle.playerNextSkillAt = now;
+            s.battle.playerActionReadyAt = now;
+          }
+          if (s.fieldHero?.areaId === s.areaId && s.status === 'hunting') {
+            s.fieldHero.phase = s.battle ? 'fighting' : 'seeking';
+          }
+          event(s, now, 'posture-ended', skill.name, undefined, 'player', { skillId: skill.id, statusName: 'NV_TRICKDEAD',
+            sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+          event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+            sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+          break;
+        }
+        const inField = !!s.areaId && (s.status === 'hunting' || isFieldSitting(s)) ||
+          s.status === 'challenge' && !!s.battle;
+        requireRule(inField && s.hp > 0, 'FIELD_REQUIRED',
+        'Use esta habilidade manual na área, enquanto estiver vivo.');
+        requireRule(skill.implementation === 'supported' && level > 0 &&
+          classSkills(c, s.job).includes(skill.id), 'BUFF_UNAVAILABLE',
+        'Esta habilidade manual não está disponível.');
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED',
+          'Tenha SP suficiente para ativar Trick Dead.');
+        const cast = s.battle?.cast;
+        if (cast) cancelActorCast(s, c, { kind: 'player', actorId: s.id }, now, 'manual');
+        if (s.fieldHero?.areaId === s.areaId) {
+          const position = battleHeroAt(s, now);
+          Object.assign(s.fieldHero, { from: position, position, startedAt: now, arrivedAt: now, phase: 'waiting' });
+          delete s.fieldHero.moveBlockedUntil;
+        }
+        // The scheduler skips own offense while this status is active. Keep
+        // finite deadlines so NoSave removal can resume this same encounter.
+        applyTrickDead(s, c, skill, level, now);
+        random(s); // The source status application draws once even at normalized 100%.
+        event(s, now, 'posture', skill.name, undefined, 'player', { skillId: skill.id,
+          statusName: 'NV_TRICKDEAD', sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
+      }
+      const shrink = skill?.sourceName === 'CR_SHRINK';
+      requireRule((shrink || skill?.sourceName === 'SM_AUTOBERSERK' && skill.manualUse === 'toggle') &&
+        skill.implementation === 'supported' && guardianSkillEligible(s, c, skill) &&
+        (s.learnedSkills[skill.id] ?? 0) > 0, 'BUFF_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+      requireRule(shrink || !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'KN_AUTOCOUNTER'].some(source => classicBuffActive(s, c, source, now)),
+        'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar esta habilidade.');
+      if (toggleClassicBuff(s, c, skill, s.learnedSkills[skill.id], now)) break;
+      if (shrink) {
+        requireRule(guardianShieldEquipped(s, c), 'SHIELD_REQUIRED', 'Equipe um escudo para ativar Shrink.');
+        requireRule(s.hp > 0 && paySkillResources(s, c, skill, s.learnedSkills[skill.id], now),
+          'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para ativar a habilidade.');
+        applyGuardianStatus(s, skill, s.learnedSkills[skill.id], now);
+        random(s); // status_start's 100% application still draws RNG.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
+      }
+      const cost = skill.spCost[0] ?? 1;
+      requireRule(s.hp > 0 && s.sp >= cost, 'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para ativar a habilidade.');
+      s.sp -= cost;
+      s.buffs[skill.id] = { expiresAt: Number.MAX_SAFE_INTEGER, effects: {} };
+      (s.combatEffects ??= {}).buffLevels ??= {};
+      s.combatEffects.buffLevels![skill.id] = 1;
+      event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+        sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+      break;
+    }
+    case "cancelBuff": {
+      const skill = c.skills[command.skillId];
+      requireRule(skill && skill.implementation !== "unsupported" &&
+        classSkills(c, s.job).includes(skill.id) && (s.learnedSkills[skill.id] ?? 0) > 0,
+        "BUFF_UNAVAILABLE", "Esta habilidade não está disponível para desativar.");
+      requireRule(toggleClassicBuff(s, c, skill, s.learnedSkills[skill.id], now),
+        "BUFF_NOT_CANCELABLE", "Esta habilidade não possui um efeito ativo que possa ser desativado.");
+      break;
+    }
+    case "setAutospell": {
+      const tree = new Set(classSkills(c, s.job));
+      requireRule(
+        Object.values(c.skills).some(skill => skill.sourceName === "SA_AUTOSPELL" &&
+          tree.has(skill.id) && (s.learnedSkills[skill.id] ?? 0) > 0 && skill.implementation !== "unsupported"),
+        "AUTOSPELL_UNAVAILABLE",
+        "Aprenda Desejo Arcano para escolher sua magia automática.",
+      );
+      requireRule(
+        command.skillId === null || automaticSpellChoices(s, c).some(choice => choice.skillId === command.skillId),
+        "INVALID_AUTOSPELL",
+        "Escolha uma magia aprendida e disponível para Desejo Arcano.",
+      );
+      if (command.skillId === null) delete s.autospellSkillId;
+      else s.autospellSkillId = command.skillId;
+      break;
+    }
     case "startHunt": {
       const area = c.areas.find((a) => a.id === command.areaId);
       requireRule(
@@ -64,7 +273,7 @@ export function executeCommand(
         "Área indisponível para seu nível.",
       );
       requireRule(
-        s.status !== "resting" || (s.restMode === "field" && now >= s.restUntil),
+        s.status !== "resting" || s.restMode === "field",
         "RECOVERING",
         "Aguarde o fim da recuperação.",
       );
@@ -84,6 +293,9 @@ export function executeCommand(
         break;
       }
       const alreadyHunting = s.status === "hunting";
+      clearBladeStop(s, now);
+      if (isFieldSitting(s)) endFieldRest(s, c);
+      clearCloseConfine(s, now);
       s.battle = null;
       s.status = "hunting";
       s.areaId = area.id;
@@ -108,6 +320,10 @@ export function executeCommand(
       break;
     }
     case "stop": {
+      clearBladeStop(s, now);
+      clearTrickDead(s, c, now); // Leaving the field is a source warp boundary.
+      clearCloseConfine(s, now);
+      if (isFieldSitting(s)) endFieldRest(s, c);
       s.autoResume = false;
       s.pendingAreaId = null;
       if (s.fieldHero?.areaId === s.areaId) {
@@ -148,14 +364,13 @@ export function executeCommand(
       const fieldRest = s.areaId !== null && s.status !== "town" &&
         (s.status !== "resting" || s.restMode === "field");
       if (s.status === "town") s.areaId = null;
-      if (fieldRest && s.fieldHero?.areaId === s.areaId) {
-        const position = battleHeroAt(s, now);
-        Object.assign(s.fieldHero, { from: position, position, startedAt: now, arrivedAt: now, phase: "waiting" });
-        delete s.fieldHero.targetId;
-        delete s.fieldHero.moveBlockedUntil;
+      if (fieldRest) {
+        sitInField(s, now);
+        event(s, now, 'rest', 'Sentou para descansar na área.');
+        break;
       }
       s.status = "resting";
-      s.restMode = fieldRest ? "field" : "recovery";
+      s.restMode = "recovery";
       s.battle = null;
       s.pendingAreaId = null;
       s.restUntil = now + 30000;
@@ -258,11 +473,19 @@ export function executeCommand(
           s.learnedSkills[id] &&
             c.skills[id] &&
             c.skills[id].kind !== "passive" &&
+            (!c.skills[id].manualUse ||
+              c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
+            c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate') &&
             c.skills[id].implementation !== "unsupported",
           "INVALID_ROTATION",
           "A rotação exige habilidades ativas disponíveis e aprendidas.",
         );
       s.rotation = [...command.skillIds];
+      break;
+    }
+    case "craftConverter": {
+      craftConverter(s,c,command.itemId,command.quantity,now);
       break;
     }
     case "buy": {
@@ -323,19 +546,34 @@ export function executeCommand(
       break;
     }
     case "identify": {
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'ITEM_STATUS_BLOCKED', 'Frenesi impede usar itens e habilidades.');
       const e = owned(s, command.uid);
       const item = c.items[e.itemId];
       requireRule(item.type === "equipment", "INVALID_IDENTIFICATION", "Somente equipamentos precisam de identificação.");
       requireRule(!isItemIdentified(e), "ALREADY_IDENTIFIED", "Este equipamento já foi identificado.");
-      const magnifier = s.inventory.find((i) => i.itemId === MAGNIFIER_ITEM_ID && i.quantity > 0);
-      requireRule(magnifier, "MAGNIFIER_REQUIRED", "É necessário uma Lupa para identificar este equipamento.");
-      consume(s, magnifier, 1);
+      requireRule(command.method === undefined || command.method === "magnifier" || command.method === "skill", "INVALID_IDENTIFICATION", "Método de identificação inválido.");
+      if (command.method === "skill") {
+        const skill = classSkills(c, s.job).map(id => c.skills[id]).find(skill => skill?.sourceName === "MC_IDENTIFY" && skill.implementation === "supported");
+        const level = skill ? s.learnedSkills[skill.id] ?? 0 : 0;
+        requireRule(skill && Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel, "IDENTIFY_SKILL_REQUIRED", "Aprenda Identificar para usar esta habilidade.");
+        requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP antes de usar esta habilidade.");
+        // Hercules status_check_skilluse blocks normal casts under these statuses.
+        requireRule(!["TF_HIDING", "MO_STEELBODY", "LK_BERSERK", "KN_AUTOCOUNTER"].some(source => classicBuffActive(s, c, source, now)), "SKILL_STATUS_BLOCKED", "Seu estado atual impede Identificar por habilidade.");
+        const cost = skill.spCost[level - 1] ?? skill.spCost.at(-1);
+        requireRule(cost !== undefined && Number.isFinite(cost) && cost >= 0 && s.sp >= cost, "SP_REQUIRED", "SP insuficiente para Identificar.");
+        s.sp -= cost;
+      } else {
+        const magnifier = s.inventory.find((i) => i.itemId === MAGNIFIER_ITEM_ID && i.quantity > 0);
+        requireRule(magnifier, "MAGNIFIER_REQUIRED", "É necessário uma Lupa para identificar este equipamento.");
+        consume(s, magnifier, 1);
+      }
       e.identified = true;
       const bonus = rarityBonusText(e);
       event(s, now, "identify", `${item.name} identificado · ${rarityNames[e.rarity ?? "common"]}${bonus ? ` · ${bonus}` : ""}.`, undefined, undefined, { itemId: item.id });
       break;
     }
     case "equip": {
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'EQUIP_STATUS_BLOCKED', 'Frenesi impede trocar equipamentos.');
       const e = owned(s, command.uid);
       const item = c.items[e.itemId];
       requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de equipar.");
@@ -352,9 +590,11 @@ export function executeCommand(
           delete s.equipment.weapon;
       }
       s.equipment[item.slot!] = e.uid;
+      clearShieldDependentStatuses(s, c);
       break;
     }
     case "unequip":
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'EQUIP_STATUS_BLOCKED', 'Frenesi impede trocar equipamentos.');
       requireRule(
         [
           "weapon",
@@ -369,6 +609,7 @@ export function executeCommand(
         "Posição inválida.",
       );
       delete s.equipment[command.slot];
+      clearShieldDependentStatuses(s, c);
       break;
     case "favorite": {
       const e = owned(s, command.uid);
@@ -451,6 +692,7 @@ export function executeCommand(
       );
       const next = c.classes[command.classId];
       s.job = next.id;
+      if (!canPecoMount(s, c)) s.mounted = false;
       if (next.tier === 1 && !s.family) s.family = next.family;
       if (next.tier === 2 && !s.reborn) s.branch = next.id;
       s.jobLevel = 1;
@@ -483,6 +725,7 @@ export function executeCommand(
       s.family ??= c.classes[s.job].family;
       s.reborn = true;
       s.job = "high_novice";
+      s.mounted = false;
       s.baseLevel = 1;
       s.jobLevel = 1;
       s.baseExp = 0;
@@ -566,6 +809,7 @@ export function executeCommand(
     default:
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
+  if (classicGroundSceneKey(s) !== previousScene) clearClassicGrounds(s, c);
   clampResources(s, c);
   updateQuests(s, c);
 }

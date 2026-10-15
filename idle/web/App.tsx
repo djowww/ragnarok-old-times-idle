@@ -1,3 +1,5 @@
+import { playerStatusCues } from '../shared/playerStatusView';
+import { treatmentSources, statusTreatmentNeeded } from '../engine/playerStatuses';
 import { useEffect, useRef, useState } from "react";
 import type { AccountView } from "../shared/portal-types";
 import { useAuth } from "./portal/AuthProvider";
@@ -31,6 +33,8 @@ import {
 import Inventory from "./panels/Inventory";
 import Shop from "./panels/Shop";
 import Build from "./panels/Build";
+import SenseInspection from "./panels/SenseInspection";
+import ConverterCraft from "./panels/ConverterCraft";
 import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges, { type ChallengeFilter } from "./panels/Challenges";
@@ -45,14 +49,14 @@ import type { MapStatus } from "./components/OriginalMap";
 import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "admin";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "converters" | "admin";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
   city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
-  admin: "Administração",
+  converters: "Conversores elementais", admin: "Administração",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -90,6 +94,9 @@ function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, cat
   const sp = Math.max(0, Math.floor((skill.spCost[index] ?? skill.spCost.at(-1) ?? 0) * (1 - Math.min(100, stats.effects.spCostReductionPct ?? 0) / 100)));
   const zeny = skill.zenyCost?.[index] ?? skill.zenyCost?.at(-1) ?? 0;
   const reasons: string[] = [];
+  const treatment = treatmentSources.has(skill.sourceName ?? "");
+  const treatmentNeeded = treatment && statusTreatmentNeeded(state, catalog, skill, now);
+  if (treatment && !treatmentNeeded) reasons.push("aguardando doença tratável no próprio personagem");
   const cooldown = (state.skillReadyAt[skill.id] ?? 0) - now;
   if (cooldown > 0) reasons.push(`recarga em ${Math.ceil(cooldown / 1000)} s`);
   if (state.sp < sp) reasons.push(`SP insuficiente (${state.sp}/${sp})`);
@@ -115,10 +122,10 @@ function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, cat
     if (battle.cast && battle.cast.endsAt > now) reasons.push("conjuração em andamento");
     else if ((battle.playerActionReadyAt ?? battle.playerNextAttackAt) > now)
       reasons.push("movimento ou pós conjuração em andamento");
-    if (!offensiveSkill(skill) && battle.supportNeedsOffense)
+    if (!offensiveSkill(skill) && battle.supportNeedsOffense && !treatmentNeeded)
       reasons.push("aguardando ação ofensiva entre habilidades de suporte");
     const target = battle.enemies?.find(enemy => enemy.id === battle.targetId) ?? battle.enemies?.[0];
-    if (target && !skillTargetInRange(state, catalog, skill, level, target, now))
+    if (!treatment && target && !skillTargetInRange(state, catalog, skill, level, target, now))
       reasons.push("alvo fora do alcance");
   }
   const baseCast = skill.castTimeMs?.[index] ?? skill.castTimeMs?.at(-1) ?? 0;
@@ -193,7 +200,7 @@ function HuntExplorer({
   const [section, setSection] = useState<HuntSection>("hunt");
   const movable = useDraggableWindow<HTMLElement>("hunt-explorer", "exploração");
   const { state, stats, serverTime } = snapshot;
-  const recovering = state.status === "resting" && (state.restMode !== "field" || state.restUntil > serverTime);
+  const recovering = state.status === "resting" && state.restMode !== "field";
   const fieldRest = state.status === "resting" && state.restMode === "field";
   const sitting = fieldRest && !recovering;
   const selectedArea = catalog.areas.find((candidate) => candidate.id === areaId) ?? catalog.areas[0];
@@ -449,7 +456,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
     windowClose.current?.focus();
   }, [activeWindow]);
   const openWindow = (destination: GameWindow, trigger?: HTMLElement) => {
-    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist";
+    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist" || destination === "converters";
     if (cityOnly && game.snapshot?.state.status !== "town") {
       setBookOpen(false);
       if (game.snapshot) void game.command({ type: "stop" });
@@ -628,6 +635,9 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                       </span>
                     </div>
                     <div className="hero-vitals">
+                      {playerStatusCues(state, snapshot.serverTime).map(cue => <span className="player-disease" key={cue.kind} role="status" title={`${cue.label}: termina em ${Math.ceil(cue.remainingMs / 1000)} s`}>
+                        {cue.label} · {Math.ceil(cue.remainingMs / 1000)} s
+                      </span>)}
                       <div className="vital-row">
                         <Meter label="HP" value={state.hp} max={stats.maxHp} />
                         <button type="button" className="potion-threshold"
@@ -848,6 +858,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                           : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} />}
                         <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
                           mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
+                        <SenseInspection catalog={catalog} snapshot={snapshot} />
                         <ChatJournal {...props} identity={identity} onAuthRequired={onAuthRequired} isOpen={journalOpen} onOpenChange={setJournalOpen} />
                         <RewardNotifications catalog={catalog} snapshot={snapshot}
                           enabled={!loading && game.connected && enteredWorld} />
@@ -907,7 +918,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "equipment" &&
                           <ClassicEquipment {...props} onInventory={() => setActiveWindow("inventory")} />}
                         {activeWindow === "inventory" && <Inventory {...props} />}
-                        {activeWindow === "skills" && <Build {...props} mode="skills" />}
+                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} />}
                         {activeWindow === "world" && <>
                           <div className="ro-journey-summary" role="group" aria-label="Sua jornada">
                             <span>Abates <b>{number(state.totals.kills)}</b></span>
@@ -921,10 +932,11 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "classes" && <Classes {...props} />}
                         {activeWindow === "challenges" && <Challenges {...props} filter={challengeFilter} onFilterChange={setChallengeFilter} />}
                         {activeWindow === "shop" && <Shop {...props} />}
-                        {activeWindow === "city" && <CityServices onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
+                        {activeWindow === "city" && <CityServices catalog={catalog} onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
+                        {activeWindow === "converters" && <ConverterCraft {...props} />}
                         {activeWindow === "blacksmith" && <Blacksmith {...props} />}
                         {activeWindow === "stylist" && <Stylist {...props} />}
-                        {activeWindow === "admin" && <Admin {...props} onChanged={() => void game.retry()} />}
+                        {activeWindow === "admin" && <Admin {...props} identity={identity} onAuthRequired={onAuthRequired} onChanged={() => void game.retry()} />}
                       </div>
                       {rewardedQuest && <QuestReward quest={rewardedQuest}
                         catalog={catalog} onClose={dismissReward} />}

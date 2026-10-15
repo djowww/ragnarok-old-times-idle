@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
+import type { Catalog } from '../../shared/types';
+import { ItemIcon } from '../components/common';
 
-export type CityService = "shop" | "blacksmith" | "stylist";
+export type CityService = "shop" | "blacksmith" | "stylist" | "converters";
 
 function ServiceIcon({ children }: { children: ReactNode }) {
   return <span className="city-service-icon" aria-hidden="true">{children}</span>;
 }
 
-export default function CityServices({ onOpen }: { onOpen: (service: CityService, trigger: HTMLElement) => void }) {
+export default function CityServices({ onOpen, catalog }: { onOpen: (service: CityService, trigger: HTMLElement) => void; catalog?: Catalog }) {
   return <section className="city-services" aria-labelledby="city-services-title">
     <header className="city-services-intro">
       <span className="city-services-crest" aria-hidden="true">♜</span>
@@ -29,6 +31,11 @@ export default function CityServices({ onOpen }: { onOpen: (service: CityService
       <button type="button" className="city-service-card" onClick={event => onOpen("stylist", event.currentTarget)}>
         <ServiceIcon><span aria-hidden="true">✂</span></ServiceIcon>
         <span className="city-service-copy"><b>Estilista</b><small>Cabelo e cor da roupa</small></span>
+        <span className="city-service-arrow" aria-hidden="true">›</span>
+      </button>
+      <button type="button" className="city-service-card" onClick={event => onOpen("converters", event.currentTarget)}>
+        <ServiceIcon>{catalog?.items[12114] && <ItemIcon item={catalog.items[12114]} />}</ServiceIcon>
+        <span className="city-service-copy"><b>Conversores elementais</b><small>Receitas do Sábio</small></span>
         <span className="city-service-arrow" aria-hidden="true">›</span>
       </button>
       <div className="city-service-card city-service-unavailable" aria-label="Quadro de quests, em breve">

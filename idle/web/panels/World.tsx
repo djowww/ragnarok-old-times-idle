@@ -41,7 +41,7 @@ function recentActivity(buckets: AreaActivityBucket[] | undefined, now: number) 
 
 export function World({ catalog, snapshot, busy, command }: PanelProps) {
   const { state, serverTime } = snapshot;
-  const recovering = state.status === "resting" && (state.restMode !== "field" || state.restUntil > serverTime);
+  const recovering = state.status === "resting" && state.restMode !== "field";
   const sitting = state.status === "resting" && state.restMode === "field" && !recovering;
   return (
     <div className="world-layout">

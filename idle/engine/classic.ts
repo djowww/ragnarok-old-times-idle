@@ -5,6 +5,25 @@
  * Geometry, status application and resource consumption belong to combat.ts.
  */
 import type { Effects, Monster, Skill, Stats, WeaponType } from '../shared/types.js';
+import { deadlyPoisonDamageMultiplier } from './deadlyPoison.js';
+import { brandishRatio, type BrandishFlag } from './brandishSpear.js';
+import { resurrectionBaseDamage, resurrectionMonsterEligible } from './resurrectionSoulChange.js';
+import { sacrificeBaseDamage, sacrificeRatio } from './guardianSacrificeRules.js';
+
+/** Pre-renewal status_calc_mdef2 applies SC_MINDBREAKER to soft MDEF only. */
+export function classicSoftMdef(monster: Monster) {
+  const softMdef = Math.max(1, monster.stats.int + integer(monster.stats.vit / 2));
+  if (monster.mdefPercent === undefined) return softMdef;
+  return Math.max(1, integer(softMdef * monster.mdefPercent / 100));
+}
+
+/** battle.c:1482..1495, pre-renewal PC soft defense (not the mob formula). */
+export function classicPlayerVitDefense(vit: number, defensePercent: number, rng: () => number) {
+  const def2 = Math.max(1, Math.trunc(vit));
+  const range = Math.trunc(def2 * (def2 - 15) / 150);
+  const rolled = Math.trunc(def2 / 2) + (range > 0 ? Math.floor(rng() * range) : 0);
+  return Math.trunc(rolled * defensePercent / 100);
+}
 
 export interface ClassicDamageStats {
   attack: number;
@@ -18,6 +37,8 @@ export interface ClassicDamageStats {
   shieldRefine?: number;
   weaponType?: WeaponType;
   twoHanded?: boolean;
+  mounted?: boolean;
+  brandishArea?: BrandishFlag;
   dex?: number;
   str?: number;
   int?: number;
@@ -29,6 +50,7 @@ export interface ClassicDamageStats {
   sp?: number;
   critical?: boolean;
   damagePercent?: number;
+  sourceAttackPercent?: number;
   magicPowerPercent?: number;
   targetCount?: number;
   targetHp?: number;
@@ -78,9 +100,27 @@ export function classicCastTime(baseMs: number, dex: number): number {
   return Math.max(0, integer(baseMs * Math.max(0, 150 - dex) / 150));
 }
 
-/** status.c:3763..3769 and 3426. Default pre-renewal ASPD cap is 190. */
+/** skill.c:1593..1597 and skill_db.conf SM_FATALBLOW SkillData2.
+ * Fatal Blow enables Bash stun above level 5; Hercules expresses its status
+ * rate in 1/10000 and scales it with the attacker's base level. */
+export function classicBashStunChance(bashLevel: number, baseLevel: number, fatalBlowLevel: number): number {
+  if (fatalBlowLevel <= 0 || bashLevel <= 5) return 0;
+  return Math.max(0, Math.min(100, 500 * (bashLevel - 5) * Math.max(0, baseLevel) / 50 / 100));
+}
+
+/** skill.c:6682..6688. Hercules rolls Crucis against the caster/target level difference. */
+export function classicCrucisBaseChance(skillLevel: number, casterBaseLevel: number, targetLevel: number): number {
+  return Math.max(0, Math.min(100, 23 + 4 * skillLevel + casterBaseLevel - targetLevel));
+}
+
+/** status.c:3763..3769: PC amotion before aspd_rate and Free Cast stages. */
+export function classicBaseAttackAmotion(baseMotion: number, agi: number, dex: number): number {
+  return baseMotion - integer(baseMotion * (4 * agi + dex) / 1000);
+}
+
+/** status.c:3426. Default pre-renewal runtime cap is 190 ASPD (100 ms amotion). */
 export function classicAttackInterval(baseMotion: number, agi: number, dex: number, delayReductionPct = 0): number {
-  const motion = baseMotion - integer(baseMotion * (4 * agi + dex) / 1000);
+  const motion = classicBaseAttackAmotion(baseMotion, agi, dex);
   return 2 * Math.max(100, Math.min(2000, integer(motion * (100 - delayReductionPct) / 100)));
 }
 
@@ -140,10 +180,8 @@ export function classicStripDuration(baseMs: number, casterDex: number, targetDe
 export function classicStrippedMonster(monster: Monster, activeStatuses: Iterable<string>): Monster {
   const active = new Set(activeStatuses);
   const clone: Monster = { ...monster, stats: { ...monster.stats }, attack: [...monster.attack] };
-  if (active.has('SC_NOEQUIPWEAPON')) clone.attack = clone.attack.map(n => integer(n * 75 / 100)) as [number, number];
   if (active.has('SC_NOEQUIPARMOR')) clone.stats.vit -= integer(clone.stats.vit * 40 / 100);
   if (active.has('SC_NOEQUIPHELM')) clone.stats.int -= integer(clone.stats.int * 40 / 100);
-  if (active.has('SC_NOEQUIPSHIELD')) clone.def -= integer(clone.def * 15 / 100);
   return clone;
 }
 
@@ -153,24 +191,30 @@ export function classicMagicDamage(stats: ClassicDamageStats, monster: Monster, 
   if (s.implementation === 'unsupported' || s.damageType === 'none') return 0;
   const name = sourceOf(s);
   if (name === 'PR_MAGNUS' && !undead(monster) && monster.race.toLowerCase() !== 'demon' && monster.race.toLowerCase() !== 'undead') return 0;
+  if (name === 'ALL_RESURRECTION' && !resurrectionMonsterEligible(monster)) return 0;
   const element = s.ignoreElement ? 1 : stats.elementMultiplier ?? 1;
+  if (element <= 0 && name !== 'ALL_RESURRECTION') return 0;
+  let raw = name === 'ALL_RESURRECTION' ? resurrectionBaseDamage({ level,
+    baseLevel: stats.baseLevel ?? 1, intelligence: stats.int ?? 1, luck: stats.luk ?? 1,
+    targetHp: stats.targetHp ?? monster.hp, targetMaxHp: monster.hp,
+    boss: stats.targetIsBoss ?? !!monster.boss }, rng)
+    : randomExclusive(stats.magicAttack[0], stats.magicAttack[1], rng);
   if (element <= 0) return 0;
-  let raw = randomExclusive(stats.magicAttack[0], stats.magicAttack[1], rng);
   if (name === 'PR_TURNUNDEAD') {
     if (!undead(monster)) return 0;
     const chance = Math.min(700, 20 * level + (stats.luk ?? 1) + (stats.int ?? 1) + (stats.baseLevel ?? 1) + 200 - integer(200 * (stats.targetHp ?? monster.hp) / monster.hp));
     raw = !stats.targetIsBoss && rng() * 1000 < chance ? stats.targetHp ?? monster.hp : (stats.baseLevel ?? 1) + (stats.int ?? 1) + 10 * level;
   }
   // NK_SPLASHSPLIT is applied to MATK before the ratio (battle.c:4166).
-  if (s.splitDamage) raw = integer(raw / Math.max(1, stats.targetCount ?? 1));
+  if (s.splitDamage && name !== 'ALL_RESURRECTION') raw = integer(raw / Math.max(1, stats.targetCount ?? 1));
   let ratio = atLevel(s.power, level, 100);
   if (name === 'MG_SOULSTRIKE' && undead(monster)) ratio += 5 * level;
-  if (name !== 'PR_TURNUNDEAD') raw = integer(raw * ratio / 100);
-  raw = integer(raw * (100 + (stats.magicPowerPercent ?? 0)) / 100);
+  if (!['PR_TURNUNDEAD', 'ALL_RESURRECTION'].includes(name)) raw = integer(raw * ratio / 100);
+  if (name !== 'ALL_RESURRECTION') raw = integer(raw * (100 + (stats.magicPowerPercent ?? 0)) / 100);
   if (name === 'WZ_FIREPILLAR') raw += 100 + 50 * level;
   // IgnoreDefense removes hard MDEF only; soft MDEF remains (battle.c:1562).
   const hardMdef = s.ignoreDefense ? 0 : monster.mdef;
-  const softMdef = monster.stats.int + integer(monster.stats.vit / 2);
+  const softMdef = classicSoftMdef(monster);
   const mitigated = Math.max(1, integer(raw * (100 - hardMdef) / 100) - softMdef);
   const dragonBonus = monster.race.toLowerCase() === 'dragon' ? 4 * learned(stats, 'SA_DRAGONOLOGY') : 0;
   // Pre-renewal offensive card/race adjustment precedes division fix.
@@ -190,7 +234,7 @@ function mastery(stats: ClassicDamageStats, monster: Monster): number {
   let amount = 0;
   if (type === 'dagger' || type === 'sword' && !stats.twoHanded) amount += 4 * learned(stats, 'SM_SWORD');
   if (type === 'sword' && stats.twoHanded) amount += 4 * learned(stats, 'SM_TWOHAND');
-  if (type === 'spear') amount += 4 * learned(stats, 'KN_SPEARMASTERY');
+  if (type === 'spear') amount += (stats.mounted ? 5 : 4) * learned(stats, 'KN_SPEARMASTERY');
   if (type === 'axe') amount += 3 * learned(stats, 'AM_AXEMASTERY');
   if (type === 'mace') amount += 3 * learned(stats, 'PR_MACEMASTERY');
   if (!type) amount += 3 * learned(stats, 'MO_IRONHAND');
@@ -237,14 +281,19 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
   if (name === 'PR_TURNUNDEAD') return classicMagicDamage(stats, monster, skill!, level, rng);
   const element = s?.ignoreElement ? 1 : stats.elementMultiplier ?? 1;
   if (element <= 0 && name !== 'ASC_BREAKER') return 0;
-  let raw = weaponBase(stats, rng);
-  let ratio = s ? atLevel(s.power, level, 100) : 100;
+  let raw = name === 'PA_SACRIFICE'
+    ? sacrificeBaseDamage(stats.maxHp ?? 0, level)
+    : weaponBase(stats, rng);
+  // battle.c:5573..5595: source ATK percentage precedes skill ratio;
+  // Asura bypasses it and fixed/weight formulas below replace this base.
+  if (name !== 'MO_EXTREMITYFIST' && name !== 'PA_SACRIFICE') raw = integer(raw * (stats.sourceAttackPercent ?? 100) / 100);
+  let ratio = name === 'PA_SACRIFICE' ? 100 : s ? atLevel(s.power, level, 100) : 100;
   let fixed = false;
   let neutralFixed = 0;
   let hits = s ? Math.max(1, atLevel(s.sourceHitCount, level, 1)) : 1;
   if (name === 'CR_GRANDCROSS') {
     const magic = randomExclusive(stats.magicAttack[0], stats.magicAttack[1], rng);
-    const magical = Math.max(1, integer(magic * (100 - monster.mdef) / 100) - monster.stats.int - integer(monster.stats.vit / 2));
+    const magical = Math.max(1, integer(magic * (100 - monster.mdef) / 100) - classicSoftMdef(monster));
     const physical = weaponDefense(raw, stats, monster, undefined, rng)
       + (stats.weaponRefineAttack ?? 0) + mastery(stats, monster)
       + 2 * learned(stats, 'BS_WEAPONRESEARCH') + 3 * (stats.spiritSpheres ?? 0);
@@ -283,7 +332,7 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
     case 'PA_SHIELDCHAIN': raw = (stats.baseAttack ?? stats.attack) + (stats.shieldWeight ?? 0); break;
     case 'HW_MAGICCRASHER': raw = raw - (stats.baseAttack ?? stats.attack) + stats.magicAttack[0]; break;
     case 'KN_PIERCE': hits = monster.size.toLowerCase() === 'small' ? 1 : monster.size.toLowerCase() === 'large' ? 3 : 2; break;
-    case 'KN_BRANDISHSPEAR': if (level > 3) ratio += integer(ratio / 2); if (level > 6) ratio += integer((100 + 20 * level) / 4); if (level > 9) ratio += integer((100 + 20 * level) / 8); break;
+    case 'KN_BRANDISHSPEAR': ratio = brandishRatio(level, stats.brandishArea ?? 1); break;
     case 'RG_BACKSTAP': if (stats.weaponType === 'bow') ratio = integer(ratio / 2); break;
     case 'AS_SPLASHER': ratio += 20 * learned(stats, 'AS_POISONREACT'); break;
     case 'HT_POWER': ratio = 50 + 8 * (stats.str ?? 1); break;
@@ -296,9 +345,16 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
     level,
   );
   // Pre-renewal weapon division fix occurs BEFORE defense (battle.c:5822).
+  if ((stats.activeSkillsBySource?.LK_BERSERK ?? 0) > 0) ratio += 100;
   raw = integer(raw * ratio / 100) * hits;
+  raw = integer(raw * deadlyPoisonDamageMultiplier(stats.activeSkillsBySource?.ASC_EDP ?? 0, name,
+    !s || s.damageType === 'weapon'));
   if (name === 'AS_SONICBLOW' && learned(stats, 'AS_SONICACCEL')) raw += integer(raw * 10 / 100);
   raw = weaponDefense(raw, stats, monster, s, rng);
+  // battle.c:5754..5769: pre-renewal Aura Blade adds flat damage after DEF;
+  // Hercules explicitly excludes Spiral Pierce from this bonus.
+  const auraBladeLevel = stats.activeSkillsBySource?.LK_AURABLADE ?? 0;
+  if (auraBladeLevel > 0 && name !== 'LK_SPIRALPIERCE') raw += 20 * auraBladeLevel;
   if (!['MO_INVESTIGATE', 'MO_EXTREMITYFIST', 'CR_SHIELDBOOMERANG', 'PA_SHIELDCHAIN'].includes(name)) raw += (stats.weaponRefineAttack ?? 0) * (name === 'MO_FINGEROFFENSIVE' ? hits : 1);
   raw += mastery(stats, monster);
   raw += 2 * learned(stats, 'BS_WEAPONRESEARCH');
@@ -320,6 +376,7 @@ export function classicSkillEffects(skill: Skill, level: number, attributes: Par
   const dance = attributes.skillLevelsBySource?.DC_DANCINGLESSON ?? 0;
   switch (sourceOf(skill)) {
     case 'AL_BLESSING': return { str: level, int: level, dex: level };
+    case 'SM_ENDURE': return { mdef: level };
     case 'AL_INCAGI': return { agi: 2 + level };
     case 'MC_LOUD': return { str: 4 };
     case 'PR_IMPOSITIO': return { atk: 5 * level };
@@ -344,9 +401,9 @@ export function classicSkillEffects(skill: Skill, level: number, attributes: Par
     case 'DC_FORTUNEKISS': return { crit: 10 + level + integer((attributes.luk ?? 0) / 10) + dance };
     case 'DC_SERVICEFORYOU': return { spPct: 15 + level + integer((attributes.int ?? 0) / 10) + integer(dance / 2), spCostReductionPct: 20 + 3 * level + integer((attributes.int ?? 0) / 10) + integer(dance / 2) };
     case 'AL_ANGELUS': return { softDefPct: 5 * level };
-    case 'CR_AUTOGUARD': return { blockPct: Array.from({ length: level }, (_, i) => Math.max(1, 5 - integer(i / 2))).reduce((a, b) => a + b, 0) };
+    case 'CR_AUTOGUARD': return { autoGuardPct: Array.from({ length: level }, (_, i) => Math.max(1, 5 - integer(i / 2))).reduce((a, b) => a + b, 0) };
     case 'CR_REFLECTSHIELD': return { reflectPct: 10 + 3 * level };
-    case 'LK_PARRYING': return { blockPct: 20 + 3 * level };
+    case 'LK_PARRYING': return { parryPct: 20 + 3 * level };
     case 'HP_ASSUMPTIO': return { physicalResistPct: 50 };
     case 'AC_OWL': return { dex: level };
     case 'AC_VULTURE': return { hit: level };

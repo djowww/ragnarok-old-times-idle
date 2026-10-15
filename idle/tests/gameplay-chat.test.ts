@@ -1,0 +1,182 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import catalogJSON from '../content/catalog.json';
+import type { Catalog, GameState } from '../shared/types.js';
+import { createInitialState } from '../engine/index.js';
+import { buildApp } from './authenticated-game-fixture.js';
+import type { StateRepository } from '../server/repository.js';
+import { MysqlChatRepository } from '../server/chat.js';
+import type { Pool } from 'mysql2/promise';
+
+const catalog = catalogJSON as unknown as Catalog;
+type Message = { id: number; name: string; text: string; at: number };
+class MemoryChat {
+  messages: Message[] = [];
+  identities: Array<{ id: string; name: string }> = [];
+  async list(after: number | null, limit: number) {
+    const rows = after === null ? this.messages.slice(-limit) : this.messages.filter(message => message.id > after).slice(0, limit);
+    return structuredClone(rows);
+  }
+  async append(profile: { id: string; name: string }, text: string, at: number) {
+    this.identities.push(structuredClone(profile));
+    const message = { id: (this.messages.at(-1)?.id ?? 0) + 1, name: profile.name, text, at };
+    this.messages.push(message);
+    return structuredClone(message);
+  }
+}
+class MemoryProfile implements StateRepository {
+  state = createInitialState(catalog, 1000, 'Djow do servidor');
+  async read() { return structuredClone(this.state); }
+  async health() { return true; }
+  async transact(_id: string | null, _action: (state: GameState) => GameState): Promise<GameState> {
+    throw new Error('Chat must not issue gameplay commands');
+  }
+}
+const apps: ReturnType<typeof buildApp>[] = [];
+afterEach(async () => { for (const app of apps.splice(0)) await app.close(); });
+function setup(chatRepository = new MemoryChat()) {
+  let at = 1000;
+  const repository = new MemoryProfile();
+  const app = buildApp({ catalog, repository, chatRepository, now: () => at });
+  apps.push(app);
+  return { app, chat: chatRepository, repository, advance: (ms: number) => { at += ms; } };
+}
+describe('local global chat', () => {
+  it('trims text and uses the server profile identity instead of submitted names', async () => {
+    const { app, chat, repository } = setup();
+    const response = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: '  Olá, Prontera!  ', name: 'Administrador', profileId: 'forged-profile' } });
+    expect(response.statusCode).toBe(201);
+    expect(response.json()).toEqual({ message: { id: 1, name: 'Djow do servidor', text: 'Olá, Prontera!', at: 1000 } });
+    expect(chat.identities).toEqual([{ id: repository.state.id, name: 'Djow do servidor' }]);
+    expect(repository.state.revision).toBe(0);
+  });
+  it.each([{ payload: null }, { payload: [] }, { payload: {} }, { payload: { text: 42 } }, { payload: { text: '  \n  ' } }, { payload: { text: 'x'.repeat(241) } }, { payload: { text: 'a\u0000b' } }])('rejects malformed or excessive message text: %j', async ({ payload }) => {
+    const { app, chat } = setup();
+    const response = await app.inject({ method: 'POST', url: '/api/chat', headers: { 'Content-Type': 'application/json' }, payload: JSON.stringify(payload) });
+    expect(response.statusCode).toBe(400);
+    expect(chat.messages).toEqual([]);
+  });
+  it('accepts the text boundary and returns markup as plain message text', async () => {
+    const { app } = setup();
+    const boundary = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'x'.repeat(240) } });
+    expect(boundary.statusCode).toBe(201);
+    const markup = await app.inject({ method: 'POST', url: '/api/chat', payload: { text: '<img src=x onerror=alert(1)>' } });
+    expect(markup.statusCode).toBe(201);
+    expect(markup.json().message.text).toBe('<img src=x onerror=alert(1)>');
+  });
+  it('serves the latest 50 messages in order then pages every unseen message without skipping', async () => {
+    const chat = new MemoryChat();
+    chat.messages = Array.from({ length: 105 }, (_, index) => ({ id: index + 1, name: 'Teste', text: `Mensagem ${index + 1}`, at: 1000 }));
+    const { app } = setup(chat);
+    const recent = (await app.inject('/api/chat')).json();
+    expect(recent.messages).toHaveLength(50);
+    expect(recent.messages[0].id).toBe(56);
+    expect(recent.messages.at(-1).id).toBe(105);
+    expect(recent.nextCursor).toBe(105);
+    const first = (await app.inject('/api/chat?after=0&limit=99999')).json();
+    expect(first.messages).toHaveLength(50);
+    expect(first.messages[0].id).toBe(1);
+    expect(first.nextCursor).toBe(50);
+    expect(first.hasMore).toBe(true);
+    const second = (await app.inject('/api/chat?after=50')).json();
+    expect(second.messages[0].id).toBe(51);
+    expect(second.nextCursor).toBe(100);
+    expect(second.hasMore).toBe(true);
+    const last = (await app.inject('/api/chat?after=100')).json();
+    expect(last.messages.map((message: Message) => message.id)).toEqual([101, 102, 103, 104, 105]);
+    expect(last.hasMore).toBe(false);
+    const empty = (await app.inject('/api/chat?after=105')).json();
+    expect(empty).toEqual({ messages: [], nextCursor: 105, hasMore: false });
+  });
+  it.each(['-1', '1.5', 'abc', '4294967296', '1e3', ''])('rejects an invalid history cursor %j', async cursor => {
+    const { app } = setup();
+    expect((await app.inject(`/api/chat?after=${cursor}`)).statusCode).toBe(400);
+  });
+  it('limits the same profile across browser addresses and allows a later message', async () => {
+    const { app, chat, advance } = setup();
+    for (let index = 0; index < 5; index++) {
+      expect((await app.inject({ method: 'POST', url: '/api/chat', remoteAddress: `127.0.0.${index + 1}`, payload: { text: 'Teste' } })).statusCode).toBe(201);
+    }
+    const denied = await app.inject({ method: 'POST', url: '/api/chat', remoteAddress: '127.0.0.9', payload: { text: 'Excesso' } });
+    expect(denied.statusCode).toBe(429);
+    expect(denied.headers['retry-after']).toBe('10');
+    expect(chat.messages).toHaveLength(5);
+    advance(10_000);
+    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Após a pausa' } })).statusCode).toBe(201);
+  });
+  it('also limits one address when its profiles differ', async () => {
+    const { app, repository, chat } = setup();
+    for (let index = 0; index < 15; index++) {
+      repository.state.id = `profile-${index}`;
+      expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Teste' } })).statusCode).toBe(201);
+    }
+    repository.state.id = 'profile-extra';
+    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Excesso' } })).statusCode).toBe(429);
+    expect(chat.messages).toHaveLength(15);
+  });
+  it('rejects a foreign origin without publishing a message', async () => {
+    const { app, chat } = setup();
+    expect((await app.inject({ method: 'POST', url: '/api/chat', headers: { origin: 'https://example.invalid' }, payload: { text: 'Teste' } })).statusCode).toBe(403);
+    expect(chat.messages).toEqual([]);
+  });
+  it('returns a recoverable availability error when persistence is unavailable', async () => {
+    const { app, chat } = setup();
+    chat.list = async () => { throw new Error('Database unavailable'); };
+    chat.append = async () => { throw new Error('Database unavailable'); };
+    expect((await app.inject('/api/chat')).statusCode).toBe(503);
+    expect((await app.inject({ method: 'POST', url: '/api/chat', payload: { text: 'Teste' } })).statusCode).toBe(503);
+    expect(chat.messages).toEqual([]);
+  });
+  it('reports unavailable chat when the server has no configured persistence', async () => {
+    const app = buildApp({ catalog, repository: new MemoryProfile(), now: () => 1000 });
+    apps.push(app);
+    const response = await app.inject('/api/chat');
+    expect(response.statusCode).toBe(503);
+    expect(response.json().error.code).toBe('CHAT_UNAVAILABLE');
+  });
+});
+
+describe('chat SQL boundary without a live database', () => {
+  it('reads recent database rows in chronological order and caps SQL work', async () => {
+    let parameters: unknown[] | undefined;
+    const pool = {
+      async query(sql: string, values: unknown[]) {
+        if (!sql.includes('ORDER BY id DESC') || sql.includes('WHERE')) throw new Error('Unexpected recent query');
+        parameters = values;
+        return [[
+          { id: 9, player_name: 'Ana', message_text: 'Última', created_at_ms: '3000' },
+          { id: 7, player_name: 'Djow', message_text: 'Primeira', created_at_ms: '1000' },
+        ], []];
+      },
+    } as unknown as Pool;
+    expect(await new MysqlChatRepository(pool).list(null, 99999)).toEqual([
+      { id: 7, name: 'Djow', text: 'Primeira', at: 1000 },
+      { id: 9, name: 'Ana', text: 'Última', at: 3000 },
+    ]);
+    expect(parameters).toEqual([51]);
+  });
+  it('passes the cursor and row bound as parameters for incremental reads', async () => {
+    let parameters: unknown[] | undefined;
+    const pool = {
+      async query(sql: string, values: unknown[]) {
+        if (!sql.includes('WHERE id > ? ORDER BY id ASC LIMIT ?')) throw new Error('Unexpected incremental query');
+        parameters = values;
+        return [[{ id: 10, player_name: 'Ana', message_text: 'Seguinte', created_at_ms: 4000 }], []];
+      },
+    } as unknown as Pool;
+    expect(await new MysqlChatRepository(pool).list(9, 51)).toEqual([{ id: 10, name: 'Ana', text: 'Seguinte', at: 4000 }]);
+    expect(parameters).toEqual([9, 51]);
+  });
+  it('stores identities and literal text through prepared values without interpolating messages', async () => {
+    let parameters: unknown[] | undefined;
+    const pool = {
+      async execute(sql: string, values: unknown[]) {
+        if (!sql.startsWith('INSERT INTO idle_chat_messages') || !sql.endsWith('VALUES (?, ?, ?, ?)') || sql.includes('DROP')) throw new Error('Unexpected insert');
+        parameters = values;
+        return [{ insertId: 11, affectedRows: 1 }, []];
+      },
+    } as unknown as Pool;
+    const text = "'); DROP TABLE idle_profiles; --";
+    expect(await new MysqlChatRepository(pool).append({ id: 'local-djow', name: 'Djow' }, text, 5000)).toEqual({ id: 11, name: 'Djow', text, at: 5000 });
+    expect(parameters).toEqual(['local-djow', 'Djow', text, 5000]);
+  });
+});

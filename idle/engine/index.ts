@@ -10,6 +10,8 @@ import { tick } from "./combat.js";
 import { executeCommand } from "./commands.js";
 import { updateQuests } from "./progression.js";
 import { pruneAreaActivity, recordAreaActivity } from "../shared/hunt.js";
+import { clearStaleSenseInspection } from './senseInspection.js';
+import { bladeStopRules } from './bladeStop.js';
 export { GameError } from "./state.js";
 /** Reconcile only the explicitly removed skills, without resetting progression. */
 function reconcileRemovedSkills(s: GameState, c: Catalog) {
@@ -132,7 +134,7 @@ function* advanceStateSteps(
   while (s.lastSimulatedAt + 250 <= until) {
     // A fully recovered avatar in town has no combat deadlines to process.
     // Skip empty offline ticks while preserving the same persisted clock.
-    if (s.status === "town" && Object.keys(s.buffs).length === 0) {
+    if (s.status === "town" && Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
       const stats = derivedStats(s, catalog);
       if (s.hp >= stats.maxHp && s.sp >= stats.maxSp) {
         const gap = Math.floor((until - s.lastSimulatedAt) / 250) * 250;
@@ -174,6 +176,7 @@ export function advanceState(
   const steps = advanceStateSteps(state, catalog, now);
   let step = steps.next();
   while (!step.done) step = steps.next();
+  clearStaleSenseInspection(step.value);
   return step.value;
 }
 export async function advanceStateCooperatively(
@@ -191,6 +194,7 @@ export async function advanceStateCooperatively(
     }
     step = steps.next();
   }
+  clearStaleSenseInspection(step.value);
   return step.value;
 }
 export function applyCommand(
@@ -207,22 +211,44 @@ export function applyCommand(
     }
   }
   executeCommand(s, catalog, command, now);
+  clearStaleSenseInspection(s);
   return s;
 }
 
 /** The capped gap is discarded once; active timers retain their remaining time. */
 function resumePausedState(s: GameState, now: number) {
   const gap = Math.max(0, now - (s.pausedAt ?? s.lastSimulatedAt));
-  const shift = (at: number) => Number.isFinite(at) ? at + gap : at;
+  const shift = (at: number) => Number.isFinite(at) ? Math.min(Number.MAX_SAFE_INTEGER, at + gap) : at;
   const optional = (at: number | undefined) => at === undefined ? undefined : shift(at);
   s.nextEncounterAt = shift(s.nextEncounterAt);
   s.restUntil = s.restUntil > 0 ? shift(s.restUntil) : 0;
   s.potionReadyAt = shift(s.potionReadyAt);
   for (const id of Object.keys(s.skillReadyAt)) s.skillReadyAt[id] = shift(s.skillReadyAt[id]);
-  for (const buff of Object.values(s.buffs)) buff.expiresAt = shift(buff.expiresAt);
+  for (const buff of Object.values(s.buffs)) {
+    buff.expiresAt = shift(buff.expiresAt);
+    buff.startsAt = optional(buff.startsAt);
+  }
+  for (const status of Object.values(s.playerStatuses ?? {})) {
+    if (!status) continue;
+    status.startsAt = shift(status.startsAt); status.expiresAt = shift(status.expiresAt);
+    status.nextTickAt = optional(status.nextTickAt);
+  }
   for (const id of Object.keys(s.combatEffects?.buffDrainAt ?? {}))
     s.combatEffects!.buffDrainAt![id] = shift(s.combatEffects!.buffDrainAt![id]);
   if (s.combatEffects?.combo) s.combatEffects.combo.expiresAt = shift(s.combatEffects.combo.expiresAt);
+  if (s.combatEffects?.bladeStopWait) {
+    const wait = s.combatEffects.bladeStopWait;
+    const originalStart = wait.startsAt ?? wait.expiresAt - bladeStopRules(wait.level).waitMs;
+    wait.startsAt = shift(originalStart);
+    wait.expiresAt = shift(wait.expiresAt);
+  }
+  if (s.combatEffects?.bladeStopLink) s.combatEffects.bladeStopLink.expiresAt = shift(s.combatEffects.bladeStopLink.expiresAt);
+  for (const ground of [s.combatEffects?.pneumaGround, s.combatEffects?.safetyWallGround, ...(s.combatEffects?.defensiveGrounds ?? [])])
+    if (ground) ground.expiresAt = shift(ground.expiresAt);
+  if (s.combatEffects?.endure) s.combatEffects.endure.expiresAt = shift(s.combatEffects.endure.expiresAt);
+  if (s.combatEffects?.berserk) s.combatEffects.berserk.nextTickAt = shift(s.combatEffects.berserk.nextTickAt);
+  if (s.combatEffects?.tensionRelax) s.combatEffects.tensionRelax.nextTickAt = shift(s.combatEffects.tensionRelax.nextTickAt);
+  if (s.combatEffects?.regenBlockedUntil) s.combatEffects.regenBlockedUntil = shift(s.combatEffects.regenBlockedUntil);
   if (s.fieldHero) {
     s.fieldHero.startedAt = shift(s.fieldHero.startedAt);
     s.fieldHero.arrivedAt = shift(s.fieldHero.arrivedAt);
@@ -234,6 +260,17 @@ function resumePausedState(s: GameState, now: number) {
     enemy.startedAt = shift(enemy.startedAt); enemy.arrivedAt = shift(enemy.arrivedAt);
     enemy.enemyNextAttackAt = shift(enemy.enemyNextAttackAt);
     enemy.approachPausedAt = optional(enemy.approachPausedAt);
+    if (enemy.npcCombat) {
+      enemy.npcCombat.targetReleasedAt=optional(enemy.npcCombat.targetReleasedAt);
+      enemy.npcCombat.nextTargetCheckAt=optional(enemy.npcCombat.nextTargetCheckAt);
+      enemy.npcCombat.nextWanderAt=optional(enemy.npcCombat.nextWanderAt);
+      enemy.npcCombat.pendingAttackerAt=optional(enemy.npcCombat.pendingAttackerAt);
+      for (const id of Object.keys(enemy.npcCombat.readyAt)) enemy.npcCombat.readyAt[Number(id)] = shift(enemy.npcCombat.readyAt[Number(id)]);
+      if (enemy.npcCombat.cast) { enemy.npcCombat.cast.startedAt = shift(enemy.npcCombat.cast.startedAt); enemy.npcCombat.cast.endsAt = shift(enemy.npcCombat.cast.endsAt);
+        const ownership=enemy.npcCombat.cast.clockOwnership;
+        if(ownership){ownership.attackReadyAt=shift(ownership.attackReadyAt);ownership.previousAttackReadyAt=shift(ownership.previousAttackReadyAt);}
+      }
+    }
     for (const status of Object.values(enemy.statuses ?? {})) {
       status.expiresAt = shift(status.expiresAt); status.startsAt = optional(status.startsAt);
       status.petrifiesAt = optional(status.petrifiesAt); status.nextTickAt = optional(status.nextTickAt);
@@ -246,8 +283,20 @@ function resumePausedState(s: GameState, now: number) {
     b.playerNextSkillAt = optional(b.playerNextSkillAt); b.playerActionReadyAt = optional(b.playerActionReadyAt);
     b.enemyNextAttackAt = shift(b.enemyNextAttackAt); b.deadlineAt = optional(b.deadlineAt);
     b.fieldDecisionAt = optional(b.fieldDecisionAt);
-    if (b.cast) { b.cast.startedAt = shift(b.cast.startedAt); b.cast.endsAt = shift(b.cast.endsAt); }
+    if (b.cast) { b.cast.startedAt = shift(b.cast.startedAt); b.cast.endsAt = shift(b.cast.endsAt);
+      const ownership=b.cast.clockOwnership;
+      if(ownership) for(const key of Object.keys(ownership) as (keyof typeof ownership)[]) ownership[key]=optional(ownership[key]);
+    }
     for (const ground of b.groundEffects ?? []) { ground.nextTickAt = shift(ground.nextTickAt); ground.expiresAt = shift(ground.expiresAt); }
+    for (const unit of b.skillUnits ?? []) {
+      unit.placedAt = shift(unit.placedAt); unit.nextTickAt = shift(unit.nextTickAt); unit.expiresAt = shift(unit.expiresAt);
+      unit.nextSpDrainAt = optional(unit.nextSpDrainAt);
+      for (const id of Object.keys(unit.targetTickAt ?? {})) unit.targetTickAt![id] = shift(unit.targetTickAt![id]);
+    }
+    for (const trap of b.traps ?? []) {
+      trap.placedAt = shift(trap.placedAt); trap.nextTickAt = shift(trap.nextTickAt);
+      trap.expiresAt = shift(trap.expiresAt); trap.triggeredAt = optional(trap.triggeredAt);
+    }
     for (const delayed of b.delayedSkills ?? []) delayed.endsAt = shift(delayed.endsAt);
   }
   s.status = s.pausedStatus ?? (s.battle?.challengeId ? "challenge" : s.areaId ? "hunting" : "town");

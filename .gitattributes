@@ -2,3 +2,4 @@
 idle/content/*.json text eol=lf
 idle/tools/*.mjs text eol=lf
 docker/web-client/mapviewer-idle.patch -whitespace
+docker/web-client/character-palette.patch -whitespace

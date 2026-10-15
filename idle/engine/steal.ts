@@ -37,7 +37,29 @@ export function canSteal(s: GameState, c: Catalog, skill: Skill, target: BattleE
 
 /** The combat caller owns skill costs, cooldowns and the generic skill event. */
 export function attemptSteal(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy, at: number): void {
-  if (!Number.isSafeInteger(level) || level < 1 || level > skill.maxLevel || !canStealAt(s, c, skill, target, at)) return;
+  stealAt(s, c, skill, level, target, at, false);
+}
+
+/** skill.c:1645..1656: one roll per landed basic attack, including multi-hit
+ * normal attacks. The caller invokes this before damage/status breaking.
+ * Gank calls pc_steal_item directly: no SP, cooldown or cast requirements.
+ */
+export function attemptGank(s: GameState, c: Catalog, target: BattleEnemy, at: number,
+  attack: { attackLanded: boolean; weaponType?: string }): void {
+  if (!attack.attackLanded || attack.weaponType === 'bow') return;
+  const gank = Object.values(c.skills).find(skill => sourceName(skill) === 'RG_SNATCHER');
+  const steal = Object.values(c.skills).find(skill => sourceName(skill) === 'TF_STEAL');
+  if (!gank || !steal || gank.implementation === 'unsupported') return;
+  const level = s.learnedSkills[gank.id] ?? 0;
+  const stealLevel = s.learnedSkills[steal.id] ?? 0;
+  if (!Number.isSafeInteger(level) || level < 1 || level > gank.maxLevel ||
+    !Number.isSafeInteger(stealLevel) || stealLevel < 0 || stealLevel > steal.maxLevel) return;
+  if (Math.floor(random(s) * 1000) >= level * 15 + 55 + stealLevel * 10) return;
+  stealAt(s, c, steal, stealLevel, target, at, true);
+}
+
+function stealAt(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy, at: number, permitZero: boolean): void {
+  if (!Number.isSafeInteger(level) || level < (permitZero ? 0 : 1) || level > skill.maxLevel || !canStealAt(s, c, skill, target, at)) return;
   const monster = c.monsters[target.monsterId];
   const stats = derivedStats(s, c);
   const dex = stats.attributes?.dex ?? s.stats.dex + (stats.effects.dex ?? 0);

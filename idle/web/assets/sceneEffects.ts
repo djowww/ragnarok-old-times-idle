@@ -1,6 +1,6 @@
 /** Cosmetic combat effects drawn over the local RO map. Client pixels stay in
  * memory and are fetched through the existing local asset proxy. */
-import type { Skill } from '../../shared/types';
+import type { GameEvent, Skill } from '../../shared/types';
 import { decodeSPR, type SpriteFrame } from './sprite';
 import { decodeBMP, assetUrl } from './items';
 import { drawActor, getActorPose, loadActor, type DecodedActor } from './renderer';
@@ -16,6 +16,11 @@ const BOLT_STAGGER_MS = 60;
 const BOLT_IMPACT_GLOW_MS = 160;
 const MAX_VISIBLE_BOLTS = 5;
 export const EMOTE_ACTIONS = [0, 1, 2, 3, 18, 21, 33] as const;
+export function combatPopupText(event: Pick<GameEvent, 'kind' | 'target' | 'amount' | 'itemId' | 'quantity'>): string {
+  if (event.kind === 'skill' && event.target === 'player' && event.itemId === 7049)
+    return `Pedra +${event.quantity ?? event.amount ?? 1}`;
+  return event.kind === 'skill' && event.target === 'player' ? `+${event.amount}` : `${event.amount}`;
+}
 
 type Tint = 'enemy' | 'player' | 'heal' | 'critical';
 type Digits = Record<Tint, HTMLCanvasElement[]>;
@@ -33,6 +38,8 @@ export interface SceneEffects {
   jupitelCenter: HTMLCanvasElement | null;
   jupitelBall: HTMLCanvasElement[];
   jupitelImpact: HTMLCanvasElement[];
+  venomDust?: DecodedActor | null;
+  spiderWeb?: HTMLCanvasElement | null;
 }
 
 export interface DamagePopup {
@@ -177,6 +184,14 @@ function decodeSimpleTga(data: ArrayBuffer): HTMLCanvasElement {
 async function loadTga(path: string): Promise<HTMLCanvasElement> {
   return decodeSimpleTga(await binary(path));
 }
+async function loadSpiderWeb(): Promise<HTMLCanvasElement> {
+  const texture = await loadTga(TEXTURE_FOLDER + 'spiderweb.tga');
+  const context = texture.getContext('2d');
+  if (!context) throw new Error('Canvas indisponível');
+  const image = context.getImageData(0, 0, texture.width, texture.height);
+  image.data.set(spiderWebPixels(image.data)); context.putImageData(image, 0, 0);
+  return texture;
+}
 
 function optional<T>(promise: Promise<T>, fallback: T): Promise<T> {
   return promise.catch(() => fallback);
@@ -192,7 +207,7 @@ export function loadSceneEffects(): Promise<SceneEffects> {
   if (effectsPromise) return effectsPromise;
   effectsPromise = (async () => {
     const [digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact] = await Promise.all([
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb] = await Promise.all([
       optional(loadDigits(), null),
       optional(loadMiss(), null),
       optional(loadActor({ spr: EFFECT_FOLDER + 'emotion.spr', act: EFFECT_FOLDER + 'emotion.act' }).then((actor) => actor.fallback ? null : actor), null),
@@ -209,11 +224,48 @@ export function loadSceneEffects(): Promise<SceneEffects> {
       loadBmpSequence(['thunder_pang.bmp', 'thunder_plazma_blast_a.bmp',
         'thunder_plazma_blast_b.bmp', 'thunder_ball_d.bmp', 'thunder_ball_e.bmp',
         'thunder_ball_f.bmp']),
+      optional(loadActor({ spr: EFFECT_FOLDER + 'particle3.spr', act: EFFECT_FOLDER + 'particle3.act' })
+        .then(actor => actor.fallback ? null : actor), null),
+      optional(loadSpiderWeb(), null),
     ]);
     return { digits, miss, emotion, blessing, firstAid, fireBolt, coldBolt,
-      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact };
+      healRing, healParticle, jupitelCenter, jupitelBall, jupitelImpact, venomDust, spiderWeb };
   })();
   return effectsPromise;
+}
+
+/** Two clipped affine triangles keep the original texture on the camera's ground plane. */
+export function drawGroundTexture(ctx: CanvasRenderingContext2D, texture: HTMLCanvasElement,
+  corners: { x: number; y: number }[]) {
+  if (corners.length !== 4 || corners.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return;
+  const [a, b, c, d] = corners, w = texture.width, h = texture.height;
+  if (!w || !h) return;
+  for (const [triangle, right, down] of [
+    [[a, b, c], { x: b.x - a.x, y: b.y - a.y }, { x: c.x - b.x, y: c.y - b.y }],
+    [[a, c, d], { x: c.x - d.x, y: c.y - d.y }, { x: d.x - a.x, y: d.y - a.y }],
+  ] as const) {
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.beginPath(); ctx.moveTo(triangle[0].x, triangle[0].y);
+    ctx.lineTo(triangle[1].x, triangle[1].y); ctx.lineTo(triangle[2].x, triangle[2].y); ctx.closePath(); ctx.clip();
+    ctx.transform(right.x / w, right.y / w, down.x / h, down.y / h, a.x, a.y);
+    ctx.drawImage(texture, 0, 0); ctx.restore();
+  }
+}
+
+/** Pinned roBrowser SpiderWeb.js uSize and Tiles.js +/-1 vertex footprint. */
+export function spiderWebRadius(elapsedMs: number, phase = 0, reducedMotion = false): number {
+  return reducedMotion ? 1.5 : 1.5 + .05 * Math.sin(phase + elapsedMs / (540 * Math.PI));
+}
+/** SpiderWeb.fs discards RGB below 0.5 and writes alpha 0.7. */
+export function spiderWebPixels(original: Uint8ClampedArray): Uint8ClampedArray {
+  const pixels = new Uint8ClampedArray(original);
+  for (let i = 0; i < pixels.length; i += 4) pixels[i + 3] = Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) < 128 ? 0 : 179;
+  return pixels;
+}
+/** ThreeDEffect 171: size80%, center anchor, GAT z0..0.5 (world y0..-0.5), repeat100ms. */
+export function venomDustPose(elapsedMs: number, reducedMotion = false) {
+  const phase = Math.max(0, elapsedMs) % 100;
+  return { scale: .8, height: reducedMotion || phase === 0 ? 0 : -(phase / 100) * .5,
+    bottom: 0, shadow: undefined };
 }
 
 function visible(elapsedMs: number, duration: number): boolean {
@@ -545,7 +597,10 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
   let original = false;
-  if (casting && cue.kind === 'magical' && !bolt) {
+  if (['tfpickstone', 'alcure', 'tfdetoxify', 'prslowpoison'].includes(source)) {
+    // Collection is a self skill pose/text, never a magic aura or floor drop.
+    original = true;
+  } else if (casting && cue.kind === 'magical' && !bolt) {
     drawCastSigil(ctx, assets, cue, cue.element?.toLowerCase() === 'fire');
     original = true;
   } else if (bolt) {
@@ -617,8 +672,9 @@ export function drawSkillEffect(ctx: CanvasRenderingContext2D, assets: SceneEffe
   if (!bolt || casting) {
     const nameX = casting ? cue.casterX ?? x : x;
     const nameY = casting ? (cue.casterY ?? y + 50) - 70 : y - 70;
-    ctx.strokeText(name, nameX, nameY);
-    ctx.fillText(name, nameX, nameY);
+    const label = source === 'tfpickstone' && !casting ? 'Pedra coletada' : name;
+    ctx.strokeText(label, nameX, nameY);
+    ctx.fillText(label, nameX, nameY);
   }
   ctx.restore();
 }

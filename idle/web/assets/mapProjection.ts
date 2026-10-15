@@ -105,6 +105,130 @@ export function walkableSceneGroundPoint(camera: MapProjection, point: { x: numb
   return best ? mapCellPoint(camera, best.x, best.y) : desired;
 }
 
+type RoutedPose = { world: WorldPoint; tangent: WorldPoint };
+type MovementRoute = { key: string; points: WorldPoint[]; length: number; last: WorldPoint; observedProgress: number;
+  distanceTraveled?: number; lastAt?: number };
+/** Opt-in resumption clock; speed is horizontal world units per millisecond. */
+export type MovementBudget = { now: number; maxSpeed: number };
+
+function budgetDistance(route: MovementRoute, budget: MovementBudget): number {
+  const delta = Math.max(0, Math.min(100, budget.now - (route.lastAt ?? budget.now)));
+  route.lastAt = Math.max(route.lastAt ?? budget.now, budget.now);
+  route.distanceTraveled = Math.min(route.length, (route.distanceTraveled ?? 0) + delta * Math.max(0, budget.maxSpeed));
+  return route.distanceTraveled;
+}
+
+/** Presentation routes stay inside the starting GAT component; server timing remains authoritative. */
+export class ConnectedMapMovement {
+  private map = '';
+  private ground: MapProjection['ground'];
+  private routes = new Map<string, MovementRoute>();
+
+  project(camera: MapProjection, actorId: string, segment: string, from: WorldPoint, to: WorldPoint, progress: number, budget?: MovementBudget): RoutedPose {
+    const fraction = Math.max(0, Math.min(1, progress));
+    if (this.map !== camera.map || this.ground !== camera.ground) {
+      this.map = camera.map; this.ground = camera.ground; this.routes.clear();
+    }
+    const ground = camera.ground;
+    let route = this.routes.get(actorId);
+    if (!ground?.walkable) {
+      if (!budget) {
+        const world: WorldPoint = [from[0] + (to[0] - from[0]) * fraction,
+          from[1] + (to[1] - from[1]) * fraction, from[2] + (to[2] - from[2]) * fraction];
+        this.routes.set(actorId, { key: segment, points: [world], length: 0, last: world, observedProgress: 0 });
+        if (this.routes.size > 160) this.routes.delete(this.routes.keys().next().value!);
+        return { world, tangent: to };
+      }
+      if (!route || route.key !== segment || route.lastAt === undefined) {
+        const start = route?.last ?? from;
+        const stationary = from[0] === to[0] && from[2] === to[2];
+        route = { key: segment, points: stationary ? [start] : [start, to],
+          length: stationary ? 0 : Math.hypot(to[0] - start[0], to[2] - start[2]),
+          last: start, observedProgress: 0, distanceTraveled: 0, lastAt: budget.now };
+        this.routes.set(actorId, route);
+        if (this.routes.size > 160) this.routes.delete(this.routes.keys().next().value!);
+      }
+      const amount = route.length ? budgetDistance(route, budget) / route.length : 0;
+      const start = route.points[0], end = route.points.at(-1)!;
+      route.last = amount >= 1 ? end : [start[0] + (end[0] - start[0]) * amount,
+        start[1] + (end[1] - start[1]) * amount, start[2] + (end[2] - start[2]) * amount];
+      return { world: route.last, tangent: end };
+    }
+    const walkable = ground.walkable;
+    if (!route || route.key !== segment || (budget && route.lastAt === undefined)) {
+      const start = route?.last ?? from;
+      // Engine stops/casts replace motion with a zero-length segment at its
+      // straight-line position. Keep the last connected presentation position.
+      if (route && from[0] === to[0] && from[2] === to[2]) {
+        route = { key: segment, points: [start], length: 0, last: start, observedProgress: 0 };
+        this.routes.set(actorId, route);
+        return { world: start, tangent: start };
+      }
+      // A genuinely moving segment first observed after arrival catches up to
+      // its connected endpoint; only stationary replacements freeze in place.
+      const observedProgress = route && fraction < 1 ? fraction : 0;
+      const indexAt = (point: WorldPoint) => (Math.floor(point[2] - .5) - ground.y) * ground.size + Math.floor(point[0] - .5) - ground.x;
+      const worldAt = (index: number) => mapCellPoint(camera, ground.x + index % ground.size, ground.y + Math.floor(index / ground.size));
+      let startIndex = indexAt(start);
+      if (!mapGroundWalkable(camera, start[0] - .5, start[2] - .5)) {
+        let distance = Infinity;
+        startIndex = -1;
+        walkable.forEach((cell, index) => {
+          if (!cell) return;
+          const world = worldAt(index), next = Math.hypot(world[0] - start[0], world[2] - start[2]);
+          if (next < distance) { distance = next; startIndex = index; }
+        });
+      }
+      const parents = new Int32Array(ground.size * ground.size).fill(-2);
+      const queue: number[] = startIndex < 0 ? [] : [startIndex];
+      if (startIndex >= 0) parents[startIndex] = -1;
+      let endpoint = startIndex, nearest = Infinity;
+      for (let head = 0; head < queue.length; head++) {
+        const index = queue[head], world = worldAt(index);
+        const distance = Math.hypot(world[0] - to[0], world[2] - to[2]);
+        if (distance < nearest) { nearest = distance; endpoint = index; }
+        const x = index % ground.size, y = Math.floor(index / ground.size);
+        // Eight-neighbor routes retain open diagonals without cutting wall corners.
+        for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1], [1, 1], [-1, 1], [-1, -1], [1, -1]]) {
+          const nx = x + dx, ny = y + dy, next = ny * ground.size + nx;
+          if (nx < 0 || ny < 0 || nx >= ground.size || ny >= ground.size || !walkable[next] || parents[next] !== -2) continue;
+          if (dx && dy && (!walkable[y * ground.size + nx] || !walkable[ny * ground.size + x])) continue;
+          parents[next] = index; queue.push(next);
+        }
+      }
+      const targetIndex = indexAt(to);
+      if (mapGroundWalkable(camera, to[0] - .5, to[2] - .5) && parents[targetIndex] !== -2) endpoint = targetIndex;
+      const indices: number[] = [];
+      for (let index = endpoint; index >= 0; index = parents[index]) indices.push(index);
+      const points = indices.reverse().map(worldAt);
+      if (points.length) {
+        if (mapGroundWalkable(camera, start[0] - .5, start[2] - .5)) points[0] = start;
+        if (mapGroundWalkable(camera, to[0] - .5, to[2] - .5) && targetIndex === endpoint) points.push(to);
+      } else points.push(start);
+      const length = points.reduce((total, point, index) => index ? total + Math.hypot(point[0] - points[index - 1][0], point[2] - points[index - 1][2]) : 0, 0);
+      route = { key: segment, points, length, last: points[0], observedProgress,
+        ...(budget ? { distanceTraveled: 0, lastAt: budget.now } : {}) };
+      this.routes.set(actorId, route);
+      if (this.routes.size > 160) this.routes.delete(this.routes.keys().next().value!);
+    }
+    let remaining = budget ? budgetDistance(route, budget)
+      : route.length * Math.max(0, (fraction - route.observedProgress) / Math.max(.000001, 1 - route.observedProgress));
+    for (let index = 1; index < route.points.length; index++) {
+      const a = route.points[index - 1], b = route.points[index];
+      const length = Math.hypot(b[0] - a[0], b[2] - a[2]);
+      if (length > 0 && remaining < length) {
+        const x = a[0] + (b[0] - a[0]) * remaining / length;
+        const y = a[2] + (b[2] - a[2]) * remaining / length;
+        route.last = [x, mapGroundHeight(camera, x - .5, y - .5), y];
+        return { world: route.last, tangent: b };
+      }
+      remaining -= length;
+    }
+    route.last = route.points.at(-1)!;
+    return { world: route.last, tangent: route.last };
+  }
+}
+
 /** Intersect a viewport ray with the GAT surface near the camera focus. */
 export function screenGroundPoint(camera: MapProjection, point: { x: number; y: number }): WorldPoint {
   const combined = Array.from({ length: 16 }, (_, index) => {

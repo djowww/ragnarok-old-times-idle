@@ -13,17 +13,19 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 ## Game features
 
 - Server-authoritative idle combat with persisted progress and summaries for up to 12 hours offline.
-- Fourteen explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
+- 29 explorable areas, monsters, MVPs and mini-bosses, quests, a bestiary and challenges.
 - Classic class progression, rebirth, stats, skills, equipment, cards, refining, consumables and loot.
 - Browser scenes using assets from the locally supplied client; background music follows the selected area when enabled.
 - A classic roBrowserLegacy client connected to a local Hercules server.
 - A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
 - Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
-- Forty class trees with 348 imported skills. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Forty class trees with 348 imported skills, 246 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
 - Chronological combat deadlines with separate attack, action motion, casting and cooldown clocks. Each actor has independent action and hit animations; automatic healing alternates with offensive actions.
 - Equipment drops require a Magnifier. Special idle rarity tiers reveal their color and a random +1 to +5 stat bonus after identification.
 
 The idle mode adapts progression and rewards for shorter sessions. It does not execute item scripts and does not aim to reproduce every system of the original emulator.
+
+Source costs, requirements, timing and formulas are recorded in [`idle/content/source-manifest.json`](idle/content/source-manifest.json). Skills that depend on missing systems remain marked as unavailable. The native renderer integrates sprites with map geometry; visual effects still include 2D compositions without full client STR execution.
 
 ## Getting started
 
@@ -53,9 +55,21 @@ The admin panel is optional and stays disabled until a private key is configured
 docker compose up -d --force-recreate idle-game
 ```
 
-In the game, open **Adventurer's Book → Administration** and enter the key. The session uses an `HttpOnly` cookie that expires after eight hours. The panel can grant Base levels, change class, add zeny and grant catalog items; it does not modify Hercules accounts or characters.
+In the game, open **Adventurer's Book → Administration** and enter the key. The session uses an `HttpOnly` cookie that expires after eight hours. The panel can grant Base and Job levels, change class, add zeny and grant catalog items to the authenticated account's character; it does not modify Hercules characters.
 
 Open the idle game at **http://localhost:3339/**. The classic client is at **http://localhost:3338/applications/pwa/index.html**. The first build compiles the services and may take several minutes.
+
+### Accounts and portal
+
+Create an Idle account at `/registro`, sign in at `/login`, and enter the game
+through `/painel` or `/jogar`. Each account owns a separate character and
+progress. The portal also provides news and a ranking of linked characters.
+Legacy profiles are preserved and are never linked to a new account automatically.
+
+For HTTPS hosting, set `PUBLIC_ORIGIN` and `RAGIDLE_ALLOWED_ORIGINS` to the exact
+public origin. If a reverse proxy is used, put only its immediate peer IPs in
+`RAGIDLE_TRUSTED_PROXY_ADDRESSES` and have it replace `X-Real-IP` with the actual
+client address. Leave the allowlist empty for direct connections.
 
 ## Ragnarok client assets
 

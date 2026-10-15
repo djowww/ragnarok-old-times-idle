@@ -6,6 +6,7 @@ export interface WeaponAppearance {
     type: WeaponType;
     gender: 'male' | 'female';
     job: string;
+    mounted?: boolean;
 }
 
 // DB/Jobs/WeaponJobTable.js reuses the base job's weapon sprites after rebirth.
@@ -28,6 +29,14 @@ const baseJobResource: Record<string, string> = {
     assassin: '어세신', rogue: '로그',
 };
 
+/** Mounted rebirth jobs share their mounted base job's equipment sheet.
+ * Pinned WeaponJobTable.js KNIGHT2/CRUSADER2 inheritance. */
+export function weaponSpriteForClass(job: string, mounted = false): string | undefined {
+    if (mounted && ['knight', 'lord_knight'].includes(job)) return '페코페코_기사';
+    if (mounted && ['crusader', 'paladin'].includes(job)) return '신페코크루세이더';
+    return baseJobResource[baseJob[job] ?? job];
+}
+
 // DB/Items/WeaponTable.js; the spellings are CP949-decoded client names.
 const weaponSuffix: Record<WeaponType, string> = {
     dagger: '단검', sword: '검', spear: '창', bow: '활', staff: '롯드',
@@ -39,8 +48,7 @@ export function weaponAssetPath(asset: SpriteAsset, visual: WeaponAppearance): {
     // An explicit job table prevents a monster or an unrelated sprite from
     // accidentally resolving to a character's equipment resource.
     if (!asset.headSpr || !asset.headAct) return null;
-    const job = baseJob[visual.job] ?? visual.job;
-    const name = baseJobResource[job];
+    const name = weaponSpriteForClass(visual.job, visual.mounted);
     const suffix = weaponSuffix[visual.type];
     if (!name || !suffix) return null;
     const sex = visual.gender === 'female' ? '여' : '남';

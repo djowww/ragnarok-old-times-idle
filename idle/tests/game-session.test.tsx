@@ -22,6 +22,46 @@ function Probe({ identity }: { identity: AccountView }) { game = useGame(identit
 async function render(identity = a, strict = false) { await act(async () => root.render(strict ? <StrictMode><Probe identity={identity} /></StrictMode> : <Probe identity={identity} />)); }
 beforeEach(() => { vi.useFakeTimers(); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true); Object.defineProperty(document, 'hidden', { configurable: true, value: false }); sessionStorage.clear(); observations = []; host = document.createElement('div'); document.body.append(host); root = createRoot(host); auth = vi.fn<() => void>(); });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+it('opens a connection once, heartbeats normally and opens a fresh one after failure', async () => {
+  const calls: Array<{ path: string; body: Record<string, unknown>; identity: string | null }> = [];
+  let failHeartbeat = false;
+  vi.stubGlobal('fetch', async (path: string, options: RequestInit) => {
+    if (path === '/api/catalog') return json(catalog);
+    calls.push({ path, body: JSON.parse(options.body as string), identity: new Headers(options.headers).get('X-Idle-Expected-Identity') });
+    if (path === '/api/session' && failHeartbeat) { failHeartbeat = false; throw new TypeError('disconnected'); }
+    return json(snapshot());
+  });
+  await render();
+  expect(calls[0].path).toBe('/api/session/open');
+  expect(calls[0].body.connectionId).toMatch(/^[a-f0-9-]{36}$/);
+  expect(calls[0].identity).toBe('["account-a","profile-a"]');
+  await act(async () => vi.advanceTimersByTimeAsync(850));
+  expect(calls[1].path).toBe('/api/session'); expect(calls[1].body).toEqual({});
+  failHeartbeat = true;
+  await act(async () => vi.advanceTimersByTimeAsync(850)); expect(game.connected).toBe(false);
+  await act(async () => vi.advanceTimersByTimeAsync(850));
+  expect(calls[3].path).toBe('/api/session/open');
+  expect(calls[3].body.connectionId).not.toBe(calls[0].body.connectionId);
+  expect(game.connected).toBe(true);
+});
+it('retries a lost opening response with the same identifier and replaces it for another account', async () => {
+  const openings: Array<{ id: string; identity: string | null }> = []; let lost = true; let player = a;
+  vi.stubGlobal('fetch', async (path: string, options: RequestInit) => {
+    if (path === '/api/catalog') return json(catalog);
+    if (path === '/api/session/open') {
+      openings.push({ id: JSON.parse(options.body as string).connectionId, identity: new Headers(options.headers).get('X-Idle-Expected-Identity') });
+      if (lost) { lost = false; throw new TypeError('lost opening response'); }
+    }
+    return json(snapshot(player));
+  });
+  await render(); expect(game.connected).toBe(false);
+  await act(async () => vi.advanceTimersByTimeAsync(850));
+  expect(openings).toHaveLength(2); expect(openings[1].id).toBe(openings[0].id);
+  player = b; await render(b);
+  expect(openings).toHaveLength(3); expect(openings[2].id).not.toBe(openings[0].id);
+  expect(openings[2].identity).toBe('["account-b","profile-b"]');
+  expect(game.snapshot?.state.id).toBe(b.profileId);
+});
 it('exposes all nine fields, adaptive polling and rejects stale revisions/times', async () => {
   let next = snapshot(a, 5, 2000, 'hunting'); let sessions = 0;
   vi.stubGlobal('fetch', async (path: string) => { if (path === '/api/catalog') return json(catalog); sessions++; return json(next); });
@@ -61,8 +101,8 @@ it('verifies the cookie-selected profile before replaying a durable receipt', as
   const paths: string[] = [];
   vi.stubGlobal('fetch', async (path: string) => { paths.push(path); return json(path === '/api/catalog' ? catalog : snapshot()); });
   await render();
-  expect(paths.indexOf('/api/session')).toBeGreaterThanOrEqual(0);
-  expect(paths.indexOf('/api/session')).toBeLessThan(paths.indexOf('/api/command'));
+  expect(paths.indexOf('/api/session/open')).toBeGreaterThanOrEqual(0);
+  expect(paths.indexOf('/api/session/open')).toBeLessThan(paths.indexOf('/api/command'));
   expect(new PendingCommands(sessionStorage).read(a)).toBeNull();
 });
 it('halts before replay when the cookie resolves B while the hook still identifies A', async () => {
@@ -83,12 +123,12 @@ it('guards the original receipt when the cookie changes between session prefligh
   vi.stubGlobal('fetch',async(path:string,options:RequestInit)=>{
     if(path==='/api/catalog')return json(catalog);
     const expected=new Headers(options.headers).get('X-Idle-Expected-Identity');calls.push({path,identity:expected});
-    if(path==='/api/session')return json(snapshot(a));
+    if(path==='/api/session/open')return json(snapshot(a));
     // Cookie is now B. The private API guard rejects A's expected identity before execution.
     if(expected==='["account-a","profile-a"]')return json({error:{code:'AUTH_REQUIRED',message:'Identity changed'}},401);
     debitsB++;return json(snapshot(b));
   });
-  await render();expect(calls).toEqual([{path:'/api/session',identity:'["account-a","profile-a"]'},{path:'/api/command',identity:'["account-a","profile-a"]'}]);
+  await render();expect(calls).toEqual([{path:'/api/session/open',identity:'["account-a","profile-a"]'},{path:'/api/command',identity:'["account-a","profile-a"]'}]);
   expect(debitsB).toBe(0);expect(auth).toHaveBeenCalledTimes(1);expect(new PendingCommands(sessionStorage).read(a)).toEqual(receipt);
 });
 it('ignores delayed A responses after switching to B and aborts requests in StrictMode/unmount', async () => {
@@ -122,7 +162,7 @@ it('never sends malformed storage entries or a command when storage write fails'
   await act(async () => { expect(await game.command({ type: 'buy', itemId: 501, quantity: 2 })).toBe(false); }); expect(commands).toBe(0); expect(game.error).toBeTruthy();
 });
 it('clears a conclusive conflict, accepts its snapshot and allows the next command', async () => {
-  let conflict = true; vi.stubGlobal('fetch', async (path: string) => path === '/api/catalog' ? json(catalog) : path === '/api/session' ? json(snapshot(a, 1)) : conflict ? json({ error: { code: 'NO_ZENY', message: 'No zeny' }, snapshot: snapshot(a, 7) }, 409) : json(snapshot(a, 8)));
+  let conflict = true; vi.stubGlobal('fetch', async (path: string) => path === '/api/catalog' ? json(catalog) : (path === '/api/session' || path === '/api/session/open') ? json(snapshot(a, 1)) : conflict ? json({ error: { code: 'NO_ZENY', message: 'No zeny' }, snapshot: snapshot(a, 7) }, 409) : json(snapshot(a, 8)));
   await render(); await act(async () => { expect(await game.command({ type: 'buy', itemId: 501, quantity: 2 })).toBe(false); }); expect(new PendingCommands(sessionStorage).read(a)).toBeNull(); expect(game.retryable).toBe(false); expect(game.snapshot?.state.revision).toBe(7);
   conflict = false; await act(async () => { expect(await game.command({ type: 'rest' })).toBe(true); });
 });

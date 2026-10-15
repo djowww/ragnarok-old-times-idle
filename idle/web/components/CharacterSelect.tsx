@@ -1,11 +1,10 @@
 import { useState, type CSSProperties } from "react";
 import { isItemIdentified } from "../../shared/loot";
 import type { Catalog, GameSnapshot } from "../../shared/types";
+import { isPecoMounted } from "../../engine/mountedPeco";
 import { number } from "./common";
 import { ActorPreview } from "./Scene";
 import { CLASSIC_LOADING_ART } from "./ClassicLoading";
-import { Link, navigate } from "../portal/router";
-import { useAuth } from "../portal/AuthProvider";
 
 export default function CharacterSelect({ catalog, snapshot, onEnter, error, retrying, onRetry }: {
   catalog: Catalog;
@@ -16,9 +15,10 @@ export default function CharacterSelect({ catalog, snapshot, onEnter, error, ret
   onRetry: () => void;
 }) {
   const [selected, setSelected] = useState(false);
-  const auth = useAuth();
   const { state } = snapshot;
   const job = catalog.classes[state.job];
+  const mounted = isPecoMounted(state, catalog);
+  const sprite = (mounted ? job.mountedSprite?.[state.gender] : undefined) ?? job.sprite[state.gender];
   const area = catalog.areas.find((entry) => entry.id === state.areaId);
   const weaponEntry = state.inventory.find((entry) => entry.uid === state.equipment.weapon);
   const weapon = weaponEntry && isItemIdentified(weaponEntry)
@@ -45,15 +45,15 @@ export default function CharacterSelect({ catalog, snapshot, onEnter, error, ret
           <small>Ragnarok · Old Times</small>
           <h1 id="character-select-title">Seleção de personagem</h1>
         </div>
-        <span className="classic-character-slots">Conta: {auth.account?.username}</span>
+        <span className="classic-character-slots">1 personagem local</span>
       </header>
 
       <div className="classic-character-content">
-        <section className="classic-character-roster" aria-label="Personagem da conta">
+        <section className="classic-character-roster" aria-label="Personagens locais">
           <h2 className="classic-character-section-title">Personagem salvo</h2>
           <button type="button" className="classic-character-card" aria-pressed={selected}
             onClick={() => setSelected(true)}>
-            <ActorPreview asset={job.sprite[state.gender]} size="natural"
+            <ActorPreview asset={sprite} size="natural"
               name={`${state.name}, ${job.name}`} appearance={state.appearance} />
             <span className="classic-character-card-copy">
               <b>{state.name}</b>
@@ -65,10 +65,10 @@ export default function CharacterSelect({ catalog, snapshot, onEnter, error, ret
 
         <section className="classic-character-preview" aria-label="Detalhes do personagem">
           <div className="classic-character-portrait">
-            <ActorPreview asset={job.sprite[state.gender]} large displayScale={1.55}
+            <ActorPreview asset={sprite} large displayScale={1.55}
               name={`${state.name}, ${job.name}, Base ${state.baseLevel}, Job ${state.jobLevel}`}
               appearance={state.appearance}
-              weapon={weapon ? { type: weapon, gender: state.gender, job: state.job } : undefined} />
+              weapon={weapon ? { type: weapon, gender: state.gender, job: state.job, mounted } : undefined} />
           </div>
           <div className="classic-character-preview-copy">
             <h2>{state.name}</h2>
@@ -86,8 +86,6 @@ export default function CharacterSelect({ catalog, snapshot, onEnter, error, ret
       </div>
 
       <footer className="classic-character-footer">
-        <Link href="/painel">Painel da conta</Link>
-        <button type="button" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}>Sair da conta</button>
         <p>{error ? <span role="alert">{error}</span> : "O progresso da caça continua salvo no seu personagem."}</p>
         {error && <button type="button" className="classic-character-retry"
           disabled={retrying} onClick={onRetry}>Tentar novamente</button>}

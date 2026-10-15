@@ -716,6 +716,23 @@ button.full {
   font-size: 11px;
   color: #edf1df;
 }
+.scene-blade-stop {
+  position: absolute;
+  z-index: 3;
+  top: 17px;
+  left: 50%;
+  max-width: calc(100% - 36px);
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border: 1px solid #718a83a8;
+  border-radius: 3px;
+  background: #e7efdfd9;
+  color: #263b34;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
+}
 .target-card {
   position: absolute;
   z-index: 2;

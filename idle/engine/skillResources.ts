@@ -45,7 +45,11 @@ function skillResourceCosts(
         (1 - Math.min(100, d.effects.spCostReductionPct ?? 0) / 100),
     ),
   );
-  const zeny = value(skill.zenyCost, level),
+  const baseZeny = value(skill.zenyCost, level);
+  const unfairlyTrick = source === 'MC_MAMMONITE' && Object.entries(s.learnedSkills).some(([id, learned]) =>
+    learned > 0 && c.skills[id]?.sourceName === 'BS_UNFAIRLYTRICK' && c.skills[id].implementation === 'supported');
+  // skill.c:17398..17400: subtract the truncated discount, not truncate 90%.
+  const zeny = baseZeny - (unfairlyTrick ? Math.trunc(baseZeny * .1) : 0),
     hp =
       value(skill.hpCost, level) +
       Math.floor((s.hp * (skill.hpCostPercent ?? 0)) / 100);

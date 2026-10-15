@@ -3,6 +3,11 @@
   "license": "GPL-3.0-or-later",
   "sources": [
     {
+      "path": "db/pre-re/mob_skill_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_skill_db.conf",
+      "sha256": "a7752d8f4bdd1ea12191e70cb53bd5fb335ba3de855adaf30a7d362c3708b21b"
+    },
+    {
       "path": "db/pre-re/mob_db.conf",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/mob_db.conf",
       "sha256": "81490b320d5164f15d1806f094313e02081a7bdcebf04db659cf0a70b432be43"
@@ -43,9 +48,39 @@
       "sha256": "d67e3e1fa09b539565d0fe41ba16767e59028189ac8a243fabbb2514303d13ba"
     },
     {
+      "path": "db/pre-re/autospell_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/autospell_db.conf",
+      "sha256": "835b806ad0aaaab221c8bcd9a358982081d0bb9220bde0ae4e1a60e6d395612f"
+    },
+    {
+      "path": "db/pre-re/unit_parameters_db.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/unit_parameters_db.conf",
+      "sha256": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/geffen.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
+      "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/payon.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/payon.txt",
+      "sha256": "f448e15667f770b0eef3592652b814cf94ff1b5dda0f6c4abe88cc025c7189fa"
+    },
+    {
+      "path": "npc/pre-re/mobs/fields/prontera.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/prontera.txt",
+      "sha256": "41c0d4a94e180127811721983206325a171b2436ce66e4fd5a1ca0bfb8906791"
+    },
+    {
       "path": "db/job_db2.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/job_db2.txt",
       "sha256": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56"
+    },
+    {
+      "path": "db/pre-re/sc_config.conf",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/pre-re/sc_config.conf",
+      "sha256": "614102c89301968ba2292f682eb46802b2e27f6c22e8f4d8b6709993b0ab713e"
     },
     {
       "path": "src/map/battle.c",
@@ -66,6 +101,41 @@
       "path": "src/map/pc.c",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.c",
       "sha256": "822bdba23749049fac8eab6044ad21f6409d9c81027757761e6efc26a1c07ded"
+    },
+    {
+      "path": "src/map/pc.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/pc.h",
+      "sha256": "50bdc36852ec53cc53bb981dc7dc57bac8c1bf24607f6f8e03bfc23bb743345f"
+    },
+    {
+      "path": "src/map/unit.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/unit.c",
+      "sha256": "2af74d2cf42ab274d394d2e7e43ff05feb2629a65991692fd0f8d77fbd5bdf7b"
+    },
+    {
+      "path": "src/map/mob.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.c",
+      "sha256": "a30af793eb5328ef7787638da5a22458f651b2c0cc5e8f533b3449d7acf6174d"
+    },
+    {
+      "path": "src/map/mob.h",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/mob.h",
+      "sha256": "bb971d72be5a2345438360d8a9004eefd4f34839d4e51ce89a1b05bce1fb9a74"
+    },
+    {
+      "path": "db/produce_db.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/produce_db.txt",
+      "sha256": "122d6ebc9a9451cb731643118bfff99f3a3c9ec2e5fe58d99129dc48c6f2fc2d"
+    },
+    {
+      "path": "npc/merchants/shops.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/shops.txt",
+      "sha256": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5"
+    },
+    {
+      "path": "src/map/clif.c",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/clif.c",
+      "sha256": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
     }
   ],
   "adaptations": [
@@ -84,12 +154,37 @@
     "Solo Bard/Dancer songs apply their source bonuses to the simulated avatar as an idle adaptation; the source uses nearby eligible party targets and caster eligibility rules.",
     "The 40 resolved source class trees import 348 skills after removing family skills from every class. Increase Weight Limit R is retained only for Merchant and evolutions. Availability requires an explicit arithmetic, passive, status or action implementation; unavailable mechanics remain listed with a reason.",
     "Hunter combat traps detonate once on contact in the encounter formation. SkillData1 is the maximum armed waiting time, not the duration of repeated damage; full free placement and map-cell pathfinding remain outside the formation.",
-    "Monster attacks use source AttackRange and AttackDelay; enemy skill casting remains absent. Mechanics requiring enemy casts, equipment breakage, crafting, homunculi or party members remain explicitly unavailable.",
+    "Monster attacks use source AttackRange and AttackDelay. Selected Tarou Poison and Nightmare Blind casts use real NPC metadata; full monster AI, equipment breakage, crafting, homunculi and party members remain outside this solo adaptation.",
     "Encounter entry uses an idle formation with a 3-second arrival plus 750 ms per extra monster, rather than full map pathfinding. Combat and scene share the same timed cell positions; source player circular and monster square range checks use those positions. Exact action deadlines are ordered inside 250 ms simulation windows; actor motion and hit reaction use source milliseconds.",
-    "Automatic healing yields an offensive action before another heal. This is an idle automation policy; First Aid retains source healing of 5 HP, cost of 3 SP and zero cast time. Basic ASPD, action motion, after-cast delay and individual cooldown have independent clocks."
+    "Snap relocates the selected field-hunt character to a one-cell offset from a living target at up to 18 cells for 14 SP and one spirit sphere, waived by Explosion Spirits; it deals no damage, excludes challenges and blocks Extremity Fist for 2 seconds. Exact GAT collision and cell occupancy are outside the normalized formation.",
+    "Automatic healing yields an offensive action before another heal. This is an idle automation policy; First Aid retains source healing of 5 HP, cost of 3 SP and zero cast time. Basic ASPD, action motion, after-cast delay and individual cooldown have independent clocks.",
+    "Hunt fields use regular monster spawns from the pinned Hercules pre-renewal scripts; plant spawns and long-respawn bosses stay outside the repeating AFK encounter pool.",
+    "Poison Bottle 678 is sold by the Idle shop at its source item price to supply EDP. Create Deadly Poison remains study-only for the original prerequisite; production is not implemented. Berserk follows normal expiry without Bloodylust or enemy dispel, using the pinned default that preserves other buffs.",
+    "Venom Dust uses five source units with range one and a 100 ms unit timer; the Idle timer phase is anchored to epoch multiples of 100 ms, with per-group/per-target one-second eligibility. Spider Web binds its unit and eight-second status to the captured enemy; fire releases movement and consumes a weakness charge. Units use normalized encounter cells, not server GAT walls. AFK avoids duplicate poison fields and webs on already-held targets. Web clocks persist across reconnects without extension, unlike Hercules NoSave. Original particle3 and spiderweb pixels are used; Venom Dust choreography is approximated by ACT playback rather than the original STR/3D particle simulation. Red Gemstones and Cobweb are sold at source prices as an Idle supply adaptation.",
+    "Selected NPC actions only: Tarou NPC_POISON1 and Nightmare NPC_BLINDATTACK3, using existing engaged/hostile attack opportunities. First attack remains normal; later successful NPC attempts replace an attack. This is not full monster AI. Player Cure, Detoxify and Slow Poison treat the own character during solo hunting.",
+    "Cast Cancel is manual and releases only cast-owned locks, preserving basic ASPD and independent effects. Spell Breaker selects a real engaged NPC caster in range9 only with a strict finish-before-NPC window; passive2% zap does not trigger attack hooks or break controls. NPC base SP is zero; Magic Rod and PvP branches are not simulated.",
+    "Priest Recovery releases only the monster attack target, freezes its interpolated position and preserves pending NPC casts, paid cooldowns and instance state. Released monsters check acquisition at100ms deadlines; Blind reduces monster vision to3. Random walk is persisted as4000 plus0..999ms without protection against acquisition. Recent real damage awaiting a minimum100ms think opportunity survives release; older normal-combat memory is discarded. Full loot, slave, assist, rude attack and map-cell AI remain outside this solo adaptation.",
+    "Lex Divina toggles existing monster Silence off in the source dispatcher; AFK instead selects unsilenced nonboss monsters with implemented NPC actions. Silence gates new NPC skills before chance and cooldown; normal attacks and already-started casts retain their source clocks. Recovery AFK targets only effective-undead monsters with an active attack target and no Blind; it is not self Stun escape.",
+    "Haggle applies the larger of the Rogue and Merchant NPC discounts, without stacking, truncates the unit price and retains the source minimum1. Its Gangster prerequisite remains studyable through points without inventing allies.",
+    "Criar Conversor Elemental usa menu apenas na cidade, lote inteiro de 1 a 1000, uma ativação de 30 SP modificada e materiais por unidade, com capacidade líquida após consumo. A loja agregada de Prontera vende Blank Scroll7433 por4000, Scorpion Tail904 por124 e Horn947 por116, preços do item_db fonte. Yuno vende apenas o pergaminho na fonte; a venda agregada de caudas e chifres é adaptação de aquisição do Idle. Snail Shell946 e Rainbow Shell1013 permanecem nos drops existentes, sem novos mapas ou grants.",
+    "As quatro Mudanças Elementais alteram o corpo de uma instância de monstro por30min; não encantam arma. Boss é rejeitado antes de RNG; status garantido consome um roll e uma aplicação aceita outro para nível1 a4. Propriedade ativa nível2 a4 é preservada após apenas o roll de status. Freeze e Stone petrificado precedem conversão. AFK exige um ataque elemental aprendido na rotação com coeficiente estritamente melhor em todos os quatro níveis, evita conversão ativa e estados que a sobrepõem; escolha não consome RNG. NoDispelReset é preservado e Desencantar continua indisponível.",
+    "Impacto Explosivo mantém uma carga de 120 segundos após cast e dispara uma vez no primeiro contato a até uma célula; afeta inimigos próximos e empurra três células quando permitido. O status NoSave fica volátil na sessão do navegador e é apagado ao iniciar nova conexão. Contato e recuo usam a formação de combate do Idle, sem colisão GAT do mapa.",
+    "BA_PANGVOICE simulates source Confusion in solo hunting: it stops the monster attack target and sends mobile enemies through random field paths until the status expires.",
+    "PF_MINDBREAKER: seleção solo aplica chance de 55 + 5 × nível, duração de 30 s, MATK +20% × nível e escalar de MDEF secundária −12% × nível. Chefes e mortos-vivos são rejeitados; sucesso encerra Congelamento, Petrificação e Sono e interrompe conjuração inimiga modelada. O bônus de MATK fica guardado na instância, mas habilidades mágicas de monstros ainda não calculam dano.",
+    "PF_FOGWALL: a adaptação solo cria um campo defensivo centrado no personagem por 20 s; reduz hit de ataques normais longos em 50 pontos percentuais, dano desses ataques a 25%, e dano direto de habilidades NPC modeladas em 75%. A cegueira dos ocupantes do campo e a geometria completa do terreno continuam sem simulação."
   ],
   "excludedDrops": [],
   "inertDropItems": [
+    {
+      "itemId": 678,
+      "aegisName": "Poison_Bottle",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 12114,
+      "aegisName": "Elemental_Fire",
+      "sourceType": "IT_USABLE"
+    },
     {
       "itemId": 12115,
       "aegisName": "Elemental_Water",
@@ -98,11 +193,6 @@
     {
       "itemId": 12116,
       "aegisName": "Elemental_Earth",
-      "sourceType": "IT_USABLE"
-    },
-    {
-      "itemId": 12114,
-      "aegisName": "Elemental_Fire",
       "sourceType": "IT_USABLE"
     },
     {
@@ -134,11 +224,6 @@
       "itemId": 547,
       "aegisName": "White_Slim_Potion",
       "sourceType": "IT_HEALING"
-    },
-    {
-      "itemId": 678,
-      "aegisName": "Poison_Bottle",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 619,
@@ -381,6 +466,176 @@
       "sourceType": "IT_CARD"
     },
     {
+      "itemId": 4002,
+      "aegisName": "Fabre_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4003,
+      "aegisName": "Pupa_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4019,
+      "aegisName": "Hornet_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1967,
+      "aegisName": "Whip_Of_Earth",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4030,
+      "aegisName": "Mandragora_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4012,
+      "aegisName": "Thief_Bug_Egg_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1750,
+      "aegisName": "Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 627,
+      "aegisName": "Sweet_Milk",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4017,
+      "aegisName": "Savage_Babe_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 13011,
+      "aegisName": "Asura_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 582,
+      "aegisName": "Orange",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4023,
+      "aegisName": "Desert_Wolf_Babe_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4007,
+      "aegisName": "Pecopeco_Egg_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4008,
+      "aegisName": "Picky_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4015,
+      "aegisName": "Condor_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 605,
+      "aegisName": "Anodyne",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 526,
+      "aegisName": "Royal_Jelly",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4078,
+      "aegisName": "Savage_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4060,
+      "aegisName": "Goblin_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 1605,
+      "aegisName": "Wand_",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1765,
+      "aegisName": "Oridecon_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 4157,
+      "aegisName": "Goblin_Archer_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 13104,
+      "aegisName": "The_Garrison",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4156,
+      "aegisName": "Steam_Goblin_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4041,
+      "aegisName": "Coco_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4032,
+      "aegisName": "Ambernite_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4048,
+      "aegisName": "Poison_Spore_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4010,
+      "aegisName": "Wilow_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4022,
+      "aegisName": "Spore_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 700,
+      "aegisName": "Cold_Scroll_2_1",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 529,
+      "aegisName": "Candy",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4196,
+      "aegisName": "Marin_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2289,
+      "aegisName": "Poo_Poo_Hat",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 4074,
+      "aegisName": "BigFoot_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
       "itemId": 617,
       "aegisName": "Old_Violet_Box",
       "sourceType": "IT_USABLE"
@@ -479,11 +734,6 @@
       "itemId": 4132,
       "aegisName": "Mistress_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 526,
-      "aegisName": "Royal_Jelly",
-      "sourceType": "IT_HEALING"
     },
     {
       "itemId": 1524,
@@ -1811,8 +2061,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -1984,8 +2233,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer modificadores de ATK e DEF aplicados ao inimigo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -2053,8 +2301,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -2084,8 +2331,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -2104,8 +2350,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -2190,8 +2435,6 @@
       ],
       "sourceSplashRange": 1,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2203,7 +2446,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "safety_wall": {
       "id": 12,
@@ -2289,8 +2534,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2302,7 +2545,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "cold_bolt": {
       "id": 14,
@@ -2338,8 +2583,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2351,7 +2594,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "frost_diver": {
       "id": 15,
@@ -2387,8 +2632,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2400,7 +2643,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "stone_curse": {
       "id": 16,
@@ -2469,8 +2714,6 @@
       ],
       "sourceSplashRange": 2,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2482,7 +2725,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "fire_wall": {
       "id": 18,
@@ -2515,8 +2760,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2528,7 +2771,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "fire_bolt": {
       "id": 19,
@@ -2564,8 +2809,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2577,7 +2820,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "lightning_bolt": {
       "id": 20,
@@ -2613,8 +2858,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2626,7 +2869,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "thunder_storm": {
       "id": 21,
@@ -2671,8 +2916,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -2684,7 +2927,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "energy_coat": {
       "id": 157,
@@ -2989,13 +3234,13 @@
         1
       ],
       "sourceSplashRange": 2,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer aura que revela alvos e causa dano ao contato.",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
+      "implementation": "supported",
       "idleDamageMultiplierPct": [
         100
-      ]
+      ],
+      "adaptation": "Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.",
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "al_pneuma": {
       "id": 25,
@@ -3022,8 +3267,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3223,8 +3467,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer chance e penalidades de AGI e movimento específicas do alvo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3274,8 +3517,7 @@
         1
       ],
       "sourceSplashRange": 15,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3373,8 +3615,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3392,11 +3633,11 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "all_inccarry": {
       "id": 681,
@@ -3524,8 +3765,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "O inventário atual não contém equipamentos não identificados.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3846,8 +4086,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -3904,8 +4143,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4014,8 +4252,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer montaria ativa e distribuição de dano em células direcionais.",
+      "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
       "unsupportedRequirements": []
     },
@@ -4161,8 +4398,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4216,8 +4452,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4236,8 +4471,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4335,8 +4569,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4420,8 +4653,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4440,8 +4672,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4541,8 +4772,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer seleção aleatória de partes do corpo com penalidades distintas.",
+      "implementation": "supported",
+      "adaptation": "Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
       "unsupportedRequirements": []
     },
@@ -4775,8 +5006,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -4788,7 +5017,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
+      "unsupportedRequirements": []
     },
     "cr_devotion": {
       "id": 255,
@@ -4858,8 +5089,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4921,8 +5151,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -4983,8 +5212,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -5127,8 +5355,6 @@
         "Lv10": 2
       },
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5140,7 +5366,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "sight_rasher": {
       "id": 81,
@@ -5177,8 +5405,6 @@
       ],
       "sourceSplashRange": 3,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5190,7 +5416,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "meteor_storm": {
       "id": 83,
@@ -5245,8 +5473,6 @@
         "Lv10": 3
       },
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5258,7 +5484,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "jupitel_thunder": {
       "id": 84,
@@ -5294,8 +5522,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5307,7 +5533,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "lord_of_vermilion": {
       "id": 85,
@@ -5364,8 +5592,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5377,7 +5603,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "water_ball": {
       "id": 86,
@@ -5409,15 +5637,15 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "ice_wall": {
       "id": 87,
@@ -5492,8 +5720,6 @@
       ],
       "sourceSplashRange": 2,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -5505,7 +5731,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "storm_gust": {
       "id": 89,
@@ -5540,8 +5768,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         171,
         178,
@@ -5553,7 +5779,9 @@
         191,
         191,
         192
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "earth_spike": {
       "id": 90,
@@ -5584,15 +5812,15 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "heavens_drive": {
       "id": 91,
@@ -5631,15 +5859,15 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "quagmire": {
       "id": 92,
@@ -5698,8 +5926,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -5716,13 +5943,13 @@
         1
       ],
       "sourceSplashRange": 1,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer carga que detona ao contato com um inimigo.",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
+      "implementation": "supported",
       "idleDamageMultiplierPct": [
         100
-      ]
+      ],
+      "adaptation": "One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.",
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "soul_drain": {
       "id": 364,
@@ -5762,11 +5989,11 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "magic_power": {
       "id": 366,
@@ -5839,15 +6066,15 @@
       ],
       "sourceSplashRange": 1,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "ganbantein": {
       "id": 483,
@@ -5929,15 +6156,15 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
+      "unsupportedRequirements": []
     },
     "sa_advancedbook": {
       "id": 274,
@@ -5983,8 +6210,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer cancelar uma conjuração em curso.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6031,8 +6257,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer magias conjuradas por inimigos.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6056,8 +6281,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Movimentação durante conjuração exige coordenadas de mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6085,8 +6309,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer seleção de uma magia aprendida e invocação automática com chance e nível próprios.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6498,8 +6721,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6521,8 +6743,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6544,8 +6765,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6567,8 +6787,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6590,8 +6809,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6644,8 +6862,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer SP de outro personagem; monstros não têm SP no catálogo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6716,8 +6933,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "adaptation": "Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. The MATK increase is retained on the instance; current monster skills do not yet calculate magical damage.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6736,8 +6953,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer três cargas que reduzem a conjuração e são consumidas individualmente.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6761,8 +6977,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer penalidades específicas de ataques à distância e falha de habilidades inimigas.",
+      "implementation": "supported",
+      "adaptation": "Hunt-only adaptation: places a 20-second self-centered field when the active target has normal range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage, while supported direct NPC skill damage is reduced by 25%. The Hercules blind-on-occupants ground-cell behavior is not simulated.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6788,8 +7004,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6823,8 +7038,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer uma segunda invocação de Lanças acionada por chance, ainda não executada.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6859,8 +7073,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -6932,8 +7145,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -7005,8 +7217,7 @@
         1
       ],
       "sourceSplashRange": 2,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -7042,8 +7253,7 @@
         1
       ],
       "sourceSplashRange": 1,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -8274,10 +8484,10 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Single-target no-damage cast at range 9 during field hunting; applies source SC_CONFUSION for 17 s at a 50% base chance. Bosses reject it. Solo adaptation releases the monster attack target and randomizes movement within the source AREA_SIZE / 2 (7-cell) envelope until expiry."
     },
     "cg_arrowvulcan": {
       "id": 394,
@@ -8734,10 +8944,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Self-placed 7x7 enemy field; pulses every 3 s for 180 s. Applies the Hercules DEX/AGI and Dancing Lesson-derived values, grants the 20 s out-of-area grace, drains 1 SP every 10 s, and ends when the next charge cannot be paid. Applied to solo field movement and attack intervals without damage."
     },
     "dc_fortunekiss": {
       "id": 329,
@@ -8860,10 +9070,10 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Single-target no-damage cast at range 9 during field hunting; 70% chance to charm a lower-level common Demon, Demi-human, or Angel monster for 10 s. Auto-casts only when an NPC special skill is modeled. Blocks new NPC special skills while preserving committed casts and normal attacks; hunting movement already tracks the player, so separate walk-to-range-3 pathing is not modeled."
     },
     "all_resurrection": {
       "id": 54,
@@ -8886,8 +9096,13 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer outro personagem morto ou alvo morto-vivo.",
+      "implementation": "supported",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100
+      ],
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9118,8 +9333,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9138,8 +9352,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9265,8 +9478,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer conjuração inimiga para aplicar Silêncio.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9296,8 +9508,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -9309,7 +9519,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
+      "unsupportedRequirements": []
     },
     "pr_lexaeterna": {
       "id": 78,
@@ -9326,8 +9538,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer duplicar e consumir o dano do próximo golpe no alvo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9378,8 +9589,6 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "supported",
-      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [],
       "idleDamageMultiplierPct": [
         100,
         100,
@@ -9391,7 +9600,9 @@
         100,
         100,
         100
-      ]
+      ],
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "pr_redemptio": {
       "id": 1014,
@@ -9576,8 +9787,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9663,10 +9873,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Field-hunting approach only: consumes 14 SP and one spirit sphere (zero while Explosion Spirits is active), then relocates instantly to a one-cell offset from the selected living mob at up to 18 cells. It does no damage and excludes challenge instances; the next Extremity Fist is blocked for 2 s. Exact GAT collision and cell occupancy are outside the normalized Idle formation."
     },
     "mo_dodge": {
       "id": 265,
@@ -9780,8 +9990,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -9829,10 +10038,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Waits 500/700/900/1100/1300 ms for a basic attack by a non-boss within two cells, after Auto Counter; spends 10 SP and one sphere only when AFK has such an attack due in the window. Links the actual attacker reciprocally for 20/30/40/50/60 seconds, blocking pair movement and basic attacks while other monsters act. The four source skill-level gates are checked against Blade Stop level. Chain Combo bypasses only the Triple Attack prerequisite in this linked state; Asura spends four spheres. Source SC_BLADESTOP has NoSave and is cleared on a new connection. SC_BLADESTOP_WAIT has no NoSave flag in this source; clearing the short Idle wait on a new connection is an explicit Idle lifecycle adaptation. Both states release on death, partner loss, map exit or expiry; movement clocks resume when volatile state is removed."
     },
     "mo_explosionspirits": {
       "id": 270,
@@ -10673,8 +10882,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -11805,8 +12013,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -11843,8 +12050,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer contra-ataques condicionados a golpes recebidos.",
+      "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
       "unsupportedRequirements": []
     },
@@ -11881,8 +12087,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -11926,8 +12131,7 @@
         1
       ],
       "sourceSplashRange": 2,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer bomba que detona após um intervalo e divide o dano entre alvos.",
+      "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
       "unsupportedRequirements": []
     },
@@ -12026,8 +12230,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12150,8 +12353,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer tentativa de Furto acionada automaticamente por ataques normais.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12226,8 +12428,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12319,8 +12520,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Redução de DEF por remoção de escudo ainda não foi ativada no despacho de habilidades.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12530,8 +12730,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer comércio com outros personagens.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12575,10 +12774,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Single-target no-damage cast on an adjacent living field-hunt target; costs 25 SP and applies SC_RG_CCONFINE_S for 10 s. The owner and target cannot move, but may continue normal attacks. Owner movement resumes when the last linked target dies or its status expires. Challenges are excluded; the source-bound status is cleared on death, map transfer, or stop, and its deadline shifts across Idle pause/reconnect."
     },
     "st_chasewalk": {
       "id": 389,
@@ -12632,8 +12831,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12687,8 +12885,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer uma tentativa conjunta de quatro remoções e a chance própria de Desarmar Total.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     }
@@ -12701,7 +12898,12 @@
       "jobExpGroup": "Novice",
       "skillTree": "Novice",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_novice": {
       "job": "Novice_High",
@@ -12710,7 +12912,12 @@
       "jobExpGroup": "HighNovice",
       "skillTree": "Novice_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "swordsman": {
       "job": "Swordsman",
@@ -12719,7 +12926,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Swordsman",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_swordsman": {
       "job": "Swordsman_High",
@@ -12728,7 +12940,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Swordsman_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "mage": {
       "job": "Magician",
@@ -12737,7 +12954,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Magician",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_mage": {
       "job": "Magician_High",
@@ -12746,7 +12968,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Magician_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "archer": {
       "job": "Archer",
@@ -12755,7 +12982,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Archer",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_archer": {
       "job": "Archer_High",
@@ -12764,7 +12996,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Archer_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "acolyte": {
       "job": "Acolyte",
@@ -12773,7 +13010,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Acolyte",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_acolyte": {
       "job": "Acolyte_High",
@@ -12782,7 +13024,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Acolyte_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "merchant": {
       "job": "Merchant",
@@ -12791,7 +13038,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Merchant",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_merchant": {
       "job": "Merchant_High",
@@ -12800,7 +13052,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Merchant_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "thief": {
       "job": "Thief",
@@ -12809,7 +13066,12 @@
       "jobExpGroup": "FirstClasses",
       "skillTree": "Thief",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_thief": {
       "job": "Thief_High",
@@ -12818,7 +13080,12 @@
       "jobExpGroup": "TranscendedFirstClasses",
       "skillTree": "Thief_High",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:FirstClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "knight": {
       "job": "Knight",
@@ -12827,7 +13094,14 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Knight",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      },
+      "mountedSpriteJob": "KNIGHT2",
+      "mountedSpriteSource": "roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js"
     },
     "lord_knight": {
       "job": "Lord_Knight",
@@ -12836,7 +13110,14 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Lord_Knight",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      },
+      "mountedSpriteJob": "KNIGHT2_H",
+      "mountedSpriteSource": "roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js"
     },
     "crusader": {
       "job": "Crusader",
@@ -12845,7 +13126,14 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Crusader",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      },
+      "mountedSpriteJob": "CRUSADER2",
+      "mountedSpriteSource": "roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js"
     },
     "paladin": {
       "job": "Paladin",
@@ -12854,7 +13142,14 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Paladin",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      },
+      "mountedSpriteJob": "CRUSADER2_H",
+      "mountedSpriteSource": "roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js"
     },
     "wizard": {
       "job": "Wizard",
@@ -12863,7 +13158,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Wizard",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_wizard": {
       "job": "High_Wizard",
@@ -12872,7 +13172,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "High_Wizard",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "sage": {
       "job": "Sage",
@@ -12881,7 +13186,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Sage",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "professor": {
       "job": "Professor",
@@ -12890,7 +13200,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Professor",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "hunter": {
       "job": "Hunter",
@@ -12899,7 +13214,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Hunter",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "sniper": {
       "job": "Sniper",
@@ -12908,7 +13228,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Sniper",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "bard": {
       "job": "Bard",
@@ -12917,7 +13242,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Bard",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "clown": {
       "job": "Clown",
@@ -12926,7 +13256,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Clown",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "dancer": {
       "job": "Dancer",
@@ -12935,7 +13270,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Dancer",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "gypsy": {
       "job": "Gypsy",
@@ -12944,7 +13284,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Gypsy",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "priest": {
       "job": "Priest",
@@ -12953,7 +13298,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Priest",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "high_priest": {
       "job": "High_Priest",
@@ -12962,7 +13312,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "High_Priest",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "monk": {
       "job": "Monk",
@@ -12971,7 +13326,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Monk",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "champion": {
       "job": "Champion",
@@ -12980,7 +13340,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Champion",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "blacksmith": {
       "job": "Blacksmith",
@@ -12989,7 +13354,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Blacksmith",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "whitesmith": {
       "job": "Whitesmith",
@@ -12998,7 +13368,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Whitesmith",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "alchemist": {
       "job": "Alchemist",
@@ -13007,7 +13382,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Alchemist",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "creator": {
       "job": "Creator",
@@ -13016,7 +13396,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Creator",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "assassin": {
       "job": "Assassin",
@@ -13025,7 +13410,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Assassin",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "assassin_cross": {
       "job": "Assassin_Cross",
@@ -13034,7 +13424,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Assassin_Cross",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "rogue": {
       "job": "Rogue",
@@ -13043,7 +13438,12 @@
       "jobExpGroup": "SecondClasses",
       "skillTree": "Rogue",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     },
     "stalker": {
       "job": "Stalker",
@@ -13052,7 +13452,12 @@
       "jobExpGroup": "TranscendedSecondClasses",
       "skillTree": "Stalker",
       "jobBonuses": "db/job_db2.txt",
-      "attackMotion": "db/pre-re/job_db.conf:BaseASPD"
+      "attackMotion": "db/pre-re/job_db.conf:BaseASPD",
+      "minimumAttackMotion": {
+        "source": "db/pre-re/unit_parameters_db.conf:SecondClasses.MaxASPD",
+        "formula": "2000 - 10 * MaxASPD",
+        "pcCapMacro": "src/map/pc.h:pc_max_aspd"
+      }
     }
   },
   "bossRoster": {
@@ -13098,6 +13503,84 @@
     "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
     "redistributed": false
   },
+  "converterCraft": {
+    "recipeSource": "db/produce_db.txt:389..395",
+    "shopSource": "npc/merchants/shops.txt:913..916",
+    "recipes": [
+      {
+        "outputItemId": 12114,
+        "itemLevel": 23,
+        "skillId": 1007,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7433,
+            "quantity": 1
+          },
+          {
+            "itemId": 904,
+            "quantity": 3
+          }
+        ]
+      },
+      {
+        "outputItemId": 12115,
+        "itemLevel": 23,
+        "skillId": 1007,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7433,
+            "quantity": 1
+          },
+          {
+            "itemId": 946,
+            "quantity": 3
+          }
+        ]
+      },
+      {
+        "outputItemId": 12116,
+        "itemLevel": 23,
+        "skillId": 1007,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7433,
+            "quantity": 1
+          },
+          {
+            "itemId": 947,
+            "quantity": 3
+          }
+        ]
+      },
+      {
+        "outputItemId": 12117,
+        "itemLevel": 23,
+        "skillId": 1007,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7433,
+            "quantity": 1
+          },
+          {
+            "itemId": 1013,
+            "quantity": 3
+          }
+        ]
+      }
+    ],
+    "spPerActivation": 30,
+    "quantityLimit": [
+      1,
+      1000
+    ],
+    "randomDraws": "1+quantity after validation, even guaranteed100%",
+    "acquisitionAdaptation": "Prontera aggregate paid NPC shop:7433/904/947 source prices;946/1013 existing drops",
+    "netWeight": true
+  },
   "classSkillExclusions": {
     "allClasses": [
       "WE_MALE",
@@ -13112,31 +13595,64 @@
     ],
     "reason": "Family skills disabled for all idle classes; Increase Weight Limit R retained only for Merchant and evolutions. Native MC_INCCARRY preserved."
   },
+  "elementalConversion": {
+    "sources": [
+      "skill.c:8996..9017",
+      "status.c:7097,7828..7830,7948..7958,6084..6114",
+      "sc_config.conf:2011..2026"
+    ],
+    "status": "SC_ARMOR_PROPERTY",
+    "durationMs": 1800000,
+    "elementLevels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "bossRandomDraws": 0,
+    "newRandomDraws": 2,
+    "strongOverlapRandomDraws": 1,
+    "dispelRemovable": false,
+    "perInstance": true
+  },
+  "playerStatusProduction": {
+    "scope": "Selected NPC subset, not full monster AI",
+    "monsters": {
+      "1061": "NPC_BLINDATTACK3",
+      "1175": "NPC_POISON1"
+    },
+    "producerSource": "db/pre-re/mob_skill_db.conf",
+    "treatmentScope": "Own character in solo hunting",
+    "diseaseRules": "src/map/status.c:6937..7218,8224..8232,12469..12494",
+    "firstAttack": "normal",
+    "npcRateComparison": "rnd()%10000 <= Rate",
+    "deathClears": true
+  },
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 176,
-    "unsupported": 172,
+    "supported": 246,
+    "unsupported": 102,
     "byClass": {
       "novice": {
         "sourceTree": 3,
-        "supported": 1,
-        "unsupported": 2
+        "supported": 2,
+        "unsupported": 1
       },
       "high_novice": {
         "sourceTree": 3,
-        "supported": 1,
-        "unsupported": 2
+        "supported": 2,
+        "unsupported": 1
       },
       "swordsman": {
         "sourceTree": 12,
-        "supported": 7,
-        "unsupported": 5
+        "supported": 11,
+        "unsupported": 1
       },
       "high_swordsman": {
         "sourceTree": 12,
-        "supported": 7,
-        "unsupported": 5
+        "supported": 11,
+        "unsupported": 1
       },
       "mage": {
         "sourceTree": 16,
@@ -13160,173 +13676,178 @@
       },
       "acolyte": {
         "sourceTree": 17,
-        "supported": 8,
-        "unsupported": 9
+        "supported": 13,
+        "unsupported": 4
       },
       "high_acolyte": {
         "sourceTree": 17,
-        "supported": 8,
-        "unsupported": 9
+        "supported": 13,
+        "unsupported": 4
       },
       "merchant": {
         "sourceTree": 15,
-        "supported": 9,
-        "unsupported": 6
+        "supported": 10,
+        "unsupported": 5
       },
       "high_merchant": {
         "sourceTree": 15,
-        "supported": 9,
-        "unsupported": 6
+        "supported": 10,
+        "unsupported": 5
       },
       "thief": {
         "sourceTree": 12,
-        "supported": 8,
-        "unsupported": 4
+        "supported": 10,
+        "unsupported": 2
       },
       "high_thief": {
         "sourceTree": 12,
-        "supported": 8,
-        "unsupported": 4
+        "supported": 10,
+        "unsupported": 2
       },
       "knight": {
         "sourceTree": 24,
-        "supported": 14,
-        "unsupported": 10
+        "supported": 22,
+        "unsupported": 2
       },
       "lord_knight": {
         "sourceTree": 32,
-        "supported": 18,
-        "unsupported": 14
+        "supported": 30,
+        "unsupported": 2
       },
       "crusader": {
         "sourceTree": 31,
-        "supported": 19,
-        "unsupported": 12
+        "supported": 28,
+        "unsupported": 3
       },
       "paladin": {
         "sourceTree": 35,
-        "supported": 21,
-        "unsupported": 14
+        "supported": 31,
+        "unsupported": 4
       },
       "wizard": {
         "sourceTree": 30,
-        "supported": 26,
-        "unsupported": 4
+        "supported": 28,
+        "unsupported": 2
       },
       "high_wizard": {
         "sourceTree": 36,
-        "supported": 31,
-        "unsupported": 5
+        "supported": 33,
+        "unsupported": 3
       },
       "sage": {
         "sourceTree": 41,
-        "supported": 18,
-        "unsupported": 23
+        "supported": 28,
+        "unsupported": 13
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 19,
-        "unsupported": 30
+        "supported": 35,
+        "unsupported": 14
       },
       "hunter": {
+        "sourceTree": 28,
+        "supported": 20,
+        "unsupported": 8
+      },
+      "sniper": {
+        "sourceTree": 32,
+        "supported": 24,
+        "unsupported": 8
+      },
+      "bard": {
         "sourceTree": 28,
         "supported": 16,
         "unsupported": 12
       },
-      "sniper": {
-        "sourceTree": 32,
-        "supported": 20,
-        "unsupported": 12
+      "clown": {
+        "sourceTree": 34,
+        "supported": 17,
+        "unsupported": 17
       },
-      "bard": {
+      "dancer": {
         "sourceTree": 28,
         "supported": 15,
         "unsupported": 13
       },
-      "clown": {
+      "gypsy": {
         "sourceTree": 34,
         "supported": 16,
         "unsupported": 18
       },
-      "dancer": {
-        "sourceTree": 28,
-        "supported": 13,
-        "unsupported": 15
-      },
-      "gypsy": {
-        "sourceTree": 34,
-        "supported": 14,
-        "unsupported": 20
-      },
       "priest": {
         "sourceTree": 36,
-        "supported": 19,
-        "unsupported": 17
+        "supported": 29,
+        "unsupported": 7
       },
       "high_priest": {
         "sourceTree": 40,
-        "supported": 22,
-        "unsupported": 18
+        "supported": 32,
+        "unsupported": 8
       },
       "monk": {
         "sourceTree": 34,
-        "supported": 20,
-        "unsupported": 14
+        "supported": 29,
+        "unsupported": 5
       },
       "champion": {
         "sourceTree": 38,
-        "supported": 24,
-        "unsupported": 14
+        "supported": 33,
+        "unsupported": 5
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 17,
-        "unsupported": 22
+        "supported": 19,
+        "unsupported": 20
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 20,
-        "unsupported": 24
+        "supported": 22,
+        "unsupported": 22
       },
       "alchemist": {
         "sourceTree": 35,
-        "supported": 13,
-        "unsupported": 22
+        "supported": 14,
+        "unsupported": 21
       },
       "creator": {
         "sourceTree": 39,
-        "supported": 14,
-        "unsupported": 25
+        "supported": 15,
+        "unsupported": 24
       },
       "assassin": {
         "sourceTree": 24,
-        "supported": 14,
-        "unsupported": 10
+        "supported": 20,
+        "unsupported": 4
       },
       "assassin_cross": {
         "sourceTree": 29,
-        "supported": 17,
-        "unsupported": 12
+        "supported": 24,
+        "unsupported": 5
       },
       "rogue": {
         "sourceTree": 33,
-        "supported": 18,
-        "unsupported": 15
+        "supported": 25,
+        "unsupported": 8
       },
       "stalker": {
         "sourceTree": 37,
-        "supported": 18,
-        "unsupported": 19
+        "supported": 27,
+        "unsupported": 10
       }
     },
     "supportedSourceNames": [
       "NV_FIRSTAID",
+      "NV_TRICKDEAD",
       "SM_SWORD",
       "SM_TWOHAND",
       "SM_RECOVERY",
       "SM_BASH",
+      "SM_PROVOKE",
       "SM_MAGNUM",
+      "SM_ENDURE",
       "SM_MOVINGRECOVERY",
+      "SM_FATALBLOW",
+      "SM_AUTOBERSERK",
       "MG_SRECOVERY",
       "MG_SIGHT",
       "MG_NAPALMBEAT",
@@ -13349,16 +13870,22 @@
       "AC_CHARGEARROW",
       "AL_DP",
       "AL_DEMONBANE",
+      "AL_RUWACH",
+      "AL_PNEUMA",
       "AL_HEAL",
       "AL_INCAGI",
+      "AL_DECAGI",
+      "AL_CRUCIS",
       "AL_ANGELUS",
       "AL_BLESSING",
+      "AL_CURE",
       "AL_HOLYLIGHT",
       "ALL_INCCARRY",
       "MC_INCCARRY",
       "MC_DISCOUNT",
       "MC_OVERCHARGE",
       "MC_PUSHCART",
+      "MC_IDENTIFY",
       "MC_MAMMONITE",
       "MC_CARTREVOLUTION",
       "MC_LOUD",
@@ -13367,19 +13894,29 @@
       "TF_STEAL",
       "TF_HIDING",
       "TF_POISON",
+      "TF_DETOXIFY",
       "TF_SPRINKLESAND",
+      "TF_PICKSTONE",
       "TF_THROWSTONE",
       "KN_SPEARMASTERY",
       "KN_PIERCE",
+      "KN_BRANDISHSPEAR",
       "KN_SPEARSTAB",
       "KN_SPEARBOOMERANG",
       "KN_TWOHANDQUICKEN",
+      "KN_AUTOCOUNTER",
       "KN_BOWLINGBASH",
+      "KN_RIDING",
+      "KN_CAVALIERMASTERY",
       "KN_CHARGEATK",
+      "LK_AURABLADE",
       "LK_PARRYING",
       "LK_CONCENTRATION",
+      "LK_TENSIONRELAX",
+      "LK_BERSERK",
       "LK_SPIRALPIERCE",
       "LK_HEADCRUSH",
+      "LK_JOINTBEAT",
       "CR_TRUST",
       "CR_AUTOGUARD",
       "CR_SHIELDCHARGE",
@@ -13387,8 +13924,11 @@
       "CR_REFLECTSHIELD",
       "CR_HOLYCROSS",
       "CR_GRANDCROSS",
+      "CR_DEFENDER",
       "CR_SPEARQUICKEN",
+      "CR_SHRINK",
       "PA_PRESSURE",
+      "PA_SACRIFICE",
       "PA_SHIELDCHAIN",
       "WZ_FIREPILLAR",
       "WZ_SIGHTRASHER",
@@ -13401,14 +13941,35 @@
       "WZ_EARTHSPIKE",
       "WZ_HEAVENDRIVE",
       "WZ_QUAGMIRE",
+      "WZ_ESTIMATION",
+      "WZ_SIGHTBLASTER",
       "HW_SOULDRAIN",
       "HW_MAGICCRASHER",
       "HW_MAGICPOWER",
       "HW_NAPALMVULCAN",
       "HW_GRAVITATION",
+      "SA_CASTCANCEL",
+      "SA_SPELLBREAKER",
+      "SA_FREECAST",
+      "SA_AUTOSPELL",
       "SA_DRAGONOLOGY",
+      "SA_CREATECON",
+      "SA_ELEMENTWATER",
+      "SA_ELEMENTGROUND",
+      "SA_ELEMENTFIRE",
+      "SA_ELEMENTWIND",
       "PF_HPCONVERSION",
+      "PF_SOULCHANGE",
+      "PF_MINDBREAKER",
+      "PF_MEMORIZE",
+      "PF_FOGWALL",
+      "PF_SPIDERWEB",
+      "PF_DOUBLECASTING",
+      "HT_SKIDTRAP",
       "HT_LANDMINE",
+      "HT_ANKLESNARE",
+      "HT_SANDMAN",
+      "HT_FLASHER",
       "HT_FREEZINGTRAP",
       "HT_BLASTMINE",
       "HT_CLAYMORETRAP",
@@ -13429,32 +13990,44 @@
       "BA_ASSASSINCROSS",
       "BA_POEMBRAGI",
       "BA_APPLEIDUN",
+      "BA_PANGVOICE",
       "CG_ARROWVULCAN",
       "DC_DANCINGLESSON",
       "DC_THROWARROW",
       "DC_SCREAM",
       "DC_HUMMING",
+      "DC_DONTFORGETME",
       "DC_FORTUNEKISS",
       "DC_SERVICEFORYOU",
+      "DC_WINKCHARM",
+      "ALL_RESURRECTION",
       "PR_MACEMASTERY",
       "PR_IMPOSITIO",
       "PR_ASPERSIO",
       "PR_SANCTUARY",
+      "PR_SLOWPOISON",
+      "PR_STRECOVERY",
       "PR_KYRIE",
       "PR_MAGNIFICAT",
       "PR_GLORIA",
+      "PR_LEXDIVINA",
       "PR_TURNUNDEAD",
+      "PR_LEXAETERNA",
       "PR_MAGNUS",
       "HP_ASSUMPTIO",
       "HP_MEDITATIO",
       "HP_MANARECHARGE",
       "MO_IRONHAND",
+      "MO_SPIRITSRECOVERY",
       "MO_CALLSPIRITS",
       "MO_ABSORBSPIRITS",
       "MO_TRIPLEATTACK",
+      "MO_BODYRELOCATION",
       "MO_DODGE",
       "MO_INVESTIGATE",
       "MO_FINGEROFFENSIVE",
+      "MO_STEELBODY",
+      "MO_BLADESTOP",
       "MO_EXPLOSIONSPIRITS",
       "MO_EXTREMITYFIST",
       "MO_CHAINCOMBO",
@@ -13472,6 +14045,7 @@
       "BS_WEAPONPERFECT",
       "BS_OVERTHRUST",
       "BS_MAXIMIZE",
+      "BS_UNFAIRLYTRICK",
       "WS_CARTBOOST",
       "WS_CARTTERMINATION",
       "WS_OVERTHRUSTMAX",
@@ -13484,18 +14058,30 @@
       "AS_CLOAKING",
       "AS_SONICBLOW",
       "AS_GRIMTOOTH",
+      "AS_ENCHANTPOISON",
+      "AS_POISONREACT",
+      "AS_VENOMDUST",
+      "AS_SPLASHER",
       "AS_SONICACCEL",
       "AS_VENOMKNIFE",
       "ASC_KATAR",
+      "ASC_EDP",
       "ASC_BREAKER",
       "ASC_METEORASSAULT",
+      "RG_SNATCHER",
       "RG_STEALCOIN",
       "RG_BACKSTAP",
+      "RG_TUNNELDRIVE",
       "RG_RAID",
       "RG_STRIPWEAPON",
+      "RG_STRIPSHIELD",
       "RG_STRIPARMOR",
       "RG_STRIPHELM",
-      "RG_INTIMIDATE"
+      "RG_INTIMIDATE",
+      "RG_COMPULSION",
+      "RG_CLOSECONFINE",
+      "ST_REJECTSWORD",
+      "ST_FULLSTRIP"
     ],
     "unavailable": [
       {
@@ -13504,44 +14090,9 @@
         "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
       },
       {
-        "skillId": "nv_trickdead",
-        "sourceName": "NV_TRICKDEAD",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sm_provoke",
-        "sourceName": "SM_PROVOKE",
-        "reason": "Requer modificadores de ATK e DEF aplicados ao inimigo."
-      },
-      {
-        "skillId": "sm_endure",
-        "sourceName": "SM_ENDURE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sm_fatalblow",
-        "sourceName": "SM_FATALBLOW",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sm_autoberserk",
-        "sourceName": "SM_AUTOBERSERK",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "ac_makingarrow",
         "sourceName": "AC_MAKINGARROW",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "al_ruwach",
-        "sourceName": "AL_RUWACH",
-        "reason": "Requer aura que revela alvos e causa dano ao contato."
-      },
-      {
-        "skillId": "al_pneuma",
-        "sourceName": "AL_PNEUMA",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "al_teleport",
@@ -13554,29 +14105,9 @@
         "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
       },
       {
-        "skillId": "al_decagi",
-        "sourceName": "AL_DECAGI",
-        "reason": "Requer chance e penalidades de AGI e movimento específicas do alvo."
-      },
-      {
         "skillId": "al_holywater",
         "sourceName": "AL_HOLYWATER",
         "reason": "Produção de Água Benta exige células de água e Frasco Vazio."
-      },
-      {
-        "skillId": "al_crucis",
-        "sourceName": "AL_CRUCIS",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "al_cure",
-        "sourceName": "AL_CURE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "mc_identify",
-        "sourceName": "MC_IDENTIFY",
-        "reason": "O inventário atual não contém equipamentos não identificados."
       },
       {
         "skillId": "mc_vending",
@@ -13599,64 +14130,14 @@
         "reason": "Requer comércio com outros personagens."
       },
       {
-        "skillId": "tf_detoxify",
-        "sourceName": "TF_DETOXIFY",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "tf_backsliding",
         "sourceName": "TF_BACKSLIDING",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "tf_pickstone",
-        "sourceName": "TF_PICKSTONE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "brandish_spear",
-        "sourceName": "KN_BRANDISHSPEAR",
-        "reason": "Requer montaria ativa e distribuição de dano em células direcionais."
-      },
-      {
-        "skillId": "kn_autocounter",
-        "sourceName": "KN_AUTOCOUNTER",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "kn_riding",
-        "sourceName": "KN_RIDING",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "kn_cavaliermastery",
-        "sourceName": "KN_CAVALIERMASTERY",
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "kn_onehand",
         "sourceName": "KN_ONEHAND",
         "reason": "Requer estado de Espírito da classe, ainda não implementado."
-      },
-      {
-        "skillId": "lk_aurablade",
-        "sourceName": "LK_AURABLADE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "lk_tensionrelax",
-        "sourceName": "LK_TENSIONRELAX",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "lk_berserk",
-        "sourceName": "LK_BERSERK",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "lk_jointbeat",
-        "sourceName": "LK_JOINTBEAT",
-        "reason": "Requer seleção aleatória de partes do corpo com penalidades distintas."
       },
       {
         "skillId": "cr_devotion",
@@ -13666,21 +14147,6 @@
       {
         "skillId": "cr_providence",
         "sourceName": "CR_PROVIDENCE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "cr_defender",
-        "sourceName": "CR_DEFENDER",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "cr_shrink",
-        "sourceName": "CR_SHRINK",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pa_sacrifice",
-        "sourceName": "PA_SACRIFICE",
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
@@ -13694,16 +14160,6 @@
         "reason": "Requer edição de células bloqueadas do mapa."
       },
       {
-        "skillId": "sense",
-        "sourceName": "WZ_ESTIMATION",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sight_blaster",
-        "sourceName": "WZ_SIGHTBLASTER",
-        "reason": "Requer carga que detona ao contato com um inimigo."
-      },
-      {
         "skillId": "ganbantein",
         "sourceName": "HW_GANBANTEIN",
         "reason": "Requer remoção de unidades de habilidades em células do mapa."
@@ -13714,29 +14170,9 @@
         "reason": "Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis."
       },
       {
-        "skillId": "sa_castcancel",
-        "sourceName": "SA_CASTCANCEL",
-        "reason": "Requer cancelar uma conjuração em curso."
-      },
-      {
         "skillId": "sa_magicrod",
         "sourceName": "SA_MAGICROD",
         "reason": "Requer magias conjuradas por inimigos."
-      },
-      {
-        "skillId": "sa_spellbreaker",
-        "sourceName": "SA_SPELLBREAKER",
-        "reason": "Requer magias conjuradas por inimigos."
-      },
-      {
-        "skillId": "sa_freecast",
-        "sourceName": "SA_FREECAST",
-        "reason": "Movimentação durante conjuração exige coordenadas de mapa."
-      },
-      {
-        "skillId": "hindsight",
-        "sourceName": "SA_AUTOSPELL",
-        "reason": "Requer seleção de uma magia aprendida e invocação automática com chance e nível próprios."
       },
       {
         "skillId": "flame_enchant",
@@ -13789,89 +14225,14 @@
         "reason": "Requer seleção aleatória de habilidades especiais e transformações."
       },
       {
-        "skillId": "sa_createcon",
-        "sourceName": "SA_CREATECON",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "sa_elementwater",
-        "sourceName": "SA_ELEMENTWATER",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sa_elementground",
-        "sourceName": "SA_ELEMENTGROUND",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sa_elementfire",
-        "sourceName": "SA_ELEMENTFIRE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "sa_elementwind",
-        "sourceName": "SA_ELEMENTWIND",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pf_soulchange",
-        "sourceName": "PF_SOULCHANGE",
-        "reason": "Requer SP de outro personagem; monstros não têm SP no catálogo."
-      },
-      {
         "skillId": "pf_soulburn",
         "sourceName": "PF_SOULBURN",
         "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
       },
       {
-        "skillId": "pf_mindbreaker",
-        "sourceName": "PF_MINDBREAKER",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pf_memorize",
-        "sourceName": "PF_MEMORIZE",
-        "reason": "Requer três cargas que reduzem a conjuração e são consumidas individualmente."
-      },
-      {
-        "skillId": "pf_fogwall",
-        "sourceName": "PF_FOGWALL",
-        "reason": "Requer penalidades específicas de ataques à distância e falha de habilidades inimigas."
-      },
-      {
-        "skillId": "pf_spiderweb",
-        "sourceName": "PF_SPIDERWEB",
-        "reason": "Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo."
-      },
-      {
-        "skillId": "pf_doublecasting",
-        "sourceName": "PF_DOUBLECASTING",
-        "reason": "Requer uma segunda invocação de Lanças acionada por chance, ainda não executada."
-      },
-      {
-        "skillId": "ht_skidtrap",
-        "sourceName": "HT_SKIDTRAP",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "ht_anklesnare",
-        "sourceName": "HT_ANKLESNARE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "ht_shockwave",
         "sourceName": "HT_SHOCKWAVE",
         "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
-      },
-      {
-        "skillId": "ht_sandman",
-        "sourceName": "HT_SANDMAN",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "ht_flasher",
-        "sourceName": "HT_FLASHER",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "ht_removetrap",
@@ -13949,11 +14310,6 @@
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
-        "skillId": "ba_pangvoice",
-        "sourceName": "BA_PANGVOICE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "cg_moonlit",
         "sourceName": "CG_MOONLIT",
         "reason": "Requer parceiro e interação espacial de grupo."
@@ -13984,21 +14340,6 @@
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
-        "skillId": "dc_dontforgetme",
-        "sourceName": "DC_DONTFORGETME",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "dc_winkcharm",
-        "sourceName": "DC_WINKCHARM",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "all_resurrection",
-        "sourceName": "ALL_RESURRECTION",
-        "reason": "Requer outro personagem morto ou alvo morto-vivo."
-      },
-      {
         "skillId": "pr_suffragium",
         "sourceName": "PR_SUFFRAGIUM",
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
@@ -14009,26 +14350,6 @@
         "reason": "Requer dois Noviços e células de mapa."
       },
       {
-        "skillId": "pr_slowpoison",
-        "sourceName": "PR_SLOWPOISON",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pr_strecovery",
-        "sourceName": "PR_STRECOVERY",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pr_lexdivina",
-        "sourceName": "PR_LEXDIVINA",
-        "reason": "Requer conjuração inimiga para aplicar Silêncio."
-      },
-      {
-        "skillId": "pr_lexaeterna",
-        "sourceName": "PR_LEXAETERNA",
-        "reason": "Requer duplicar e consumir o dano do próximo golpe no alvo."
-      },
-      {
         "skillId": "pr_redemptio",
         "sourceName": "PR_REDEMPTIO",
         "reason": "Ressurreição de grupo exige outros personagens."
@@ -14037,26 +14358,6 @@
         "skillId": "hp_basilica",
         "sourceName": "HP_BASILICA",
         "reason": "Requer área protegida e interação com vários personagens."
-      },
-      {
-        "skillId": "mo_spiritsrecovery",
-        "sourceName": "MO_SPIRITSRECOVERY",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "mo_bodyrelocation",
-        "sourceName": "MO_BODYRELOCATION",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "mo_steelbody",
-        "sourceName": "MO_STEELBODY",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "mo_bladestop",
-        "sourceName": "MO_BLADESTOP",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "mo_kitranslation",
@@ -14127,11 +14428,6 @@
         "skillId": "bs_repairweapon",
         "sourceName": "BS_REPAIRWEAPON",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_unfairlytrick",
-        "sourceName": "BS_UNFAIRLYTRICK",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "bs_greed",
@@ -14259,49 +14555,9 @@
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
-        "skillId": "enchant_poison",
-        "sourceName": "AS_ENCHANTPOISON",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "as_poisonreact",
-        "sourceName": "AS_POISONREACT",
-        "reason": "Requer contra-ataques condicionados a golpes recebidos."
-      },
-      {
-        "skillId": "as_venomdust",
-        "sourceName": "AS_VENOMDUST",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "as_splasher",
-        "sourceName": "AS_SPLASHER",
-        "reason": "Requer bomba que detona após um intervalo e divide o dano entre alvos."
-      },
-      {
-        "skillId": "asc_edp",
-        "sourceName": "ASC_EDP",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "asc_cdp",
         "sourceName": "ASC_CDP",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "rg_snatcher",
-        "sourceName": "RG_SNATCHER",
-        "reason": "Requer tentativa de Furto acionada automaticamente por ataques normais."
-      },
-      {
-        "skillId": "rg_tunneldrive",
-        "sourceName": "RG_TUNNELDRIVE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "rg_stripshield",
-        "sourceName": "RG_STRIPSHIELD",
-        "reason": "Redução de DEF por remoção de escudo ainda não foi ativada no despacho de habilidades."
       },
       {
         "skillId": "rg_graffiti",
@@ -14324,19 +14580,9 @@
         "reason": "Requer aliados da mesma classe."
       },
       {
-        "skillId": "rg_compulsion",
-        "sourceName": "RG_COMPULSION",
-        "reason": "Requer comércio com outros personagens."
-      },
-      {
         "skillId": "rg_plagiarism",
         "sourceName": "RG_PLAGIARISM",
         "reason": "Requer habilidades inimigas copiáveis."
-      },
-      {
-        "skillId": "rg_closeconfine",
-        "sourceName": "RG_CLOSECONFINE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "st_chasewalk",
@@ -14344,19 +14590,9 @@
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
-        "skillId": "st_rejectsword",
-        "sourceName": "ST_REJECTSWORD",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "st_preserve",
         "sourceName": "ST_PRESERVE",
         "reason": "Depende de Intimidate/copiar habilidades."
-      },
-      {
-        "skillId": "st_fullstrip",
-        "sourceName": "ST_FULLSTRIP",
-        "reason": "Requer uma tentativa conjunta de quatro remoções e a chance própria de Desarmar Total."
       }
     ],
     "combatExpansion": [
@@ -14374,10 +14610,210 @@
       "HT_LANDMINE",
       "HT_BLASTMINE",
       "HT_CLAYMORETRAP",
-      "HT_FREEZINGTRAP"
+      "HT_FREEZINGTRAP",
+      "RG_SNATCHER",
+      "RG_STRIPSHIELD",
+      "AS_ENCHANTPOISON",
+      "MC_IDENTIFY",
+      "SA_AUTOSPELL",
+      "PF_DOUBLECASTING",
+      "PF_MEMORIZE",
+      "AL_PNEUMA",
+      "SM_ENDURE",
+      "CR_DEFENDER",
+      "HT_SKIDTRAP",
+      "HT_ANKLESNARE",
+      "HT_SANDMAN",
+      "HT_FLASHER",
+      "MO_STEELBODY",
+      "LK_BERSERK",
+      "ASC_EDP",
+      "ST_FULLSTRIP",
+      "ST_REJECTSWORD",
+      "SM_AUTOBERSERK",
+      "AS_POISONREACT",
+      "AS_SPLASHER",
+      "KN_AUTOCOUNTER",
+      "BS_UNFAIRLYTRICK",
+      "RG_TUNNELDRIVE",
+      "AL_RUWACH",
+      "DC_DONTFORGETME",
+      "BA_PANGVOICE",
+      "DC_WINKCHARM",
+      "RG_CLOSECONFINE",
+      "PF_MINDBREAKER",
+      "PF_FOGWALL",
+      "MO_BODYRELOCATION",
+      "MO_BLADESTOP"
     ]
   },
+  "senseInspection": {
+    "skill": "WZ_ESTIMATION",
+    "packet": "ZC_MONSTER_INFO",
+    "packetId": "0x18c",
+    "packetSource": "src/map/clif.c:6194..6229",
+    "senseType": 3,
+    "senseTypeSource": "src/map/battle.c:7872",
+    "defenseSource": "src/map/status.c:3898..3933",
+    "targetSource": "src/map/skill.c:8434..8447",
+    "currentHp": true,
+    "elementalOrder": [
+      "water",
+      "earth",
+      "fire",
+      "wind",
+      "poison",
+      "holy",
+      "dark",
+      "ghost",
+      "undead"
+    ],
+    "negativeElementRateClamp": 0,
+    "manualOnly": true,
+    "identityAdaptation": "Correlate the source packet snapshot with the explicitly selected living Idle actor and encounter generation; never by species alone."
+  },
+  "ruwach": {
+    "skill": "AL_RUWACH",
+    "status": "SC_RUWACH",
+    "durationMs": 10000,
+    "radius": 2,
+    "spCost": 10,
+    "concealmentStatuses": [
+      "SC_HIDING",
+      "SC_CLOAKING",
+      "SC_CAMOUFLAGE",
+      "SC_CLOAKINGEXCEED",
+      "SC_NEWMOON"
+    ],
+    "damage": "145% MATK, Holy, Hercules level 1; only when concealment is removed",
+    "sources": [
+      "skill_db.conf:1189..1224",
+      "skill.c:7569..7577",
+      "status.c:8297..8303,12422..12434,13346..13355",
+      "battle.c:1673..1675"
+    ],
+    "pulseMs": 20,
+    "scheduling": "Next valid source pulse is scheduled by target contact; no continuous 20 ms polling",
+    "idleAdaptation": "Cast before a concealed target enters radius when it can reach the aura before expiry; only the reveal damage provokes the field mob."
+  },
   "formulaEvidence": {
+    "mindBreaker": [
+      "skill.c:8819..8851 source eligibility, chance, status, interrupt and CC cleanup",
+      "skill_db.conf:12318..12353 range, 30 s, SP and after-cast delay",
+      "status.c:4541..4553,8737..8739 MDEF percent and MATK percent values",
+      "status.c:5356..5390 pre-renewal soft MDEF scalar"
+    ],
+    "fogWall": [
+      "skill_db.conf:12381..12412 5x3 ground field, range9, 20 s and 25 SP",
+      "skill.c:1821..1824 blind applied to field occupants;20317..20326 field layout",
+      "battle.c:3337..3344 75% ranged weapon and 25% direct-skill reduction;5034..5036 50 point hit penalty for normal ranged attacks"
+    ],
+    "castControl": [
+      "skill.c:8918..8933 Cast Cancel raw additional SP and unit cancel type1",
+      "skill.c:8934..8976 Spell Breaker current timer boss10pct normal2pct and level5heal",
+      "unit.c:2519..2574 cancellation types ignore damage interruption flags",
+      "status.c:278..281 saturating SP zap and300..356 passive damage preserves controls",
+      "skill_db.conf:8244..8261 and8296..8319 exact SP/cast/range"
+    ],
+    "castControlIdleAdaptations": [
+      "Cast Cancel is exclusively manual with expected own action identity",
+      "Spell Breaker AFK selects a live engaged NPC caster within9 with strictly useful finish window",
+      "Solo monsters have no Magic Rod producer; NPC Poison and Blind base SP are zero",
+      "No PvP actor or general monster SP pool is simulated"
+    ],
+    "priestSoloControl": [
+      "skill.c:8362..8391 Recovery effective undead branch, source controls and mob_unlocktarget",
+      "skill.c:7113..7121 Lex Silence removal or start100",
+      "status.c:6951..6961 and7013..7017 Silence/Blind resistance;7110..7218 source integer rounding",
+      "status.c:7348..7354 resistance RNG before7684..7688 boss and7721..7731 overlap",
+      "status.c:933..950 Silence gates skill start;10683..10686 cast cancellation controlled by default BL_NUL battle.c:8017",
+      "mob.c:1585..1634 unlock attack/chase without skill cancellation;1727..1746 minimum think and Blind view3;1794..1864 attacker memory and acquisition",
+      "mob.h:43..47 minimum random walk4000 and think100",
+      "pc.c:4503..4523 Haggle uses max merchant/rogue discount and truncation;battle.c:8137 minimum price1"
+    ],
+    "priestSoloControlIdleAdaptations": [
+      "Attack target is separate from pending NPC skill target; encounter membership and paid clocks survive release",
+      "Only released monsters scan on a100ms deadline; normal combat retains its existing cadence",
+      "Recent real damage memory is retained through release until a decision; old normal-combat memory is discarded after the minimum100ms think opportunity",
+      "No loot/slave/assist/rude attack/full AI simulation; normalized geometry is retained and random-walk deadline persists without granting protection",
+      "AFK Recovery selects effective-undead active attack targets without Blind; Lex selects unsilenced nonboss producers of implemented NPC actions",
+      "Source toggle and normal Recovery monster-control branches remain in resolver; self escape and other PC targets are outside this solo delivery"
+    ],
+    "poisonBombs": [
+      "battle.c:7141..7161 normal-attempt React including blocked hits, body element and RNG order",
+      "status.c:7906..7909 integer charges and50pct",
+      "skill.c:22573 omitted element defaults Neutral",
+      "skill.c:9327..9342 Splasher HP/boss check and cooldown",
+      "status.c:12651..12664 actual Splasher duration+500ms",
+      "skill.c:5252..5261 pre-re weapon explosion and5330..5337 target search/item ownership",
+      "skill_db.conf:5063..5067 IgnoreElement/IgnoreFlee and no SplitDamage",
+      "skill.c:1717..1722 Poison additional effect and secondary duration"
+    ],
+    "poisonBombIdleAdaptations": [
+      "Automatic rotation does not recast an active React buff or refresh an armed bomb",
+      "Invalid automatic bomb targets are skipped before spending resources; Hercules cast-end rejection spends SP before its HP/boss check",
+      "Bomb identity and deadlines persist through AFK reconnect and shift with the explicit Idle pause"
+    ],
+    "reactiveSolo": [
+      "skill.c:3050..3075,8569..8589 joint FullStrip attempt and chemical slots",
+      "sc_config.conf:455..510 strip statuses have no NoBoss flag",
+      "status.c:4177,4252,4448,4516 additive strip stat percentages",
+      "battle.c:6305..6328 reflection before Reject and primary channel halving",
+      "status.c:8466 Reject three charges and infinite duration",
+      "status.c:363,563,7879,11389 automatic Provoke threshold and ownership",
+      "battle.c:1485..1511 pre-re PC soft DEF only",
+      "battle.c:5573..5595 ATK percentage before skill ratio"
+    ],
+    "reactiveSoloIdleAdaptations": [
+      "Auto Berserk uses a pure current HP/maxHP projection so every HP change and maximum-HP change reconciles the automatic Provoke immediately",
+      "Full Strip targets monster stat penalties; no monster inventory or equipment removal is fabricated"
+    ],
+    "soloStances": [
+      "status.c:5167,5318 SteelBody hard DEF/MDEF90",
+      "status.c:5596 and5863 SteelBody speed/ASPD rate",
+      "status.c:5963 and10093..10098 Berserk HP/SP/activation drain",
+      "battle.c:3087..3089 pre-re Berserk skillratio",
+      "status.c:11559..11569 and12630..12635 Berserk ending, regeneration and timer",
+      "pc.c:5371,10266,10505 item and equipment locks",
+      "skill_db.conf:7911..7940 and10883..10900 source costs/duration"
+    ],
+    "deadlyPoison": [
+      "battle.c:5830..5840 pre-re EDP weapon rate and exclusions",
+      "status.c:7894..7901 chance and rate",
+      "skill.c:1695..1698 normal hit DPOISON",
+      "status.c:8210..8232 initial damage and tick values",
+      "status.c:12473..12494 lethal periodic damage",
+      "skill_db.conf:11543..11598 duration, SP and Poison Bottle"
+    ],
+    "hunterControlTraps": [
+      "skill.c:4189..4224 NOFOOTSET includes caster and neutral monsters",
+      "skill.c:14178..14500 trap timer, splash and used-unit lifetime",
+      "skill.c:1789..1805 Sleep/Blind rates",
+      "status.c:7023..7027 and7189..7200 Ankle boss/AGI resistance and five-second floor",
+      "skill.c:3085..3142 knockback immunity and direction reversal",
+      "skill.c:19613..19654 unused trap floor refund"
+    ],
+    "hunterTrapIdleAdaptations": [
+      "Automatic rotation keeps one armed unit per skill and chooses a free nearby cell",
+      "Source cells use the authoritative normalized scene; GAT wall and map noknockback flags are not simulated by this server",
+      "Unused trap floor drops use the same automatic collection and visible loot as monster drops"
+    ],
+    "sageCasting": [
+      "db/pre-re/autospell_db.conf learned-spell caps",
+      "battle.c:7049..7075 normal-attack proc and discounted SP",
+      "skill.c:3963..3971 nonrecursive Bolt timer",
+      "status.c:8472..8474 five Memorize charges",
+      "unit.c:1779..1780 and1984..1985 IgnoreStatusEffect guard",
+      "skill.c:17563..17585 Memorize cast-time and consumption"
+    ],
+    "classicDefenses": [
+      "skill.c:12082..12092 ground NOREITERATION and4153..4166 Pneuma layout",
+      "battle.c:3253 ranged nonmagic Pneuma block",
+      "status.c:8859..8865 Defender reduction and rate",
+      "status.c:3396..3401 ASPD rate before motion clamp",
+      "status.c:338 Endure charge removal below zero",
+      "battle.c:4864 motion snapshot before status_damage"
+    ],
     "magic": [
       "battle.c:1650..1714 skill ratios",
       "battle.c:4166 MATK splash split",
@@ -14436,6 +14872,14 @@
       "status.c:8286 Cloaking infinite duration and drain interval",
       "status.c:8269..8273 and 12408 Hiding remaining-second drain"
     ],
+    "soloSkills": [
+      "skill.c:1645..1656 pre-renewal Gank probability and pc_steal_item call",
+      "status.c:4516..4517 shield strip DEF percent additive category",
+      "skill.c:1641..1694 normal-hit Enchant Poison",
+      "status.c:7936..7946 enchant chance and replacement",
+      "skill.c:7619..7631 Enchant Poison property rejection",
+      "skill.c:8456..8466 Identify flat SP cost"
+    ],
     "range": [
       "battle.c:7685 player circular/client and monster square range",
       "path.c:494..505 floor(max(0,sqrt(dx*dx+dy*dy)-0.0625)) client range",
@@ -14451,6 +14895,7 @@
     "aggressiveMonsterIds": [
       1015,
       1016,
+      1020,
       1023,
       1028,
       1038,
@@ -14459,6 +14904,7 @@
       1046,
       1059,
       1061,
+      1077,
       1087,
       1088,
       1089,
@@ -14471,6 +14917,11 @@
       1112,
       1115,
       1120,
+      1122,
+      1123,
+      1124,
+      1125,
+      1126,
       1132,
       1147,
       1150,
@@ -14485,6 +14936,7 @@
       1219,
       1251,
       1252,
+      1258,
       1259,
       1262,
       1272,
@@ -14543,26 +14995,47 @@
     ],
     "passiveMonsterIds": [
       1002,
+      1004,
+      1007,
+      1008,
+      1009,
+      1010,
+      1014,
       1018,
       1031,
+      1047,
+      1048,
+      1049,
       1051,
       1052,
       1056,
       1057,
+      1060,
       1063,
       1066,
       1070,
       1076,
       1086,
+      1094,
+      1104,
+      1107,
       1113,
       1141,
-      1175
+      1166,
+      1167,
+      1175,
+      1242,
+      1280
     ],
     "detectorMonsterIds": [
+      1004,
+      1007,
+      1008,
       1018,
       1038,
       1039,
       1046,
+      1048,
       1051,
       1052,
       1059,
@@ -14575,6 +15048,7 @@
       1091,
       1092,
       1093,
+      1094,
       1096,
       1109,
       1112,
@@ -14654,12 +15128,42 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "9ace1dd441ae1440b50910dfbe95be1032502c06139701df26898a2a79d95997",
+  "rulesSha256": "f6be468bd1177d2738f69906e537f5dd484255f16a5411eea0e5646a32c51801",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
   },
-  "catalogSha256": "db9cd409e45a7ebfd162089ad05dec757c1b792b37cf9bc962ee7608c6fe6c2f",
+  "mountedPecoEvidence": {
+    "mechanics": [
+      "pc.c:695..700,8985..8988,9220..9227,9391..9398",
+      "status.c:1857..1861,2140..2148,2173..2174,5421..5441,5534..5599",
+      "battle.c:764..770,2145..2156",
+      "skill.c:7971..7973,17857..18012"
+    ],
+    "visuals": [
+      "roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js:30,39,59,67",
+      "DB/Jobs/WeaponJobTable.js:50..59,130..140",
+      "DB/Jobs/WeaponAction.js:171..182,247..257",
+      "DB/Skills/SkillAction.js:137..143"
+    ],
+    "adaptations": [
+      "Peco state is optional for older profiles; mount/dismount is explicit and idempotent without invented rental cost",
+      "Directional Brandish uses normalized encounter cells; source GAT walls and canonical map noknockback flags are not imported by this export pipeline"
+    ]
+  },
+  "sightBlasterSource": {
+    "skill": "db/pre-re/skill_db.conf:18587..18610",
+    "statusFlags": "db/pre-re/sc_config.conf:1264..1273 (NoSave, NoDeathReset)",
+    "castAndStatus": [
+      "src/map/skill.c:7568..7583",
+      "src/map/status.c:8297..8303,12422..12434,13361..13375"
+    ],
+    "damage": "src/map/battle.c:4019..4065",
+    "knockback": "src/map/skill.c:3085..3145",
+    "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
+    "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
+  },
+  "catalogSha256": "70b7558f75528d994a12b09bacbe3f42127d0d084a695ee008a9ed2a826c5380",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

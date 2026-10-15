@@ -6,7 +6,7 @@ import { GameRepository, migrate, resolveLegacyProfileId } from './repository.js
 import { buildApp } from './app.js';
 import { MysqlChatRepository } from './chat.js';
 import { SqlAccountStore } from './identity/repository.js';
-import { SqlGameProfiles } from './profiles.js';
+import { SessionGameProfiles, SqlGameProfiles } from './profiles.js';
 import { createScheduler } from './scheduler.js';
 import { SqlPortalQueries } from './portal/repository.js';
 
@@ -16,10 +16,11 @@ await migrate(pool);
 const legacyProfileId = await resolveLegacyProfileId(pool);
 const repository = new GameRepository(pool, () => createInitialState(catalog, Date.now(), 'djow'), legacyProfileId);
 await repository.read();
-const profiles = new SqlGameProfiles(pool);
+const profiles = new SessionGameProfiles(new SqlGameProfiles(pool));
 const accounts = new SqlAccountStore(pool);
 const allowedOrigins = process.env.RAGIDLE_ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean);
-const app = await buildApp({ catalog, accounts, profiles, portal: new SqlPortalQueries(pool), chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, allowedOrigins, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build'), adminToken: process.env.RAGIDLE_ADMIN_TOKEN });
+const trustedProxyAddresses = process.env.RAGIDLE_TRUSTED_PROXY_ADDRESSES?.split(',').map(address => address.trim()).filter(Boolean);
+const app = await buildApp({ catalog, accounts, profiles, portal: new SqlPortalQueries(pool), chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, allowedOrigins, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build'), adminToken: process.env.RAGIDLE_ADMIN_TOKEN, trustedProxyAddresses });
 const scheduler = createScheduler({ profiles, catalog, now: Date.now, reportError: profileId => { console.error(`Não foi possível salvar o progresso idle (${profileId}).`); } });
 scheduler.start();
 app.addHook('onClose', async () => { await scheduler.stop(); await pool.end(); });

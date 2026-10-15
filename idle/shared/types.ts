@@ -40,7 +40,9 @@ export type Effects = Partial<
     | "softDefPct"
     | "physicalResistPct"
     | "reflectPct"
-    | "blockPct",
+    | "blockPct"
+    | "autoGuardPct"
+    | "parryPct",
     number
   >
 >;
@@ -67,7 +69,22 @@ export interface Drop {
   itemId: number;
   chance: number;
 }
+export type PlayerDisease = 'SC_POISON' | 'SC_DPOISON' | 'SC_BLIND';
+export interface PlayerStatus {
+  startsAt: number; expiresAt: number; level: number; nextTickAt?: number;
+  remainingTicks?: number; tickDamage?: number; sourceDurationMs?: number;
+  sourceActorId?: string; sourceMonsterId?: number; sourceSkillId?: number; sourceActionId?: string;
+}
+export interface MonsterStatusSkill {
+  baseSp?: number;
+  damageType?: 'weapon' | 'magic' | 'misc';
+  skillId: number; sourceName: 'NPC_POISON' | 'NPC_BLINDATTACK'; level: number;
+  rate: number; castTimeMs: number; delayMs: number; range: number; cancelable: boolean;
+  status: 'SC_POISON' | 'SC_BLIND'; durationMs: number;
+}
 export interface Monster {
+  /** Deliberately selected NPC actions, separate from learnable player skills. */
+  npcStatusSkills?: MonsterStatusSkill[];
   boss?: boolean;
   detector?: boolean;
   aggressive?: boolean;
@@ -80,6 +97,8 @@ export interface Monster {
   attack: [number, number];
   def: number;
   mdef: number;
+  /** Runtime status scalar for Hercules SC_MINDBREAKER; absent in source catalog rows. */
+  mdefPercent?: number;
   stats: Stats;
   baseExp: number;
   jobExp: number;
@@ -91,6 +110,7 @@ export interface Monster {
   /** Source milliseconds per walked cell; optional for older catalogs. */
   moveSpeedMs?: number;
   canMove?: boolean;
+  noKnockback?: boolean;
   viewRange?: number;
   chaseRange?: number;
   element: string;
@@ -148,8 +168,11 @@ export interface JobClass {
   hp: number[];
   sp: number[];
   sprite: Record<"male" | "female", SpriteAsset>;
+  mountedSprite?: Record<"male" | "female", SpriteAsset>;
   jobBonuses?: Partial<Record<Stat, number[]>>;
   weaponAspd?: Partial<Record<WeaponType | "unarmed" | "shield", number>>;
+  /** Per-class source pc_max_aspd converted to minimum player amotion in ms. */
+  minimumAttackMotionMs?: number;
   baseWeight?: number;
   attackMotion?: Record<string, number>;
 }
@@ -164,7 +187,7 @@ export interface Skill {
   cooldownMs: number;
   /** Original client BMP from the skill's Hercules source name. */
   iconResource?: string;
-  /** Idle-only damage scaling applied after the pinned source formula. */
+  /** Idle-only scaling applied after the complete Hercules damage formula. */
   idleDamageMultiplierPct?: number[];
   element?: string;
   effects?: Effects;
@@ -190,6 +213,7 @@ export interface Skill {
   statusChance?: number[];
   targetType?: "enemy" | "self" | "ground" | "support" | "passive";
   ignoresDex?: boolean;
+  ignoresStatusEffects?: boolean;
   splitDamage?: boolean;
   ignoreDefense?: boolean;
   ignoreElement?: boolean;
@@ -198,6 +222,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "activate" | "inspect";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -218,6 +243,8 @@ export interface Area {
   id: string;
   name: string;
   map: string;
+  /** Hercules map flag disables skill knockback. */
+  noKnockback?: boolean;
   minLevel: number;
   description: string;
   monsters: number[];
@@ -283,6 +310,8 @@ export interface Catalog {
   exp: { base: number[]; baseTrans?: number[]; job: Record<string, number[]> };
   elementModifiers?: Record<string, Record<string, number[]>>;
   sizeModifiers?: Partial<Record<WeaponType, Record<string, number>>>;
+  /** Pinned pre-renewal Hindsight selection caps, indexed by Hindsight level. */
+  autospellChoices?: Record<string, number[]>;
 }
 export interface InventoryEntry {
   uid: string;
@@ -296,7 +325,17 @@ export interface InventoryEntry {
   rarity?: ItemRarity;
   rarityBonus?: { stat: Stat; value: number };
 }
+export type JointBeatPart = 'ankle' | 'wrist' | 'knee' | 'shoulder' | 'waist' | 'neck';
 export interface BattleEnemy {
+  npcCombat?: { firstAttackDone: boolean; readyAt: Record<number, number>;
+    /** Attack target is independent of a pending skill's retained target. */
+    attackTargetActorId?: string; targetReleasedAt?: number; nextTargetCheckAt?: number;
+    nextWanderAt?: number; pendingAttackerActorId?: string; pendingAttackerAt?: number;
+    cast?: {
+    skillId: number; level: number; targetActorId: string; startedAt: number; endsAt: number;
+    areaId: string | null; actionId: string; baseSp?: number;
+    clockOwnership?: { attackReadyAt:number; previousAttackReadyAt:number };
+  } };
   /** Stable population slot for visible enemies in a hunting area. */
   fieldSlot?: number;
   engaged?: boolean;
@@ -304,11 +343,15 @@ export interface BattleEnemy {
   approachFrom?: { x: number; y: number };
   /** Immobilization freezes the shared server/client arrival interpolation. */
   approachPausedAt?: number;
+  /** Next movement decision while the source SC_CONFUSION is active. */
+  confusionWalkAt?: number;
   homePosition?: { x: number; y: number };
   stormGustHits?: number;
   hostile?: boolean;
   stolenItem?: boolean;
   stolenCoin?: boolean;
+  /** Hercules monster-instance flag; retained until this instance respawns. */
+  soulChangeUsed?: boolean;
   id: string;
   monsterId: number;
   hp: number;
@@ -317,6 +360,8 @@ export interface BattleEnemy {
   arrivedAt: number;
   enemyNextAttackAt: number;
   spawnDirection: number;
+  /** Last eight-way facing vector, retained after walking stops. */
+  facing?: { x: number; y: number };
   position: { x: number; y: number };
   statuses?: Record<
     string,
@@ -326,8 +371,48 @@ export interface BattleEnemy {
       startsAt?: number;
       petrifiesAt?: number;
       nextTickAt?: number;
+      trapId?: string;
+      groundId?: string;
+      webCharges?: number;
+      webHeld?: boolean;
+      element?: string;
+      elementLevel?: number;
+      /** Bomb ownership; old status records remain valid without these fields. */
+      skillId?: string;
+      sourceActorId?: string;
+      sourceActionId?: string;
+      /** Hercules SC_JOINTBEAT BREAK_FLAGS accumulated on this monster instance. */
+      parts?: JointBeatPart[];
+      /** Hercules SC_BLADESTOP reciprocally locks one actor pair. */
+      partnerActorId?: string;
+      /** Hercules SC_DONTFORGETME translated source ASPD and movement penalties. */
+      attackDelayPct?: number;
+      moveSlowPct?: number;
+      /** Hercules SC_MINDBREAKER stores +MATK and applies its MDEF scalar to soft MDEF. */
+      magicAttackPct?: number;
+      mdefPercent?: number;
     }
   >;
+}
+export type SenseElementRates = [number, number, number, number, number, number, number, number, number];
+export interface SenseInspectionResult {
+  sourceSkill: 'WZ_ESTIMATION';
+  actorId: string;
+  monsterId: number;
+  areaId: string | null;
+  challengeId?: string;
+  fieldGeneration?: number;
+  observedAt: number;
+  classId: number;
+  level: number;
+  size: string;
+  currentHp: number;
+  def: number;
+  race: string;
+  mdef: number;
+  element: string;
+  elementLevel: number;
+  elementRates: SenseElementRates;
 }
 export interface Battle {
   monsterId: number;
@@ -358,6 +443,7 @@ export interface Battle {
     position?: { x: number; y: number };
     actionId?: string;
     afterCastDelayMs?: number;
+    clockOwnership?: { actionReadyAt?: number; previousActionReadyAt?: number; nextSkillAt?: number; previousNextSkillAt?: number; moveBlockedUntil?: number; previousMoveBlockedUntil?: number };
   };
   groundEffects?: {
     skillId: string;
@@ -369,12 +455,41 @@ export interface Battle {
     targetId?: string;
     intervalMs?: number;
   }[];
+  /** Source ground groups retain individual cells for partial removal. */
+  skillUnits?: {
+    id: string;
+    skillId: string;
+    level: number;
+    position: { x: number; y: number };
+    cells: { x: number; y: number }[];
+    placedAt: number;
+    nextTickAt: number;
+    expiresAt: number;
+    capturedEnemyId?: string;
+    targetTickAt?: Record<string, number>;
+    nextSpDrainAt?: number;
+    sourceActionId?: string;
+    slowValues?: { attackDelayPct: number; moveSlowPct: number };
+  }[];
+  /** Persistent hunter skill units; resources are spent only when placed. */
+  traps?: {
+    id: string;
+    skillId: string;
+    level: number;
+    position: { x: number; y: number };
+    placedAt: number;
+    nextTickAt: number;
+    expiresAt: number;
+    triggeredAt?: number;
+    capturedEnemyId?: string;
+  }[];
   delayedSkills?: {
     skillId: string;
     level: number;
     targetId: string;
     position: { x: number; y: number };
     endsAt: number;
+    effect?: "doublecast";
   }[];
 }
 export interface RewardSummary {
@@ -390,6 +505,7 @@ export interface RewardSummary {
   jobLevels: number;
 }
 export interface GameEvent {
+  statusName?: string;
   id: number;
   at: number;
   kind: string;
@@ -416,9 +532,14 @@ export interface GameEvent {
   actorAction?: "attack" | "skill" | "none";
   actionStartedAt?: number;
   actionMotionMs?: number;
+  /** Source position at the action deadline, before subsequent route replans. */
+  actionSourcePosition?: { x: number; y: number };
   hitMotionMs?: number;
+  /** Exact health before resolving this hit; optional for older saved events. */
+  targetHpBefore?: number;
 }
 export interface GameState {
+  playerStatuses?: Partial<Record<PlayerDisease | 'SC_SILENCE' | 'SC_CONFUSION' | 'SC_BITESCAR', PlayerStatus>>;
   schemaVersion: 1;
   id: string;
   revision: number;
@@ -427,6 +548,8 @@ export interface GameState {
   /** Optional only for profiles written before appearance customization existed. */
   appearance?: Appearance;
   job: string;
+  /** Peco option; missing on legacy profiles means dismounted. */
+  mounted?: boolean;
   family: string | null;
   branch: string | null;
   reborn: boolean;
@@ -442,8 +565,9 @@ export interface GameState {
   skillPoints: number;
   learnedSkills: Record<string, number>;
   rotation: string[];
+  autospellSkillId?: string;
   skillReadyAt: Record<string, number>;
-  buffs: Record<string, { expiresAt: number; effects: Effects }>;
+  buffs: Record<string, { expiresAt: number; effects: Effects; startsAt?: number }>;
   recovery?: {
     hpMs: number;
     spMs: number;
@@ -451,8 +575,16 @@ export interface GameState {
     skillMs: number;
     skillHpMs?: number;
     skillSpMs?: number;
+    sittingHpMs?: number;
+    sittingSpMs?: number;
   };
   combatEffects?: {
+    poisonReact?: { charges: number };
+    rejectSword?: { charges: number };
+    /** Frenzy drain is captured at activation and survives reconnects. */
+    berserk?: { nextTickAt: number; drainHp: number; remainingTicks: number };
+    tensionRelax?: { nextTickAt: number; remainingTicks: number };
+    regenBlockedUntil?: number;
     buffDrainAt?: Record<string, number>;
     buffLevels?: Record<string, number>;
     safetyWallHits?: number;
@@ -462,11 +594,31 @@ export interface GameState {
     kyrieHits?: number;
     spiritSpheres?: number;
     consumedSpheres?: number;
+    /** Active choice is a cast-time snapshot, independent of the configured choice. */
+    autospell?: { skillId: string; level: number };
+    memorizeCharges?: number;
+    endure?: { level: number; charges: number; expiresAt: number };
+    /** Fixed source map cells: defensive ground never follows a moving caster. */
+    pneumaGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
+    safetyWallGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
+    defensiveGrounds?: {
+      kind: "pneumaGround" | "safetyWallGround";
+      cells: { x: number; y: number }[];
+      expiresAt: number;
+      sceneKey: string;
+      hits?: number;
+    }[];
     combo?: { sourceName: string; expiresAt: number };
+    sacrifice?: { level: number; charges: number };
+    /** Source NoSave Blade Stop wait/link; stripped from durable profile JSON. */
+    bladeStopWait?: { level: number; startsAt?: number; expiresAt: number };
+    bladeStopLink?: { level: number; partnerActorId: string; areaId: string | null; expiresAt: number };
   };
   inventory: InventoryEntry[];
   equipment: Partial<Record<Slot, string>>;
   status: "town" | "hunting" | "challenge" | "resting" | "paused";
+  /** Last server-facing direction, retained while a defensive posture stops walking. */
+  playerFacing?: { x: number; y: number };
   areaId: string | null;
   fieldHero?: {
     areaId: string;
@@ -487,6 +639,8 @@ export interface GameState {
     respawns: Array<{ slot: number; at: number }>;
   };
   battle: Battle | null;
+  /** One immutable, actor-bound WZ_ESTIMATION result; absent in older saves. */
+  senseInspection?: SenseInspectionResult;
   /** Offline cap suspends this intent without discarding the active encounter. */
   pausedStatus?: "town" | "hunting" | "challenge" | "resting";
   pausedAt?: number;
@@ -520,6 +674,8 @@ export interface GameState {
   events: GameEvent[];
 }
 export interface DerivedStats {
+  sourceAttackPercent?: number;
+  sourceDefensePercent?: number;
   baseAttack?: number;
   aspd?: number;
   perfectDodge?: number;
@@ -532,6 +688,8 @@ export interface DerivedStats {
   hit: number;
   flee: number;
   crit: number;
+  /** Hercules amotion after source modifiers; distinct from doubled adelay. */
+  attackMotionMs: number;
   attackIntervalMs: number;
   effects: Effects;
   attributes?: Stats;
@@ -559,9 +717,16 @@ export type GameCommand =
   | { type: "allocate"; stat: Stat; amount: number }
   | { type: "learnSkill"; skillId: string }
   | { type: "setRotation"; skillIds: string[] }
+  | { type: "setAutospell"; skillId: string | null }
+  | { type: "cancelBuff"; skillId: string }
+  | { type: "toggleBuff"; skillId: string }
+  | { type: "useSkill"; skillId: string; expectedCastActionId?: string; expectedEnemyId?: string }
+  | { type: "setMount"; mounted: boolean }
   | { type: "buy"; itemId: number; quantity: number }
+  | { type: "craftConverter"; itemId: number; quantity: number }
   | { type: "sell"; uid: string; quantity: number }
-  | { type: "equip" | "favorite" | "refine" | "identify"; uid: string }
+  | { type: "equip" | "favorite" | "refine"; uid: string }
+  | { type: "identify"; uid: string; method?: "magnifier" | "skill" }
   | { type: "unequip"; slot: Slot }
   | { type: "socket"; uid: string; cardUid: string }
   | { type: "changeClass"; classId: string }
