@@ -355,8 +355,9 @@ describe('Guardian and Sacrifice combat flow', () => {
     expect(learned.skillPoints).toBeLessThan(1000);
   });
 
-  it('runs a private candidate canary from the exported 246-skill catalog through paid shield, Guard, recoil, Sacrifice, and lethal self-cost', () => {
-    expect(Object.values(rawCatalog.skills).filter(candidate => candidate.implementation === 'supported')).toHaveLength(246);
+  it('runs a private candidate canary from the exported catalog through paid shield, Guard, recoil, Sacrifice, and lethal self-cost', () => {
+    expect(Object.values(rawCatalog.skills).filter(candidate => candidate.implementation === 'supported')).toHaveLength(247);
+    expect(rawCatalog.skills.sa_magicrod.implementation).toBe('supported');
     expect(Object.keys(rawCatalog.skills)).toHaveLength(348);
     expect(Object.keys(rawCatalog.classes)).toHaveLength(40);
     for (const source of ['CR_AUTOGUARD', 'CR_SHRINK', 'PA_SACRIFICE'])

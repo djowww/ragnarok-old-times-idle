@@ -31,7 +31,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "de5355dd76a093d84f853808da09666bfc17acb906e7ae8e9da4bd7cfcc575c3"
+    "hash": "ff3f953ede210d02c8c9049efa5cc2ca16c2ad52af396baac9d83bdb3fe7ebd9"
   },
   "rates": {
     "baseExp": 4,
@@ -2162,7 +2162,10 @@
           "cancelable": true,
           "range": 9,
           "status": "SC_BLIND",
-          "durationMs": 30000
+          "durationMs": 30000,
+          "state": "MSS_BERSERK",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 0
         }
       ],
       "id": 1061,
@@ -3903,6 +3906,25 @@
       ]
     },
     "1120": {
+      "npcStatusSkills": [
+        {
+          "skillId": 13,
+          "sourceName": "MG_SOULSTRIKE",
+          "damageType": "magic",
+          "element": "ghost",
+          "hitCount": 5,
+          "baseSp": 42,
+          "level": 9,
+          "rate": 2000,
+          "castTimeMs": 500,
+          "delayMs": 5000,
+          "cancelable": true,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 7
+        }
+      ],
       "id": 1120,
       "name": "Ghostring",
       "aegisName": "GHOSTRING",
@@ -4606,6 +4628,113 @@
       ]
     },
     "1150": {
+      "npcStatusSkills": [
+        {
+          "skillId": 14,
+          "sourceName": "MG_COLDBOLT",
+          "damageType": "magic",
+          "element": "water",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 14
+        },
+        {
+          "skillId": 14,
+          "sourceName": "MG_COLDBOLT",
+          "damageType": "magic",
+          "element": "water",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 4000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_SKILLUSED",
+          "sourceRowIndex": 15,
+          "conditionData": 18
+        },
+        {
+          "skillId": 19,
+          "sourceName": "MG_FIREBOLT",
+          "damageType": "magic",
+          "element": "fire",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 16
+        },
+        {
+          "skillId": 19,
+          "sourceName": "MG_FIREBOLT",
+          "damageType": "magic",
+          "element": "fire",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 4000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_SKILLUSED",
+          "sourceRowIndex": 17,
+          "conditionData": 18
+        },
+        {
+          "skillId": 20,
+          "sourceName": "MG_LIGHTNINGBOLT",
+          "damageType": "magic",
+          "element": "wind",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 18
+        },
+        {
+          "skillId": 20,
+          "sourceName": "MG_LIGHTNINGBOLT",
+          "damageType": "magic",
+          "element": "wind",
+          "hitCount": 5,
+          "baseSp": 20,
+          "level": 5,
+          "rate": 4000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_SKILLUSED",
+          "sourceRowIndex": 19,
+          "conditionData": 18
+        }
+      ],
       "id": 1150,
       "name": "Moonlight Flower",
       "aegisName": "MOONLIGHT",
@@ -5121,7 +5250,10 @@
           "cancelable": false,
           "range": 9,
           "status": "SC_POISON",
-          "durationMs": 60000
+          "durationMs": 60000,
+          "state": "MSS_BERSERK",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 1
         }
       ],
       "id": 1175,
@@ -5193,6 +5325,42 @@
       ]
     },
     "1190": {
+      "npcStatusSkills": [
+        {
+          "skillId": 14,
+          "sourceName": "MG_COLDBOLT",
+          "damageType": "magic",
+          "element": "water",
+          "hitCount": 10,
+          "baseSp": 30,
+          "level": 10,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 8
+        },
+        {
+          "skillId": 19,
+          "sourceName": "MG_FIREBOLT",
+          "damageType": "magic",
+          "element": "fire",
+          "hitCount": 10,
+          "baseSp": 30,
+          "level": 10,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 5000,
+          "cancelable": false,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 9
+        }
+      ],
       "id": 1190,
       "name": "Orc Lord",
       "aegisName": "ORC_LORD",
@@ -9098,6 +9266,42 @@
       ]
     },
     "1708": {
+      "npcStatusSkills": [
+        {
+          "skillId": 13,
+          "sourceName": "MG_SOULSTRIKE",
+          "damageType": "magic",
+          "element": "ghost",
+          "hitCount": 5,
+          "baseSp": 38,
+          "level": 10,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 3000,
+          "cancelable": true,
+          "range": 9,
+          "state": "MSS_RUSH",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 20
+        },
+        {
+          "skillId": 13,
+          "sourceName": "MG_SOULSTRIKE",
+          "damageType": "magic",
+          "element": "ghost",
+          "hitCount": 5,
+          "baseSp": 38,
+          "level": 10,
+          "rate": 2000,
+          "castTimeMs": 0,
+          "delayMs": 3000,
+          "cancelable": true,
+          "range": 9,
+          "state": "MSS_BERSERK",
+          "condition": "MSC_ALWAYS",
+          "sourceRowIndex": 21
+        }
+      ],
       "id": 1708,
       "name": "Thanatos",
       "aegisName": "THANATOS",
@@ -87964,9 +88168,9 @@
       "herculesId": 276,
       "sourceName": "SA_MAGICROD",
       "mechanic": "SA_MAGICROD",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer magias conjuradas por inimigos.",
-      "description": "Magic Rod. Aplica MAGICROD. Requer magias conjuradas por inimigos.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Prepara uma reação por 400/600/800/1000/1200 ms. Intercepta magia NPC que conclua dentro da janela e recupera 20/40/60/80/100% do SP-base da magia recebida. Custa 2 SP; sem conjuração ou recarga própria.",
       "iconResource": "data/texture/유저인터페이스/item/sa_magicrod.bmp",
       "spCost": [
         2,
@@ -88068,7 +88272,7 @@
       "sourceName": "SA_SPELLBREAKER",
       "mechanic": "SA_SPELLBREAKER",
       "implementation": "supported",
-      "description": "Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro. Tarou não concede SP; o ramo de Magic Rod e PvP não é simulado.",
+      "description": "Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro.",
       "iconResource": "data/texture/유저인터페이스/item/sa_spellbreaker.bmp",
       "spCost": [
         10,

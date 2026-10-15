@@ -18,7 +18,8 @@ Ragnarok Old Times Idle é um projeto de fã, local-first e em desenvolvimento. 
 - Cena browser com mapas e personagens animados usando os recursos disponíveis no cliente local; a BGM segue a área quando o jogador a ativa.
 - Cliente clássico roBrowserLegacy conectado a uma instância local do Hercules.
 - Farm AFK sobre uma população persistida de três a quatro monstros por cena: o personagem caminha até um alvo existente, combate e busca o próximo. Cada monstro reaparece individualmente após seis segundos; conjuração, alcance e áreas de efeito são resolvidos no servidor.
-- Árvores de 40 classes: 348 habilidades importadas, com 246 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
+- Árvores de 40 classes: 348 habilidades importadas, com 247 implementadas. Habilidades de família foram removidas e Increase Weight Limit é restrita à família Mercador. Mecânicas indisponíveis têm seus motivos identificados.
+- Ghostring, Moonlight Flower, Orc Lord e Thanatos lançam as magias selecionadas de suas tabelas clássicas. Sábios e Professores podem interceptá-las com Magic Rod, por ativação manual ou pela rotação automática.
 - Prioridade circular de nove habilidades, loja compacta e diário com chat persistente entre as sessões locais.
 - HUD e janelas reposicionáveis, equipamento e atributos com interface clássica, cooldowns discretos e descanso sentado no campo.
 - Combate com prazos ordenados, relógios separados para ataque, movimento, conjuração e recarga, além de ações e reações animadas por ator. A cura automática intercala ações ofensivas.

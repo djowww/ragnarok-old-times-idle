@@ -4,7 +4,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { parseConfig, resolveInheritance } from './libconfig.mjs';
+import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rules = JSON.parse(await readFile(resolve(root, 'content/rules.json'), 'utf8'));
 const sha = b => createHash('sha256').update(b).digest('hex');
@@ -217,7 +217,7 @@ activeSpecial.add('LK_TENSIONRELAX');
 for (const name of ['SA_AUTOSPELL', 'PF_DOUBLECASTING', 'PF_MEMORIZE', 'AL_PNEUMA', 'SM_ENDURE', 'CR_DEFENDER']) activeSpecial.add(name);
 for (const name of ['ALL_RESURRECTION', 'PF_SOULCHANGE']) activeSpecial.add(name);
 activeSpecial.add('TF_PICKSTONE');
-for (const name of ['SA_CASTCANCEL','SA_SPELLBREAKER']) activeSpecial.add(name);
+for (const name of ['SA_CASTCANCEL','SA_SPELLBREAKER','SA_MAGICROD']) activeSpecial.add(name);
 for (const name of ['AL_CURE', 'TF_DETOXIFY', 'PR_SLOWPOISON']) activeSpecial.add(name);
 activeSpecial.add('PR_STRECOVERY');
 for (const name of ['CR_SHRINK', 'PA_SACRIFICE']) activeSpecial.add(name);
@@ -237,7 +237,7 @@ const unsupported = {
     MC_VENDING: 'Requer comércio com outros personagens.', ALL_BUYING_STORE: 'Requer comércio com outros personagens.', MC_CARTDECORATE: 'Decoração de carrinho exige objetos de carrinho.', MC_CHANGECART: 'Aparência do carrinho exige objetos de carrinho.',
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.', RG_PLAGIARISM: 'Requer habilidades inimigas copiáveis.', ST_PRESERVE: 'Depende de Intimidate/copiar habilidades.',
     CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', PA_GOSPEL: 'Requer efeitos aleatórios de grupo.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.', HT_SHOCKWAVE: 'Requer SP do alvo; monstros não têm SP no catálogo.',
-    SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.', SA_MAGICROD: 'Requer magias conjuradas por inimigos.',
+    SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.',
     SA_ADVANCEDBOOK: 'Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis.', PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
     CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.', CG_TAROTCARD: 'Requer baralho aleatório com efeitos de combate entre personagens.',
@@ -257,7 +257,8 @@ const descriptions = {
     KN_BRANDISHSPEAR: 'Requer Peco Peco ativo e lança de uma ou duas mãos. Golpeia células direcionais à frente do alvo, com dano diferente por faixa e recuo de três células. A área cresce com o nível; chefes e monstros imunes não recuam.',
     MO_SPIRITSRECOVERY: 'Enquanto sentado, recupera HP e SP adicionais a cada 10 segundos. Com peso a partir de 50%, o intervalo é de 20 segundos. Os canais e quantidades seguem o Hercules; levantar zera somente os acumuladores extras sentados.',
     SA_CASTCANCEL: 'Cancela manualmente a sua conjuração em curso. Paga 2 SP normais e adicional de 90/70/50/30/10% do custo-base da magia cancelada, limitado ao SP restante. Não recupera Memorize nem resolve a magia cancelada.',
-    SA_SPELLBREAKER: 'Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro. Tarou não concede SP; o ramo de Magic Rod e PvP não é simulado.',
+    SA_SPELLBREAKER: 'Interrompe a conjuração atual de um monstro em alcance 9. Custa 10 SP e tem conjuração base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP máximo; nível 5 cura metade do valor calculado. Boss tem 10% de chance e não sofre dano nem cura HP. A rotação só inicia quando pode concluir antes do monstro.',
+    SA_MAGICROD: 'Prepara uma reação por 400/600/800/1000/1200 ms. Intercepta magia NPC que conclua dentro da janela e recupera 20/40/60/80/100% do SP-base da magia recebida. Custa 2 SP; sem conjuração ou recarga própria.',
     LK_TENSIONRELAX: 'Use manualmente durante a caça para sentar e relaxar. Custa 15 SP inicialmente e dura até 3 minutos, com checagem de HP a cada 10 segundos. Acelera somente recuperação de HP natural e por habilidade em três vezes; com peso acima de 50%, permite HP sem o multiplicador. Levantar encerra o efeito. A fonte fixada não cobra SP recorrente.',
     KN_AUTOCOUNTER: 'Postura de Contra-Ataque por 0,4 segundo por nível. Custa 3 SP e impede caminhar ou iniciar outras habilidades. Intercepta ataques normais vindos da frente ou diagonais próximas, até o alcance da arma +1; a mesma célula aceita qualquer direção. Consome a postura antes do golpe de arma com movimento pela metade. Ataques básicos também podem consumi-la no ramo crítico; multihit preserva a postura. Não pode ser usada com arco.',
     BS_UNFAIRLYTRICK: 'Mammonita custa 10% menos zeny. O desconto é truncado antes de subtrair do preço. Não altera dano ou SP.',
@@ -336,6 +337,7 @@ for (const name of skillNames) {
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'PA_SACRIFICE' && { manualUse: 'activate' }),
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
+        ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -345,8 +347,9 @@ for (const name of skillNames) {
         iconResource: 'data/texture/유저인터페이스/item/' + src.Name.toLowerCase() + '.bmp',
         spCost: byLevel(src.Requirements?.SPCost, maxLevel), power,
         ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }),
-        cooldownMs: byLevel(src.CoolDown, maxLevel)[0],
-        castTimeMs: byLevel(src.CastTime, maxLevel), afterCastDelayMs: byLevel(src.AfterCastActDelay, maxLevel),
+        cooldownMs: name === 'SA_MAGICROD' ? 0 : byLevel(src.CoolDown, maxLevel)[0],
+        castTimeMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.CastTime, maxLevel),
+        afterCastDelayMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.AfterCastActDelay, maxLevel),
         interruptCast: src.InterruptCast === true,
         ...(src.CastDefRate !== undefined && { castDefenseReductionPct: src.CastDefRate }),
         hitCount, sourceHitCount: rawHits, aoeRadius: radius, range: byLevel(src.Range, maxLevel), targetType, damageType,
@@ -377,7 +380,7 @@ for (const name of skillNames) {
         ...(rule?.requiredSlot && { requiredSlot: rule.requiredSlot }),
         ...(inheritedEffect && { effects: inheritedEffect }),
     };
-manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Hunt-only adaptation: places a 20-second self-centered field when the active target has normal range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage, while supported direct NPC skill damage is reduced by 25%. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. The MATK increase is retained on the instance; current monster skills do not yet calculate magical damage.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
+manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Hunt-only adaptation: places a 20-second self-centered field when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
 }
 manifest.skillSources.ba_pangvoice.adaptation = 'Single-target no-damage cast at range 9 during field hunting; applies source SC_CONFUSION for 17 s at a 50% base chance. Bosses reject it. Solo adaptation releases the monster attack target and randomizes movement within the source AREA_SIZE / 2 (7-cell) envelope until expiry.';
 manifest.skillSources.mo_bladestop.adaptation = 'Waits 500/700/900/1100/1300 ms for a basic attack by a non-boss within two cells, after Auto Counter; spends 10 SP and one sphere only when AFK has such an attack due in the window. Links the actual attacker reciprocally for 20/30/40/50/60 seconds, blocking pair movement and basic attacks while other monsters act. The four source skill-level gates are checked against Blade Stop level. Chain Combo bypasses only the Triple Attack prerequisite in this linked state; Asura spends four spheres. Source SC_BLADESTOP has NoSave and is cleared on a new connection. SC_BLADESTOP_WAIT has no NoSave flag in this source; clearing the short Idle wait on a new connection is an explicit Idle lifecycle adaptation. Both states release on death, partner loss, map exit or expiry; movement clocks resume when volatile state is removed.';
@@ -387,6 +390,19 @@ manifest.skillSources.dc_dontforgetme.adaptation = 'Self-placed 7x7 enemy field;
 manifest.skillSources.mo_bodyrelocation.adaptation = 'Field-hunting approach only: consumes 14 SP and one spirit sphere (zero while Explosion Spirits is active), then relocates instantly to a one-cell offset from the selected living mob at up to 18 cells. It does no damage and excludes challenge instances; the next Extremity Fist is blocked for 2 s. Exact GAT collision and cell occupancy are outside the normalized Idle formation.';
 manifest.elementalConversion={sources:['skill.c:8996..9017','status.c:7097,7828..7830,7948..7958,6084..6114','sc_config.conf:2011..2026'],status:'SC_ARMOR_PROPERTY',durationMs:1800000,elementLevels:[1,2,3,4],bossRandomDraws:0,newRandomDraws:2,strongOverlapRandomDraws:1,dispelRemovable:false,perInstance:true};
 manifest.playerStatusProduction = { scope: 'Selected NPC subset, not full monster AI', monsters: { 1175: 'NPC_POISON1', 1061: 'NPC_BLINDATTACK3' }, producerSource: 'db/pre-re/mob_skill_db.conf', treatmentScope: 'Own character in solo hunting', diseaseRules: 'src/map/status.c:6937..7218,8224..8232,12469..12494', firstAttack: 'normal', npcRateComparison: 'rnd()%10000 <= Rate', deathClears: true };
+const npcMagicRuntimeIds = [1120, 1150, 1190, 1708];
+manifest.npcMagicProduction = { source: 'db/pre-re/mob_skill_db.conf + db/pre-re/skill_db.conf', runtimeMonsterIds: npcMagicRuntimeIds,
+    runtimeRows: [],
+    sourceFixtureMonsterIds: [1033], sourceFixtureRows: [
+        { sourceName: 'MG_FIREBOLT', state: 'MSS_BERSERK', level: 3, rate: 500, castTimeMs: 1500, delayMs: 5000, cancelable: true, target: 'MST_TARGET', condition: 'MSC_ALWAYS' },
+        { sourceName: 'MG_FIREBOLT', state: 'MSS_RUSH', level: 3, rate: 500, castTimeMs: 1500, delayMs: 5000, cancelable: true, target: 'MST_TARGET', condition: 'MSC_ALWAYS' },
+    ], actions: ['MG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRIKE'],
+    importedStates: ['MSS_BERSERK', 'MSS_RUSH'], importedConditions: ['MSC_ALWAYS', 'MSC_SKILLUSED'],
+    exclusionPolicy: 'Rows with unsupported target, state, condition, or missing MSC_SKILLUSED ConditionData are skipped. No unsupported row is enabled with approximate behavior; NPC_MAGICALATTACK is a separate, unimplemented mechanism.',
+    decisionCadence: 'Existing solo attack decision deadlines; casts replace one due basic attack and the next ordinary attack retains source AttackDelay cadence.',
+    monsterSp: 'No SP pool or NPC charging. Source SP cost is metadata for Magic Rod.',
+    basicRange: 'Unchanged; bolt reach applies only to the NPC magical action.',
+    magicRodFlags: 'SC_MAGICROD is NoSave and NoClearanceReset. It lives in process memory for the existing session, clears on a new session or death, and expires at its source deadline.' };
 manifest.skillCoverage = { classes: rules.classes.length, skills: skillNames.length, supported: Object.values(catalog.skills).filter(s => s.implementation === 'supported').length, unsupported: Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').length };
 manifest.skillCoverage.byClass = Object.fromEntries(Object.values(catalog.classes).map(job => [job.id, { sourceTree: job.skills.length, supported: job.skills.filter(id => catalog.skills[id].implementation === 'supported').length, unsupported: job.skills.filter(id => catalog.skills[id].implementation === 'unsupported').length }]));
 manifest.skillCoverage.supportedSourceNames = Object.values(catalog.skills).filter(s => s.implementation === 'supported').map(s => s.sourceName);
@@ -570,13 +586,46 @@ for (const id of monsterIds) {
     const path = 'data/sprite/몬스터/' + spriteName;
     const drops = exportDrops(m.Drops, id);
     const mvpDrops = exportDrops(m.MvpDrops, id);
-    const npcSourceName = id === 1175 ? 'NPC_POISON' : id === 1061 ? 'NPC_BLINDATTACK' : undefined;
-    const npcEntry = npcSourceName && parsed['mob_skill_db.conf'].mob_skill_db[0][m.SpriteName]?.[npcSourceName];
-    if (npcSourceName && (!npcEntry || npcEntry.SkillState !== 'MSS_BERSERK' || npcEntry.SkillTarget !== 'MST_TARGET' || npcEntry.CastCondition !== 'MSC_ALWAYS')) throw new Error('Invalid selected NPC source: ' + id);
-    const npcDb = npcSourceName && skillByName[npcSourceName];
-    const npcStatusSkills = npcEntry ? [{ skillId: npcDb.Id, sourceName: npcSourceName, level: npcEntry.SkillLevel ?? 1, rate: npcEntry.Rate ?? 1, castTimeMs: npcEntry.CastTime ?? 0, delayMs: npcEntry.Delay ?? 0, cancelable: npcEntry.Cancelable ?? false, range: Math.abs(npcDb.Range ?? 9), status: npcDb.StatusChange, durationMs: typeof npcDb.SkillData2 === 'number' ? npcDb.SkillData2 : Object.values(npcDb.SkillData2 ?? {})[0] }] : undefined;
-    catalog.monsters[id] = { ...(npcStatusSkills && { npcStatusSkills }), id, name: rules.monsterNameAliases?.[id] ?? m.Name, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act: path + '.act' }, level: m.Lv ?? 1, hp: m.Hp ?? 1, attack: m.Attack ?? [0, 0], def: m.Def ?? 0, mdef: m.Mdef ?? 0, boss: m.Mode?.Boss === true, detector: m.Mode?.Detector === true, aggressive: m.Mode?.Aggressive === true, canMove: m.Mode?.CanMove === true, noKnockback: m.Mode?.NoKnockback === true, moveSpeedMs: m.MoveSpeed ?? 200, viewRange: m.ViewRange ?? 10, chaseRange: m.ChaseRange ?? 12, stats: Object.fromEntries(['Str', 'Agi', 'Vit', 'Int', 'Dex', 'Luk'].map(s => [s.toLowerCase(), m.Stats?.[s] ?? 0])), baseExp: m.Exp ?? 0, jobExp: m.JExp ?? 0, attackDelay: m.AttackDelay ?? 4000, ...(Number.isFinite(m.AttackMotion) ? { attackMotionMs: m.AttackMotion } : {}), ...(Number.isFinite(m.DamageMotion) ? { damageMotionMs: m.DamageMotion } : {}), attackRange: m.AttackRange ?? 1, element: (m.Element?.[0] ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, size: (m.Size ?? 'Size_Small').replace('Size_', '').toLowerCase(), race: (m.Race ?? 'RC_Formless').replace('RC_', '').toLowerCase(), drops, ...(mvpDrops.length ? { mvpDrops } : {}) };
+    const magicMonsterIds = new Set([1033, 1120, 1150, 1190, 1708]);
+    const supportedNpcMagic = new Set(['MG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRIKE']);
+    const sourceRows = parsed['mob_skill_db.conf'].mob_skill_db[0][m.SpriteName] ?? {};
+    const npcStatusSkills = [];
+    let sourceRowIndex = 0;
+    for (const [sourceName, npcEntry] of orderedConfigEntries(sourceRows)) {
+        const rowIndex = sourceRowIndex++;
+        const selectedStatus = id === 1175 && sourceName === 'NPC_POISON' || id === 1061 && sourceName === 'NPC_BLINDATTACK';
+        const selectedMagic = magicMonsterIds.has(id) && supportedNpcMagic.has(sourceName);
+        if (!selectedStatus && !selectedMagic) continue;
+        const condition = npcEntry.CastCondition ?? 'MSC_ALWAYS';
+        const state = npcEntry.SkillState;
+        const npcDb = skillByName[sourceName];
+        if (!npcDb || npcEntry.SkillTarget !== 'MST_TARGET' || !['MSS_BERSERK', 'MSS_RUSH'].includes(state) ||
+            !['MSC_ALWAYS', 'MSC_SKILLUSED'].includes(condition) || condition === 'MSC_SKILLUSED' && !Number.isSafeInteger(npcEntry.ConditionData))
+            continue;
+        if (selectedStatus) {
+            if (state !== 'MSS_BERSERK' || condition !== 'MSC_ALWAYS') throw new Error('Invalid selected NPC status source: ' + id);
+            npcStatusSkills.push({ skillId: npcDb.Id, sourceName, level: npcEntry.SkillLevel ?? 1, rate: npcEntry.Rate ?? 1,
+                castTimeMs: npcEntry.CastTime ?? 0, delayMs: npcEntry.Delay ?? 0, cancelable: npcEntry.Cancelable ?? false,
+                range: Math.abs(npcDb.Range ?? 9), status: npcDb.StatusChange,
+                durationMs: typeof npcDb.SkillData2 === 'number' ? npcDb.SkillData2 : Object.values(npcDb.SkillData2 ?? {})[0],
+                state, condition, sourceRowIndex: rowIndex, ...(npcEntry.ConditionData === undefined ? {} : { conditionData: npcEntry.ConditionData }) });
+            continue;
+        }
+        const level = npcEntry.SkillLevel ?? 1;
+        const hits = Math.abs(byLevel(npcDb.NumberOfHits, npcDb.MaxLevel ?? level, 1)[level - 1] ?? 1);
+        npcStatusSkills.push({ skillId: npcDb.Id, sourceName, damageType: 'magic', element: (npcDb.Element ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(),
+            hitCount: hits, baseSp: byLevel(npcDb.Requirements?.SPCost, npcDb.MaxLevel ?? level)[level - 1] ?? 0,
+            level, rate: npcEntry.Rate ?? 1, castTimeMs: npcEntry.CastTime ?? 0, delayMs: npcEntry.Delay ?? 0,
+            cancelable: npcEntry.Cancelable ?? false, range: Math.abs(npcDb.Range ?? 9), state, condition, sourceRowIndex: rowIndex,
+            ...(npcEntry.ConditionData === undefined ? {} : { conditionData: npcEntry.ConditionData }) });
+    }
+    catalog.monsters[id] = { ...(npcStatusSkills.length && { npcStatusSkills }), id, name: rules.monsterNameAliases?.[id] ?? m.Name, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act: path + '.act' }, level: m.Lv ?? 1, hp: m.Hp ?? 1, attack: m.Attack ?? [0, 0], def: m.Def ?? 0, mdef: m.Mdef ?? 0, boss: m.Mode?.Boss === true, detector: m.Mode?.Detector === true, aggressive: m.Mode?.Aggressive === true, canMove: m.Mode?.CanMove === true, noKnockback: m.Mode?.NoKnockback === true, moveSpeedMs: m.MoveSpeed ?? 200, viewRange: m.ViewRange ?? 10, chaseRange: m.ChaseRange ?? 12, stats: Object.fromEntries(['Str', 'Agi', 'Vit', 'Int', 'Dex', 'Luk'].map(s => [s.toLowerCase(), m.Stats?.[s] ?? 0])), baseExp: m.Exp ?? 0, jobExp: m.JExp ?? 0, attackDelay: m.AttackDelay ?? 4000, ...(Number.isFinite(m.AttackMotion) ? { attackMotionMs: m.AttackMotion } : {}), ...(Number.isFinite(m.DamageMotion) ? { damageMotionMs: m.DamageMotion } : {}), attackRange: m.AttackRange ?? 1, element: (m.Element?.[0] ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, size: (m.Size ?? 'Size_Small').replace('Size_', '').toLowerCase(), race: (m.Race ?? 'RC_Formless').replace('RC_', '').toLowerCase(), drops, ...(mvpDrops.length ? { mvpDrops } : {}) };
 }
+manifest.npcMagicProduction.runtimeRows = npcMagicRuntimeIds.flatMap(monsterId => (catalog.monsters[monsterId].npcStatusSkills ?? [])
+    .filter(row => row.damageType === 'magic').map(row => ({ monsterId, sourceRowIndex: row.sourceRowIndex, sourceName: row.sourceName,
+        level: row.level, rate: row.rate, castTimeMs: row.castTimeMs, delayMs: row.delayMs, cancelable: row.cancelable,
+        range: row.range, hitCount: row.hitCount, baseSp: row.baseSp, state: row.state, condition: row.condition,
+        ...(row.conditionData === undefined ? {} : { conditionData: row.conditionData }) })));
 manifest.monsterBehavior = {
     source: 'db/pre-re/mob_db.conf:Mode',
     movementSource: 'db/pre-re/mob_db.conf:MoveSpeed/ViewRange/ChaseRange/Mode.CanMove',

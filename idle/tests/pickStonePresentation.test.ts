@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import rawCatalog from '../content/catalog.json';
 import { drawSkillEffect, combatPopupText, SKILL_EFFECT_MS } from '../web/assets/sceneEffects';
-import { presentLatestActorActions, presentedActorActionAt, retireInterruptedCastCues, retireTrickDeadPoses } from '../web/assets/combatPresentation';
+import { presentLatestActorActions, presentedActorActionAt, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill } from '../web/assets/combatPresentation';
 import { hasSceneAction, trapCueAction } from '../web/assets/groundTraps';
 import { isTownScene } from '../shared/worldScene';
 import { isNpcStatusAction } from '../shared/playerStatusView';
@@ -33,7 +33,7 @@ function snapshotFixture(population: boolean) {
     enemyPositions: ref(new Map()), offensiveTargets: ref(new Set()), legacyOpponentPosition: ref(null),
     legacyOpponentId: ref('enemy'), defeatedOpponent: ref(null), blockedTerminalId: ref(null),
     projection: ref(null), encounterPose: ref(null), roaming: ref({ position: { x: .5, y: .5 } }),
-    isTownScene, isNpcStatusAction, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
+    isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
     presentLatestActorActions, retireInterruptedCastCues, retireTrickDeadPoses, hasSceneAction, trapCueAction, combatPopupText, SKILL_EFFECT_MS,
   };
   return scope;

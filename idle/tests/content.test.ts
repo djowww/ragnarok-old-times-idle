@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { parseConfig, resolveInheritance } from '../tools/libconfig.mjs';
+import { orderedConfigEntries, parseConfig, resolveInheritance } from '../tools/libconfig.mjs';
 import catalog from '../content/catalog.json';
 import manifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import type { Catalog } from '../shared/types';
 import { bgmForMap } from '../web/components/mapBgm';
 describe('Hercules import', () => {
+    it('retains both Elder Willow Fire Bolt source rows in order', () => {
+        const parsed: any = parseConfig(`ELDER_WILOW: { MG_FIREBOLT: { SkillState: "MSS_BERSERK" SkillLevel: 3 Rate: 500 CastTime: 1500 Delay: 5000 Cancelable: true SkillTarget: "MST_TARGET" CastCondition: "MSC_ALWAYS" } MG_FIREBOLT: { SkillState: "MSS_RUSH" SkillLevel: 3 Rate: 500 CastTime: 1500 Delay: 5000 Cancelable: true SkillTarget: "MST_TARGET" CastCondition: "MSC_ALWAYS" } }`);
+        expect(orderedConfigEntries(parsed.ELDER_WILOW)).toEqual([
+            ['MG_FIREBOLT', expect.objectContaining({ SkillState: 'MSS_BERSERK', SkillLevel: 3, Rate: 500, CastTime: 1500, Delay: 5000 })],
+            ['MG_FIREBOLT', expect.objectContaining({ SkillState: 'MSS_RUSH', SkillLevel: 3, Rate: 500, CastTime: 1500, Delay: 5000 })],
+        ]);
+    });
     it('enables executed Venom Dust and Spider Web with purchasable source reagents', () => {
         const data = catalog as unknown as Catalog;
         for (const source of ['AS_VENOMDUST', 'PF_SPIDERWEB']) {
@@ -73,8 +80,8 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 246, unsupported: 102 });
-        expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 35, unsupported: 14 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 247, unsupported: 101 });
+        expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 36, unsupported: 13 });
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_MINDBREAKER');
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_FOGWALL');
     });
@@ -109,7 +116,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 246, unsupported: 102 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 247, unsupported: 101 });
         expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 29, unsupported: 5 });
         expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 33, unsupported: 5 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
@@ -131,6 +138,29 @@ describe('playable source catalog', () => {
         expect(data.monsters[1002].drops).toContainEqual({ itemId: 909, chance: 7000 });
         expect(data.monsters[1028].sprite.spr).toContain('skel_soldier.spr');
         expect(data.monsters[1016].sprite.spr).toContain('skel_archer.spr');
+    });
+    it('imports repeated NPC spell rows in source order with exact source metadata', () => {
+        expect(data.monsters[1120].npcStatusSkills).toEqual([expect.objectContaining({
+            sourceName: 'MG_SOULSTRIKE', level: 9, rate: 2000, castTimeMs: 500, delayMs: 5000,
+            cancelable: true, range: 9, baseSp: 42, hitCount: 5, state: 'MSS_RUSH', condition: 'MSC_ALWAYS',
+        })]);
+        const moonlight = data.monsters[1150].npcStatusSkills!;
+        expect(moonlight.filter(row => row.damageType === 'magic').map(row => row.sourceName)).toEqual([
+            'MG_COLDBOLT', 'MG_COLDBOLT', 'MG_FIREBOLT', 'MG_FIREBOLT', 'MG_LIGHTNINGBOLT', 'MG_LIGHTNINGBOLT',
+        ]);
+        for (const id of [1190, 1708]) expect(data.monsters[id].npcStatusSkills?.some(row => row.damageType === 'magic')).toBe(true);
+        expect(data.monsters[1033]).toBeUndefined();
+        expect(manifest.npcMagicProduction).toMatchObject({ runtimeMonsterIds: [1120, 1150, 1190, 1708],
+            sourceFixtureMonsterIds: [1033], sourceFixtureRows: [
+                { sourceName: 'MG_FIREBOLT', state: 'MSS_BERSERK', level: 3, rate: 500, castTimeMs: 1500 },
+                { sourceName: 'MG_FIREBOLT', state: 'MSS_RUSH', level: 3, rate: 500, castTimeMs: 1500 },
+            ], exclusionPolicy: expect.stringContaining('ConditionData') });
+        expect(manifest.npcMagicProduction.runtimeRows).toHaveLength(11);
+        expect(manifest.npcMagicProduction.runtimeRows.every(row => ['MSC_ALWAYS', 'MSC_SKILLUSED'].includes(row.condition))).toBe(true);
+        expect(Object.values(data.skills).find(skill => skill.sourceName === 'SA_MAGICROD')).toMatchObject({
+            implementation: 'supported', manualUse: 'activate', spCost: Array(5).fill(2),
+            castTimeMs: Array(5).fill(0), afterCastDelayMs: Array(5).fill(0), cooldownMs: 0,
+        });
     });
     it('offers valid drops, all areas, supported cards and a useful weapon for every branch', () => {
         expect(data.areas).toHaveLength(29);
@@ -245,7 +275,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(706);
         expect(data.areas).toHaveLength(29);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 246, unsupported: 102 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 247, unsupported: 101 });
         expect(offensiveSpells).toHaveLength(29);
         for (const spell of offensiveSpells)
             expect(manifest.skillSources[spell.id as keyof typeof manifest.skillSources])

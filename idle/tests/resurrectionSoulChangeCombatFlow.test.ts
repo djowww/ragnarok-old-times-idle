@@ -214,8 +214,8 @@ describe('source solo Resurrection and Soul Change integration', () => {
       expect(c.skills[parent].implementation).toBe('supported');
       expect(applyCommand(s, c, { type: 'setRotation', skillIds: [parent] }, 0).rotation).toEqual([parent]);
     } else {
-      expect(c.skills[parent].implementation).toBe('unsupported');
-      expect(() => applyCommand(s, c, { type: 'setRotation', skillIds: [parent] }, 0)).toThrow();
+      expect(c.skills[parent].implementation).toBe('supported');
+      expect(applyCommand(s, c, { type: 'setRotation', skillIds: [parent] }, 0).rotation).toEqual([parent]);
     }
     expect(applyCommand(s, c, { type: 'setRotation', skillIds: [id] }, 0).rotation).toEqual([id]);
     expect(s.buffs[parent]).toBeUndefined();

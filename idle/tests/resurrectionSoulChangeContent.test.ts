@@ -53,7 +53,7 @@ describe('executed solo Resurrection and Soul Change catalog', () => {
   });
 
   it('preserves unavailable prerequisite rows in learnable source trees', () => {
-    for (const [id, classId] of [['sa_magicrod', 'professor']]) {
+    for (const [id, classId] of [['sa_dispell', 'professor']]) {
       expect(data.skills[id].implementation, id).toBe('unsupported');
       expect(data.skills[id].unsupportedReason, id).toBeTruthy();
       expect(data.classes[classId].skills, id).toContain(id);
@@ -64,8 +64,8 @@ describe('executed solo Resurrection and Soul Change catalog', () => {
   it('preserves all 40 source class trees and the current solo coverage', () => {
     expect(Object.keys(data.classes)).toHaveLength(40);
     expect(Object.keys(data.skills)).toHaveLength(348);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(246);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(102);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 246, unsupported: 102 });
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(247);
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(101);
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 247, unsupported: 101 });
   });
 });

@@ -1,4 +1,4 @@
-import { retireInterruptedCastCues, retireTrickDeadPoses, soloPostureAt } from '../assets/combatPresentation';
+import { resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -591,7 +591,7 @@ function projectEnemyArrival(camera: MapProjection, enemy: BattleEnemy, serverNo
   return projectMapPoint(camera, enemyGroundPosition(camera, enemy, serverNow, hero, anchor, sourceOnly, movement).world!, width, height);
 }
 function skillFor(event: GameEvent, skills: Record<string, Skill>): Skill | undefined {
-  return event.skillId ? skills[event.skillId] : undefined;
+  return sceneEventSkill(event, skills);
 }
 function offensiveSceneSkill(skill: Skill | undefined): boolean {
   // Match encounters.offensiveSkill: a self buff must keep the edge entrance.
@@ -899,8 +899,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         action: incoming ? "enemyAttack" : skill ? "skill" : "attack",
         hit: event.kind === "damage" && (event.amount ?? 0) > 0,
         melee: actorAction === "attack" && !incoming && !skill && equippedType !== "bow",
-        skill, skillLevel: event.skillLevel, enemyId, castMs: 0, hitCount: event.hitCount, eventAt: event.at,
-        effectEnemyId: enemyId,
+        skill, skillLevel: event.skillLevel, enemyId, castMs: sourceActorId === state.id ? undefined : event.castMs ?? 0, hitCount: event.hitCount, eventAt: event.at,
+        effectEnemyId: targetActorId === state.id ? undefined : targetActorId ?? enemyId,
       };
     };
     // Group fights use each enemy's identity and server timestamps. Several
@@ -1123,7 +1123,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         effects.current.push({ id: event.id, text: combatPopupText(event),
           target: event.target, critical: event.critical, start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
       else if (event.kind === "miss" || event.kind === "dodge")
-        effects.current.push({ id: event.id, text: "MISS", target: event.kind === "dodge" ? "player" : "enemy",
+        effects.current.push({ id: event.id, text: "MISS", target: isNpcStatusAction(event, state.id) || event.kind === "dodge" ? "player" : "enemy",
           start: cue?.impact ?? serverOffset + event.at, enemyId: event.enemyId });
     }
     presentLatestActorActions(batchCues, actionWatermarks.current, now, combatCues.current);
@@ -1745,7 +1745,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       for (const skillCue of composedSkills.values()) {
         const skill = skillCue.skill!;
         const selfTarget = skillCue.targetActorId === current.id;
-        const targetId = skillCue.effectEnemyId ?? skillCue.enemyId;
+        const targetId = skillCue.effectEnemyId ?? (selfTarget ? undefined : skillCue.targetActorId ?? skillCue.enemyId);
+        const fallbackActor = { x: enemyX, ground: enemyGround, visualHeight: enemyVisualHeight };
+        const heroActor = { x: heroX, ground: heroGround, visualHeight: heroVisualHeight };
+        const endpoints = resolveEffectActors(current.id, skillCue.sourceActorId, skillCue.targetActorId, heroActor,
+          groupPositions, fallbackActor, selfTarget ? heroActor : fallbackActor);
         const target = targetId ? groupPositions.get(targetId) : undefined;
         const groundPlacement = camera && skillCue.effectPosition?.world ? projectMapPoint(camera, skillCue.effectPosition.world, width, height) : null;
         const groundTarget = skillCue.effectPosition ? {
@@ -1760,10 +1764,10 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           name: skill.name,
           element: skill.element,
           kind: skill.kind,
-          x: selfTarget ? heroX : groundTarget?.x ?? target?.x ?? enemyX,
-          y: groundTarget && !selfTarget ? groundTarget.y : (selfTarget ? heroGround : target?.ground ?? enemyGround) - (selfTarget ? heroVisualHeight : target?.visualHeight ?? enemyVisualHeight) * 0.55,
-          casterX: heroX,
-          casterY: heroGround - 4,
+          x: groundTarget && !selfTarget ? groundTarget.x : endpoints.target.x,
+          y: groundTarget && !selfTarget ? groundTarget.y : endpoints.target.ground - endpoints.target.visualHeight * 0.55,
+          casterX: endpoints.caster.x,
+          casterY: endpoints.caster.ground - 4,
           elapsedMs: time - skillCue.effectStart,
           level: skillCue.skillLevel,
           castMs: skillCue.castMs ?? SKILL_CAST_MS,

@@ -19,7 +19,8 @@ Ragnarok Old Times Idle is an independent, local-first fan project under active 
 - A classic roBrowserLegacy client connected to a local Hercules server.
 - A persisted population of three to four visible monsters per scene, server-side casting and area damage, and seated field rest.
 - Movable HUD and windows, classic equipment and status interfaces, and discreet skill cooldowns.
-- Forty class trees with 348 imported skills, 246 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Forty class trees with 348 imported skills, 247 implemented. Family skills are removed; Increase Weight Limit is restricted to Merchant and evolutions.
+- Ghostring, Moonlight Flower, Orc Lord and Thanatos cast the selected spells from their classic skill tables. Sages and Professors can intercept them with Magic Rod, manually or through the automatic rotation.
 - Chronological combat deadlines with separate attack, action motion, casting and cooldown clocks. Each actor has independent action and hit animations; automatic healing alternates with offensive actions.
 - Equipment drops require a Magnifier. Special idle rarity tiers reveal their color and a random +1 to +5 stat bonus after identification.
 

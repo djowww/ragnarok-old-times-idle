@@ -10,7 +10,7 @@ export function playerStatusCues(s:GameState,at:number) {
     return [{kind,label:labels[kind],expiresAt,sourceExpiresAt:status.expiresAt,sourceActorId:status.sourceActorId,remainingMs:expiresAt-time}];
   });
 }
-export const isNpcStatusAction=(event:GameEvent,heroId:string)=> ['npc_poison','npc_blindattack'].includes(event.skillId??'')&&!!event.sourceActorId&&event.sourceActorId!==heroId&&['cast','skill','damage','dodge'].includes(event.kind);
+export const isNpcStatusAction=(event:GameEvent,heroId:string)=> ['npc_poison','npc_blindattack','mg_firebolt','mg_coldbolt','mg_lightningbolt','mg_soulstrike'].includes(event.skillId??'')&&!!event.sourceActorId&&event.sourceActorId!==heroId&&['cast','skill','damage','dodge','miss'].includes(event.kind);
 export function npcStatusCastProgress(enemy:BattleEnemy,heroId:string,areaId:string|null,at:number) {
   const cast=enemy.npcCombat?.cast;
   if(!cast||enemy.hp<=0||cast.targetActorId!==heroId||cast.areaId!==areaId||at<cast.startedAt||at>=cast.endsAt)return;

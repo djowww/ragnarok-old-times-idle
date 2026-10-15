@@ -103,6 +103,11 @@ export function parseConfig(text) {
     } return out; }
     return object();
 }
+
+/** Return every object entry in source order, expanding duplicate keys which parseConfig stores as arrays. */
+export function orderedConfigEntries(record) {
+    return Object.entries(record ?? {}).flatMap(([key, value]) => (Array.isArray(value) ? value : [value]).map(entry => [key, entry]));
+}
 export function resolveInheritance(entries, name, trail = []) {
     if (trail.includes(name))
         throw new Error(`Inheritance cycle: ${[...trail, name].join(' -> ')}`);
