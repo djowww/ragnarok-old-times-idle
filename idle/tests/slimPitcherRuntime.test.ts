@@ -1,3 +1,4 @@
+import {beginBattle} from '../engine/encounters';
 import {describe,expect,it} from 'vitest';
 import {applyCommand,advanceState,createInitialState} from '../engine/index';
 import {healFull,derivedStats} from '../engine/stats';
@@ -31,6 +32,17 @@ describe('Slim Potion Pitcher own-cast contract',()=>{
  });
  it('DEX reduces only the cast while native aftercast stays one second',()=>{
   const {s,c}=setup();s.stats.dex=75;const cast=applyCommand(s,c,{type:'useSkill',skillId:'cr_slimpitcher'},0);expect(cast.supportCast!.endsAt).toBe(500);const done=advanceState(cast,c,500);expect(done.playerCanActAt).toBe(1500);expect(done.potionReadyAt).toBe(s.potionReadyAt);
+ });
+
+ it('accepts the real rotation command and completes a compact pitcher cast autonomously during battle',()=>{
+  const {s,c}=setup(1);s.status='challenge';s.autoPotion.hpThreshold=70;s.potionReadyAt=999999;beginBattle(s,c,1002,0,'mastering');
+  for(const enemy of s.battle!.enemies!){enemy.enemyNextAttackAt=999999;enemy.arrivedAt=0;enemy.startedAt=0;enemy.position={x:.48,y:.65};enemy.approachFrom={...enemy.position};enemy.hp=100000;}
+  const rotated=applyCommand(s,c,{type:'setRotation',skillIds:['cr_slimpitcher']},0);
+  expect(rotated.rotation).toEqual(['cr_slimpitcher']);const casting=advanceState(rotated,c,1000);
+  expect(casting.supportCast).toMatchObject({skillId:'cr_slimpitcher',level:1});
+  const done=advanceState(casting,c,casting.supportCast!.endsAt);expect(done.events.filter(e=>e.kind==='heal'&&e.skillId==='cr_slimpitcher')).toHaveLength(1);
+  expect(done.inventory.find(e=>e.itemId===545)!.quantity).toBe(1);expect(done.potionReadyAt).toBe(999999);expect(done.battle!.supportNeedsOffense).toBe(true);
+  const later=advanceState(done,c,10000),heals=later.events.filter(e=>e.kind==='heal'&&e.skillId==='cr_slimpitcher');expect(heals).toHaveLength(2);expect(later.events.some(e=>e.kind==='damage'&&e.sourceActorId===s.id&&e.at>heals[0].at&&e.at<heals[1].at)).toBe(true);
  });
 
 });

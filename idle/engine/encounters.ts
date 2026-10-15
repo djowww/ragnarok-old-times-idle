@@ -1241,7 +1241,7 @@ function chooseSkill(
       !skill ||
       !level ||
       skill.kind === "passive" ||
-      skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
+      skill.manualUse && !configurableSkillUseLevel(skill) && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||

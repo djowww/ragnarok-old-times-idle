@@ -584,7 +584,7 @@ export function executeCommand(
           effectiveSkillLevel(s, c, id) &&
             c.skills[id] &&
             c.skills[id].kind !== "passive" &&
-            (!c.skills[id].manualUse ||
+            (!c.skills[id].manualUse || configurableSkillUseLevel(c.skills[id]) ||
               c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
             c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
