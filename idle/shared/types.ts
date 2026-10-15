@@ -147,6 +147,8 @@ export interface Item {
   healSP?: number;
   effects: Effects;
   cardSlots?: Slot[];
+  /** Statically translated Hercules bDefEle; never evaluates an item script. */
+  defenseElement?: string;
   shop: boolean;
   twoHanded?: boolean;
   refinable?: boolean;
@@ -308,6 +310,8 @@ export interface Challenge {
   firstReward: Reward;
 }
 export interface Catalog {
+  /** Public scene anchors derived from GAT dimensions; collision masks stay server-side. */
+  sceneNavigation?: Record<string, { map: string; origin: { x: number; y: number } }>;
   version: string;
   source: { commit: string; files: string[]; hash: string };
   rates: { baseExp: number; jobExp: number; drop: number };
@@ -354,6 +358,8 @@ export interface PendingLoot extends LootOrigin {
 }
 export type JointBeatPart = 'ankle' | 'wrist' | 'knee' | 'shoulder' | 'waist' | 'neck';
 export interface BattleEnemy {
+  /** Source maxHP before a NoSave Deluge contribution, not a healed HP value. */
+  elementalFieldBaseMaxHp?: number;
   npcCombat?: { firstAttackDone: boolean; readyAt: Record<number, number>; lastUsedAt?: Record<number, number>;
     /** Attack target is independent of a pending skill's retained target. */
     attackTargetActorId?: string; targetReleasedAt?: number; nextTargetCheckAt?: number;
@@ -479,6 +485,7 @@ export interface Battle {
     clockOwnership?: { actionReadyAt?: number; previousActionReadyAt?: number; nextSkillAt?: number; previousNextSkillAt?: number; moveBlockedUntil?: number; previousMoveBlockedUntil?: number };
   };
   groundEffects?: {
+    groundPlacementId?: string;
     skillId: string;
     level: number;
     position: { x: number; y: number };
@@ -490,6 +497,7 @@ export interface Battle {
   }[];
   /** Source ground groups retain individual cells for partial removal. */
   skillUnits?: {
+    groundPlacementId?: string;
     id: string;
     skillId: string;
     level: number;
@@ -506,6 +514,7 @@ export interface Battle {
   }[];
   /** Persistent hunter skill units; resources are spent only when placed. */
   traps?: {
+    groundPlacementId?: string;
     id: string;
     skillId: string;
     level: number;
@@ -575,7 +584,60 @@ export interface GameEvent {
   /** Exact health before resolving this hit; optional for older saved events. */
   targetHpBefore?: number;
 }
+export type SageFieldSource = 'SA_VOLCANO' | 'SA_DELUGE' | 'SA_VIOLENTGALE';
+export interface GroundPlacement {
+  id: string;
+  ownerActorId: string;
+  allocationOrder?: number;
+  skillId: string;
+  sourceName: string;
+  level: number;
+  sceneKey: string;
+  map: string;
+  cellOffset: { x: number; y: number };
+  cells: { x: number; y: number }[];
+  range: number;
+  placedAt: number;
+  expiresAt: number;
+  /** FogWall's Deluge overlap doubles individual unit limits, not every cell. */
+  cellExpiresAt?: Record<string, number>;
+  /** Translate the existing unit processor's integer cells into this GAT frame. */
+  logicalCellOffset?: { x: number; y: number };
+  /** Link early depletion to the existing effect processor in this encounter. */
+  binding?: 'groundEffect' | 'skillUnit' | 'defensiveGround' | 'trap';
+  battleStartedAt?: number;
+}
+export interface ElementalFieldEntry {
+  enteredAt: number;
+  statusExpiresAt: number;
+  defenseElement: string;
+  weaponAttack: number;
+  flee: number;
+  hpPercent: number;
+}
+export interface ElementalField {
+  id: string;
+  ownerActorId: string;
+  allocationOrder?: number;
+  skillId: string;
+  sourceName: SageFieldSource;
+  level: number;
+  sceneKey: string;
+  map?: string;
+  /** Affine GAT transform: gridPoint = battlePoint*12 + cellOffset. */
+  cellOffset: { x: number; y: number };
+  cells: { x: number; y: number }[];
+  placedAt: number;
+  expiresAt: number;
+  /** Raw group limit passed to a status on entry. Replacement uses remaining time. */
+  durationMs: number;
+  occupants: Record<string, ElementalFieldEntry>;
+}
 export interface GameState {
+  /** Fixed source footprints of successful casts; separate from damage/status adaptations. */
+  groundPlacements?: GroundPlacement[];
+  /** Source NoSave owned field; lives across battle replacement only in this session. */
+  elementalField?: ElementalField;
   playerStatuses?: Partial<Record<PlayerDisease | 'SC_SILENCE' | 'SC_CONFUSION' | 'SC_BITESCAR', PlayerStatus>>;
   schemaVersion: 1;
   id: string;
@@ -641,6 +703,7 @@ export interface GameState {
     pneumaGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
     safetyWallGround?: { cells: { x: number; y: number }[]; expiresAt: number; sceneKey: string };
     defensiveGrounds?: {
+      groundPlacementId?: string;
       kind: "pneumaGround" | "safetyWallGround";
       cells: { x: number; y: number }[];
       expiresAt: number;
@@ -692,6 +755,8 @@ export interface GameState {
   battle: Battle | null;
   /** Own self-target skill cast; unlike Battle.cast this also works in Prontera. */
   supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
+    /** Ground casts retain the selected map position even when FreeCast moves. */
+    position?: { x: number; y: number }; sceneKey?: string;
     battleClockOwnership?: { actionReadyAt?: number; nextSkillAt?: number; nextAttackAt?: number;
       ownedActionReadyAt?: number; ownedNextSkillAt?: number;
       battleIdentity?: { startedAt: number; attemptId?: string; challengeId?: string; areaId: string | null } } };

@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
+import { staticDefenseElement } from './itemDefenseElement.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rules = JSON.parse(await readFile(resolve(root, 'content/rules.json'), 'utf8'));
 const sha = b => createHash('sha256').update(b).digest('hex');
@@ -250,6 +251,7 @@ activeSpecial.add('PF_FOGWALL');
 activeSpecial.add('MO_BODYRELOCATION');
 activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
+for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
@@ -377,7 +379,7 @@ for (const name of skillNames) {
         ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
         ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
         ...(backslidingSupported && { manualUse: 'activate' }),
-        ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) && { manualUse: 'activate' }),
+        ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -421,7 +423,7 @@ for (const name of skillNames) {
         ...(rule?.requiredSlot && { requiredSlot: rule.requiredSlot }),
         ...(inheritedEffect && { effects: inheritedEffect }),
     };
-manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Hunt-only adaptation: places a 20-second self-centered field when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
+manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k)) };
 }
 manifest.skillSources.ba_pangvoice.adaptation = 'Single-target no-damage cast at range 9 during field hunting; applies source SC_CONFUSION for 17 s at a 50% base chance. Bosses reject it. Solo adaptation releases the monster attack target and randomizes movement within the source AREA_SIZE / 2 (7-cell) envelope until expiry.';
 manifest.rogueCopy = {
@@ -492,7 +494,7 @@ manifest.skillCoverage.combatExpansion.push('BA_PANGVOICE');
 manifest.skillCoverage.combatExpansion.push('DC_WINKCHARM');
 manifest.skillCoverage.combatExpansion.push('RG_CLOSECONFINE');
 manifest.skillCoverage.combatExpansion.push('PF_MINDBREAKER');
-manifest.skillCoverage.combatExpansion.push('PF_FOGWALL');
+manifest.skillCoverage.combatExpansion.push('PF_FOGWALL', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE');
 manifest.skillCoverage.combatExpansion.push('MO_BODYRELOCATION');
 manifest.skillCoverage.combatExpansion.push('MO_BLADESTOP');
 manifest.formulaEvidence = {
@@ -530,6 +532,7 @@ const slotFromLoc = loc => { if (Array.isArray(loc))
 const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_BOOK: 'book', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
 function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);
+    const defenseElement = staticDefenseElement(i);
     if (catalog.items[i.Id]) {
         if (shop)
             catalog.items[i.Id].shop = true;
@@ -539,7 +542,7 @@ function includeItem(raw, shop = false, drop = false) {
     if ((rules.converterMaterials??[]).includes(i.Id)) { type='material';unsupportedEffect=!!i.Script; }
     else if (i.Type === 'IT_CARD') {
         type = 'card';
-        if (!rules.cards[i.Id]) {
+        if (!rules.cards[i.Id] && !defenseElement) {
             if (!drop) return false;
             unsupportedEffect = true;
         }
@@ -555,7 +558,7 @@ function includeItem(raw, shop = false, drop = false) {
     }
     else if (i.Type === 'IT_WEAPON' || i.Type === 'IT_ARMOR') {
         type = 'equipment';
-        unsupportedEffect = !!i.Script && !rules.itemEffects[i.Id];
+        unsupportedEffect = !!i.Script && !rules.itemEffects[i.Id] && !defenseElement;
     }
     else if ([984, 985, 990, 716, 717, 1025, 7136].includes(i.Id))
         type = 'material';
@@ -574,6 +577,7 @@ function includeItem(raw, shop = false, drop = false) {
         catalog.items[i.Id].equipSupported = !!slot && (i.Type !== 'IT_WEAPON' || !!weaponType) && (!i.Job || allowedClasses.length > 0);
         catalog.items[i.Id].refinable = catalog.items[i.Id].equipSupported && slot !== 'accessory' && i.Refine !== false;
     }
+    if (defenseElement) catalog.items[i.Id].defenseElement = defenseElement;
     if (i.Type === 'IT_WEAPON') {
         catalog.items[i.Id].weaponLevel = i.WeaponLv ?? 1;
         catalog.items[i.Id].attackRange = i.Range ?? 0;
@@ -591,6 +595,15 @@ for (const id of rules.catalogItems ?? []) {
 }
 for (const id of Object.keys(rules.cards))
     includeItem(itemById[id]);
+// All and only complete property-only body scripts; compound scripts stay inert.
+manifest.bodyElementItems = [];
+for (const raw of Object.values(itemById)) {
+    const item = inheritedItem(raw), element = staticDefenseElement(item);
+    if (!element) continue;
+    includeItem(raw);
+    manifest.bodyElementItems.push({ itemId: item.Id, element, scriptSha256: sha(item.Script) });
+}
+manifest.bodyElementItems.sort((a, b) => a.itemId - b.itemId);
 // Every referenced reagent remains a real source item. Unsupported usable
 // scripts stay inert; presence in a skill cost never enables a script.
 for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostByLevel ?? []).flat().map(cost => cost.itemId))))

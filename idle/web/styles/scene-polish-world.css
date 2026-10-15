@@ -55,3 +55,25 @@
 .scene.map-not-ready .scene-ground-loot-layer {
   visibility: hidden;
 }
+
+.scene-elemental-field {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border: 1px solid #8298a2;
+  border-radius: 2px;
+  background: #e5edf0e0;
+  color: #304853;
+  font: 10px Tahoma, Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  pointer-events: auto;
+}
+.scene-elemental-field .skill-icon {
+  width: 18px;
+  height: 18px;
+}

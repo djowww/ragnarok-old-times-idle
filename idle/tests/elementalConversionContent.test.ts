@@ -10,8 +10,8 @@ describe('exact source-pinned converter package',()=>{
   const names=Object.values(c.skills).filter(s=>s.implementation==='supported').map(s=>s.sourceName!);
   expect(baseline.supportedSourceNames).toHaveLength(225);
   expect(baseline.supportedSourceNames.filter(name=>!names.includes(name))).toEqual([]);
-  expect(names.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH','BA_PANGVOICE','CR_SHRINK','DC_DONTFORGETME','DC_WINKCHARM','LK_JOINTBEAT','MO_BLADESTOP','MO_BODYRELOCATION','NV_TRICKDEAD','PA_SACRIFICE','PF_FOGWALL','PF_MINDBREAKER','RG_CLOSECONFINE','RG_PLAGIARISM','SA_ADVANCEDBOOK','SA_CREATECON','SA_ELEMENTFIRE','SA_ELEMENTGROUND','SA_ELEMENTWATER','SA_ELEMENTWIND','SA_FLAMELAUNCHER','SA_FREECAST','SA_FROSTWEAPON','SA_LIGHTNINGLOADER','SA_MAGICROD','SA_SEISMICWEAPON','ST_CHASEWALK','ST_PRESERVE','TF_BACKSLIDING','WZ_ESTIMATION','WZ_SIGHTBLASTER']);
-  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 256, unsupported: 92});
+  expect(names.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'CR_SHRINK', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PA_SACRIFICE', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_CREATECON', 'SA_DELUGE', 'SA_ELEMENTFIRE', 'SA_ELEMENTGROUND', 'SA_ELEMENTWATER', 'SA_ELEMENTWIND', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 259, unsupported: 89});
   expect(c.skills.sa_createcon).toMatchObject({implementation:'supported',manualUse:'converterCraft',maxLevel:1,spCost:[30]});
   const reagents={sa_elementfire:12114,sa_elementwater:12115,sa_elementground:12116,sa_elementwind:12117};
   for(const [id,itemId] of Object.entries(reagents))expect(c.skills[id]).toMatchObject({implementation:'supported',maxLevel:1,spCost:[30],range:[9],castTimeMs:[2000],afterCastDelayMs:[1000],cooldownMs:0,itemCostByLevel:[[{itemId,quantity:1}]]});
@@ -29,7 +29,7 @@ describe('exact source-pinned converter package',()=>{
   expect(c.source.hash).not.toBe(baseline.sourceHash);
  });
  it('imports real priced NPC supplies and protects every recipe item from automatic loot sales',()=>{
-  expect(Object.keys(c.items).map(Number).filter(id=>!baseline.itemIds.includes(id)).sort((a,b)=>a-b)).toEqual([904,947,1550,7433]);
+  expect(Object.keys(c.items).map(Number).filter(id=>!baseline.itemIds.includes(id)).sort((a,b)=>a-b)).toEqual([904,947,1550,2347,2349,2351,4119,7433]);
   expect(baseline.itemIds.filter(id=>!c.items[id])).toEqual([]);
   for(const [id,price] of [[7433,4000],[904,124],[947,116]])expect(c.items[id]).toMatchObject({type:'material',shop:true,buyPrice:price,weight:1});
   expect(c.items[1550]).toMatchObject({id:1550,name:'Book',type:'equipment',slot:'weapon',weaponType:'book',twoHanded:false,

@@ -46,6 +46,8 @@ import { corpseFrameAt, startCorpsePresentation, shiftCorpsePresentation, type C
 import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame } from "../assets/enemyActionPresentation";
 import { movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
 import { backslidingFacingDirection, backslidingPresentationPoint } from '../assets/backslidingPresentation';
+import { sageFieldQuads, visibleSageField } from '../assets/sageFieldVisuals';
+import SkillIcon from './SkillIcon';
 import "../styles/scene-polish-world.css";
 
 type EquippedWeapon = { type: WeaponType; gender: "male" | "female"; job: string; mounted?: boolean };
@@ -709,7 +711,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       ? "town"
       : (area?.scene ?? "field");
   const mapName = scene === "town" ? "prontera" : (area?.map ?? "prontera");
-  const mapOrigin = area?.fieldNavigation?.map === mapName ? area.fieldNavigation.origin : undefined;
+  const mapOrigin = area?.fieldNavigation?.map === mapName ? area.fieldNavigation.origin : catalog.sceneNavigation?.[mapName]?.origin;
+  const activeField = visibleSageField(state, mapName, state.lastSimulatedAt);
+  const fieldClock = useRef<HTMLTimeElement | null>(null);
   const mapLife = useMemo(() => getMapLife(mapName, area, catalog), [mapName, area, catalog]);
   const ambientActors = useRef(new Map<string, DecodedActor>());
   useEffect(() => {
@@ -1728,6 +1732,14 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         }
       }
       canvas.current!.dataset.soloGroundUnits = String(groundUnitCount);
+      const field = visibleSageField(current, mapName, serverNow);
+      const fieldTexture = field && visuals.current?.elementalFields?.[field.sourceName];
+      const fieldQuads = fieldTexture ? sageFieldQuads(current, mapName, serverNow, camera,
+        width, height, motion.matches, isArriving) : [];
+      for (const corners of fieldQuads) drawGroundTexture(ctx, fieldTexture!, corners);
+      canvas.current!.dataset.elementalFieldCells = String(fieldQuads.length);
+      const fieldTime = field ? `${Math.ceil((field.expiresAt - serverNow) / 1000)}s` : '';
+      if (fieldClock.current && fieldClock.current.textContent !== fieldTime) fieldClock.current.textContent = fieldTime;
       for (const actorPaint of actorPaints) if (actorPaint.id === current.id)
         actorPaint.opacity = classicBuffActive(current, catalog, 'ST_CHASEWALK', serverNow) ? .45 : 1;
       const orderedActors = actorPaints.sort((a, b) => a.ground - b.ground);
@@ -2091,6 +2103,12 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           </span>
         ))}
       </div>
+      {mapReady && !isArriving && activeField && catalog.skills[activeField.skillId] &&
+        <span className="scene-elemental-field" role="status"
+          title={`${catalog.skills[activeField.skillId].name} · Campo no chão · ${activeField.cells.length} células`}>
+          <SkillIcon skill={catalog.skills[activeField.skillId]} />
+          <time ref={fieldClock}>{Math.ceil((activeField.expiresAt - state.lastSimulatedAt) / 1000)}s</time>
+        </span>}
       {bladeStopLabel && <div className="scene-blade-stop" role="status">Imobilizar · {bladeStopLabel}</div>}
       {state.battle?.cast && <span className="sr-only" role="status">
         Conjurando {catalog.skills[state.battle.cast.skillId]?.name ?? "habilidade"}.

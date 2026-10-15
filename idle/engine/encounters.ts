@@ -23,7 +23,7 @@ import { winkCharmTarget, resolveWinkCharm, expireWinkCharm } from './winkCharm.
 import { applyCloseConfine, clearCloseConfine, closeConfineActive, closeConfineEligible, expireCloseConfine, releaseCloseConfineTarget, RG_CLOSECONFINE_STATUS } from './rgCloseConfine.js';
 import { classSkills, derivedStats, healFull, activeFreeCastLevel, learnedFreeCastLevel } from "./stats.js";
 import { mindBreakerEligible, resolveMindBreaker } from './mindBreaker.js';
-import { fogWallDamage, fogWallHitChance } from './fogWall.js';
+import { fogWallDamage, fogWallHitChance, fogWallDefending } from './fogWall.js';
 import { pickStoneAfkNeeded, PICK_STONE_ITEM_ID } from './pickStone.js';
 import {
   BATTLE_HERO,
@@ -119,6 +119,11 @@ import {
 
 const val = (values: number[] | undefined, level: number, fallback = 0) =>
   values?.[level - 1] ?? values?.at(-1) ?? fallback;
+import { nextSageFieldBoundary, playerDefenseElement, sageFieldElementRate, sageFieldIsActive,
+  sageFieldModifiers, sageFieldSource, syncSageField, type SageFieldModifiers } from './sageFields.js';
+import { sageFieldCanStart, startSageFieldCast } from './sageFieldCasting.js';
+import { captureGroundPlacement, canPlaceSelfGround, pruneGroundPlacements, removeGroundPlacement, reserveGroundPlacementSlot } from './groundUnitOccupancy.js';
+import { sourceGroundShape } from './groundUnitGeometry.js';
 type ActionMetadata = Pick<GameEvent,
   "sourceActorId" | "actionId" | "actorAction" | "actionStartedAt" | "actionMotionMs" | "actionSourcePosition" | "areaId">;
 const playerMotion = (s: GameState, c: Catalog) => derivedStats(s, c).attackMotionMs;
@@ -180,7 +185,7 @@ function defensiveGroundCollection(s: GameState, at: number) {
   const combat = (s.combatEffects ??= {});
   return combat.defensiveGrounds ??= [...activeDefenseGrounds(s, "pneumaGround", at), ...activeDefenseGrounds(s, "safetyWallGround", at)];
 }
-function combatStatus(c: Catalog, enemy: BattleEnemy, at: number) {
+function combatStatus(c: Catalog, enemy: BattleEnemy, at: number, field?: SageFieldModifiers) {
   const monster = classicStrippedMonster(
     c.monsters[enemy.monsterId],
     Object.entries(enemy.statuses ?? {})
@@ -198,7 +203,8 @@ function combatStatus(c: Catalog, enemy: BattleEnemy, at: number) {
       10 * quagmire.level,
     );
   }
-  return effectiveMonsterStatus(monster, enemy.statuses, at);
+  if (field?.weaponAttack) monster.attack = monster.attack.map(value => value + field.weaponAttack) as [number, number];
+  return effectiveMonsterStatus(monster, enemy.statuses, at, 5000, field?.flee ?? 0);
 }
 function monsterAttackInterval(monster: Monster, attackDelayPct = 0) {
   return Math.min(4000, Math.max(20, Math.floor(monster.attackDelay * (100 + attackDelayPct) / 100)));
@@ -384,6 +390,7 @@ function canPlaceSoloGround(s: GameState, c: Catalog, source: string, target: Ba
   return !target.statuses?.SC_SPIDERWEB?.webHeld || target.statuses.SC_SPIDERWEB.expiresAt <= at;
 }
 function removeSoloUnit(s: GameState, unit: NonNullable<Battle['skillUnits']>[number], at: number) {
+  removeGroundPlacement(s, unit.groundPlacementId);
   const victim = enemies(s).find(enemy => enemy.id === unit.capturedEnemyId);
   if (victim?.statuses?.SC_SPIDERWEB?.groundId === unit.id) delete victim.statuses.SC_SPIDERWEB;
   if (s.battle) { s.battle.skillUnits = s.battle.skillUnits?.filter(entry => entry !== unit); s.battle.fieldDecisionAt = at; }
@@ -1055,7 +1062,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   d: ReturnType<typeof derivedStats>, skill: MonsterStatusSkill, cast: NonNullable<NonNullable<BattleEnemy['npcCombat']>['cast']>, at: number, action: ActionMetadata) {
   const sourceSkill = c.skills[skill.sourceName.toLowerCase()] ?? Object.values(c.skills).find(candidate =>
     candidate.sourceName === skill.sourceName && candidate.herculesId === skill.skillId);
-  const fogWallActive = classicBuffActive(s, c, 'PF_FOGWALL', at);
+  const fogWallActive = fogWallDefending(s, c, at);
   // skill.c:6557..6563 checks PF_FOGWALL before battle_calc_magic_attack.
   if (fogWallActive && random(s) * 100 < 75) {
     event(s, at, 'miss', 'Miss!', undefined, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
@@ -1066,14 +1073,15 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   const [matkMin, matkMax] = monsterMagicAttack(monster.stats.int, enemy.statuses?.SC_MINDBREAKER?.magicAttackPct ?? 0);
   const matk = matkMin + (matkMax > matkMin ? Math.floor(random(s) * (matkMax - matkMin)) : 0);
   const ratio = sourceSkill?.power[skill.level - 1] ?? 100;
-  // Player race/element is not modeled yet; the current player body is neutral.
+  // Armor property is resolved independently; player race remains normal.
   // Hercules' Soul Strike bonus depends on the target, so an undead caster grants none.
   const targetBodyRace: string = 'normal';
   const undeadBonus = skill.sourceName === 'MG_SOULSTRIKE' && targetBodyRace === 'undead' ? 5 * skill.level : 0;
   const raw = Math.floor(matk * (ratio + undeadBonus) / 100);
   const spellElement = skill.element ?? sourceSkill?.element ?? 'neutral';
   const perHitDamage = monsterMagicDamage({ matk: raw, hardMdef: d.hardMdef ?? 0, softMdef: d.softMdef ?? 0,
-    elementRate: monsterMagicElementRate(c, spellElement) });
+    elementRate: sageFieldElementRate(monsterMagicElementRate(c, spellElement, playerDefenseElement(s, c)),
+      sageFieldModifiers(s, enemy.id, at), spellElement) });
   const passiveReduction = classicIncomingSkillReduction(learnedBySource(s, c), monster.race, spellElement,
     spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0);
   let damage = Math.floor(perHitDamage * passiveReduction) * Math.max(1, skill.hitCount ?? 1);
@@ -1250,7 +1258,7 @@ function chooseSkill(
       skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
-        !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') ||
+        !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
       skill.implementation === "unsupported" ||
       (s.skillReadyAt[id] ?? 0) > at
     )
@@ -1262,6 +1270,8 @@ function chooseSkill(
       !bladeStopAutoHasUsefulFollowup(s, c, skill, level, at))) continue;
     const breaker = skill.sourceName === 'SA_SPELLBREAKER';
     const sageEnchant = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
+    const sageField = !!sageFieldSource(skill.sourceName);
+    if (sageField && (sageFieldIsActive(s, at) || !sageFieldCanStart(s, c, skill, level, at))) continue;
     if (sageEnchant && (!sageEnchantCanStart(s, c, skill, level, at) ||
       (s.buffs[id]?.expiresAt ?? 0) > at)) continue;
     const conversion=!!conversionSpec(skill.sourceName??'');
@@ -1287,7 +1297,8 @@ function chooseSkill(
     const targetMonster = c.monsters[target.monsterId];
     const hasMagicThreat = targetMonster.npcStatusSkills?.some(row => row.damageType === 'magic' && row.range > 3) ?? false;
     const fogWall = skill.sourceName === 'PF_FOGWALL' &&
-      !classicBuffActive(s, c, 'PF_FOGWALL', at) && ((targetMonster.attackRange ?? 1) > 3 || hasMagicThreat);
+      !fogWallDefending(s, c, at) && ((targetMonster.attackRange ?? 1) > 3 || hasMagicThreat) &&
+      canPlaceSelfGround(s, c, skill, level, at, context);
     if (skill.sourceName === 'PF_FOGWALL' && !fogWall) continue;
     if (treatment && !statusTreatmentEligible(s, c, skill, level, at)) continue;
     if (offenseOnly && !offensiveSkill(skill) && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation) continue;
@@ -1317,7 +1328,7 @@ function chooseSkill(
     if (skill.sourceName === 'AL_RUWACH' && (classicBuffActive(s, c, 'AL_RUWACH', at) ||
       !ruwachTargetWithinAura(s, skill, level, at))) continue;
     if (!['WZ_SIGHTBLASTER', 'AL_RUWACH'].includes(skill.sourceName ?? '') && !winkCharm &&
-      !breaker && !sageEnchant && !treatment && !priestControl && !pangVoice && !conversion &&
+      !breaker && !sageEnchant && !sageField && !treatment && !priestControl && !pangVoice && !conversion &&
       !ignoreRange && !skillTargetInRange(s, c, skill, level, target, at)) continue;
     if (skill.sourceName === "AL_CRUCIS" && !targets(s, skill, level, target, at).some((enemy) =>
       classicCrucisAffects(combatStatus(c,enemy,at).monster) &&
@@ -1367,7 +1378,7 @@ function chooseSkill(
         !["sea"].includes(
           c.areas.find((a) => a.id === s.areaId)?.scene ?? "",
         ) &&
-        !hasBuff("SA_DELUGE")
+        !hasBuff("SA_DELUGE") && sageFieldModifiers(s, s.id, at).element !== 'water'
       )
         continue;
       if (state === "cartboost" && !hasBuff("WS_CARTBOOST")) continue;
@@ -1497,6 +1508,8 @@ function awardKill(
     delete unit.capturedEnemyId;
     unit.expiresAt = Math.min(unit.expiresAt, at + 1000); unit.nextTickAt = unit.expiresAt;
   }
+  // Copy the shortened lifetime before the last kill discards this battle.
+  pruneGroundPlacements(s, at);
   if (!b.challengeId && enemy.fieldSlot !== undefined && s.fieldPopulation?.areaId === s.areaId) {
     s.fieldPopulation.enemies = s.fieldPopulation.enemies.filter(entry => entry.id !== enemy.id);
     s.fieldPopulation.respawns = s.fieldPopulation.respawns.filter(entry => entry.slot !== enemy.fieldSlot);
@@ -1769,7 +1782,7 @@ function damageEnemies(
     )
       continue;
     provokeEnemy(s, c, enemy, at);
-    const enemyStatus = combatStatus(c, enemy, at);
+    const enemyStatus = combatStatus(c, enemy, at, sageFieldModifiers(s, enemy.id, at));
     const monster = enemyStatus.monster;
     const counterCritical = (skill?.sourceName === 'KN_AUTOCOUNTER' ||
       !skill && classicBuffActive(s, c, 'KN_AUTOCOUNTER', at)) && d.crit !== 0;
@@ -1820,7 +1833,8 @@ function damageEnemies(
       else delete enemy.statuses!.SC_SPIDERWEB;
       if (s.battle) s.battle.fieldDecisionAt = at;
     }
-    const element = elementMultiplier(c, attackElement, monster) * webFire.multiplier;
+    const element = sageFieldElementRate(elementMultiplier(c, attackElement, monster),
+      sageFieldModifiers(s, s.id, at), attackElement, !!skill?.ignoreElement) * webFire.multiplier;
     const sizeName = mounted && weapon?.weaponType === 'spear' && monster.size.toLowerCase() === 'medium'
       ? 'large' : monster.size;
     const size = weapon?.weaponType
@@ -2082,8 +2096,8 @@ function resolveSkill(
   action = playerAction(s, c, at, groundTick ? "none" : "skill"),
   context?: SimulationContext,
 ) {
-  const d = derivedStats(s, c),
-    mechanic = skill.sourceName ?? skill.mechanic;
+  let d = derivedStats(s, c);
+  const mechanic = skill.sourceName ?? skill.mechanic;
   let jointBeatPart: JointBeatPart | undefined;
   if (!groundTick && mechanic === 'MO_BLADESTOP') {
     const incoming = bladeStopIncomingEnemy(s, c, level, at);
@@ -2147,6 +2161,7 @@ function resolveSkill(
   if (isHunterTrapSkill(mechanic ?? "") && !trapPosition) return false;
   const soloGround = ['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(mechanic ?? '');
   if (!groundTick && soloGround && !canPlaceSoloGround(s, c, mechanic!, target, at)) return false;
+  if (!groundTick && mechanic === 'PF_FOGWALL' && !canPlaceSelfGround(s, c, skill, level, at, context)) return false;
   if (!groundTick && !paySkillResources(s, c, skill, level, at)) {
     event(
       s,
@@ -2158,6 +2173,12 @@ function resolveSkill(
       { skillId: skill.id },
     );
     return false;
+  }
+  if (!groundTick && val(skill.groundDurationMs, level) > 0 &&
+    sourceGroundShape(skill.sourceName ?? '', { x: 0, y: 0 })) {
+    // Allocate before the handler appends its unit, so it is counted once.
+    reserveGroundPlacementSlot(s, c, at);
+    d = derivedStats(s, c);
   }
   if (!groundTick && mechanic === 'SA_MAGICROD') {
     const duration = val(skill.statusDurationMs, level, magicRodWindow(level));
@@ -2222,8 +2243,10 @@ function resolveSkill(
     return resolveMindBreaker(s, c, skill, level, target, at, action);
   }
   if (!groundTick && mechanic === 'PF_FOGWALL') {
-    const durationMs = val(skill.groundDurationMs, level, skill.durationMs ?? 20_000);
-    s.buffs[skill.id] = { expiresAt: at + durationMs, effects: {} };
+    const caster = battleHeroAt(s, at);
+    const placement = captureGroundPlacement(s, c, skill, level, at, caster, caster, context, true);
+    if (!placement) return false;
+    s.buffs[skill.id] = { expiresAt: placement.expiresAt, effects: {} };
     (s.combatEffects ??= {}).buffLevels ??= {};
     s.combatEffects.buffLevels[skill.id] = level;
     event(s, at, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
@@ -2587,7 +2610,7 @@ function resolveSkill(
   return true;
 }
 function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, npcSkill?: MonsterStatusSkill, npcCast?: NonNullable<NonNullable<BattleEnemy["npcCombat"]>["cast"]>, context?: SimulationContext) {
-  const enemyStatus = combatStatus(c, enemy, at);
+  const enemyStatus = combatStatus(c, enemy, at, sageFieldModifiers(s, enemy.id, at));
   const b = s.battle!,
     monster = enemyStatus.monster,
     d = derivedStats(s, c);
@@ -2692,7 +2715,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
     : (monster.attackRange ?? 1) > 3;
   const wall = activeDefenseGrounds(s, "safetyWallGround", at).find(ground =>
     ground.cells.some(cell => cell.x === defenseCell(s, at).x && cell.y === defenseCell(s, at).y));
-  const fogWallActive = classicBuffActive(s, c, 'PF_FOGWALL', at);
+  const fogWallActive = fogWallDefending(s, c, at);
   const accuracy = fogWallHitChance(80 + enemyStatus.hit - flee, fogWallActive, rangedAttack, !!npcSkill);
   // battle.c:5025: lucky dodge belongs to normal attacks, not NPC skills.
   if (!npcSkill && random(s) * 100 < (d.perfectDodge ?? d.effects.perfectDodge ?? 0) || random(s) >= accuracy)
@@ -2924,12 +2947,14 @@ function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.batt
     cancelClassicBuff(s, c, 'KN_AUTOCOUNTER');
     cancelClassicBuff(s, c, 'AS_POISONREACT');
     cancelClassicBuff(s, c, 'SA_MAGICROD');
+    cancelClassicBuff(s, c, 'PF_FOGWALL');
     cancelClassicBuff(s, c, 'ST_PRESERVE');
     cancelClassicBuff(s, c, 'ST_CHASEWALK');
     delete s.buffs[CHASEWALK_STRENGTH_ID];
     cancelClassicBuff(s, c, 'PA_SACRIFICE');
     clearTrickDead(s, c, at); // SC_TRICKDEAD lacks NoDeathReset.
     s.hp = 0;
+    delete s.groundPlacements;
     freezeFieldHero(s, at);
     if (s.fieldHero) {
       s.fieldHero.phase = "waiting";
@@ -3044,9 +3069,29 @@ function sightBlasterContactWithinCast(s: GameState, c: Catalog, skill: Skill, l
 function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
   at: number, actionId?: string, center?: { x: number; y: number }, context?: SimulationContext) {
   const b = s.battle!;
+  const source = skill.sourceName ?? '', caster = { ...battleHeroAt(s, at) };
+  const selfGround = skill.targetType === 'self' || ['MG_SAFETYWALL', 'AL_PNEUMA', 'PF_FOGWALL'].includes(source);
+  const placementCenter = { ...(selfGround ? caster : center ?? enemyPositionAt(target, at)) };
+  const previousEffects = new Set(b.groundEffects ?? []), previousUnits = new Set(b.skillUnits ?? []);
+  const previousTraps = new Set(b.traps ?? []);
+  const previousPlacements = new Set(s.groundPlacements ?? []);
+  const previousDefense = new Set(s.combatEffects?.defensiveGrounds ?? []);
   const succeeded = resolveSkill(s, c, skill, level, target, at, false, center,
     playerAction(s, c, at, "skill", actionId), context);
   if (succeeded) {
+    const effect = b.groundEffects?.find(g => g.skillId === skill.id && !previousEffects.has(g));
+    const unit = b.skillUnits?.find(g => g.skillId === skill.id && !previousUnits.has(g));
+    const defense = s.combatEffects?.defensiveGrounds?.find(g => !previousDefense.has(g));
+    const trap = b.traps?.find(g => g.skillId === skill.id && !previousTraps.has(g));
+    const placement = s.groundPlacements?.find(g => g.skillId === skill.id && !previousPlacements.has(g)) ??
+      captureGroundPlacement(s, c, skill, level, at, unit?.position ?? trap?.position ?? placementCenter, caster, context, true);
+    if (placement && (effect || unit || defense || trap)) {
+      placement.battleStartedAt = b.startedAt;
+      if (effect) { effect.groundPlacementId = placement.id; placement.binding = 'groundEffect'; }
+      else if (unit) { unit.groundPlacementId = placement.id; placement.binding = 'skillUnit'; }
+      else if (defense) { defense.groundPlacementId = placement.id; placement.binding = 'defensiveGround'; }
+      else if (trap) { trap.groundPlacementId = placement.id; placement.binding = 'trap'; }
+    }
     if (['MO_FINGEROFFENSIVE', 'MO_INVESTIGATE', 'MO_CHAINCOMBO', 'MO_EXTREMITYFIST'].includes(skill.sourceName ?? '') &&
       s.combatEffects?.bladeStopLink?.partnerActorId === target.id) clearBladeStop(s, at);
     // skill.c:6611..6616: individual cooldown is distinct from global delay.
@@ -3066,7 +3111,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   }
   const currentCast = currentPlayerCast(s, at);
   if (currentCast?.kind === 'support' && activeFreeCastLevel(s, c, at) === 0) return;
-  if (s.supportCast && s.supportCast.endsAt <= at) resolveSupportCast(s, c, s.supportCast.endsAt);
+  if (s.supportCast && s.supportCast.endsAt <= at) resolveSupportCast(s, c, s.supportCast.endsAt, context);
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
   const castingWithFreeCast = !!currentPlayerCast(s, at) && activeFreeCastLevel(s, c, at) > 0;
   const bladeLinkedTarget = bladeStopTarget(s, at);
@@ -3086,6 +3131,10 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
   const skill = skillDecisionDue ? chooseSkill(s, c, at, target, false, false, context) : undefined;
   if (skill) {
+    if (sageFieldSource(skill.sourceName)) {
+      startSageFieldCast(s, c, skill, s.learnedSkills[skill.id], at, context);
+      return;
+    }
     if (['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '')) {
       const level = s.learnedSkills[skill.id];
       startSageEnchantCast(s, c, skill, level, at);
@@ -3212,7 +3261,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
 }
 
 type CombatDeadline = { at: number; priority: number; key: string } & (
-  { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" | 'carryReturn' } |
+  { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" | 'sageField' | 'carryReturn' } |
   { kind: "enemy" | "npcCast" | "targetCheck"; enemy: BattleEnemy } |
   { kind: "sightBlaster"; enemy: BattleEnemy } |
   { kind: "ruwach"; enemy: BattleEnemy } |
@@ -3228,6 +3277,7 @@ type CombatDeadline = { at: number; priority: number; key: string } & (
 );
 
 function maintainPlayerBuffs(s: GameState, c: Catalog, at: number) {
+  if (s.elementalField) syncSageField(s, c, at);
   tickTensionRelax(s, c, at);
   tickSoloStances(s, c, at);
   tickChasewalk(s, c, at);
@@ -3274,7 +3324,8 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
   s.lastSimulatedAt = cursor;
   maintainPlayerBuffs(s, c, cursor);
   const initial = s.battle!;
-  const diseaseTiming = !!Object.keys(s.playerStatuses ?? {}).length || enemies(s).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
+  const diseaseTiming = !!s.elementalField || !!sageFieldSource(c.skills[s.supportCast?.skillId ?? '']?.sourceName) ||
+    !!Object.keys(s.playerStatuses ?? {}).length || enemies(s).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
   let recoveryCursor = cursor;
   initial.playerNextSkillAt ??= initial.playerNextAttackAt;
   initial.playerActionReadyAt ??= initial.cast?.endsAt ?? initial.playerNextAttackAt;
@@ -3283,6 +3334,8 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     const b = s.battle;
     const due: CombatDeadline[] = [];
     const add = (deadline: CombatDeadline) => { if (deadline.at <= until) due.push(deadline); };
+    const fieldBoundary = nextSageFieldBoundary(s, cursor);
+    if (fieldBoundary !== undefined) add({ kind: 'sageField', at: fieldBoundary, priority: -2.15, key: 'sageField' });
     const carryAt = s.carryReturnRequestedAt ?? (overweightForCombat(s, c) ? cursor : undefined);
     if (carryAt !== undefined) add({ kind: 'carryReturn', at: Math.max(cursor, carryAt), priority: 100, key: 'carryReturn' });
     if (!b.challengeId) {
@@ -3402,8 +3455,11 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     recoveryCursor = next.at;
     cursor = next.at;
     s.lastSimulatedAt = cursor;
+    if (s.elementalField && next.kind !== 'sageField') syncSageField(s, c, cursor);
     const target = enemies(s).find(e => e.id === b.targetId) ?? enemies(s)[0];
-    if (next.kind === 'carryReturn') {
+    if (next.kind === 'sageField') {
+      syncSageField(s, c, cursor);
+    } else if (next.kind === 'carryReturn') {
       returnForCarry(s, c, cursor);
     } else if (next.kind === "field") {
       updateFieldActors(s, c, cursor, context);
@@ -3461,7 +3517,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       s.battle = null; s.status = "town"; s.autoResume = false; s.pendingAreaId = null;
       event(s, cursor, "challenge", "Tempo do desafio esgotado.");
     } else if (next.kind === 'supportCast') {
-      resolveSupportCast(s, c, cursor);
+      resolveSupportCast(s, c, cursor, context);
     } else if (next.kind === "cast") {
       const cast = b.cast!, skill = c.skills[cast.skillId];
       const castTarget = enemies(s).find(e => e.id === cast.targetId);
@@ -3514,7 +3570,8 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       const center = ground.targetId ? undefined : ground.position;
       if (closest && skill && targets(s, skill, ground.level, closest, cursor, center).length) {
         resolveSkill(s, c, skill, ground.level, closest, cursor, true, center, playerAction(s, c, cursor, "none"), context);
-        if (ground.remainingHits !== undefined) ground.remainingHits--;
+        if (ground.remainingHits !== undefined && --ground.remainingHits <= 0)
+          removeGroundPlacement(s, ground.groundPlacementId);
       }
       ground.nextTickAt = cursor + (ground.intervalMs ?? skill?.groundIntervalMs ?? 1000);
     } else if (next.kind === "poison") {
@@ -3579,30 +3636,44 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     returnForCarry(s, c, s.carryReturnRequestedAt);
   if (diseaseTiming && until > recoveryCursor) recoverResources(s, c, until - .001, until - recoveryCursor);
   if (s.battle) s.battle.groundEffects = s.battle.groundEffects?.filter(g => g.expiresAt > until && (g.remainingHits ?? 1) > 0);
+  pruneGroundPlacements(s, until);
   } finally {
     s.lastSimulatedAt = persistedAt;
   }
 }
 export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000, context?: SimulationContext) {
   cancelInvalidMonsterStatusCasts(s,at);
-  const diseaseTiming = !!Object.keys(s.playerStatuses ?? {}).length || (s.battle?.enemies ?? []).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
+  const diseaseTiming = !!s.elementalField || !!sageFieldSource(c.skills[s.supportCast?.skillId ?? '']?.sourceName) ||
+    !!Object.keys(s.playerStatuses ?? {}).length || (s.battle?.enemies ?? []).some(enemy => !!c.monsters[enemy.monsterId].npcStatusSkills?.length);
   if (!s.battle && diseaseTiming) {
+    const persistedAt = s.lastSimulatedAt;
     let cursor = at - elapsedMs;
+    try {
+    s.lastSimulatedAt = cursor;
+    if (s.elementalField) syncSageField(s, c, cursor);
+    if (s.supportCast && s.supportCast.endsAt <= cursor) resolveSupportCast(s, c, cursor, context);
     while (cursor < at) {
       const slowEnds = Object.entries(s.buffs).filter(([id,b]) => c.skills[id]?.sourceName === 'PR_SLOWPOISON' && b.expiresAt > cursor).map(([,b]) => b.expiresAt);
-      const end = Math.min(at, Math.max(cursor, nextPlayerStatusDeadline(s)), ...slowEnds);
+      const fieldBoundary = nextSageFieldBoundary(s, cursor) ?? Number.POSITIVE_INFINITY;
+      const castEnd = s.supportCast ? Math.max(cursor, s.supportCast.endsAt) : Number.POSITIVE_INFINITY;
+      const end = Math.min(at, Math.max(cursor, nextPlayerStatusDeadline(s)), ...slowEnds, fieldBoundary, castEnd);
       recoverResources(s, c, end - .001, end - cursor);
+      s.lastSimulatedAt = end;
+      if (s.elementalField) syncSageField(s, c, end);
       tickPlayerStatuses(s, c, end);
       if (s.hp <= 0 && s.restMode !== "recovery") { defeatPlayer(s, c, end); if (end === at) return; }
+      if (s.supportCast && s.supportCast.endsAt <= end) resolveSupportCast(s, c, end, context);
       cursor = end;
       if (end === at) break;
     }
+    } finally { s.lastSimulatedAt = persistedAt; }
   }
   tickWindow(s, c, at, elapsedMs, diseaseTiming, context);
   // Combat deadlines inside this window must see the status that was active at
   // their own timestamp. Cleanup at the window end would otherwise erase a
   // NoSave status before replaying an earlier contact or combo action.
   tickBladeStop(s, at);
+  pruneGroundPlacements(s, at);
 }
 function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, diseaseTiming: boolean, context?: SimulationContext) {
   const replayingCombat = !!s.battle && (s.status === "hunting" || s.status === "challenge");
@@ -3611,9 +3682,10 @@ function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, dis
     returnForCarry(s, c, Math.max(at - elapsedMs, s.carryReturnRequestedAt ?? at - elapsedMs));
   if (!replayingCombat) {
     if (s.supportCast && s.supportCast.endsAt <= at)
-      resolveSupportCast(s, c, s.supportCast.endsAt);
+      resolveSupportCast(s, c, s.supportCast.endsAt, context);
     updateFieldHero(s, at);
     updateFieldPopulation(s, c, at, context);
+    if (s.elementalField) syncSageField(s, c, at);
   }
   // Town, rest and travel have no earlier combat deadlines to replay.
   if (!replayingCombat) maintainPlayerBuffs(s, c, at);

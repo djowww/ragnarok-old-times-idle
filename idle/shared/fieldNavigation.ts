@@ -4,12 +4,14 @@ export interface FieldNavigationGrid {
     height: number;
     /** Row-major packed bits; bit 0 of byte 0 is cell (0, 0). */
     walkable: Uint8Array;
+    /** Independent Hercules CELL_CHKWALL mask. Always present on decoded production grids. */
+    wall?: Uint8Array;
     sourceSha256: string;
 }
 
 export interface GridPoint { x: number; y: number }
 
-export const FIELD_NAVIGATION_DECODER_REVISION = 'roBrowserLegacy:d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Altitude.js';
+export const FIELD_NAVIGATION_DECODER_REVISION = 'roBrowserLegacy:d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Altitude.js:hercules410b9738-cell-chkwall-v2';
 const MAX_CELLS = 1_000_000;
 const RAW_WALKABILITY = new Map<number, boolean>([
     [0, true], [1, false], [2, true], [3, true], [4, true], [5, false], [6, true],
@@ -55,13 +57,29 @@ export function decodeGat(map: string, bytes: Uint8Array, sourceSha256: string):
     if (bytes.byteLength !== 14 + cells * 20) throw new Error('Invalid GAT length: expected exactly 14 + 20 bytes per cell');
 
     const walkable = new Uint8Array(Math.ceil(cells / 8));
+    const wall = new Uint8Array(walkable.byteLength);
     for (let id = 0; id < cells; id++) {
         const rawType = view.getUint32(14 + id * 20 + 16, true);
         const isWalkable = RAW_WALKABILITY.get(rawType);
         if (isWalkable === undefined) throw new Error(`Unknown GAT cell type ${rawType} at cell ${id}`);
         if (isWalkable) setBit(walkable, id);
+        // map.c map_gat2cell: type1 is wall; type5 is a shootable cliff.
+        // Hercules's default zeroed cell treats extended types as wall. Actor
+        // movement retains the existing roBrowser extended-type interpretation.
+        if (rawType === 1 || rawType > 6) setBit(wall, id);
     }
-    return { map, width, height, walkable, sourceSha256 };
+    return { map, width, height, walkable, wall, sourceSha256 };
+}
+
+/** Fail closed when a wall-sensitive consumer receives an old walkability-only grid. */
+export function gridWall(grid: FieldNavigationGrid, p: GridPoint): boolean {
+    if (!(grid.wall instanceof Uint8Array) || grid.wall.byteLength !== grid.walkable.byteLength)
+        throw new TypeError('Navigation terrain wall mask is unavailable');
+    // map.c3199: outside/final-border cells return true only for CHKNOPASS,
+    // so CELL_CHKWALL is false. Unit destination checks separately use REACH.
+    if (p.x < 0 || p.y < 0 || p.x >= grid.width - 1 || p.y >= grid.height - 1) return false;
+    const id = cellAt(grid, p);
+    return id !== null && bitIsSet(grid.wall, id);
 }
 
 export function gridWalkable(grid: FieldNavigationGrid, p: GridPoint): boolean {

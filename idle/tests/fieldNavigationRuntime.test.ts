@@ -33,10 +33,10 @@ describe('server field navigation runtime', () => {
   });
   it('loads every catalog map before publishing only safe area metadata', async () => {
     const readJson = vi.fn(async () => spec);
-    const loadGrids = vi.fn(async ({ maps }: { maps: string[] }) => ({ grids: new Map([['test_map', grid()]]), cacheFallbackMaps: [] }));
+    const loadGrids = vi.fn(async ({ maps }: { maps: string[] }) => ({ grids: new Map([['test_map', grid()], ['prontera', { ...grid(), map: 'prontera' }]]), cacheFallbackMaps: [] }));
     const loaded = await loadCatalogFieldNavigation(catalog(), { sidecarPath: 'private-spec.json', assetOrigin: 'https://assets.test', readJson, loadGrids });
 
-    expect(loadGrids).toHaveBeenCalledWith(expect.objectContaining({ maps: ['test_map'], assetOrigin: 'https://assets.test' }));
+    expect(loadGrids).toHaveBeenCalledWith(expect.objectContaining({ maps: ['test_map', 'prontera'], assetOrigin: 'https://assets.test' }));
     expect(loaded.catalog.areas[0].fieldNavigation).toEqual({ map: 'test_map', origin: { x: 2, y: 2 }, homeOffsets: spec.areas[0].homeOffsets });
     expect(JSON.stringify(loaded.catalog.areas[0])).not.toMatch(/walkable|sourceSha256|maskSha256|navigation\.json/);
     expect(loaded.context.navigation?.areaIds).toEqual(['test_area']);
@@ -47,5 +47,16 @@ describe('server field navigation runtime', () => {
       readJson: async () => ({ version: 1, areas: [] }), loadGrids: vi.fn() })).rejects.toThrow(/coverage/i);
     await expect(loadCatalogFieldNavigation(catalog(), { sidecarPath: 'private-spec.json', assetOrigin: 'https://assets.test',
       readJson: async () => ({ ...spec, areas: [{ ...spec.areas[0], map: 'other_map' }] }), loadGrids: vi.fn() })).rejects.toThrow(/map/i);
+  });
+  it('loads Prontera terrain and derives the viewer center without adding a hunt area or private masks to the public catalog', async () => {
+    const prontera = { ...grid(), map: 'prontera', width: 312, height: 392,
+      walkable: new Uint8Array(Math.ceil(312 * 392 / 8)).fill(255), wall: new Uint8Array(Math.ceil(312 * 392 / 8)) };
+    let maps: string[] = [];
+    const loaded = await loadCatalogFieldNavigation(catalog(), { assetOrigin: 'https://assets.test', readJson: async () => spec,
+      loadGrids: async options => { maps = options.maps; return { grids: new Map([['test_map', grid()], ['prontera', prontera]]), cacheFallbackMaps: [] }; } });
+    expect(maps).toEqual(['test_map', 'prontera']);
+    expect(loaded.catalog.sceneNavigation?.prontera).toEqual({ map: 'prontera', origin: { x: 156, y: 196 } });
+    expect(loaded.context.navigation?.areaIds).toEqual(['test_area']);
+    expect(JSON.stringify(loaded.catalog.sceneNavigation)).not.toMatch(/walkable|wall|Sha256/);
   });
 });

@@ -138,7 +138,8 @@ function* advanceStateSteps(
   while (s.lastSimulatedAt + 250 <= until) {
     // A fully recovered avatar in town has no combat deadlines to process.
     // Skip empty offline ticks while preserving the same persisted clock.
-    if (s.status === "town" && !s.supportCast && Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
+    if (s.status === "town" && !s.supportCast && !s.elementalField && !s.groundPlacements?.length &&
+      Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
       const stats = derivedStats(s, catalog);
       if (s.hp >= stats.maxHp && s.sp >= stats.maxSp) {
         const gap = Math.floor((until - s.lastSimulatedAt) / 250) * 250;
@@ -255,6 +256,21 @@ function resumePausedState(s: GameState, now: number) {
   s.restUntil = s.restUntil > 0 ? shift(s.restUntil) : 0;
   s.potionReadyAt = shift(s.potionReadyAt);
   for (const id of Object.keys(s.skillReadyAt)) s.skillReadyAt[id] = shift(s.skillReadyAt[id]);
+  if (s.elementalField) {
+    s.elementalField.placedAt = shift(s.elementalField.placedAt);
+    s.elementalField.expiresAt = shift(s.elementalField.expiresAt);
+    for (const entry of Object.values(s.elementalField.occupants)) {
+      entry.enteredAt = shift(entry.enteredAt);
+      entry.statusExpiresAt = shift(entry.statusExpiresAt);
+    }
+  }
+  for (const placement of s.groundPlacements ?? []) {
+    placement.placedAt = shift(placement.placedAt);
+    placement.expiresAt = shift(placement.expiresAt);
+    placement.battleStartedAt = optional(placement.battleStartedAt);
+    for (const cell of Object.keys(placement.cellExpiresAt ?? {}))
+      placement.cellExpiresAt![cell] = shift(placement.cellExpiresAt![cell]);
+  }
   for (const buff of Object.values(s.buffs)) {
     buff.expiresAt = shift(buff.expiresAt);
     buff.startsAt = optional(buff.startsAt);
