@@ -7,7 +7,7 @@ import {
   type PanelProps,
 } from "../components/common";
 import { ItemFacts, typeNames } from "./Inventory";
-import { merchantPrice } from "../../shared/prices";
+import { itemPurchasePrice } from "../../shared/prices";
 import { MAGNIFIER_ITEM_ID } from "../../shared/loot";
 
 export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
@@ -21,8 +21,8 @@ export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
   );
   const item = items.find((i) => i.id === selected) ?? items[0];
   const town = snapshot.state.status === "town";
-  const price = (base: number) =>
-    merchantPrice(snapshot.state, catalog, base, "buy");
+  const price = (item: (typeof items)[number]) =>
+    itemPurchasePrice(snapshot.state, catalog, item);
   return (
     <div className="inventory-layout shop-layout">
       <div className="shop-toolbar">
@@ -73,7 +73,7 @@ export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
                 <b>{itemName(i)}</b>
                 <small>{typeNames[i.type]}</small>
               </span>
-              <strong>{number(price(i.buyPrice))} z</strong>
+              <strong>{number(price(i))} z</strong>
             </button>
           ))}
         </div>
@@ -111,14 +111,14 @@ export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
             </label>
             <div className="purchase-total">
               <span>Total</span>
-              <b>{number(price(item.buyPrice) * quantity)} z</b>
+              <b>{number(price(item) * quantity)} z</b>
             </div>
             <button
               className="primary full"
               disabled={
                 busy ||
                 !town ||
-                snapshot.state.zeny < price(item.buyPrice) * quantity
+                snapshot.state.zeny < price(item) * quantity
               }
               onClick={() =>
                 void command({ type: "buy", itemId: item.id, quantity })
@@ -126,7 +126,7 @@ export default function Shop({ catalog, snapshot, busy, command }: PanelProps) {
             >
               Comprar {quantity > 1 ? `${quantity} unidades` : ""}
             </button>
-            {snapshot.state.zeny < price(item.buyPrice) * quantity && (
+            {snapshot.state.zeny < price(item) * quantity && (
               <p className="note">Zeny insuficiente para esta compra.</p>
             )}
             <p className="note shop-balance">

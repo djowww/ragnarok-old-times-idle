@@ -178,6 +178,16 @@
       "sha256": "adca4101b689a1066ed23742b6163bc394de8aa3d3c8c836c882d55cfcfcbaf5"
     },
     {
+      "path": "npc/merchants/alchemist.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/alchemist.txt",
+      "sha256": "479d77eb8c4729597f2ff54bb1c984fba2befb395c475cc43078ae4b942bdf1f"
+    },
+    {
+      "path": "npc/pre-re/merchants/shops.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/merchants/shops.txt",
+      "sha256": "5e8fa251182efe2bd080f2c6b0fe1dd50a41890ab81500d1fcc69bc03a8710b8"
+    },
+    {
       "path": "src/map/clif.c",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/src/map/clif.c",
       "sha256": "ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42"
@@ -271,6 +281,36 @@
       "itemId": 547,
       "aegisName": "White_Slim_Potion",
       "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 12118,
+      "aegisName": "Resist_Fire",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 12119,
+      "aegisName": "Resist_Water",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 12120,
+      "aegisName": "Resist_Earth",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 12121,
+      "aegisName": "Resist_Wind",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 605,
+      "aegisName": "Anodyne",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 606,
+      "aegisName": "Aloebera",
+      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 619,
@@ -661,11 +701,6 @@
       "itemId": 4015,
       "aegisName": "Condor_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 605,
-      "aegisName": "Anodyne",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 526,
@@ -11369,8 +11404,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13758,6 +13792,595 @@
     "acquisitionAdaptation": "Prontera aggregate paid NPC shop:7433/904/947 source prices;946/1013 existing drops",
     "netWeight": true
   },
+  "pharmacyCraft": {
+    "recipeSource": "db/produce_db.txt:329..380",
+    "recipes": [
+      {
+        "outputItemId": 501,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 507,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 503,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 508,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 504,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 509,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 505,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 510,
+            "quantity": 1
+          },
+          {
+            "itemId": 911,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 545,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7133,
+            "quantity": 0
+          },
+          {
+            "itemId": 501,
+            "quantity": 1
+          },
+          {
+            "itemId": 1092,
+            "quantity": 1
+          },
+          {
+            "itemId": 952,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 546,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7133,
+            "quantity": 0
+          },
+          {
+            "itemId": 503,
+            "quantity": 1
+          },
+          {
+            "itemId": 1092,
+            "quantity": 1
+          },
+          {
+            "itemId": 1017,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 547,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7133,
+            "quantity": 0
+          },
+          {
+            "itemId": 504,
+            "quantity": 1
+          },
+          {
+            "itemId": 1092,
+            "quantity": 1
+          },
+          {
+            "itemId": 1061,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 7135,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7128,
+            "quantity": 0
+          },
+          {
+            "itemId": 970,
+            "quantity": 1
+          },
+          {
+            "itemId": 1059,
+            "quantity": 1
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 7136,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7129,
+            "quantity": 0
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          },
+          {
+            "itemId": 929,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 7137,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7130,
+            "quantity": 0
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          },
+          {
+            "itemId": 1032,
+            "quantity": 2
+          }
+        ]
+      },
+      {
+        "outputItemId": 7138,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7131,
+            "quantity": 0
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          },
+          {
+            "itemId": 1050,
+            "quantity": 1
+          },
+          {
+            "itemId": 1051,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 7139,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7132,
+            "quantity": 0
+          },
+          {
+            "itemId": 970,
+            "quantity": 1
+          },
+          {
+            "itemId": 950,
+            "quantity": 1
+          },
+          {
+            "itemId": 1044,
+            "quantity": 1
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 12118,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7434,
+            "quantity": 0
+          },
+          {
+            "itemId": 1012,
+            "quantity": 2
+          },
+          {
+            "itemId": 716,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 12119,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7434,
+            "quantity": 0
+          },
+          {
+            "itemId": 950,
+            "quantity": 3
+          },
+          {
+            "itemId": 717,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 12120,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7434,
+            "quantity": 0
+          },
+          {
+            "itemId": 7126,
+            "quantity": 2
+          },
+          {
+            "itemId": 715,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 12121,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7434,
+            "quantity": 0
+          },
+          {
+            "itemId": 1057,
+            "quantity": 3
+          },
+          {
+            "itemId": 717,
+            "quantity": 1
+          },
+          {
+            "itemId": 1093,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 605,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 708,
+            "quantity": 1
+          },
+          {
+            "itemId": 970,
+            "quantity": 1
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 606,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 704,
+            "quantity": 1
+          },
+          {
+            "itemId": 518,
+            "quantity": 1
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 970,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7127,
+            "quantity": 0
+          },
+          {
+            "itemId": 713,
+            "quantity": 1
+          },
+          {
+            "itemId": 7033,
+            "quantity": 5
+          },
+          {
+            "itemId": 905,
+            "quantity": 5
+          },
+          {
+            "itemId": 1092,
+            "quantity": 1
+          }
+        ]
+      },
+      {
+        "outputItemId": 7142,
+        "itemLevel": 22,
+        "skillId": 228,
+        "skillLevel": 1,
+        "ingredients": [
+          {
+            "itemId": 7144,
+            "quantity": 0
+          },
+          {
+            "itemId": 7140,
+            "quantity": 1
+          },
+          {
+            "itemId": 7141,
+            "quantity": 1
+          },
+          {
+            "itemId": 7143,
+            "quantity": 1
+          }
+        ]
+      }
+    ],
+    "activationSource": "db/pre-re/skill_db.conf AM_PHARMACY",
+    "spPerAttempt": 5,
+    "activationItem": {
+      "itemId": 7134,
+      "quantity": 1
+    },
+    "guideRule": "Quantity-zero materials require inventory presence and are not consumed.",
+    "chanceSource": "src/map/skill.c:20249..20482 and20553; potion_produce_rate100; no homunculus or Baby system",
+    "productionRule": "N repeated qty1 attempts, including costs and RNG on failures; inner RNG on success.",
+    "confirmationAdaptation": "Free preview; town-only atomic batch charged on confirmation. Worst-case success weight must permit all activations.",
+    "npcStock": [
+      {
+        "itemId": 7134,
+        "price": 8,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7144,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7127,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7128,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7129,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7130,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7131,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7132,
+        "price": 100000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 7133,
+        "price": 240000,
+        "discount": false,
+        "source": "npc/merchants/alchemist.txt"
+      },
+      {
+        "itemId": 1092,
+        "price": 3,
+        "discount": true,
+        "source": "npc/pre-re/merchants/shops.txt"
+      },
+      {
+        "itemId": 1093,
+        "price": 10,
+        "discount": true,
+        "source": "npc/pre-re/merchants/shops.txt"
+      },
+      {
+        "itemId": 7140,
+        "price": 60000,
+        "discount": true,
+        "source": "npc/merchants/shops.txt"
+      },
+      {
+        "itemId": 7141,
+        "price": 20000,
+        "discount": true,
+        "source": "npc/merchants/shops.txt"
+      },
+      {
+        "itemId": 7143,
+        "price": 5000,
+        "discount": true,
+        "source": "npc/merchants/shops.txt"
+      }
+    ],
+    "locationAdaptation": "Paid native NPC stock aggregated into Prontera city services.",
+    "scriptRule": "Production never evaluates item scripts; existing explicit handlers only.",
+    "inertOutputItemIds": [
+      545,
+      546,
+      547,
+      605,
+      606,
+      7142,
+      12118,
+      12119,
+      12120,
+      12121
+    ],
+    "unavailableAcquisition": [
+      {
+        "itemId": 7434,
+        "reason": "Original Pisruik research not yet available; no NPC sale enabled."
+      }
+    ]
+  },
   "classSkillExclusions": {
     "allClasses": [
       "WE_MALE",
@@ -14082,8 +14705,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 262,
-    "unsupported": 86,
+    "supported": 263,
+    "unsupported": 85,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14257,13 +14880,13 @@
       },
       "alchemist": {
         "sourceTree": 35,
-        "supported": 15,
-        "unsupported": 20
+        "supported": 16,
+        "unsupported": 19
       },
       "creator": {
         "sourceTree": 39,
-        "supported": 16,
-        "unsupported": 23
+        "supported": 17,
+        "unsupported": 22
       },
       "assassin": {
         "sourceTree": 24,
@@ -14514,6 +15137,7 @@
       "WS_OVERTHRUSTMAX",
       "AM_AXEMASTERY",
       "AM_LEARNINGPOTION",
+      "AM_PHARMACY",
       "AM_DEMONSTRATION",
       "AM_ACIDTERROR",
       "AM_POTIONPITCHER",
@@ -14854,11 +15478,6 @@
       {
         "skillId": "ws_weaponrefine",
         "sourceName": "WS_WEAPONREFINE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "am_pharmacy",
-        "sourceName": "AM_PHARMACY",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
@@ -15596,7 +16215,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "eaf45e9b8189a5ebfe3bbb1f443d76ef982bbefd6cd64ac0bc7f0f833f5de3b4",
+  "rulesSha256": "0fe8933bc2b85e1d00982f3087bb3abe6122ce5a5177a8db6d35ed7a7eb9356c",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -15651,6 +16270,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "c5d9d142e564b3ee96dcbbcbf08141a7937e6f3e4236e256397ddcf26adf0db1",
+  "catalogSha256": "2e4b06f451963e88e17c6b8ea2f9f04549970ddb7a2622a0b9ab5751f04367fa",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

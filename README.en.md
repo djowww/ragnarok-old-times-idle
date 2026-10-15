@@ -6,7 +6,7 @@
 
 ### [Play the test version →](https://187.77.238.51:8443/)
 
-[Português](README.md) · [Getting started](#start-your-adventure) · [Setup guide](docs/SETUP.md) · [Contributing](CONTRIBUTING.md)
+[Alchemy (PT-BR)](docs/ALCHEMY.md) · [Português](README.md) · [Getting started](#start-your-adventure) · [Setup guide](docs/SETUP.md) · [Contributing](CONTRIBUTING.md)
 
 [![Publication safety](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml/badge.svg?branch=main)](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml) [![License: GPL v3+](https://img.shields.io/badge/license-GPL_v3%2B-315d70)](LICENSE)
 
@@ -36,7 +36,7 @@ This is an independent fan project under active development.
 | Hunting areas | 31 |
 | Classes in the progression trees | 40 |
 | Skills imported from Hercules | 348 |
-| Implemented skills | 262 |
+| Implemented skills | 263 |
 
 Unavailable mechanics are identified in the game. Idle progression adapts some rules and rewards; full reproduction of every original system and effect is still in progress. See the [catalog](idle/content/) and [source manifest](idle/content/source-manifest.json).
 

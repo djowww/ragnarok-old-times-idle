@@ -6,7 +6,7 @@
 
 ### [Jogar a versão de testes →](https://187.77.238.51:8443/)
 
-[Como jogar](#comece-sua-aventura) · [Recursos](#o-que-você-vai-encontrar) · [Instalação](docs/SETUP.md) · [Contribuir](CONTRIBUTING.md) · [English](README.en.md)
+[Como jogar](#comece-sua-aventura) · [Recursos](#o-que-você-vai-encontrar) · [Instalação](docs/SETUP.md) · [Contribuir](CONTRIBUTING.md) · [Alquimia](docs/ALCHEMY.md) · [English](README.en.md)
 
 [![Publicação segura](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml/badge.svg?branch=main)](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml) [![Licença: GPL v3+](https://img.shields.io/badge/licen%C3%A7a-GPL_v3%2B-315d70)](LICENSE) [![Status: em desenvolvimento](https://img.shields.io/badge/status-em_desenvolvimento-b59b5b)](#estado-do-projeto)
 
@@ -38,7 +38,7 @@ A versão de testes está em desenvolvimento e recebe melhorias frequentes.
 | Áreas de caça | 31 |
 | Classes nas árvores de progressão | 40 |
 | Habilidades importadas do Hercules | 348 |
-| Habilidades implementadas | 262 |
+| Habilidades implementadas | 263 |
 
 Habilidades que dependem de sistemas ainda ausentes aparecem como indisponíveis. O idle adapta algumas regras e recompensas; a reprodução integral de todos os sistemas e efeitos do RO ainda não está concluída.
 

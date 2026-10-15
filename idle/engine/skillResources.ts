@@ -5,7 +5,7 @@ import { classicBuffActive, sphereCostForSkill } from "./classicBuffs.js";
 
 const value = (values: number[] | undefined, level: number) =>
   values?.[level - 1] ?? values?.at(-1) ?? 0;
-function skillResourceCosts(
+export function skillResourceCosts(
   s: GameState,
   c: Catalog,
   skill: Skill,

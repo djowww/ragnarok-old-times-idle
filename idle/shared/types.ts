@@ -150,6 +150,9 @@ export interface Item {
   /** Statically translated Hercules bDefEle; never evaluates an item script. */
   defenseElement?: string;
   shop: boolean;
+  /** NPC script price, independent of the item database Buy/Sell fields. */
+  shopPrice?: number;
+  shopDiscount?: boolean;
   twoHanded?: boolean;
   refinable?: boolean;
   weaponLevel?: number;
@@ -231,7 +234,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "activate" | "inspect" | "teleport";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "activate" | "inspect" | "teleport";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -565,6 +568,8 @@ export interface GameEvent {
   critical?: boolean;
   itemId?: number;
   quantity?: number;
+  attempts?: number;
+  failures?: number;
   skillLevel?: number;
   enemyId?: string;
   /** Exact source point and area at the event deadline for corpses and loot. */
@@ -858,6 +863,7 @@ export type GameCommand =
   | { type: "setMount"; mounted: boolean }
   | { type: "buy"; itemId: number; quantity: number }
   | { type: "craftConverter"; itemId: number; quantity: number }
+  | { type: "craftPharmacy"; itemId: number; quantity: number }
   | { type: "sell"; uid: string; quantity: number }
   | { type: "equip" | "favorite" | "refine"; uid: string }
   | { type: "identify"; uid: string; method?: "magnifier" | "skill" }

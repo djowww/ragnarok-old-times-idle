@@ -37,6 +37,7 @@ import Shop from "./panels/Shop";
 import Build from "./panels/Build";
 import SenseInspection from "./panels/SenseInspection";
 import ConverterCraft from "./panels/ConverterCraft";
+import PharmacyCraft from "./panels/PharmacyCraft";
 import { Bestiary, huntFocusLabel, Quests, World } from "./panels/World";
 import Classes from "./panels/Classes";
 import Challenges, { type ChallengeFilter } from "./panels/Challenges";
@@ -51,14 +52,14 @@ import type { MapStatus } from "./components/OriginalMap";
 import "./styles/city-services.css";
 
 type GameWindow = "stats" | "equipment" | "inventory" | "skills" | "world" |
-  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "converters" | "admin";
+  "quests" | "bestiary" | "classes" | "challenges" | "shop" | "city" | "blacksmith" | "stylist" | "converters" | "pharmacy" | "admin";
 const windowTitles: Record<GameWindow, string> = {
   stats: "Atributos", equipment: "Equipamento", inventory: "Mochila",
   skills: "Habilidades", world: "Mapa de Rune-Midgard", quests: "Missões",
   bestiary: "Bestiário", classes: "Classes", challenges: "Desafios",
   shop: "Loja de poções de Prontera",
   city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
-  converters: "Conversores elementais", admin: "Administração",
+  converters: "Conversores elementais", pharmacy: "Preparar poções", admin: "Administração",
 };
 const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
   { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
@@ -473,7 +474,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
     windowClose.current?.focus();
   }, [activeWindow]);
   const openWindow = (destination: GameWindow, trigger?: HTMLElement) => {
-    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist" || destination === "converters";
+    const cityOnly = destination === "city" || destination === "shop" || destination === "blacksmith" || destination === "stylist" || destination === "converters" || destination === "pharmacy";
     if (cityOnly && game.snapshot?.state.status !== "town") {
       setBookOpen(false);
       if (game.snapshot) void game.command({ type: "stop" });
@@ -935,7 +936,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "equipment" &&
                           <ClassicEquipment {...props} onInventory={() => setActiveWindow("inventory")} />}
                         {activeWindow === "inventory" && <Inventory {...props} />}
-                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} />}
+                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} onOpenPharmacy={trigger => openWindow("pharmacy", trigger)} />}
                         {activeWindow === "world" && <>
                           <div className="ro-journey-summary" role="group" aria-label="Sua jornada">
                             <span>Abates <b>{number(state.totals.kills)}</b></span>
@@ -951,6 +952,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "shop" && <Shop {...props} />}
                         {activeWindow === "city" && <CityServices catalog={catalog} onOpen={(service: CityService, trigger) => openWindow(service, trigger)} />}
                         {activeWindow === "converters" && <ConverterCraft {...props} />}
+                        {activeWindow === "pharmacy" && <PharmacyCraft {...props} />}
                         {activeWindow === "blacksmith" && <Blacksmith {...props} />}
                         {activeWindow === "stylist" && <Stylist {...props} />}
                         {activeWindow === "admin" && <Admin {...props} identity={identity} onAuthRequired={onAuthRequired} onChanged={() => void game.retry()} />}

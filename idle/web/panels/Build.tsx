@@ -36,7 +36,8 @@ export default function Build({
   command,
   mode = "all",
   onOpenConverters,
-}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void }) {
+  onOpenPharmacy,
+}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenPharmacy?: (trigger: HTMLElement) => void }) {
   const { state, stats } = snapshot;
   const manualSilenced = activePlayerStatus(state, 'SC_SILENCE', snapshot.serverTime);
   const ids = new Set(classSkills(catalog, state.job));
@@ -240,6 +241,7 @@ export default function Build({
                       · 1 pt
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
+                    {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "inventory" && <small>Use na mochila para identificar equipamentos.</small>}
                     {configurableUseLevel && <button type="button"
                       disabled={busy || unsupported || level === 0 || missingPrerequisites || missingJobLevel || !ids.has(skill.id)}
