@@ -14,6 +14,7 @@
       "db/pre-re/size_fix.txt",
       "db/pre-re/autospell_db.conf",
       "db/pre-re/unit_parameters_db.conf",
+      "npc/merchants/refine.txt",
       "npc/pre-re/mobs/fields/geffen.txt",
       "npc/pre-re/mobs/fields/payon.txt",
       "npc/pre-re/mobs/fields/prontera.txt",
@@ -31,7 +32,7 @@
       "npc/merchants/shops.txt",
       "src/map/clif.c"
     ],
-    "hash": "ff3f953ede210d02c8c9049efa5cc2ca16c2ad52af396baac9d83bdb3fe7ebd9"
+    "hash": "6f567b6f6e0808024b6d11d8d4a0c94f758ad1e5ec18c26a50d94653e039de08"
   },
   "rates": {
     "baseExp": 4,
@@ -26024,14 +26025,44 @@
       "weaponLevel": 3,
       "attackRange": 1
     },
+    "1550": {
+      "id": 1550,
+      "name": "Book",
+      "aegisName": "Book",
+      "type": "equipment",
+      "slot": "weapon",
+      "weaponType": "book",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 85,
+      "def": 0,
+      "slots": 3,
+      "minLevel": 14,
+      "allowedClasses": [
+        "sage",
+        "professor",
+        "priest",
+        "high_priest"
+      ],
+      "buyPrice": 30000,
+      "sellPrice": 15000,
+      "weight": 60,
+      "resource": "data/texture/유저인터페이스/item/북.bmp",
+      "effects": {},
+      "shop": true,
+      "equipSupported": true,
+      "weaponLevel": 2,
+      "attackRange": 1
+    },
     "1552": {
       "id": 1552,
       "name": "Tablet",
       "aegisName": "Tablet",
       "type": "equipment",
       "slot": "weapon",
+      "weaponType": "book",
       "twoHanded": false,
-      "refinable": false,
+      "refinable": true,
       "attack": 125,
       "def": 0,
       "slots": 1,
@@ -26048,7 +26079,7 @@
       "resource": "data/texture/유저인터페이스/item/타블렛.bmp",
       "effects": {},
       "shop": false,
-      "equipSupported": false,
+      "equipSupported": true,
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -26058,8 +26089,9 @@
       "aegisName": "Book_Of_The_Apocalypse",
       "type": "equipment",
       "slot": "weapon",
+      "weaponType": "book",
       "twoHanded": false,
-      "refinable": false,
+      "refinable": true,
       "attack": 120,
       "def": 0,
       "slots": 0,
@@ -26077,7 +26109,7 @@
       "effects": {},
       "unsupportedEffect": true,
       "shop": false,
-      "equipSupported": false,
+      "equipSupported": true,
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -26087,8 +26119,9 @@
       "aegisName": "Legacy_Of_Dragon",
       "type": "equipment",
       "slot": "weapon",
+      "weaponType": "book",
       "twoHanded": false,
-      "refinable": false,
+      "refinable": true,
       "attack": 130,
       "def": 0,
       "slots": 0,
@@ -26106,7 +26139,7 @@
       "effects": {},
       "unsupportedEffect": true,
       "shop": false,
-      "equipSupported": false,
+      "equipSupported": true,
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -26116,8 +26149,9 @@
       "aegisName": "Diary_Of_Great_Sage",
       "type": "equipment",
       "slot": "weapon",
+      "weaponType": "book",
       "twoHanded": false,
-      "refinable": false,
+      "refinable": true,
       "attack": 100,
       "def": 0,
       "slots": 2,
@@ -26135,7 +26169,7 @@
       "effects": {},
       "unsupportedEffect": true,
       "shop": false,
-      "equipSupported": false,
+      "equipSupported": true,
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -26145,8 +26179,9 @@
       "aegisName": "Death_Note",
       "type": "equipment",
       "slot": "weapon",
+      "weaponType": "book",
       "twoHanded": false,
-      "refinable": false,
+      "refinable": true,
       "attack": 137,
       "def": 0,
       "slots": 2,
@@ -26164,7 +26199,7 @@
       "effects": {},
       "unsupportedEffect": true,
       "shop": false,
-      "equipSupported": false,
+      "equipSupported": true,
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -59064,7 +59099,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "nv_basic",
@@ -59639,6 +59675,7 @@
         "dagger": 525,
         "sword": 575,
         "staff": 625,
+        "book": 550,
         "unarmed": 450
       },
       "minimumAttackMotionMs": 100,
@@ -59668,7 +59705,8 @@
       "minJobLevel": 40,
       "weapons": [
         "dagger",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "nv_basic",
@@ -60372,6 +60410,7 @@
         "dagger": 525,
         "sword": 575,
         "staff": 625,
+        "book": 550,
         "unarmed": 450
       },
       "minimumAttackMotionMs": 100,
@@ -64308,7 +64347,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "nv_basic",
@@ -64877,6 +64917,7 @@
       "weaponAspd": {
         "mace": 600,
         "staff": 600,
+        "book": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -64906,7 +64947,8 @@
       "minJobLevel": 40,
       "weapons": [
         "mace",
-        "staff"
+        "staff",
+        "book"
       ],
       "skills": [
         "nv_basic",
@@ -65600,6 +65642,7 @@
       "weaponAspd": {
         "mace": 600,
         "staff": 600,
+        "book": 600,
         "unarmed": 400
       },
       "minimumAttackMotionMs": 100,
@@ -87949,15 +87992,14 @@
     },
     "sa_advancedbook": {
       "id": "sa_advancedbook",
-      "name": "Study",
+      "name": "Perícia com Livro",
       "kind": "passive",
       "maxLevel": 10,
       "herculesId": 274,
       "sourceName": "SA_ADVANCEDBOOK",
       "mechanic": "SA_ADVANCEDBOOK",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis.",
-      "description": "Study. Habilidade passiva. Requer armas do tipo Livro, ainda ausentes dos equipamentos utilizáveis.",
+      "implementation": "supported",
+      "description": "Passiva: acrescenta 3 de ATQ por nível no cálculo de domínio de arma somente enquanto um Livro estiver equipado e reduz o atraso de ataque em 0,5% por nível. Não concede HIT.",
       "iconResource": "data/texture/유저인터페이스/item/sa_advancedbook.bmp",
       "spCost": [
         0,
@@ -88644,9 +88686,9 @@
       "herculesId": 280,
       "sourceName": "SA_FLAMELAUNCHER",
       "mechanic": "SA_FLAMELAUNCHER",
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
-      "description": "Endow Blaze. Aplica PROPERTYFIRE. A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Fogo por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Sangue Vermelho. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
       "iconResource": "data/texture/유저인터페이스/item/sa_flamelauncher.bmp",
       "spCost": [
         40,
@@ -88706,7 +88748,7 @@
         9,
         9
       ],
-      "targetType": "support",
+      "targetType": "self",
       "damageType": "none",
       "prerequisites": [
         {
@@ -88793,15 +88835,15 @@
     },
     "sa_frostweapon": {
       "id": "sa_frostweapon",
-      "name": "Endow Tsunami",
+      "name": "Encantar com Geada",
       "kind": "buff",
       "maxLevel": 5,
       "herculesId": 281,
       "sourceName": "SA_FROSTWEAPON",
       "mechanic": "SA_FROSTWEAPON",
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
-      "description": "Endow Tsunami. Aplica PROPERTYWATER. A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Água por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Cristal Azul. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
       "iconResource": "data/texture/유저인터페이스/item/sa_frostweapon.bmp",
       "spCost": [
         40,
@@ -88861,7 +88903,7 @@
         9,
         9
       ],
-      "targetType": "support",
+      "targetType": "self",
       "damageType": "none",
       "prerequisites": [
         {
@@ -88948,15 +88990,15 @@
     },
     "sa_lightningloader": {
       "id": "sa_lightningloader",
-      "name": "Endow Tornado",
+      "name": "Encantar com Relâmpago",
       "kind": "buff",
       "maxLevel": 5,
       "herculesId": 282,
       "sourceName": "SA_LIGHTNINGLOADER",
       "mechanic": "SA_LIGHTNINGLOADER",
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
-      "description": "Endow Tornado. Aplica PROPERTYWIND. A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Vento por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Frescor do Vento. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
       "iconResource": "data/texture/유저인터페이스/item/sa_lightningloader.bmp",
       "spCost": [
         40,
@@ -89016,7 +89058,7 @@
         9,
         9
       ],
-      "targetType": "support",
+      "targetType": "self",
       "damageType": "none",
       "prerequisites": [
         {
@@ -89103,15 +89145,15 @@
     },
     "sa_seismicweapon": {
       "id": "sa_seismicweapon",
-      "name": "Endow Quake",
+      "name": "Encantar com Terremoto",
       "kind": "buff",
       "maxLevel": 5,
       "herculesId": 283,
       "sourceName": "SA_SEISMICWEAPON",
       "mechanic": "SA_SEISMICWEAPON",
-      "implementation": "unsupported",
-      "unsupportedReason": "A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
-      "description": "Endow Quake. Aplica PROPERTYGROUND. A falha pode quebrar a arma; o estado de arma quebrada e o reparo ainda não existem.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Conjura por 3 segundos, reduzidos por DEX, para encantar sua arma com Terra por 20 minutos nos níveis 1–4 ou 30 minutos no nível 5. Custa 40 SP e 1 Vida Verdejante. Sucesso: 70/80/90/100/100%. A falha pode quebrar a arma.",
       "iconResource": "data/texture/유저인터페이스/item/sa_seismicweapon.bmp",
       "spCost": [
         40,
@@ -89171,7 +89213,7 @@
         9,
         9
       ],
-      "targetType": "support",
+      "targetType": "self",
       "damageType": "none",
       "prerequisites": [
         {
@@ -103852,8 +103894,8 @@
       "sourceName": "BS_REPAIRWEAPON",
       "mechanic": "BS_REPAIRWEAPON",
       "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Weapon Repair. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "unsupportedReason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
+      "description": "Weapon Repair. Habilidade utilitária. O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
       "iconResource": "data/texture/유저인터페이스/item/bs_repairweapon.bmp",
       "spCost": [
         30
@@ -116324,6 +116366,11 @@
     },
     "whip": {
       "small": 75,
+      "medium": 100,
+      "large": 50
+    },
+    "book": {
+      "small": 100,
       "medium": 100,
       "large": 50
     },

@@ -11,9 +11,10 @@ describe('Executed solo Priest catalog',()=>{
   expect(c.skills.rg_compulsion).toMatchObject({implementation:'supported',kind:'passive',maxLevel:5});
   expect(c.skills.al_ruwach).toMatchObject({ implementation:'supported', maxLevel:1, kind:'magical', targetType:'self',
    damageType:'magic', element:'holy', power:[145], aoeRadius:[2], spCost:[10], statusEffect:'SC_RUWACH', statusDurationMs:[10000] });
-  for(const id of ['rg_gangster','sa_advancedbook','as_right','as_left'])expect(c.skills[id].implementation,id).toBe('unsupported');
+  for(const id of ['rg_gangster','as_right','as_left'])expect(c.skills[id].implementation,id).toBe('unsupported');
+  expect(c.skills.sa_advancedbook).toMatchObject({sourceName:'SA_ADVANCEDBOOK',implementation:'supported',kind:'passive'});
   expect(c.skills.pr_lexdivina.prerequisitesByClass!.priest).toContainEqual({skillId:'al_ruwach',level:1});
-  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 247, unsupported: 101});
+  expect(manifest.skillCoverage).toMatchObject({classes:40,skills:348,supported: 252, unsupported: 96});
   expect((manifest as Record<string, unknown>).ruwach).toMatchObject({ skill:'AL_RUWACH', status:'SC_RUWACH', durationMs:10000,
    radius:2, spCost:10, pulseMs:20, damage:'145% MATK, Holy, Hercules level 1; only when concealment is removed' });
   expect(manifest.skillSources.al_ruwach).toMatchObject({ name:'AL_RUWACH', implementation:'supported',
@@ -24,13 +25,14 @@ describe('Executed solo Priest catalog',()=>{
   expect(manifest.sources).toContainEqual(expect.objectContaining({path:'src/map/mob.c',sha256:'a30af793eb5328ef7787638da5a22458f651b2c0cc5e8f533b3449d7acf6174d'}));
   expect(manifest.sources).toContainEqual(expect.objectContaining({path:'src/map/mob.h',sha256:'bb971d72be5a2345438360d8a9004eefd4f34839d4e51ce89a1b05bce1fb9a74'}));
   expect(c.source.files).toContain('src/map/mob.c');
-  expect(manifest.sources).toHaveLength(27);
-  expect(c.source.files.filter(path=>!baseline.sourcePaths.includes(path)).sort()).toEqual(['db/pre-re/unit_parameters_db.conf','db/produce_db.txt','npc/merchants/shops.txt','src/map/clif.c','src/map/mob.c','src/map/mob.h','src/map/pc.h']);
+  expect(manifest.sources).toHaveLength(28);
+  expect(manifest.sources).toContainEqual(expect.objectContaining({path:'npc/merchants/refine.txt',sha256:'3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1'}));
+  expect(c.source.files.filter(path=>!baseline.sourcePaths.includes(path)).sort()).toEqual(['db/pre-re/unit_parameters_db.conf','db/produce_db.txt','npc/merchants/refine.txt','npc/merchants/shops.txt','src/map/clif.c','src/map/mob.c','src/map/mob.h','src/map/pc.h']);
  });
  it('preserves every supported skill from the exact frozen CAST222 archive and accounts for later solo packages',()=>{
   const supported=Object.values(c.skills).filter(skill=>skill.implementation==='supported').map(skill=>skill.sourceName!);
   expect(baseline.supportedSourceNames).toHaveLength(222);
   expect(baseline.supportedSourceNames.filter(name=>!supported.includes(name))).toEqual([]);
-  expect(supported.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH','BA_PANGVOICE','CR_SHRINK','DC_DONTFORGETME','DC_WINKCHARM','LK_JOINTBEAT','MO_BLADESTOP','MO_BODYRELOCATION','NV_TRICKDEAD','PA_SACRIFICE','PF_FOGWALL','PF_MINDBREAKER','PR_LEXDIVINA','PR_STRECOVERY','RG_CLOSECONFINE','RG_COMPULSION','SA_CREATECON','SA_ELEMENTFIRE','SA_ELEMENTGROUND','SA_ELEMENTWATER','SA_ELEMENTWIND','SA_FREECAST','SA_MAGICROD','WZ_ESTIMATION','WZ_SIGHTBLASTER']);
+  expect(supported.filter(name=>!baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH','BA_PANGVOICE','CR_SHRINK','DC_DONTFORGETME','DC_WINKCHARM','LK_JOINTBEAT','MO_BLADESTOP','MO_BODYRELOCATION','NV_TRICKDEAD','PA_SACRIFICE','PF_FOGWALL','PF_MINDBREAKER','PR_LEXDIVINA','PR_STRECOVERY','RG_CLOSECONFINE','RG_COMPULSION','SA_ADVANCEDBOOK','SA_CREATECON','SA_ELEMENTFIRE','SA_ELEMENTGROUND','SA_ELEMENTWATER','SA_ELEMENTWIND','SA_FLAMELAUNCHER','SA_FREECAST','SA_FROSTWEAPON','SA_LIGHTNINGLOADER','SA_MAGICROD','SA_SEISMICWEAPON','WZ_ESTIMATION','WZ_SIGHTBLASTER']);
  });
 });

@@ -15,6 +15,7 @@ import { autoBerserkModifiers } from "./reactiveSolo.js";
 import { isPecoMounted, mountedCavalierPenalty } from './mountedPeco.js';
 import { playerDiseaseModifiers } from './playerStatusRules.js';
 import { activePlayerStatus } from './playerStatuses.js';
+import { currentPlayerCast } from './playerCast.js';
 export const statNames: Stat[] = ["str", "agi", "vit", "int", "dex", "luk"];
 export const MAX_BASE_STAT = 99;
 export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
@@ -29,8 +30,7 @@ export function learnedFreeCastLevel(s: GameState, c: Catalog): number {
   return 0;
 }
 export function activeFreeCastLevel(s: GameState, c: Catalog, at: number): number {
-  const cast = s.battle?.cast;
-  return cast && cast.startedAt <= at && at < cast.endsAt ? learnedFreeCastLevel(s, c) : 0;
+  return currentPlayerCast(s, at) ? learnedFreeCastLevel(s, c) : 0;
 }
 /** Hercules pc.c:7161..7185, pre-renewal point cost from the current base stat. */
 export function statPointCost(value: number, amount = 1): number {
@@ -86,10 +86,10 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   let weaponRefineAttack = 0;
   let armorDef = 0;
   let armorRefineDef = 0;
-  let weaponType: string | undefined;
+  let weaponType: import("../shared/types.js").WeaponType | undefined;
   for (const uid of Object.values(s.equipment)) {
     const e = s.inventory.find((i) => i.uid === uid);
-    if (!e || !isItemIdentified(e)) continue;
+    if (!e || e.broken || !isItemIdentified(e)) continue;
     const item = c.items[e.itemId];
     if (!item) continue;
     merge(effects, item.effects);
@@ -115,11 +115,12 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
       (effects[stat] ?? 0) + (job.jobBonuses?.[stat]?.[s.jobLevel - 1] ?? 0);
   for (const [id, level] of Object.entries(s.learnedSkills)) {
     const skill = c.skills[id];
-    if (skill?.kind === "passive" && skill.implementation !== "unsupported")
+    if (skill?.kind === "passive" && skill.implementation !== "unsupported" &&
+        (skill.sourceName !== "SA_ADVANCEDBOOK" || classSkills(c, s.job).includes(id)))
       merge(
         effects,
         skill.sourceName
-          ? classicSkillEffects(skill, level, { ...s.stats, jobId: s.job })
+          ? classicSkillEffects(skill, level, { ...s.stats, jobId: s.job, weaponType })
           : (skill.effects ?? {}),
         skill.sourceName ? 1 : level,
       );

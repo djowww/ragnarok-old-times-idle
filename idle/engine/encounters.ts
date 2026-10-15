@@ -94,6 +94,7 @@ import { energyCoatMagicDamage, magicRodAcceptsCast, magicRodRefund, magicRodWin
 import { createPneuma, pneumaBlocks, defenderDamage, defenderStats, createEndure, endureHit, defenseHitMotion } from "./classicDefenses.js";
 import { autoGuardChance, autoGuardWalkDelayMs, sacrificeBaseDamage, sacrificeHpCost, shrinkRollAccepted } from './guardianSacrificeRules.js';
 import { activeSacrifice, applyGuardianStatus, consumeSacrificeCharge, guardianShieldEquipped, guardianSkillEligible, guardianStatusActive } from './guardianSacrifice.js';
+import { currentPlayerCast } from './playerCast.js';
 import { fieldHome, fieldWanderPoint } from "../shared/fieldPopulation.js";
 import {
   classicStatusResistance,
@@ -566,7 +567,8 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
   if (s.status !== "hunting" || !b || b.challengeId || !s.fieldHero) return;
   const hero = s.fieldHero;
   const live = enemies(s).filter(enemy => enemy.hp > 0);
-  const castFreeLevel = activeFreeCastLevel(s, c, at);
+  const playerCast = currentPlayerCast(s, at);
+  const castFreeLevel = playerCast ? activeFreeCastLevel(s, c, at) : 0;
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
   let target = live.find(enemy => enemy.id === (activeCast?.targetId ?? b.targetId));
   if (!target && activeCast) {
@@ -631,7 +633,7 @@ function updateFieldActors(s: GameState, c: Catalog, at: number) {
     freezeFieldHero(s, at); hero.phase = "waiting";
     syncBattle(s); return;
   }
-  if ((b.cast && !castFreeLevel) || at < (hero.moveBlockedUntil ?? 0) || classicBuffActive(s, c, 'KN_AUTOCOUNTER', at)) {
+  if ((playerCast && !castFreeLevel) || at < (hero.moveBlockedUntil ?? 0) || classicBuffActive(s, c, 'KN_AUTOCOUNTER', at)) {
     freezeFieldHero(s, at); hero.phase = "fighting"; syncBattle(s); return;
   }
   const offensive = !activeCast && at >= (b.playerNextSkillAt ?? 0) ? chooseSkill(s, c, at, target, true, true) : undefined;
@@ -1005,6 +1007,7 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
   }
   const hpBefore = s.hp;
   s.hp = Math.max(0, s.hp - damage);
+  if (damage > 0) interruptSageEnchantCast(s, c, at);
   event(s, at, 'damage', monster.name, damage, 'player', { ...action, skillId: skill.sourceName.toLowerCase(),
     skillLevel: skill.level, enemyId: enemy.id, monsterId: monster.id, targetActorId: s.id,
     targetHpBefore: hpBefore, hitCount: skill.hitCount ?? 1, hitMotionMs: damage > 0 ? hitMotionMs : 0 });
@@ -1050,6 +1053,7 @@ function bladeStopAutoHasUsefulFollowup(s: GameState, c: Catalog, blade: Skill, 
 import { activePlayerStatus, treatmentSources, statusTreatmentEligible, resolveStatusTreatment, tickPlayerStatuses, nextPlayerStatusDeadline, playerRecoveryBlocked, clearPlayerDiseasesOnDeath } from './playerStatuses.js';
 import { tryMonsterStatusSkill, takeMonsterStatusCast, applyMonsterStatusEffect, interruptMonsterStatusCast, cancelInvalidMonsterStatusCasts } from './monsterStatusSkills.js';
 import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
+import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import type { MonsterStatusSkill } from '../shared/types.js';
 function chooseSkill(
   s: GameState,
@@ -1092,7 +1096,7 @@ function chooseSkill(
       !skill ||
       !level ||
       skill.kind === "passive" ||
-      skill.manualUse && skill.sourceName !== 'CR_SHRINK' &&
+      skill.manualUse && !['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '') && skill.sourceName !== 'CR_SHRINK' &&
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') ||
@@ -1105,6 +1109,9 @@ function chooseSkill(
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
       !bladeStopAutoHasUsefulFollowup(s, c, skill, level, at))) continue;
     const breaker = skill.sourceName === 'SA_SPELLBREAKER';
+    const sageEnchant = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
+    if (sageEnchant && (!sageEnchantCanStart(s, c, skill, level, at) ||
+      (s.buffs[id]?.expiresAt ?? 0) > at)) continue;
     const conversion=!!conversionSpec(skill.sourceName??'');
     if(conversion&&!elementalConversionTarget(s,c,skill,at))continue;
     const priestControl = priestControlSources.has(skill.sourceName??'');
@@ -1158,7 +1165,7 @@ function chooseSkill(
     if (skill.sourceName === 'AL_RUWACH' && (classicBuffActive(s, c, 'AL_RUWACH', at) ||
       !ruwachTargetWithinAura(s, skill, level, at))) continue;
     if (!['WZ_SIGHTBLASTER', 'AL_RUWACH'].includes(skill.sourceName ?? '') && !winkCharm &&
-      !breaker && !treatment && !priestControl && !pangVoice && !conversion &&
+      !breaker && !sageEnchant && !treatment && !priestControl && !pangVoice && !conversion &&
       !ignoreRange && !skillTargetInRange(s, c, skill, level, target, at)) continue;
     if (skill.sourceName === "AL_CRUCIS" && !targets(s, skill, level, target, at).some((enemy) =>
       classicCrucisAffects(combatStatus(c,enemy,at).monster) &&
@@ -1271,6 +1278,7 @@ function awardKill(
   const areaId = b.challengeId ? undefined : s.areaId ?? undefined;
   if (b.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
     clearTrickDead(s, c, at);
+    cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
     s.battle = null;
     s.status = "town";
     s.pendingAreaId = null;
@@ -1361,6 +1369,7 @@ function awardKill(
   if (b.challengeId) {
     if (b.attemptId && s.rewardedAttempts.includes(b.attemptId)) {
       clearTrickDead(s, c, at);
+      cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
       s.battle = null;
       s.status = "town";
       return;
@@ -1372,6 +1381,7 @@ function awardKill(
     s.challengeCooldowns[ch.id] = at + ch.cooldownMs;
     clearTrickDead(s, c, at);
     if (!previous) grantReward(s, c, ch.firstReward, at);
+    cancelSageEnchantCast(s, c, at, 'Conjuração encerrada com o desafio.');
     s.status = "town";
     s.autoResume = false;
   }
@@ -2646,6 +2656,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
       if (result.triggered && !reject.charges) cancelClassicBuff(s, c, 'ST_REJECTSWORD');
     }
     s.hp = Math.max(0, s.hp - damage);
+    if (damage > 0) interruptSageEnchantCast(s, c, at);
     if (berserkActive && s.hp <= 100) finishBerserk(s, c, at);
     if (damage > 0) {
       cancelClassicBuff(s, c, "TF_HIDING");
@@ -2734,6 +2745,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
 }
 
 function defeatPlayer(s: GameState, c: Catalog, at: number, challenge = !!s.battle?.challengeId) {
+    interruptSageEnchantCast(s, c, at, 'Conjuração interrompida pela derrota.');
     clearBladeStop(s, at);
     // Hercules' paired caster status ends when its owner dies.
     clearCloseConfine(s, at);
@@ -2874,8 +2886,11 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
 function playerCombatAction(s: GameState, c: Catalog, at: number) {
   const b = s.battle!;
   if (trickDeadActive(s, c, at)) return;
+  const currentCast = currentPlayerCast(s, at);
+  if (currentCast?.kind === 'support' && activeFreeCastLevel(s, c, at) === 0) return;
+  if (s.supportCast && s.supportCast.endsAt <= at) resolveSageEnchantCast(s, c, s.supportCast.endsAt);
   const activeCast = b.cast && b.cast.startedAt <= at && at < b.cast.endsAt ? b.cast : undefined;
-  const castingWithFreeCast = !!activeCast && activeFreeCastLevel(s, c, at) > 0;
+  const castingWithFreeCast = !!currentPlayerCast(s, at) && activeFreeCastLevel(s, c, at) > 0;
   const bladeLinkedTarget = bladeStopTarget(s, at);
   let target = activeCast
     ? enemies(s).find(e => e.id === activeCast.targetId)
@@ -2893,6 +2908,11 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
   const skill = skillDecisionDue ? chooseSkill(s, c, at, target) : undefined;
   if (skill) {
+    if (['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '')) {
+      const level = s.learnedSkills[skill.id];
+      startSageEnchantCast(s, c, skill, level, at);
+      return;
+    }
     if (skill.sourceName === 'MO_BLADESTOP') target = bladeStopIncomingEnemy(s, c, s.learnedSkills[skill.id], at) ?? target;
     else if (bladeLinkedTarget) target = bladeLinkedTarget;
     if (skill.sourceName === 'SA_SPELLBREAKER') target = findInterruptibleNpcCast(s,c,at,spellBreakerCastMs(s,c,skill,s.learnedSkills[skill.id],at)) ?? target;
@@ -3014,7 +3034,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number) {
 }
 
 type CombatDeadline = { at: number; priority: number; key: string } & (
-  { kind: "cast" | "player" | "timeout" | "buffs" | "field" } |
+  { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" } |
   { kind: "enemy" | "npcCast" | "targetCheck"; enemy: BattleEnemy } |
   { kind: "sightBlaster"; enemy: BattleEnemy } |
   { kind: "ruwach"; enemy: BattleEnemy } |
@@ -3099,8 +3119,9 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       if (s.buffs[id] && Number.isFinite(drainAt))
         add({ kind: "buffs", at: Math.max(cursor, drainAt), priority: -2, key: "buffs" });
     if (s.combatEffects?.berserk) add({ kind: 'buffs', at: Math.max(cursor, s.combatEffects.berserk.nextTickAt), priority: -2, key: 'berserk' });
-    if (b.deadlineAt !== undefined) add({ kind: "timeout", at: Math.max(cursor, b.deadlineAt), priority: -1, key: "timeout" });
+    if (b.deadlineAt !== undefined) add({ kind: "timeout", at: Math.max(cursor, b.deadlineAt), priority: -2.2, key: "timeout" });
     if (b.cast) add({ kind: "cast", at: Math.max(cursor, b.cast.endsAt), priority: 0, key: b.cast.actionId ?? b.cast.skillId });
+    if (s.supportCast) add({ kind: 'supportCast', at: Math.max(cursor, s.supportCast.endsAt), priority: -1, key: s.supportCast.actionId });
     for (const [index, delayed] of (b.delayedSkills ?? []).entries())
       add({ kind: "delayed", delayed, at: Math.max(cursor, delayed.endsAt), priority: 1, key: `${index}` });
     for (const [index, ground] of (b.groundEffects ?? []).entries())
@@ -3184,8 +3205,10 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
       const attackAt = enemy.npcCombat?.cast ? undefined : nextEnemyAttackAt(s, c, enemy, cursor, until);
       if (attackAt !== undefined) add({ kind: "enemy", enemy, at: attackAt, priority: 5, key: enemy.id });
     }
-    const freeCastDuringCast = !!b.cast && activeFreeCastLevel(s, c, cursor) > 0;
-    if (!trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && (enemies(s).length || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
+    const activePlayerCast = currentPlayerCast(s, cursor);
+    const freeCastDuringCast = !!activePlayerCast && activeFreeCastLevel(s, c, cursor) > 0;
+    const supportCastBlocksPlayer = activePlayerCast?.kind === 'support' && !freeCastDuringCast;
+    if (!trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).length || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
       const nextPlayerWork = freeCastDuringCast ? b.playerNextAttackAt
         : Math.min(b.playerNextAttackAt, b.playerNextSkillAt ?? b.playerNextAttackAt);
       const playerLock = freeCastDuringCast ? b.startedAt : b.playerActionReadyAt ?? 0;
@@ -3251,8 +3274,11 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     else if (next.kind === "timeout") {
       clearBladeStop(s, cursor);
       clearTrickDead(s, c, cursor);
+      cancelSageEnchantCast(s, c, cursor, 'Conjuração encerrada pelo fim do desafio.');
       s.battle = null; s.status = "town"; s.autoResume = false; s.pendingAreaId = null;
       event(s, cursor, "challenge", "Tempo do desafio esgotado.");
+    } else if (next.kind === 'supportCast') {
+      resolveSageEnchantCast(s, c, cursor);
     } else if (next.kind === "cast") {
       const cast = b.cast!, skill = c.skills[cast.skillId];
       const castTarget = enemies(s).find(e => e.id === cast.targetId);
@@ -3350,6 +3376,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     else if (next.kind === "player") playerCombatAction(s, c, cursor);
     if (s.battle?.fieldTransferReady && s.pendingAreaId) {
       const area = c.areas.find(entry => entry.id === s.pendingAreaId);
+      cancelSageEnchantCast(s, c, cursor, 'Conjuração encerrada pela troca de área.');
       freezeFieldHero(s, cursor);
       s.battle = null;
       s.pendingAreaId = null;
@@ -3395,6 +3422,8 @@ export function tick(s: GameState, c: Catalog, at: number, elapsedMs = 1000) {
 function tickWindow(s: GameState, c: Catalog, at: number, elapsedMs: number, diseaseTiming: boolean) {
   const replayingCombat = !!s.battle && (s.status === "hunting" || s.status === "challenge");
   if (!replayingCombat) {
+    if (s.supportCast && s.supportCast.endsAt <= at)
+      resolveSageEnchantCast(s, c, s.supportCast.endsAt);
     updateFieldHero(s, at);
     updateFieldPopulation(s, c, at);
   }

@@ -109,6 +109,33 @@ export function paySkillResources(
 ): boolean {
   const costs = skillResourceCosts(s, c, skill, level, at);
   if (!hasSkillResources(s, costs)) return false;
+  paySkillBaseCosts(s, costs);
+  paySkillItemCosts(s, costs);
+  return true;
+}
+
+/**
+ * Validates every cost up front, pays non-item costs, runs one synchronous
+ * handler, then consumes item requirements even when the handler reports a
+ * normal source failure. Callers must keep the handler local and synchronous.
+ */
+export function runSkillResourcePhases<T>(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  level: number,
+  at: number,
+  handler: () => T,
+): { paid: false } | { paid: true; result: T } {
+  const costs = skillResourceCosts(s, c, skill, level, at);
+  if (!hasSkillResources(s, costs)) return { paid: false };
+  paySkillBaseCosts(s, costs);
+  const result = handler();
+  paySkillItemCosts(s, costs);
+  return { paid: true, result };
+}
+
+function paySkillBaseCosts(s: GameState, costs: NonNullable<ReturnType<typeof skillResourceCosts>>) {
   s.sp -= costs.sp;
   s.zeny -= costs.zeny;
   s.hp -= costs.hp;
@@ -117,6 +144,9 @@ export function paySkillResources(
     0,
     (s.combatEffects.spiritSpheres ?? 0) - costs.spheres,
   );
+}
+
+function paySkillItemCosts(s: GameState, costs: NonNullable<ReturnType<typeof skillResourceCosts>>) {
   for (const [id, quantity] of costs.quantities) {
     let left = quantity;
     for (const entry of [...s.inventory])
@@ -126,5 +156,4 @@ export function paySkillResources(
         left -= used;
       }
   }
-  return true;
 }

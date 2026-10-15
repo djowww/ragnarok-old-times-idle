@@ -26,4 +26,9 @@ describe('command boundary', () => {
     expect(parseCommandRequest({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } }))
       .toEqual({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } });
   });
+  it('accepts repair-all as a payload-free command', () => {
+    expect(parseCommandRequest({ requestId, command: { type: 'repairAll' } }))
+      .toEqual({ requestId, command: { type: 'repairAll' } });
+    expect(() => parseCommandRequest({ requestId, command: { type: 'repairAll', uid: 'item-1' } })).toThrow();
+  });
 });

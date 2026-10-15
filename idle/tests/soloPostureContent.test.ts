@@ -20,8 +20,8 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     const names = Object.values(candidate.skills).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!).sort();
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
-    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_FREECAST', 'SA_MAGICROD', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 247, unsupported: 101, classes: 40, skills: 348 });
+    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AL_RUWACH', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'SA_ADVANCEDBOOK', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+    expect(manifest.skillCoverage).toMatchObject({ supported: 252, unsupported: 96, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();
@@ -32,7 +32,8 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
   });
   it('pins the PC cap macro and parameter inheritance without changing other source rows or content', () => {
     for (const source of baseline.sources) expect(manifest.sources).toContainEqual(source);
-    expect(manifest.sources).toHaveLength(27);
+    expect(manifest.sources).toHaveLength(28);
+    expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1' }));
     expect(candidate.source.commit).toBe(baseline.commit);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/pc.h', sha256: rules.sourceHashes['src/map/pc.h'] }));
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'db/pre-re/unit_parameters_db.conf', sha256: rules.sourceHashes['unit_parameters_db.conf'] }));
@@ -41,8 +42,22 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
       expect(job.minimumAttackMotionMs).toBe(100);
       delete job.minimumAttackMotionMs;
     }
+    for (const id of ['sage', 'professor', 'priest', 'high_priest']) {
+      expect(candidate.classes[id].weapons).toContain('book');
+      expect(candidate.classes[id].weaponAspd?.book).toBe(id === 'sage' || id === 'professor' ? 550 : 600);
+      priorClasses[id].weapons = priorClasses[id].weapons.filter(weapon => weapon !== 'book');
+      if (priorClasses[id].weaponAspd) delete priorClasses[id].weaponAspd.book;
+    }
     expect(digest(priorClasses)).toBe(baseline.classesSha256);
-    expect(digest(candidate.items)).toBe(baseline.itemsSha256);
+    const historicalItems = structuredClone(candidate.items);
+    delete historicalItems[1550];
+    for (const id of [1552, 1557, 1559, 1560, 1565]) {
+      expect(candidate.items[id]).toMatchObject({ type: 'equipment', weaponType: 'book', refinable: true, equipSupported: true });
+      delete historicalItems[id].weaponType;
+      historicalItems[id].refinable = false;
+      historicalItems[id].equipSupported = false;
+    }
+    expect(digest(historicalItems)).toBe(baseline.itemsSha256);
     const historicalMonsters = structuredClone(candidate.monsters);
     for (const monster of Object.values(historicalMonsters)) {
       if (!monster.npcStatusSkills) continue;

@@ -39,6 +39,9 @@ import { makeSenseInspection, senseEncounterIdentity, senseManualTarget } from '
 import { clearCloseConfine } from './rgCloseConfine.js';
 import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
 import { magicRodWindow } from './monsterMagic.js';
+import { isEquipmentBroken } from './equipmentCondition.js';
+import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
+import { interruptSageEnchantCast } from './sageEnchantments.js';
 function town(s: GameState) {
   requireRule(
     s.status === "town",
@@ -59,7 +62,7 @@ function equipAllowed(s: GameState, c: Catalog, i: Item) {
 export function removeIneligible(s: GameState, c: Catalog) {
   for (const [slot, uid] of Object.entries(s.equipment)) {
     const e = s.inventory.find((e) => e.uid === uid);
-    if (!e || !isItemIdentified(e) || !equipAllowed(s, c, c.items[e.itemId]))
+    if (!e || e.broken || !isItemIdentified(e) || !equipAllowed(s, c, c.items[e.itemId]))
       delete s.equipment[slot as keyof typeof s.equipment];
   }
 }
@@ -94,6 +97,13 @@ export function executeCommand(
     }
     case 'useSkill': {
       const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+      if (skill?.sourceName && ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
+        requireRule(sageEnchantCanStart(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
+          'Equipe uma arma intacta, tenha 40 SP e o reagente correto; uma propriedade incompatível impede o encantamento.');
+        requireRule(startSageEnchantCast(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
+          'Não foi possível iniciar a conjuração do encantamento.');
+        break;
+      }
       if (skill?.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') {
         requireRule(skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
           'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
@@ -313,6 +323,7 @@ export function executeCommand(
         break;
       }
       const alreadyHunting = s.status === "hunting";
+      interruptSageEnchantCast(s, c, now);
       clearBladeStop(s, now);
       if (isFieldSitting(s)) endFieldRest(s, c);
       clearCloseConfine(s, now);
@@ -340,6 +351,7 @@ export function executeCommand(
       break;
     }
     case "stop": {
+      interruptSageEnchantCast(s, c, now);
       clearBladeStop(s, now);
       clearTrickDead(s, c, now); // Leaving the field is a source warp boundary.
       clearCloseConfine(s, now);
@@ -381,6 +393,7 @@ export function executeCommand(
         "CHALLENGE_ACTIVE",
         "Não é possível descansar durante o desafio.",
       );
+      interruptSageEnchantCast(s, c, now);
       const fieldRest = s.areaId !== null && s.status !== "town" &&
         (s.status !== "resting" || s.restMode === "field");
       if (s.status === "town") s.areaId = null;
@@ -497,7 +510,8 @@ export function executeCommand(
               c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
             c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
-            c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate') &&
+            c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate' ||
+            ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(c.skills[id].sourceName ?? '')) &&
             c.skills[id].implementation !== "unsupported",
           "INVALID_ROTATION",
           "A rotação exige habilidades ativas disponíveis e aprendidas.",
@@ -566,6 +580,17 @@ export function executeCommand(
       event(s, now, "sell", `Saque vendido por ${zeny} zeny.`);
       break;
     }
+    case "repairAll": {
+      town(s);
+      const broken = s.inventory.filter(entry => isEquipmentBroken(entry) && c.items[entry.itemId]?.type === 'equipment');
+      requireRule(broken.length > 0, 'NO_BROKEN_EQUIPMENT', 'Não há equipamentos quebrados para reparar.');
+      const price = broken.length * 5000;
+      spend(s, price);
+      for (const entry of broken) delete entry.broken;
+      event(s, now, 'repair', `${broken.length} equipamento(s) reparado(s) por ${price} zeny.`, undefined, undefined,
+        { quantity: broken.length });
+      break;
+    }
     case "identify": {
       requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'ITEM_STATUS_BLOCKED', 'Frenesi impede usar itens e habilidades.');
       const e = owned(s, command.uid);
@@ -600,7 +625,7 @@ export function executeCommand(
       requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de equipar.");
       requireRule(item.equipSupported !== false, "UNSUPPORTED_EQUIPMENT", "A posição ou o tipo deste equipamento ainda não está disponível no modo idle.");
       requireRule(
-        equipAllowed(s, c, item),
+        !e.broken && equipAllowed(s, c, item),
         "EQUIPMENT_REQUIREMENTS",
         "Classe, nível ou posição não permite equipar este item.",
       );
@@ -664,6 +689,7 @@ export function executeCommand(
       town(s);
       const e = owned(s, command.uid);
       requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de refinar.");
+      requireRule(!e.broken, "BROKEN_EQUIPMENT", "Repare este equipamento antes de refinar.");
       const item = c.items[e.itemId];
       requireRule(
         item.type === "equipment" &&
@@ -711,6 +737,7 @@ export function executeCommand(
         "CLASS_REQUIREMENTS",
         "Requisitos de classe, Job, avatar ou ramo não atendidos.",
       );
+      interruptSageEnchantCast(s, c, now);
       const next = c.classes[command.classId];
       s.job = next.id;
       if (!canPecoMount(s, c)) s.mounted = false;
@@ -742,6 +769,7 @@ export function executeCommand(
         "Alto Aprendiz indisponível.",
       );
       spend(s, 50000);
+      interruptSageEnchantCast(s, c, now);
       s.branch ??= s.job;
       s.family ??= c.classes[s.job].family;
       s.reborn = true;
@@ -820,6 +848,7 @@ export function executeCommand(
         "Aguarde o intervalo de uma hora do desafio.",
       );
       requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP primeiro.");
+      interruptSageEnchantCast(s, c, now);
       s.status = "challenge";
       beginBattle(s, c, ch.monsterId, now, ch.id);
       break;

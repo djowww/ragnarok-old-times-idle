@@ -241,6 +241,7 @@ function mastery(stats: ClassicDamageStats, monster: Monster): number {
   if (type === 'instrument') amount += 3 * learned(stats, 'BA_MUSICALLESSON');
   if (type === 'whip') amount += 3 * learned(stats, 'DC_DANCINGLESSON');
   if (type === 'katar') amount += 3 * learned(stats, 'AS_KATAR');
+  if (type === 'book') amount += 3 * learned(stats, 'SA_ADVANCEDBOOK');
   if (['brute', 'insect'].includes(monster.race.toLowerCase())) amount += 4 * learned(stats, 'HT_BEASTBANE');
   if (undead(monster) || monster.race.toLowerCase() === 'demon') amount += integer(learned(stats, 'AL_DEMONBANE') * (3 + (stats.baseLevel ?? 1) / 20));
   return amount;
@@ -371,7 +372,9 @@ export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monste
 }
 
 /** Exact source bonuses expressible with the shared Effects contract. */
-export function classicSkillEffects(skill: Skill, level: number, attributes: Partial<Stats> & { maxHp?: number; maxSp?: number; jobId?: string; skillLevelsBySource?: Record<string, number> } = {}): Effects {
+export function classicSkillEffects(skill: Skill, level: number, attributes: Partial<Stats> & { maxHp?: number; maxSp?: number; jobId?: string; weaponType?: WeaponType; skillLevelsBySource?: Record<string, number> } = {}): Effects {
+  if (skill.sourceName === 'SA_ADVANCEDBOOK')
+    return attributes.weaponType === 'book' ? { aspd: 0.5 * level } : {};
   const music = attributes.skillLevelsBySource?.BA_MUSICALLESSON ?? 0;
   const dance = attributes.skillLevelsBySource?.DC_DANCINGLESSON ?? 0;
   switch (sourceOf(skill)) {

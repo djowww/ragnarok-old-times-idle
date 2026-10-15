@@ -134,7 +134,7 @@ function* advanceStateSteps(
   while (s.lastSimulatedAt + 250 <= until) {
     // A fully recovered avatar in town has no combat deadlines to process.
     // Skip empty offline ticks while preserving the same persisted clock.
-    if (s.status === "town" && Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
+    if (s.status === "town" && !s.supportCast && Object.keys(s.buffs).length === 0 && Object.keys(s.playerStatuses ?? {}).length === 0) {
       const stats = derivedStats(s, catalog);
       if (s.hp >= stats.maxHp && s.sp >= stats.maxSp) {
         const gap = Math.floor((until - s.lastSimulatedAt) / 250) * 250;
@@ -221,6 +221,24 @@ function resumePausedState(s: GameState, now: number) {
   const shift = (at: number) => Number.isFinite(at) ? Math.min(Number.MAX_SAFE_INTEGER, at + gap) : at;
   const optional = (at: number | undefined) => at === undefined ? undefined : shift(at);
   s.nextEncounterAt = shift(s.nextEncounterAt);
+  if (s.supportCast) {
+    s.supportCast.startedAt = shift(s.supportCast.startedAt);
+    s.supportCast.endsAt = shift(s.supportCast.endsAt);
+    if (s.supportCast.battleClockOwnership) {
+      if (s.supportCast.battleClockOwnership.battleIdentity)
+        s.supportCast.battleClockOwnership.battleIdentity.startedAt = shift(s.supportCast.battleClockOwnership.battleIdentity.startedAt);
+      if (s.supportCast.battleClockOwnership.actionReadyAt !== undefined)
+        s.supportCast.battleClockOwnership.actionReadyAt = shift(s.supportCast.battleClockOwnership.actionReadyAt);
+      if (s.supportCast.battleClockOwnership.nextSkillAt !== undefined)
+        s.supportCast.battleClockOwnership.nextSkillAt = shift(s.supportCast.battleClockOwnership.nextSkillAt);
+      if (s.supportCast.battleClockOwnership.nextAttackAt !== undefined)
+        s.supportCast.battleClockOwnership.nextAttackAt = shift(s.supportCast.battleClockOwnership.nextAttackAt);
+      if (s.supportCast.battleClockOwnership.ownedActionReadyAt !== undefined)
+        s.supportCast.battleClockOwnership.ownedActionReadyAt = shift(s.supportCast.battleClockOwnership.ownedActionReadyAt);
+      if (s.supportCast.battleClockOwnership.ownedNextSkillAt !== undefined)
+        s.supportCast.battleClockOwnership.ownedNextSkillAt = shift(s.supportCast.battleClockOwnership.ownedNextSkillAt);
+    }
+  }
   s.restUntil = s.restUntil > 0 ? shift(s.restUntil) : 0;
   s.potionReadyAt = shift(s.potionReadyAt);
   for (const id of Object.keys(s.skillReadyAt)) s.skillReadyAt[id] = shift(s.skillReadyAt[id]);

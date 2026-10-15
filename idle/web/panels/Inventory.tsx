@@ -69,6 +69,7 @@ export default function Inventory({
   );
   const equipAllowed =
     item?.type === "equipment" &&
+    !entry?.broken &&
     item.equipSupported !== false &&
     item.slot &&
     identified &&
@@ -142,6 +143,8 @@ export default function Inventory({
                 <span className="item-cell-meta">
                   {equipped.has(e.uid)
                     ? "Equipado"
+                    : e.broken
+                      ? "Quebrado"
                     : e.favorite
                       ? "Favorito"
                       : `${number(e.quantity)} un.`}
@@ -199,6 +202,7 @@ export default function Inventory({
               <ItemIcon item={item} />
               <div>
                 <h3>{itemName(item, entry)}</h3>
+                {entry.broken && <span className="note">Quebrado · repare na oficina de Prontera.</span>}
                 {item.type === "equipment" && (
                   <span className="item-rarity-label">{itemRarityLabel(entry)}</span>
                 )}
