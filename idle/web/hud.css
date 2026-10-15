@@ -141,6 +141,44 @@
   text-overflow: ellipsis;
 }
 
+.hero-panel .hero-identity .hud-city-access {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin: -3px 0 0 5px;
+  padding: 3px;
+  border: 1px solid #91a9ae;
+  border-radius: 50%;
+  color: #43645d;
+  background: linear-gradient(#f5f2dc, #cbd9d7);
+  box-shadow: inset 0 1px #fff, 0 1px 2px #15304155;
+  cursor: pointer;
+}
+
+.hero-panel .hero-identity .hud-city-access:hover:not(:disabled),
+.hero-panel .hero-identity .hud-city-access:focus-visible {
+  border-color: #b58f43;
+  color: #70562b;
+  box-shadow: 0 0 0 2px #f3d7898c, inset 0 1px #fff;
+}
+
+.hero-panel .hero-identity .hud-city-access:disabled {
+  opacity: .48;
+  cursor: progress;
+}
+
+.hud-city-access svg {
+  width: 17px;
+  height: 17px;
+  fill: #aec3b4;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .hero-panel .hero-vitals {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -399,19 +437,11 @@
   background: #bccbc9c7;
 }
 
-.classic-shortcut small {
-  position: absolute;
-  top: 1px;
-  left: 2px;
-  font: 700 8px Tahoma, sans-serif;
-  color: #5e6d6d;
-}
-
 .classic-shortcut b {
   font: 700 13px Georgia, serif;
 }
 .classic-shortcut .skill-icon {
-  margin-top: 6px;
+  margin-top: 0;
 }
 .classic-shortcut.is-waiting .skill-icon {
   opacity: 0.64;

@@ -109,7 +109,18 @@ describe('all real catalog class routes', () => {
     // Controlled high EXP encounter accelerates the clock without bypassing the real engine or class curves.
     c.areas[0].monsters = [1002]; c.monsters[1002].hp = 1; c.monsters[1002].baseExp = 10000000000; c.monsters[1002].jobExp = 10000000000; c.monsters[1002].drops = [];
     let at = 0; let s = createInitialState(c, at); s = applyCommand(s, c, { type: 'setGender', gender: gender as 'male'|'female' }, at);
-    const levelByHunting = () => { s = applyCommand(s, c, { type: 'startHunt', areaId: c.areas[0].id }, at); at += 10000; s = advanceState(s, c, at); s = applyCommand(s, c, { type: 'stop' }, at); };
+    const levelByHunting = () => {
+      s = applyCommand(s, c, { type: 'startHunt', areaId: c.areas[0].id }, at);
+      at += 10000; s = advanceState(s, c, at);
+      const retreating = s.battle !== null;
+      s = applyCommand(s, c, { type: 'stop' }, at);
+      // Only a live encounter incurs retreat recovery before class changes.
+      if (retreating) {
+        expect(s.status).toBe('resting'); expect(s.restUntil).toBe(at + 10000);
+        at += 10000; s = advanceState(s, c, at);
+      }
+      expect(s.status).toBe('town');
+    };
     levelByHunting(); expect(s.jobLevel).toBe(10); expect(s.baseLevel).toBe(99); expect(s.baseExp).toBe(0); expect(s.skillPoints).toBe(9);
     s = applyCommand(s, c, { type: 'changeClass', classId: first }, at); levelByHunting(); expect(s.jobLevel).toBe(50); expect(s.jobExp).toBe(0);
     s = applyCommand(s, c, { type: 'changeClass', classId: second }, at); levelByHunting(); expect(s.jobLevel).toBe(50); expect(s.skillPoints).toBe(107);

@@ -18,9 +18,13 @@ describe('command boundary', () => {
   });
   it('rejects malformed rotations, thresholds, and stat names', () => {
     expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'a'] } })).toThrow();
-    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd'] } })).toThrow();
+    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'setPotions', hpThreshold: 101, spThreshold: 30 } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'allocate', stat: 'power', amount: 1 } })).toThrow();
+  });
+  it('accepts all nine priority slots without truncating the rotation', () => {
+    const command = { type: 'setRotation' as const, skillIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'] };
+    expect(parseCommandRequest({ requestId, command })).toEqual({ requestId, command });
   });
   it('accepts a real purchase intention without converting it into a reward', () => {
     expect(parseCommandRequest({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } }))
