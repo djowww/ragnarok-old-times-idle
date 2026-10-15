@@ -1,0 +1,7 @@
+{
+  "publicGameUrl": "https://187.77.238.51:8443/",
+  "allowedDocumentationPaths": [
+    "README.md",
+    "README.en.md"
+  ]
+}

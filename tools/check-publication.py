@@ -8,17 +8,24 @@ import re
 import subprocess
 import sys
 
-PRIVATE_DIRS = {'deploy', 'merge', 'ops', 'releases', 'backups'}
+PRIVATE_DIRS = {'deploy', 'merge', 'ops', 'releases', 'backups', '.superpowers'}
 PRIVATE_FILES = {'compose.production.yaml', 'database.sql', 'docs/cloud-environment.md'}
 IPV4 = re.compile(r'(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])')
 DOCUMENTATION = tuple(ipaddress.ip_network(x) for x in ('192.0.2.0/24', '198.51.100.0/24', '203.0.113.0/24'))
 CREDENTIALS = re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[A-Z0-9]{16}')
 PERSONAL_PATH = re.compile(r'(?:[A-Z]:[\\/](?:Users|Documents and Settings)[\\/]|/root/\.ssh/|/opt/[^\s]+/(?:releases|backups)/)', re.I)
 
+POLICY_PATH = 'tools/publication-policy.json'
+PUBLIC_POLICY = json.loads(Path(__file__).with_name('publication-policy.json').read_text())
+PUBLIC_GAME_URL = PUBLIC_POLICY['publicGameUrl']
+PUBLIC_DOCUMENTATION = frozenset(PUBLIC_POLICY['allowedDocumentationPaths'])
+
+
 
 def path_reason(path):
     p = Path(path)
-    if p.parts and p.parts[0] in PRIVATE_DIRS or path in PRIVATE_FILES:
+    if (p.parts and p.parts[0] in PRIVATE_DIRS or path in PRIVATE_FILES or
+            path.startswith('docs/superpowers/')):
         return 'arquivo operacional privado'
     if p.name.startswith('.env') and p.name != '.env.example':
         return 'arquivo de ambiente privado'
@@ -27,13 +34,17 @@ def path_reason(path):
     return None
 
 
-def text_reasons(text):
+def text_reasons(text, public_urls=()):
     for number, line in enumerate(text.splitlines(), 1):
         if CREDENTIALS.search(line):
             yield number, 'possível credencial'
         if PERSONAL_PATH.search(line):
             yield number, 'caminho operacional pessoal'
+        allowed_spans = [match.span() for url in public_urls
+                         for match in re.finditer(r'(?<![\w:/?=&@.%#-])' + re.escape(url) + r'(?=$|[\s)"<>])', line)]
         for match in IPV4.finditer(line):
+            if any(start <= match.start() and match.end() <= end for start, end in allowed_spans):
+                continue
             try:
                 address = ipaddress.ip_address(match.group())
             except ValueError:
@@ -54,7 +65,8 @@ def check_file(path, data):
         text = data.decode('utf-8')
     except UnicodeDecodeError:
         return
-    yield from text_reasons(text)
+    public_urls = (PUBLIC_GAME_URL,) if path in PUBLIC_DOCUMENTATION or path == POLICY_PATH else ()
+    yield from text_reasons(text, public_urls)
 
 
 def git(*args):

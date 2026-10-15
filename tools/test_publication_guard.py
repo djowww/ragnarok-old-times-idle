@@ -14,6 +14,27 @@ class PublicationGuardTests(unittest.TestCase):
     def test_loopback_and_reserved_examples_are_allowed(self):
         self.assertEqual(list(guard.check_file('README.md', b'http://127.0.0.1:3339 https://203.0.113.10')), [])
 
+    def test_explicit_public_game_url_is_allowed_only_in_readmes_and_policy(self):
+        import json
+        url = json.loads(Path(__file__).with_name('publication-policy.json').read_text())['publicGameUrl']
+        for path in ['README.md', 'README.en.md', 'tools/publication-policy.json']:
+            self.assertEqual(list(guard.check_file(path, ('[Jogar](' + url + ')').encode())), [], path)
+        for path in ['notes.md', 'idle/server/example.ts', '.env.example']:
+            self.assertTrue(list(guard.check_file(path, url.encode())), path)
+
+    def test_public_url_exception_does_not_allow_other_uses_of_its_ip(self):
+        import json
+        from urllib.parse import urlsplit
+        url = json.loads(Path(__file__).with_name('publication-policy.json').read_text())['publicGameUrl']
+        host = urlsplit(url).hostname
+        for text in [host, 'ssh root@' + host, 'https://' + host + ':22/', url + 'admin', url + '?token=example', url + '@other.example.test/', 'https://proxy.example.test/?to=' + url, 'prefix' + url]:
+            self.assertTrue(list(guard.check_file('README.md', text.encode())), text)
+        self.assertTrue(list(guard.check_file('README.md', (url + ' ' + host).encode())))
+
+    def test_internal_prompt_directories_are_blocked(self):
+        for path in ['docs/superpowers/plans/example.md', '.superpowers/sdd/run.json']:
+            self.assertTrue(list(guard.check_file(path, b'example')), path)
+
     def test_operational_files_are_blocked(self):
         for path in ['deploy/server.conf', 'ops/notes.md', '.env.production', 'backup.sql.gz', 'server.key']:
             self.assertTrue(list(guard.check_file(path, b'')), path)

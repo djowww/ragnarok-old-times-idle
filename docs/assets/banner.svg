@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-labelledby="title desc">
+  <title id="title">Ragnarok Old Times Idle</title>
+  <desc id="desc">Rune-Midgard no seu ritmo. RPG idle no navegador inspirado no clássico Pre-Renewal.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#142f3d"/><stop offset="1" stop-color="#284b56"/></linearGradient>
+    <radialGradient id="light"><stop stop-color="#d5c89d" stop-opacity=".18"/><stop offset="1" stop-color="#d5c89d" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1280" height="300" rx="12" fill="url(#sky)"/>
+  <rect x="12" y="12" width="1256" height="276" rx="6" fill="none" stroke="#b7a479" stroke-opacity=".55"/>
+  <ellipse cx="1030" cy="100" rx="330" ry="250" fill="url(#light)"/>
+  <g fill="#0f2632" opacity=".8">
+    <path d="M846 284V160h35v-37l18-30 18 30v37h28V106h18V89l18-28 18 28v17h18v54h28v-27l18-28 18 28v27h36v124z"/>
+    <path d="M1000 284V155h22v-39l12-22 12 22v39h15v-29h29v-34l18-29 18 29v34h29v29h17v-39l12-22 12 22v39h22v129z"/>
+  </g>
+  <g fill="#b9aa80" opacity=".25"><rect x="893" y="183" width="10" height="20" rx="5"/><rect x="978" y="140" width="10" height="20" rx="5"/><rect x="1102" y="157" width="10" height="20" rx="5"/></g>
+  <path d="M62 72h54m-54 148h360" stroke="#c1ab74" stroke-width="2" opacity=".85"/>
+  <text x="60" y="139" fill="#f5ecd2" font-family="Georgia,serif" font-weight="bold" font-size="68" letter-spacing="1">Ragnarok</text>
+  <text x="64" y="180" fill="#d0bc85" font-family="Tahoma,Arial,sans-serif" font-size="24" letter-spacing="7">OLD TIMES IDLE</text>
+  <text x="64" y="251" fill="#c8d8d9" font-family="Tahoma,Arial,sans-serif" font-size="18">Rune-Midgard no seu ritmo.</text>
+  <text x="1216" y="266" text-anchor="end" fill="#bac8c9" font-family="Tahoma,Arial,sans-serif" font-size="12" letter-spacing="2">PRE-RENEWAL · BROWSER RPG</text>
+</svg>
