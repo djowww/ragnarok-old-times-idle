@@ -33,7 +33,7 @@ import {
 } from "../assets/sceneEffects";
 import { loadGroundLoot, type GroundLootVisual } from "../assets/groundLoot";
 import { groundTrapVisualState, loadGroundTrap, spentGroundTrap, hasSceneAction, trapCueAction } from "../assets/groundTraps";
-import { ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectMapArea, projectMapPoint, sceneGroundPoint, screenGroundPoint, walkableSceneGroundPoint, type MapProjection, type WorldPoint } from "../assets/mapProjection";
+import { battleRouteTangent, ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectBattlePoint, projectMapArea, projectMapPoint, sceneGroundPoint, screenGroundPoint, walkableSceneGroundPoint, type FieldMapOrigin, type MapProjection, type WorldPoint } from "../assets/mapProjection";
 import { getMapLife, mapLifeCanWalk, mapLifePoseAt, mapLifeSpeechAt, prepareMapLife } from "../assets/mapLife";
 import { POST_WAVE_SEARCH_MS } from "../../shared/hunt";
 import { isTownScene } from "../../shared/worldScene";
@@ -568,9 +568,16 @@ function enemyArrival(enemy: BattleEnemy, serverNow: number, hero: NormalizedPoi
   };
 }
 
-function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, sourceOnly = false, movement?: ConnectedMapMovement): GroundPosition {
+function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, sourceOnly = false, movement?: ConnectedMapMovement, fieldOrigin?: FieldMapOrigin): GroundPosition {
   const arrival = enemyArrival(enemy, serverNow, hero, sourceOnly);
   if (!camera) return { point: arrival.point };
+  if (fieldOrigin && enemy.fieldSlot !== undefined) {
+    const position = enemyPositionAt(enemy, serverNow);
+    const progress = enemyApproachProgress(enemy, serverNow);
+    return { point: arrival.point, world: projectBattlePoint(camera, position, fieldOrigin),
+      tangent: enemy.movementRoute?.length ? battleRouteTangent(camera, enemy.movementRoute, progress, fieldOrigin)
+        : projectBattlePoint(camera, enemy.position, fieldOrigin) };
+  }
   if (enemy.fieldSlot !== undefined && movement) {
     const pose = movement.project(camera, enemy.id,
       JSON.stringify([enemy.startedAt, enemy.arrivedAt, arrival.from, arrival.target]),
@@ -588,8 +595,8 @@ function enemyGroundPosition(camera: MapProjection | null, enemy: BattleEnemy, s
   const y = source[2] + (edge[2] - from[2]) * edgeAmount;
   return { point: arrival.point, world: [x, mapGroundHeight(camera, x - 0.5, y - 0.5), y] };
 }
-function projectEnemyArrival(camera: MapProjection, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, width: number, height: number, sourceOnly = false, movement?: ConnectedMapMovement) {
-  return projectMapPoint(camera, enemyGroundPosition(camera, enemy, serverNow, hero, anchor, sourceOnly, movement).world!, width, height);
+function projectEnemyArrival(camera: MapProjection, enemy: BattleEnemy, serverNow: number, hero: NormalizedPoint, anchor: NormalizedPoint, width: number, height: number, sourceOnly = false, movement?: ConnectedMapMovement, fieldOrigin?: FieldMapOrigin) {
+  return projectMapPoint(camera, enemyGroundPosition(camera, enemy, serverNow, hero, anchor, sourceOnly, movement, fieldOrigin).world!, width, height);
 }
 function skillFor(event: GameEvent, skills: Record<string, Skill>): Skill | undefined {
   return sceneEventSkill(event, skills);
@@ -696,6 +703,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       ? "town"
       : (area?.scene ?? "field");
   const mapName = scene === "town" ? "prontera" : (area?.map ?? "prontera");
+  const mapOrigin = area?.fieldNavigation?.map === mapName ? area.fieldNavigation.origin : undefined;
   const mapLife = useMemo(() => getMapLife(mapName, area, catalog), [mapName, area, catalog]);
   const ambientActors = useRef(new Map<string, DecodedActor>());
   useEffect(() => {
@@ -849,9 +857,10 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         const point = battleScenePoint(strike.point, FIELD_SCENE_ORIGIN);
         const camera = projection.current?.map === mapName ? projection.current : null;
         const { movement } = strike;
-        const world = camera ? projectStrikeContact(connectedMovement.current, camera, state.id, cue.actionId, strike,
-          sceneGroundPoint(camera, battleScenePoint(movement.from, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN),
-          sceneGroundPoint(camera, battleScenePoint(movement.position, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN), ground?.world) : undefined;
+        const world = camera ? mapOrigin ? projectBattlePoint(camera, strike.point, mapOrigin)
+          : projectStrikeContact(connectedMovement.current, camera, state.id, cue.actionId, strike,
+            sceneGroundPoint(camera, battleScenePoint(movement.from, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN),
+            sceneGroundPoint(camera, battleScenePoint(movement.position, FIELD_SCENE_ORIGIN), FIELD_SCENE_ORIGIN), ground?.world) : undefined;
         ground = { point, world };
       }
       if (ground) cue.sourceGround = ground;
@@ -946,7 +955,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         const point = battleScenePoint(event.enemyPosition, event.areaId ? FIELD_SCENE_ORIGIN : anchor);
         const camera = projection.current?.map === mapName ? projection.current : null;
         return { point, world: camera ? event.areaId
-          ? walkableSceneGroundPoint(camera, point, anchor)
+          ? mapOrigin ? projectBattlePoint(camera, event.enemyPosition!, mapOrigin) : walkableSceneGroundPoint(camera, point, anchor)
           : sceneGroundPoint(camera, point, anchor) : undefined };
       };
       // A fast kill may occur entirely between two polls. Keep its recorded
@@ -972,7 +981,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           const camera = projection.current?.map === mapName ? projection.current : null;
           entry.ground = entry.enemy.fieldSlot !== undefined
             ? enemyGroundPosition(camera, entry.enemy, killed.at, hero,
-              { x: 0.48, y: 0.76 }, offensiveTargets.current.has(id), connectedMovement.current)
+              { x: 0.48, y: 0.76 }, offensiveTargets.current.has(id), connectedMovement.current, mapOrigin)
             : eventGround(killed) ?? enemyGroundPosition(camera, entry.enemy, killed.at, hero,
               { x: state.status === "challenge" ? 0.38 : 0.48, y: 0.76 }, offensiveTargets.current.has(id));
         }
@@ -1225,6 +1234,8 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const soloPosture = soloPostureAt(current, catalog, serverNow);
       const groupHeroCue = isArriving || soloPosture.playDead ? undefined : heroPresentation.current.actionAt(combatCues.current.filter(cue => !cue.blocked), current.id, time);
       const camera = projection.current?.map === mapName ? projection.current : null;
+      const currentArea = catalog.areas.find(candidate => candidate.id === current.areaId);
+      const fieldOrigin = currentArea?.fieldNavigation?.map === mapName ? currentArea.fieldNavigation.origin : undefined;
       // The scene origin stays stable through roaming and combat.
       const formationAnchor = { x: current.status === "challenge" ? 0.38 : 0.48, y: 0.76 };
       const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && scene !== "town" && current.status !== "challenge";
@@ -1313,7 +1324,17 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const enemyPoint = primaryEnemy?.ground?.point ?? primaryArrival?.point ?? encounter?.enemy ?? { x: 0.66, y: 0.76 };
       const heroFromWorld = camera ? sceneGroundPoint(camera, motionState.from, formationAnchor) : null;
       const heroToWorld = camera ? sceneGroundPoint(camera, motionState.target, formationAnchor) : null;
-      const heroMovement = camera && !strikePose && fieldPopulation && current.fieldHero
+      const fieldHeroPoint = fieldPopulation && current.fieldHero ? battleHeroAt(current, serverNow) : undefined;
+      const fieldHeroWorld = camera && fieldOrigin && fieldHeroPoint ? projectBattlePoint(camera, fieldHeroPoint, fieldOrigin) : undefined;
+      const fieldHeroTangent = camera && fieldOrigin && current.fieldHero
+        ? current.fieldHero.movementRoute?.length
+          ? battleRouteTangent(camera, current.fieldHero.movementRoute,
+            Math.max(0, Math.min(1, (serverNow - current.fieldHero.startedAt) / Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt))), fieldOrigin)
+          : projectBattlePoint(camera, current.fieldHero.position, fieldOrigin)
+        : undefined;
+      const heroMovement = camera && !strikePose && fieldPopulation && current.fieldHero && fieldOrigin && fieldHeroWorld && fieldHeroTangent
+        ? { world: fieldHeroWorld, tangent: fieldHeroTangent }
+        : camera && !strikePose && fieldPopulation && current.fieldHero && !fieldOrigin
         ? connectedMovement.current.project(camera, current.id,
           JSON.stringify([current.fieldHero.startedAt, current.fieldHero.arrivedAt, current.fieldHero.from, current.fieldHero.position]),
           heroFromWorld!, heroToWorld!,
@@ -1321,11 +1342,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
             Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt),
           { now: time, maxSpeed: current.status === 'paused' || serverNow < current.fieldHero.startedAt ? 0 : Math.hypot(heroToWorld![0] - heroFromWorld![0], heroToWorld![2] - heroFromWorld![2]) /
             Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt) }) : null;
-      const heroPlacement = camera ? projectMapPoint(camera, strikePose?.ground.world ?? (fieldPopulation
+      const heroPlacement = camera ? projectMapPoint(camera, fieldHeroWorld ?? strikePose?.ground.world ?? (fieldPopulation
         ? heroMovement?.world ?? walkableSceneGroundPoint(camera, heroPoint, formationAnchor)
         : sceneGroundPoint(camera, heroPoint, formationAnchor)), width, height) : null;
       renderedHeroGround.current = { map: mapName, areaId: current.areaId,
-        ground: { point: { ...heroPoint }, world: heroPlacement?.world } };
+        ground: { point: fieldHeroPoint ? battleScenePoint(fieldHeroPoint, FIELD_SCENE_ORIGIN) : { ...heroPoint }, world: heroPlacement?.world } };
       mapFollow.current = fieldPopulation ? heroPlacement?.world ?? null : null;
       const castingSkill = casting ? catalog.skills[casting.skillId] : undefined;
       const castPoint = casting?.position && castingSkill?.targetType === "ground" ? battleScenePoint(casting.position, fieldPopulation ? formationAnchor : heroPoint) : undefined;
@@ -1336,7 +1357,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       };
       const enemyPlacement = camera ? primaryEnemy
         ? primaryEnemy.ground?.world ? projectMapPoint(camera, primaryEnemy.ground.world, width, height)
-          : projectEnemyArrival(camera, primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, formationAnchor, width, height, offensiveTargets.current.has(primaryEnemy.enemy.id), connectedMovement.current)
+          : projectEnemyArrival(camera, primaryEnemy.enemy, primaryEnemy.deadServerAt ?? serverNow, primaryHero, formationAnchor, width, height, offensiveTargets.current.has(primaryEnemy.enemy.id), connectedMovement.current, fieldOrigin)
         : projectMapPoint(camera, sceneGroundPoint(camera, enemyContactPoint, formationAnchor), width, height) : null;
       const heroBaseX = heroPlacement?.x ?? width * heroPoint.x;
       const enemyX = enemyPlacement?.x ?? width * enemyPoint.x;
@@ -1433,7 +1454,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           const sourceOnly = offensiveTargets.current.has(entry.enemy.id);
           const arrival = enemyArrival(entry.enemy, entry.deadServerAt ?? serverNow, entry.hero, sourceOnly);
           const ground = entry.ground ?? enemyGroundPosition(camera, entry.enemy, entry.deadServerAt ?? serverNow,
-            entry.hero, formationAnchor, sourceOnly, connectedMovement.current);
+            entry.hero, formationAnchor, sourceOnly, connectedMovement.current, fieldOrigin);
           const placement = camera && ground.world ? projectMapPoint(camera, ground.world, width, height) : null;
           const facing = placement ? walkDirection({ x: placement.x, y: placement.y }, { x: heroBaseX, y: heroGround })
             : walkDirection(arrival.target, heroPoint);
@@ -1547,7 +1568,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
           const sourceOnly = offensiveTargets.current.has(entry.enemy.id);
           const arrival = enemyArrival(entry.enemy, entry.deadServerAt ?? serverNow, entry.hero, sourceOnly);
           const groundPose = entry.ground ?? enemyGroundPosition(camera, entry.enemy, entry.deadServerAt ?? serverNow,
-            entry.hero, formationAnchor, sourceOnly, connectedMovement.current);
+            entry.hero, formationAnchor, sourceOnly, connectedMovement.current, fieldOrigin);
           const placement = camera && groundPose.world ? projectMapPoint(camera, groundPose.world, width, height) : null;
           const destination = camera ? projectMapPoint(camera, groundPose.tangent ?? sceneGroundPoint(camera, arrival.target, formationAnchor), width, height) : null;
           const walking = arrival.walking && (!groundPose.tangent || !groundPose.world ||
@@ -1983,7 +2004,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
   }, [scene, mapName, catalog, mapLife, mapReady, isArriving]);
   return (
     <div className={`scene scene-${scene} ${mapReady ? "map-ready" : "map-not-ready"}`}>
-      <OriginalMap map={mapName} followTarget={mapFollow} nativeActors={nativeActors} onStatusChange={setMapStatus} onProjection={(value) => { projection.current = value; }} />
+      <OriginalMap map={mapName} fieldOrigin={mapOrigin} followTarget={mapFollow} nativeActors={nativeActors} onStatusChange={setMapStatus} onProjection={(value) => { projection.current = value; }} />
       <canvas
         ref={canvas}
         aria-hidden={!mapReady}

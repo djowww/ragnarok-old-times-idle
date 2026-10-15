@@ -14,15 +14,19 @@ import type { PortalQueries } from './portal/types.js';
 import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
 import { SessionGameProfiles } from './profiles.js';
-export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses }: AppOptions) {
+import type { SimulationContext } from '../engine/fieldNavigation.js';
+export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
   const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles);
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
+  const gameplayWritePaths = new Set(['/api/session/open', '/api/session', '/api/command', '/api/admin/action']);
   app.addHook('onRequest', async (request, reply) => {
     if (!request.url.startsWith('/api/')) return;
     reply.header('Cache-Control', 'no-store');
     if (request.method === 'POST') assertAllowedMutation({ origin: request.headers.origin, secFetchSite: request.headers['sec-fetch-site'] as string | undefined, contentType: request.headers['content-type'] }, allowedMutationOrigins);
+    if (!navigationReady && request.method === 'POST' && gameplayWritePaths.has(request.url.split('?', 1)[0]))
+      return reply.code(503).send({ error: { code: 'FIELD_NAVIGATION_UNAVAILABLE', message: 'A navegação do mapa está indisponível. O progresso do personagem está temporariamente bloqueado.' } });
   });
   app.setErrorHandler(async (error, request, reply) => {
     if (error instanceof PortalError) return reply.code(error.statusCode).send({ error: { code: error.code, message: error.message, ...(error.fields ? { fields: error.fields } : {}) } });
@@ -40,12 +44,12 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
   const auth = createAuthService({ accounts, catalog, now, secureCookie });
   await registerAuthRoutes(app, auth, trustedProxyAddresses);
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
-  await registerGameRoutes(app, { auth, profiles: gameProfiles, catalog, now });
+  await registerGameRoutes(app, { auth, profiles: gameProfiles, catalog, now, context: simulationContext });
   registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, gameProfiles), now);
-  registerAdminRoutes(app, request => resolveGameRepository(request, auth, gameProfiles), catalog, now, adminToken, trustedProxyAddresses);
+  registerAdminRoutes(app, request => resolveGameRepository(request, auth, gameProfiles), catalog, now, adminToken, trustedProxyAddresses, simulationContext);
   app.get('/api/catalog', async () => catalog);
   app.get('/api/health', async (_request, reply) => {
-    const healthy = (await accounts.health()) && (await profiles.health());
+    const healthy = navigationReady && (await accounts.health()) && (await profiles.health());
     return reply.code(healthy ? 200 : 503).send({ status: healthy ? 'ok' : 'unavailable', catalogVersion: catalog.version });
   });
   // Explicit HEAD avoids Fastify's generated HEAD hook replacing the upstream

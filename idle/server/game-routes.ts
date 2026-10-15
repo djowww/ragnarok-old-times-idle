@@ -9,6 +9,7 @@ import type { AccountView } from '../shared/portal-types.js';
 import { advanceState, advanceStateCooperatively, applyCommand, getSnapshot } from '../engine/index.js';
 import { parseCommandRequest } from './validation.js';
 import { parseSessionOpenRequest, SessionStateRepository } from './sessionState.js';
+import type { SimulationContext } from '../engine/fieldNavigation.js';
 
 const callerRepositories = new WeakMap<FastifyRequest, StateRepository>();
 export function callerRepository(request: FastifyRequest): StateRepository | undefined { return callerRepositories.get(request); }
@@ -54,21 +55,21 @@ function recordContact(state: GameState, result: GameState, now: number): GameSt
   result.contactTotals = structuredClone(result.totals);
   return result;
 }
-function contact(state: GameState, catalog: Catalog, now: number): GameState {
-  return recordContact(state, advanceState(state, catalog, now), now);
+function contact(state: GameState, catalog: Catalog, now: number, context?: SimulationContext): GameState {
+  return recordContact(state, advanceState(state, catalog, now, context), now);
 }
-async function contactCooperatively(state: GameState, catalog: Catalog, now: number): Promise<GameState> {
-  return recordContact(state, await advanceStateCooperatively(state, catalog, now), now);
+async function contactCooperatively(state: GameState, catalog: Catalog, now: number, context?: SimulationContext): Promise<GameState> {
+  return recordContact(state, await advanceStateCooperatively(state, catalog, now, context), now);
 }
-export async function registerGameRoutes(app: FastifyInstance, { auth, profiles, catalog, now }: { auth: AuthService; profiles: GameProfiles; catalog: Catalog; now: () => number }): Promise<void> {
+export async function registerGameRoutes(app: FastifyInstance, { auth, profiles, catalog, now, context }: { auth: AuthService; profiles: GameProfiles; catalog: Catalog; now: () => number; context?: SimulationContext }): Promise<void> {
   app.post('/api/session/open', async request => {
     const repository = await resolveGameRepository(request, auth, profiles);
     const connectionId = parseSessionOpenRequest(request.body);
     if (!(repository instanceof SessionStateRepository)) throw new Error('Profile session repository is unavailable');
     const at = now();
     const state = repository.openSessionCooperatively
-      ? await repository.openSessionCooperatively(connectionId, old => contactCooperatively(old, catalog, at))
-      : await repository.openSession(connectionId, old => contact(old, catalog, at));
+      ? await repository.openSessionCooperatively(connectionId, old => contactCooperatively(old, catalog, at, context))
+      : await repository.openSession(connectionId, old => contact(old, catalog, at, context));
     return getSnapshot(state, catalog, at);
   });
   app.post('/api/session', async request => {
@@ -78,10 +79,10 @@ export async function registerGameRoutes(app: FastifyInstance, { auth, profiles,
     // Keep persisted heartbeats below the offline-summary threshold so an
     // active browser session is never mistaken for a player returning later.
     if (at - current.lastSeenAt < SESSION_CONTACT_INTERVAL_MS)
-      return getSnapshot(advanceState(current, catalog, at), catalog, at);
+      return getSnapshot(advanceState(current, catalog, at, context), catalog, at);
     const state = repository.transactCooperatively
-      ? await repository.transactCooperatively(null, old => contactCooperatively(old, catalog, at))
-      : await repository.transact(null, old => contact(old, catalog, at));
+      ? await repository.transactCooperatively(null, old => contactCooperatively(old, catalog, at, context))
+      : await repository.transact(null, old => contact(old, catalog, at, context));
     return getSnapshot(state, catalog, at);
   });
   app.post('/api/command', async request => {
@@ -93,8 +94,8 @@ export async function registerGameRoutes(app: FastifyInstance, { auth, profiles,
     const at = now();
     const fingerprint = createHash('sha256').update(JSON.stringify(input.command)).digest('hex');
     const state = repository.transactCooperatively
-      ? await repository.transactCooperatively(input.requestId, async old => applyCommand(await contactCooperatively(old, catalog, at), catalog, input.command, at), fingerprint)
-      : await repository.transact(input.requestId, old => applyCommand(contact(old, catalog, at), catalog, input.command, at), fingerprint);
+      ? await repository.transactCooperatively(input.requestId, async old => applyCommand(await contactCooperatively(old, catalog, at, context), catalog, input.command, at, context), fingerprint)
+      : await repository.transact(input.requestId, old => applyCommand(contact(old, catalog, at, context), catalog, input.command, at, context), fingerprint);
     return getSnapshot(state, catalog, at);
   });
 }

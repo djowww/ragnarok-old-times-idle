@@ -9,6 +9,7 @@ import { advanceState, advanceStateCooperatively } from '../engine/index.js';
 import { isIP } from 'node:net';
 import type { StateRepository } from './repository.js';
 import { ValidationError } from './validation.js';
+import type { SimulationContext } from '../engine/fieldNavigation.js';
 
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
@@ -227,6 +228,7 @@ export function registerAdminRoutes(
   now: () => number,
   configuredToken?: string,
   trustedProxyAddresses: readonly string[] = [],
+  context?: SimulationContext,
 ): void {
   const expected = configuredToken && configuredToken.length >= 32 && configuredToken.length <= 256
     ? digest(configuredToken)
@@ -307,13 +309,13 @@ export function registerAdminRoutes(
     // next player's offline summary. Settle elapsed simulation before grants.
     if (repository.transactCooperatively) {
       await repository.transactCooperatively(requestId, async state => {
-        const settled = await advanceStateCooperatively(state, catalog, at);
+        const settled = await advanceStateCooperatively(state, catalog, at, context);
         applyAction(settled, catalog, action, at);
         return settled;
       }, fingerprint);
     } else {
       await repository.transact(requestId, state => {
-        const settled = advanceState(state, catalog, at);
+        const settled = advanceState(state, catalog, at, context);
         applyAction(settled, catalog, action, at);
         return settled;
       }, fingerprint);

@@ -19,4 +19,15 @@ describe('original map viewer coverage', () => {
 
         expect(rejectedAreas).toEqual([]);
     });
+
+    it('passes the catalog GAT origin to the native map viewer', async () => {
+        vi.stubGlobal('window', { location: {
+            hostname: 'game.example', protocol: 'https:', origin: 'https://game.example',
+        } });
+        const { default: OriginalMap } = await import('../web/components/OriginalMap');
+        const markup = renderToStaticMarkup(createElement(OriginalMap, {
+            map: 'prt_fild08', fieldOrigin: { x: 199, y: 199 },
+        }));
+        expect(markup).toContain('originX=199&amp;originY=199');
+    });
 });

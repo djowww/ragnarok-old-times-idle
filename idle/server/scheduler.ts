@@ -1,7 +1,8 @@
 import type { Catalog } from '../shared/types.js';
 import type { GameProfiles } from './identity/types.js';
 import { advanceState, advanceStateCooperatively } from '../engine/index.js';
-export function createScheduler({ profiles, catalog, now, reportError }: { profiles: GameProfiles; catalog: Catalog; now: () => number; reportError: (profileId: string, error: unknown) => void }): { runCycle(): Promise<void>; start(): void; stop(): Promise<void> } {
+import type { SimulationContext } from '../engine/fieldNavigation.js';
+export function createScheduler({ profiles, catalog, now, reportError, context }: { profiles: GameProfiles; catalog: Catalog; now: () => number; reportError: (profileId: string, error: unknown) => void; context?: SimulationContext }): { runCycle(): Promise<void>; start(): void; stop(): Promise<void> } {
   let pending: Promise<void> | undefined;
   let stopped = false;
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -17,8 +18,8 @@ export function createScheduler({ profiles, catalog, now, reportError }: { profi
             const id = ids[next++];
             try {
               const repository = profiles.forProfile(id);
-              if (repository.transactCooperatively) await repository.transactCooperatively(null, state => advanceStateCooperatively(state, catalog, at));
-              else await repository.transact(null, state => advanceState(state, catalog, at));
+              if (repository.transactCooperatively) await repository.transactCooperatively(null, state => advanceStateCooperatively(state, catalog, at, context));
+              else await repository.transact(null, state => advanceState(state, catalog, at, context));
             } catch (error) { reportError(id, error); }
           }
         }

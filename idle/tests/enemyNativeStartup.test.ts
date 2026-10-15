@@ -16,7 +16,7 @@ function fixture() {
   const gl: any = { NO_ERROR: 0, getError: () => 0, isContextLost: () => false, getParameter: () => false, createTexture: () => ({}) };
   for (const name of ['deleteTexture','activeTexture','bindTexture','pixelStorei','texImage2D','texParameteri','enable','depthMask']) gl[name] = () => {};
   const api = runInNewContext(source + '\n({receive,render})', { Uint8ClampedArray, performance,
-    window: { parent: { postMessage: (data: any) => acks.push(data) } }, Altitude: {}, Ground: { getShadowFactor: () => 1 }, WebGL: {},
+    window: { parent: { postMessage: (data: any) => acks.push(data) } }, Altitude: { width: 400, height: 400 }, Ground: { getShadowFactor: () => 1 }, WebGL: {},
     SpriteRenderer: { bind3DContext: () => {}, unbind: () => {}, runWithDepth: (_a:any,_b:any,_c:any,fn:any) => fn(),
       position: { set: () => {} }, offset: { set: () => {} }, size: { set: () => {} }, color: { set: () => {} }, image: {}, render: () => {} } });
   const bridge = new NativeActorsBridge({ postMessage: (data: any) => messages.push(data) } as any, 'https://fixture', 'fixture');
@@ -31,10 +31,10 @@ function fixture() {
       if (message.type === 'ragidle-map-actor-frames') {
         const cold = message.frames.filter((f:any) => f.rgba[0] !== 10);
         withheld.push(...cold);
-        api.receive({ ...message, frames: release ? message.frames : message.frames.filter((f:any) => f.rgba[0] === 10) }, 'https://fixture', 'fixture', [0,0], gl);
-      } else api.receive(message, 'https://fixture', 'fixture', [0,0], gl);
+        api.receive({ ...message, frames: release ? message.frames : message.frames.filter((f:any) => f.rgba[0] === 10) }, 'https://fixture', 'fixture', gl);
+      } else api.receive(message, 'https://fixture', 'fixture', gl);
     }
-    if (release && withheld.length) api.receive({ type:'ragidle-map-actor-frames', map:'fixture', session:bridgeSession, frames:withheld.splice(0) }, 'https://fixture', 'fixture', [0,0], gl);
+    if (release && withheld.length) api.receive({ type:'ragidle-map-actor-frames', map:'fixture', session:bridgeSession, frames:withheld.splice(0) }, 'https://fixture', 'fixture', gl);
     api.render(now, gl, [], [], {});
     for (const ack of acks.splice(0)) bridge.receive(ack);
   };

@@ -44,6 +44,8 @@ describe('classic client routing', () => {
   it('loads the map viewer assets from the public same-origin route', async () => {
     const htmlPath = fileURLToPath(new URL('../../docker/web-client/map-idle.html', import.meta.url));
     const html = await readFile(htmlPath, 'utf8');
+    expect(html).toContain("import('./MapViewer.js?v=20261013-field-navigation')");
+    expect(html).not.toContain('20261012-cloudsync');
     const inlineScript = html.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];
     expect(inlineScript).toBeTruthy();
     const window = {} as { ROConfig?: { remoteClient: string } };
