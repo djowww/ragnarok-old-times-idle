@@ -41,6 +41,7 @@ import { makeSenseInspection, senseEncounterIdentity, senseManualTarget } from '
 import { clearCloseConfine } from './rgCloseConfine.js';
 import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
 import { magicRodWindow } from './monsterMagic.js';
+import { activePlayerStatus } from './playerStatuses.js';
 import { isEquipmentBroken } from './equipmentCondition.js';
 import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { interruptSageEnchantCast } from './sageEnchantments.js';
@@ -116,6 +117,8 @@ export function executeCommand(
           'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
         requireRule((s.status === 'hunting' || s.status === 'challenge') && !!s.battle && !s.battle.cast,
           'FIELD_REQUIRED', 'Use Parada da Lâmina durante a caça no campo.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'Silêncio impede ativar Parada da Lâmina.');
         requireRule(!s.combatEffects?.bladeStopWait && !s.combatEffects?.bladeStopLink,
           'SKILL_STATUS_BLOCKED', 'Você já está em uma postura de Parada da Lâmina.');
         bladeStopRules(level);
@@ -135,6 +138,8 @@ export function executeCommand(
           classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
         requireRule(['hunting', 'challenge'].includes(s.status) && !!s.battle && !s.battle.cast && s.hp > 0,
           'FIELD_REQUIRED', 'Use Magic Rod durante uma luta no campo.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'Silêncio impede ativar Magic Rod.');
         requireRule(!['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
           .some(source => classicBuffActive(s, c, source, now)), 'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar Magic Rod.');
         requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED', 'Tenha 2 SP para usar Magic Rod.');
@@ -171,6 +176,8 @@ export function executeCommand(
         requireRule(skill.implementation === 'supported' && level > 0 &&
           classSkills(c, s.job).includes(skill.id) && guardianSkillEligible(s, c, skill),
         'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'Silêncio impede ativar Sacrifício.');
         requireRule(!s.battle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'KN_AUTOCOUNTER', 'TF_HIDING', 'AS_CLOAKING']
           .some(source => classicBuffActive(s, c, source, now)),
         'SKILL_STATUS_BLOCKED', 'Seu estado atual impede ativar Sacrifício.');

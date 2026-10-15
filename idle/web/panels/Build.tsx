@@ -14,6 +14,7 @@ import { isPecoMounted } from '../../engine/mountedPeco';
 import { senseManualTarget } from '../../engine/senseInspection';
 import { sageEnchantCanStart } from '../../engine/sageEnchantments';
 import { backslidingStatusBlocked } from '../../engine/backsliding';
+import { activePlayerStatus } from '../../engine/playerStatuses';
 import type { GameCommand } from '../../shared/types';
 import '../styles/sage-enchant.css';
 
@@ -30,6 +31,7 @@ export default function Build({
   onOpenConverters,
 }: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void }) {
   const { state, stats } = snapshot;
+  const manualSilenced = activePlayerStatus(state, 'SC_SILENCE', snapshot.serverTime);
   const ids = new Set(classSkills(catalog, state.job));
   const skills = [...ids].map((id) => catalog.skills[id]).filter(Boolean);
   const rotation = state.rotation;
@@ -76,13 +78,13 @@ export default function Build({
               (!trickDeadSkill || state.hp > 0 &&
                 (state.status === 'hunting' || state.status === 'resting' && state.restMode === 'field')) &&
               canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
-            const magicRodActivationBlocked = !!state.battle?.cast ||
+            const magicRodActivationBlocked = manualSilenced || !!state.battle?.cast ||
               ['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
                 .some(source => classicBuffActive(state, catalog, source, snapshot.serverTime));
             const itemCosts = skill.itemCostByLevel?.[costAt] ?? (skill.itemCost ? [skill.itemCost] : []);
             const sacrificeActive = skill.sourceName === 'PA_SACRIFICE' &&
               (state.combatEffects?.sacrifice?.charges ?? 0) > 0 && classicBuffActive(state, catalog, 'PA_SACRIFICE', snapshot.serverTime);
-              const sacrificeActivationBlocked = !!state.battle?.cast ||
+              const sacrificeActivationBlocked = manualSilenced || !!state.battle?.cast ||
               ['MO_STEELBODY', 'LK_BERSERK', 'KN_AUTOCOUNTER', 'TF_HIDING', 'AS_CLOAKING']
                 .some(source => classicBuffActive(state, catalog, source, snapshot.serverTime));
             const hits = skill.hitCount?.[costAt] ?? 1;
@@ -238,7 +240,7 @@ export default function Build({
                     {skill.manualUse === 'activate' && skill.sourceName === 'MO_BLADESTOP' && <button
                       disabled={busy || unsupported || level === 0 || !ids.has(skill.id) || missingPrerequisites || missingJobLevel ||
                         state.hp <= 0 || (state.status !== 'hunting' && state.status !== 'challenge') || !state.battle?.enemies?.length ||
-                        !!state.battle?.cast || !!state.combatEffects?.bladeStopWait || !!state.combatEffects?.bladeStopLink ||
+                        manualSilenced || !!state.battle?.cast || !!state.combatEffects?.bladeStopWait || !!state.combatEffects?.bladeStopLink ||
                         !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
                       Ativar Parada da Lâmina
