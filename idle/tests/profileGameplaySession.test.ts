@@ -71,6 +71,11 @@ describe('authenticated gameplay connection and volatile status ownership', () =
 
     const heartbeat = await app.inject({ method: 'POST', url: '/api/session', cookies: cookies.alpha, payload: {} });
     expect(heartbeat.json().state.buffs.pr_suffragium).toBeDefined();
+    await accounts.profiles.forProfile('profile-alpha').transact(null, state => ({
+      ...state,
+      combatEffects: { ...(state.combatEffects ?? {}),
+        buffLevels: { ...(state.combatEffects?.buffLevels ?? {}), pr_suffragium: 3 } },
+    }));
     const reconnected = await app.inject({ method: 'POST', url: '/api/session/open', cookies: cookies.alpha,
       payload: { connectionId: connectionNew } });
     expect(reconnected.statusCode).toBe(200);
