@@ -6849,8 +6849,7 @@
         "Lv9": -1,
         "Lv10": -1
       },
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -14890,8 +14889,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 271,
-    "unsupported": 77,
+    "supported": 272,
+    "unsupported": 76,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14995,13 +14994,13 @@
       },
       "sage": {
         "sourceTree": 41,
-        "supported": 37,
-        "unsupported": 4
+        "supported": 38,
+        "unsupported": 3
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 44,
-        "unsupported": 5
+        "supported": 45,
+        "unsupported": 4
       },
       "hunter": {
         "sourceTree": 28,
@@ -15224,6 +15223,7 @@
       "SA_VOLCANO",
       "SA_DELUGE",
       "SA_VIOLENTGALE",
+      "SA_DISPELL",
       "SA_CREATECON",
       "SA_ELEMENTWATER",
       "SA_ELEMENTGROUND",
@@ -15437,11 +15437,6 @@
         "skillId": "sa_landprotector",
         "sourceName": "SA_LANDPROTECTOR",
         "reason": "Requer células de mapa e cancelamento de campos."
-      },
-      {
-        "skillId": "sa_dispell",
-        "sourceName": "SA_DISPELL",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "sa_abracadabra",
@@ -16446,6 +16441,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "43faea02bd817e4320fd0cf8378ce0fd7ad338965ba4aa1292000a5fbb1e05d4",
+  "catalogSha256": "1269241eb2cf94dda9c55ef387e2f97a0fe44cf6cc9dfa7577858164a040d870",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -1,3 +1,4 @@
+import { beforeDispellCatalog, beforeDispellManifest } from './dispell-historical.js';
 const UNSUPPORTED_REASON = 'Requer baralho aleatório com efeitos de combate entre personagens.';
 const BEFORE_SOURCE_HASH = '99a819762fc437bbdc88c3adb735e5cfb6e4cd46f9001e9841a778db2285ae44';
 const AFTER_SOURCE_HASH = 'f0627ac58f79c23f4dff6b77ecad8cfc675e93bd4f943979cab41f3a8432e6b1';
@@ -8,7 +9,7 @@ const AFTER_DESCRIPTION = 'Tarot Card of Fate. Aplica TAROTCARD.';
 
 /** Reverses only the reviewed Tarot Card content export delta for older snapshots. */
 export function beforeTarotCardCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeDispellCatalog(input) as Record<string, any>;
   const tarot = result.skills?.cg_tarotcard;
   if (tarot?.implementation === 'supported' && tarot.description === AFTER_DESCRIPTION) {
     const restored: Record<string, unknown> = {};
@@ -30,7 +31,7 @@ export function beforeTarotCardCatalog<T>(input: T): T {
 
 /** Reverses only Tarot Card coverage and source metadata for older snapshots. */
 export function beforeTarotCardManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeDispellManifest(input) as Record<string, any>;
   const coverage = result.skillCoverage;
   const tarot = result.skillSources?.cg_tarotcard;
   const isCurrentTarotDelta = coverage?.supported === 271

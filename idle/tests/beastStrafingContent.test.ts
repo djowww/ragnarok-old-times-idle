@@ -50,8 +50,8 @@ describe('Beast Strafing solo-hunt content', () => {
     expect(manifest.skillCoverage).toMatchObject({
       classes: 40,
       skills: 348,
-      supported: 271,
-      unsupported: 77,
+      supported: 272,
+      unsupported: 76,
     });
     expect(manifest.skillCoverage.byClass.hunter).toMatchObject({
       sourceTree: 28,

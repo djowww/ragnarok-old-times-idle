@@ -368,6 +368,7 @@ activeSpecial.add('WZ_ESTIMATION');
 activeSpecial.add('AL_RUWACH');
 activeSpecial.add('DC_WINKCHARM');
 activeSpecial.add('CG_TAROTCARD');
+activeSpecial.add('SA_DISPELL');
 activeSpecial.add('RG_CLOSECONFINE');
 activeSpecial.add('PF_MINDBREAKER');
 activeSpecial.add('PF_FOGWALL');

@@ -52,20 +52,19 @@ describe('executed solo Resurrection and Soul Change catalog', () => {
     expect(soulChange.itemCostByLevel).toBeUndefined();
   });
 
-  it('preserves unavailable prerequisite rows in learnable source trees', () => {
-    for (const [id, classId] of [['sa_dispell', 'professor']]) {
-      expect(data.skills[id].implementation, id).toBe('unsupported');
-      expect(data.skills[id].unsupportedReason, id).toBeTruthy();
-      expect(data.classes[classId].skills, id).toContain(id);
-      expect(manifest.skillSources[id as keyof typeof manifest.skillSources].implementation, id).toBe('unsupported');
-    }
+  it('exposes Dispell as a supported Professor skill in the source tree', () => {
+    expect(data.skills.sa_dispell.implementation).toBe('supported');
+    expect(data.skills.sa_dispell.unsupportedReason).toBeUndefined();
+    expect(data.classes.professor.skills).toContain('sa_dispell');
+    expect(manifest.skillSources.sa_dispell.implementation).toBe('supported');
+    expect(manifest.skillCoverage.unavailable.some(candidate => candidate.sourceName === 'SA_DISPELL')).toBe(false);
   });
 
   it('preserves all 40 source class trees and the current solo coverage', () => {
     expect(Object.keys(data.classes)).toHaveLength(40);
     expect(Object.keys(data.skills)).toHaveLength(348);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(271);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(77);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 271, unsupported: 77 });
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(272);
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(76);
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 272, unsupported: 76 });
   });
 });

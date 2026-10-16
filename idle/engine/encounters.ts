@@ -1288,6 +1288,7 @@ function chooseSkill(
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
       !bladeStopAutoHasUsefulFollowup(s, c, skill, level, at))) continue;
     const breaker = skill.sourceName === 'SA_SPELLBREAKER';
+    const dispell = skill.sourceName === 'SA_DISPELL';
     const sageEnchant = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName ?? '');
     const sageField = !!sageFieldSource(skill.sourceName);
     if (sageField && (sageFieldIsActive(s, at) || !sageFieldCanStart(s, c, skill, level, at))) continue;
@@ -1314,6 +1315,8 @@ function chooseSkill(
     if (breaker && !breakerTarget) continue;
     const treatment = treatmentSources.has(skill.sourceName ?? '');
     const targetMonster = c.monsters[target.monsterId];
+    if (skill.sourceName === 'SA_DISPELL' &&
+      activeDispellableMonsterStatuses(target, at).length === 0) continue;
     if (skill.sourceName === 'PR_TURNUNDEAD' &&
       !classicUndeadTargetEligible(combatStatus(c, target, at).monster)) continue;
     const hasMagicThreat = targetMonster.npcStatusSkills?.some(row => row.damageType === 'magic' && row.range > 3) ?? false;
@@ -1322,8 +1325,8 @@ function chooseSkill(
       canPlaceSelfGround(s, c, skill, level, at, context);
     if (skill.sourceName === 'PF_FOGWALL' && !fogWall) continue;
     if (treatment && !statusTreatmentEligible(s, c, skill, level, at)) continue;
-    if (offenseOnly && !offensiveSkill(skill) && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation) continue;
-    if (s.battle?.supportNeedsOffense && !offensiveSkill(skill) && !treatment && !breaker && !priestControl && !conversion && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation &&
+    if (offenseOnly && !offensiveSkill(skill) && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation && !dispell) continue;
+    if (s.battle?.supportNeedsOffense && !offensiveSkill(skill) && !treatment && !breaker && !priestControl && !conversion && !pangVoice && !winkCharm && !closeConfine && !fogWall && !bodyRelocation && !dispell &&
       skill.sourceName !== 'PA_SACRIFICE') continue;
     if (skill.sourceName === 'TF_PICKSTONE' && !pickStoneAfkNeeded(s, c)) continue;
     if (skill.sourceName === 'ALL_RESURRECTION' &&
@@ -2227,6 +2230,22 @@ const TAROT_DISPELLABLE_MONSTER_BUFFS = [
   'SC_ARMOR_PROPERTY', 'SC_CHANGEUNDEAD',
 ] as const;
 
+const SA_DISPELL_PROTECTED_MONSTER_STATUSES = new Set([
+  'SC_ASSUMPTIO', 'SC_ASSUMPTIO_BUFF', 'SC_NO_DISPELL', 'SC_TAROTCARD',
+]);
+
+function monsterStatusIsActive(status: { startsAt?: number; expiresAt: number } | undefined, at: number) {
+  return !!status && (status.startsAt ?? 0) <= at && status.expiresAt > at;
+}
+
+function activeDispellableMonsterStatuses(target: BattleEnemy, at: number) {
+  if (monsterStatusIsActive(target.statuses?.SC_HERMODE, at)) return [];
+  return Object.entries(target.statuses ?? {})
+    .filter(([name, status]) => monsterStatusIsActive(status, at) &&
+      !SA_DISPELL_PROTECTED_MONSTER_STATUSES.has(name))
+    .map(([name]) => name);
+}
+
 type TarotStatusValues = {
   attackPercent?: number;
   magicAttackPct?: number;
@@ -2540,6 +2559,27 @@ function resolveSkill(
       upperBound => Math.floor(random(s) * upperBound) as 3 | 14,
       effect => applyTarotCardEffect(s, c, skill, level, target, at, effect, action),
     );
+    return true;
+  }
+  if (!groundTick && mechanic === 'SA_DISPELL') {
+    const metadata = {
+      skillId: skill.id, skillLevel: level, enemyId: target.id,
+      monsterId: target.monsterId, sourceActorId: s.id,
+      targetActorId: target.id, ...action, castMs: val(skill.castTimeMs, level),
+    };
+    event(s, at, 'skill', skill.name, undefined, 'enemy', metadata);
+    const success = Math.floor(random(s) * 100) < 50 + 10 * level;
+    if (!success) {
+      event(s, at, 'cast-failed', 'O Desencantar falhou.', undefined, 'player', metadata);
+      return true;
+    }
+    if (monsterStatusIsActive(target.statuses?.SC_HERMODE, at)) return true;
+    for (const statusName of activeDispellableMonsterStatuses(target, at)) {
+      delete target.statuses![statusName];
+      event(s, at, 'status-end', 'Efeito removido por Desencantar.', undefined, 'enemy', {
+        ...metadata, statusName,
+      });
+    }
     return true;
   }
   if (!groundTick && val(skill.groundDurationMs, level) > 0 &&

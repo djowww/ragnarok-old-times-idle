@@ -10,7 +10,7 @@ describe('pinned Rogue copy catalog', () => {
     expect(c.skills.st_preserve).toMatchObject({ herculesId: 475, implementation: 'supported', kind: 'buff', targetType: 'self',
       spCost: [30], castTimeMs: [1000], statusEffect: 'SC_PRESERVE', statusDurationMs: [600000],
       prerequisites: [{ skillId: 'rg_plagiarism', level: 10 }] });
-    expect(Object.values(c.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(271);
+    expect(Object.values(c.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(272);
   });
   it.each(['fire_bolt', 'cold_bolt', 'lightning_bolt', 'soul_strike'])('exports the original AllowPlagiarism flag for %s', id => {
     expect(c.skills[id].allowPlagiarism).toBe(true);
