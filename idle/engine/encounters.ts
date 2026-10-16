@@ -513,6 +513,7 @@ function hunterTrapPosition(s: GameState, c: Catalog, skill: Skill, level: numbe
   at: number, fixed?: { x: number; y: number }) {
   const b = s.battle;
   if (!b || b.traps?.some(trap => trap.skillId === skill.id && trap.expiresAt > at && trap.triggeredAt === undefined)) return;
+  if (skill.sourceName === 'HT_SHOCKWAVE' && (target.sp ?? c.monsters[target.monsterId]?.maxSp ?? 0) <= 0) return;
   const heroPoint = battleHeroAt(s, at), hero = sourceCell(heroPoint), enemy = sourceCell(enemyPositionAt(target, at));
   const occupied = [hero, ...enemies(s).filter(actor => actor.hp > 0 && actor.startedAt <= at)
     .map(actor => sourceCell(enemyPositionAt(actor, at)))];
@@ -572,16 +573,28 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
   if (trap.triggeredAt !== undefined) return;
   const skill = c.skills[trap.skillId], source = skill?.sourceName;
   if (!source || !isHunterTrapSkill(source)) { expireHunterTrap(s, c, trap, at); return; }
-  const spec = hunterTrapSpec(source, trap.level), cell = sourceCell(trap.position);
+  const spec = hunterTrapSpec(source, trap.level, skill.groundDurationMs?.[trap.level - 1]), cell = sourceCell(trap.position);
   trap.nextTickAt = at + spec.intervalMs;
   const live = enemies(s).filter(enemy => enemy.hp > 0 && enemy.startedAt <= at &&
-    (enemy.statuses?.SC_HOVERING?.expiresAt ?? 0) <= at);
+    (enemy.statuses?.SC_HOVERING?.expiresAt ?? 0) <= at &&
+    (source !== 'HT_SHOCKWAVE' || (enemy.sp ?? c.monsters[enemy.monsterId]?.maxSp ?? 0) > 0));
   const target = live.find(enemy => hunterTrapWithinRange(cell, sourceCell(enemyPositionAt(enemy, at)), spec.triggerRadius));
   if (!target) return;
   trap.triggeredAt = at; trap.expiresAt = at + spec.usedLifetimeMs;
   event(s, at, "trap-trigger", skill.name, undefined, "enemy", { skillId: skill.id, skillLevel: trap.level,
     enemyId: target.id, monsterId: target.monsterId, enemyPosition: { ...trap.position },
     ...playerAction(s, c, at, "none"), targetActorId: target.id });
+  if (source === 'HT_SHOCKWAVE') {
+    const monster = c.monsters[target.monsterId];
+    const maxSp = Math.max(0, Math.trunc(monster?.maxSp ?? 0));
+    const currentSp = Math.min(maxSp, Math.max(0, Math.trunc(target.sp ?? maxSp)));
+    const drained = Math.min(currentSp, Math.floor(maxSp * spec.spDrainPct / 100));
+    target.sp = currentSp - drained;
+    if (drained > 0) event(s, at, 'sp-drain', `${skill.name} drenou ${drained} SP de ${monster.name}.`, drained, 'enemy', {
+      resource: 'sp', skillId: skill.id, skillLevel: trap.level, enemyId: target.id, monsterId: target.monsterId,
+      enemyPosition: { ...trap.position }, targetActorId: target.id });
+    return;
+  }
   if (source === "HT_SKIDTRAP") {
     const monster = c.monsters[target.monsterId];
     if (monster.boss || monster.noKnockback) return;
@@ -806,13 +819,14 @@ function updateFieldPopulation(s: GameState, c: Catalog, at: number, context?: S
     const home = context?.navigation ? context.navigation.home(area.id, slot) : fieldHome(slot);
     population.enemies.push({
       id: `field-${area.id}-${++population.generation}-${slot}`,
-      fieldSlot: slot, engaged: false, monsterId, hp: monster.hp, maxHp: monster.hp,
+      fieldSlot: slot, engaged: false, monsterId, hp: monster.hp, maxHp: monster.hp, sp: monster.maxSp ?? 0,
       startedAt: at, arrivedAt: at, enemyNextAttackAt: at,
       spawnDirection: slot * 2, position: home, approachFrom: home, homePosition: home, hostile: false,
     });
     population.respawns = population.respawns.filter(entry => entry.slot !== slot);
   }
   for (const enemy of population.enemies) {
+    enemy.sp ??= c.monsters[enemy.monsterId]?.maxSp ?? 0;
     if (enemy.engaged && (!s.battle || s.status !== "hunting")) {
       const point = enemyPositionAt(enemy, at);
       stopEnemyMovement(enemy, point, at);
@@ -965,6 +979,7 @@ export function beginBattle(
       monsterId: id,
       hp: mob.hp,
       maxHp: mob.hp,
+      sp: mob.maxSp ?? 0,
       startedAt: at,
       arrivedAt,
       enemyNextAttackAt: at,
@@ -2472,7 +2487,7 @@ function resolveSkill(
     return true;
   }
   if (trapPosition && isHunterTrapSkill(mechanic ?? "") && s.battle) {
-    const spec = hunterTrapSpec(mechanic as import('./hunterTraps.js').HunterTrapSkill, level);
+    const spec = hunterTrapSpec(mechanic as import('./hunterTraps.js').HunterTrapSkill, level, skill.groundDurationMs?.[level - 1]);
     const id = `trap-${s.id}-${at}-${s.nextEventId}`;
     (s.battle.traps ??= []).push({ id, skillId: skill.id, level, position: trapPosition,
       placedAt: at, nextTickAt: at + spec.intervalMs, expiresAt: at + spec.lifetimeMs });

@@ -5,7 +5,7 @@ export const GROUND_TRAP_ASSET = {
   spr: 'data/sprite/이팩트/기본트랩.spr',
   act: 'data/sprite/이팩트/기본트랩.act',
 };
-const HUNTER_CONTROL_TRAPS = new Set(['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER']);
+const HUNTER_CONTROL_TRAPS = new Set(['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE']);
 export function hasSceneAction(kind: string, hasSkill: boolean): boolean {
   return ['damage', 'miss', 'dodge'].includes(kind) || hasSkill && ['cast', 'skill', 'treatment', 'trap-placed', 'trap-trigger', 'ground-placed'].includes(kind);
 }

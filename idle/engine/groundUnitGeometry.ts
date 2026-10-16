@@ -17,6 +17,7 @@ const squares: Record<string, Layout> = {
   WZ_STORMGUST: { radius: 4, range: 1, pathCheck: true }, AM_DEMONSTRATION: { radius: 0, range: 1 },
   HT_SKIDTRAP: { radius: 0, range: 1 }, HT_LANDMINE: { radius: 0, range: 1 }, HT_ANKLESNARE: { radius: 0, range: 1 },
   HT_SANDMAN: { radius: 0, range: 1 }, HT_FLASHER: { radius: 0, range: 1 }, HT_FREEZINGTRAP: { radius: 0, range: 1 },
+  HT_SHOCKWAVE: { radius: 0, range: 1 },
   HT_BLASTMINE: { radius: 0, range: 1 }, HT_CLAYMORETRAP: { radius: 0, range: 1 },
 };
 const valid = (p: GridPoint) => Number.isSafeInteger(p.x) && Number.isSafeInteger(p.y);
