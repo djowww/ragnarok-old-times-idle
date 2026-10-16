@@ -1,3 +1,5 @@
+import { beforeSuffragiumCatalog, beforeSuffragiumManifest } from './suffragium-historical.js';
+
 const DISPELL_UNSUPPORTED_REASON = 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.';
 const BEFORE_SOURCE_HASH = 'f0627ac58f79c23f4dff6b77ecad8cfc675e93bd4f943979cab41f3a8432e6b1';
 const AFTER_SOURCE_HASH = '241fecbc2567e1d36194bd11c187f89cfec009891caf2fb47e3a3083ff52d13b';
@@ -8,7 +10,7 @@ const AFTER_DESCRIPTION = 'Dispell. Habilidade utilitária.';
 
 /** Reverses only the exact SA_DISPELL promotion so older snapshots stay strict. */
 export function beforeDispellCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeSuffragiumCatalog(input)) as Record<string, any>;
   const dispell = result.skills?.sa_dispell;
   if (dispell?.implementation === 'supported' && dispell.description === AFTER_DESCRIPTION) {
     const restored: Record<string, unknown> = {};
@@ -30,7 +32,7 @@ export function beforeDispellCatalog<T>(input: T): T {
 
 /** Reverses only the SA_DISPELL coverage and source-manifest promotion. */
 export function beforeDispellManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeSuffragiumManifest(input)) as Record<string, any>;
   const coverage = result.skillCoverage;
   const dispell = result.skillSources?.sa_dispell;
   if (coverage?.supported === 272 && coverage?.unsupported === 76 && dispell?.implementation === 'supported') {

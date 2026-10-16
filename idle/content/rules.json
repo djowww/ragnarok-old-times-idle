@@ -57,7 +57,8 @@
     "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item.",
     "Falcon rental keeps the native fixed 2500 zeny fee without Discount; the Idle service is exposed in Prontera instead of the original Hugel breeder NPC.",
     "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action.",
-    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow."
+    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow.",
+    "PR_SUFFRAGIUM uses its self-target pre-renewal status in solo hunting: 15% cast reduction per learned level for the next skill cast, source duration by level, and no party requirement; normal attacks do not consume it."
   ],
   "classes": [
     {
