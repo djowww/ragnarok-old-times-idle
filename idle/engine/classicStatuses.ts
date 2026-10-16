@@ -13,12 +13,13 @@ import { mindBreakerValues } from './mindBreakerRules.js';
 
 export type ClassicResistedStatus =
   | 'SC_FREEZE' | 'SC_STONE' | 'SC_STUN' | 'SC_SLEEP' | 'SC_POISON' | 'SC_BLIND' | 'SC_CONFUSION'
-  | 'SC_PROVOKE' | 'SC_DEC_AGI' | 'SC_CRUCIS' | 'SC_BLOODING';
+  | 'SC_PROVOKE' | 'SC_DEC_AGI' | 'SC_CRUCIS' | 'SC_BLOODING' | 'SC_CURSE';
 
 export function isClassicResistedStatus(status: string | undefined): status is ClassicResistedStatus {
   return status === 'SC_FREEZE' || status === 'SC_STONE' || status === 'SC_STUN' ||
     status === 'SC_SLEEP' || status === 'SC_POISON' || status === 'SC_BLIND' || status === 'SC_CONFUSION' ||
-    status === 'SC_PROVOKE' || status === 'SC_DEC_AGI' || status === 'SC_CRUCIS' || status === 'SC_BLOODING';
+    status === 'SC_PROVOKE' || status === 'SC_DEC_AGI' || status === 'SC_CRUCIS' || status === 'SC_BLOODING' ||
+    status === 'SC_CURSE';
 }
 
 /** status.c:6997..6999 with pinned undead_detect_type=0: demon race or undead element. */
@@ -89,11 +90,13 @@ export function classicStatusResistance(
   }
 
   const { vit, int: intelligence, luk } = monster.stats;
+  if (status === 'SC_CURSE' && luk === 0) return { chancePct: 0, durationMs: 0 };
   let resistance: number;
   switch (status) {
     case 'SC_FREEZE':
     case 'SC_STONE':
     case 'SC_DEC_AGI': resistance = monster.mdef * 100; break;
+    case 'SC_CURSE': resistance = luk * 100; break;
     case 'SC_SLEEP': resistance = intelligence * 100; break;
     case 'SC_BLIND': resistance = (vit + intelligence) * 50; break;
     case 'SC_CONFUSION': resistance = (monster.stats.str + intelligence) * 50; break;
@@ -118,10 +121,11 @@ export function classicStatusResistance(
   let tick = status === 'SC_POISON' ? Math.trunc(duration / 2) : duration;
   if (tick < 1) return { chancePct: chance, durationMs: 1 };
   if (!source.fixedDuration) {
-    const tickResistance = status === 'SC_STONE' || status === 'SC_DEC_AGI' ? 0 : status === 'SC_POISON'
+    const tickResistance = status === 'SC_STONE' || status === 'SC_DEC_AGI' ? 0 : status === 'SC_CURSE'
+      ? vit * 100 : status === 'SC_POISON'
       ? Math.trunc(vit * 200 / 3) : percentageResistance;
     const linearTickResistance = status === 'SC_FREEZE' ? -source.luk * 10
-      : status === 'SC_STUN' || status === 'SC_SLEEP' || status === 'SC_BLIND' || status === 'SC_CONFUSION' || status === 'SC_BLOODING' ? luk * 10 : 0;
+      : status === 'SC_STUN' || status === 'SC_SLEEP' || status === 'SC_BLIND' || status === 'SC_CONFUSION' || status === 'SC_BLOODING' || status === 'SC_CURSE' ? luk * 10 : 0;
     tick -= Math.trunc(tick * tickResistance / 10000);
     tick -= linearTickResistance;
   }
@@ -144,6 +148,11 @@ export interface ClassicActiveMonsterStatus {
   groundId?: string;
   attackDelayPct?: number;
   moveSlowPct?: number;
+  attackPercent?: number;
+  magicAttackPct?: number;
+  hitPercent?: number;
+  fleePercent?: number;
+  defensePercent?: number;
 }
 
 export type ClassicMonsterStatuses = Readonly<Record<string, ClassicActiveMonsterStatus>>;
@@ -230,16 +239,27 @@ export function effectiveMonsterStatus(
     hit -= Math.trunc(hit * 25 / 100);
     flee -= Math.trunc(flee * 25 / 100);
   }
+  const hitRate = active('SC_INCHITRATE') ? statuses?.SC_INCHITRATE?.hitPercent ?? 0 : 0;
+  const fleeRate = active('SC_INCFLEERATE') ? statuses?.SC_INCFLEERATE?.fleePercent ?? 0 : 0;
+  hit = Math.max(0, Math.trunc(hit * (100 + hitRate) / 100));
+  flee = Math.max(0, Math.trunc(flee * (100 + fleeRate) / 100));
   // SC_SPIDERWEB's FLEE reduction applies while val1 marks the target held.
   if (active('SC_SPIDERWEB') && statuses?.SC_SPIDERWEB.webHeld) flee -= Math.trunc(flee * 50 / 100);
   const provokeLevel = active('SC_PROVOKE') ? statuses!.SC_PROVOKE.level ?? 0 : undefined;
   const jointBeatParts: readonly JointBeatPart[] = active('SC_JOINTBEAT') ? statuses?.SC_JOINTBEAT.parts ?? [] : [];
+  const tarotAttackPercent = active('SC_TAROTCARD_ATK_PERC')
+    ? statuses?.SC_TAROTCARD_ATK_PERC?.attackPercent ?? 0 : 0;
+  const curseAttackPercent = active('SC_CURSE') ? 25 : 0;
   const atkPercent = Math.max(0, (provokeLevel !== undefined ? 100 + 2 + 3 * provokeLevel : 100)
+    + tarotAttackPercent - curseAttackPercent
     - (active('SC_NOEQUIPWEAPON') ? 25 : 0)
     - (jointBeatParts.includes('waist') ? 25 : 0));
   // status_calc_def_percent subtracts these in the same additive category.
   // Applying two independent multipliers would give a different result.
-  const defPercent = Math.max(0, 100 - (provokeLevel !== undefined ? 5 + 5 * provokeLevel : 0)
+  const tarotDefensePercent = active('SC_TAROTCARD_DEF_PERC')
+    ? statuses?.SC_TAROTCARD_DEF_PERC?.defensePercent ?? 0 : 0;
+  const defPercent = Math.max(0, 100 + tarotDefensePercent
+    - (provokeLevel !== undefined ? 5 + 5 * provokeLevel : 0)
     - (active('SC_POISON') || active('SC_DPOISON') ? 25 : 0)
     - (active('SC_NOEQUIPSHIELD') ? 15 : 0)
     - (jointBeatParts.includes('shoulder') ? 50 : jointBeatParts.includes('waist') ? 25 : 0));
@@ -259,6 +279,6 @@ export function effectiveMonsterStatus(
     moveSlowPct,
     confused: active('SC_CONFUSION'),
     stonePetrified,
-    immobilized: frozen || stonePetrified || active('SC_STUN') || active('SC_SLEEP'),
+    immobilized: frozen || stonePetrified || active('SC_STUN') || active('SC_SLEEP') || active('SC_STOP'),
   };
 }
