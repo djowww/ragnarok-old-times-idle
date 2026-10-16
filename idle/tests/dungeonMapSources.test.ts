@@ -19,6 +19,25 @@ describe('native dungeon populations and material routes', () => {
     expect(c.areas.find(area => area.id === id)?.monsters).toEqual(ids);
   });
   it.each([
+    ['ant_hell_f1', 'anthell01', [1005, 1095, 1160, 1105, 1176, 1121, 1289, 1097], 20],
+    ['ant_hell_f2', 'anthell02', [1097, 1005, 1095, 1160, 1105, 1176, 1121, 1147], 30],
+  ])('adds source-aligned %s with its map, population, navigation and BGM', (id, map, ids, minLevel) => {
+    const area = c.areas.find(candidate => candidate.id === id);
+    expect(area).toMatchObject({ map, monsters: ids, minLevel });
+    expect(navigation.areas.find(candidate => candidate.areaId === id)?.map).toBe(map);
+    expect(bgmForMap(map)).toBe('46.mp3');
+    for (const monsterId of ids) expect(c.monsters[monsterId]).toBeDefined();
+  });
+  it('pins both Ant Hell populations to the official Hercules spawn source', () => {
+    const path = 'npc/pre-re/mobs/dungeons/anthell.txt';
+    expect(rules.mapSpawnSources).toContain(path);
+    expect(manifest.sources).toContainEqual(expect.objectContaining({
+      path,
+      url: 'https://raw.githubusercontent.com/HerculesWS/Hercules/' + rules.commit + '/' + path,
+      sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+    }));
+  });
+  it.each([
     ['pyramid_depths', 'moc_pryd05', [1149, 1041, 1032]],
     ['glast_heim_cemetery', 'gl_chyard', [1036, 1015, 1192, 1117, 1035, 1191]],
   ])('provides %s with its real map, population, navigation and BGM', (id, map, ids) => {

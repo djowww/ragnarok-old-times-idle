@@ -48,7 +48,9 @@ index 4e3faeb..6281733 100644
 +	prt_sewb2: true,
 +	pay_dun01: true,
 +	iz_dun02: true,
-+	orcsdun01: true
++	orcsdun01: true,
++	anthell01: true,
++	anthell02: true
 +});
 +const idleScene = Configs.get('idleScene', false);
 +let idleSceneName = '';

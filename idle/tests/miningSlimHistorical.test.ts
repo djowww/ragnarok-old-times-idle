@@ -16,6 +16,6 @@ describe('strict mining and compact pitcher delta',()=>{
  });
  it('never erases mutated source or acquisition evidence',()=>{
   const m=structuredClone(manifest);m.findingOre.chain[0].chance++;m.sources[0].sha256='mutated';
-  const old=beforeMiningSlimManifest(m);expect(old.findingOre).toEqual(m.findingOre);expect(old.sources).toEqual(m.sources);
+  const old=beforeMiningSlimManifest(m);expect(old.findingOre).toEqual(m.findingOre);expect(old.sources).toContainEqual(m.sources[0]);
  });
 });
