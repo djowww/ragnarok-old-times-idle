@@ -57,7 +57,7 @@ export function resolvePangVoice(s: GameState, c: Catalog, skill: Skill, level: 
 
 export function expirePangVoice(s: GameState, enemy: BattleEnemy, at: number) {
   const status = enemy.statuses?.[CONFUSION];
-  if (!status || status.expiresAt > at || status.skillId !== 'ba_pangvoice') return false;
+  if (!status || status.expiresAt > at || !['ba_pangvoice', 'cg_tarotcard'].includes(status.skillId ?? '')) return false;
   delete enemy.statuses![CONFUSION];
   delete enemy.confusionWalkAt;
   event(s, at, 'status-end', 'A confusão passou.', undefined, 'enemy', {

@@ -435,7 +435,11 @@ export interface BattleEnemy {
       /** Hercules SC_DONTFORGETME translated source ASPD and movement penalties. */
       attackDelayPct?: number;
       moveSlowPct?: number;
-      /** Hercules SC_MINDBREAKER stores +MATK and applies its MDEF scalar to soft MDEF. */
+      attackPercent?: number;
+      hitPercent?: number;
+      fleePercent?: number;
+      defensePercent?: number;
+      /** Hercules SC_MINDBREAKER and Tarot statuses modify monster MATK. */
       magicAttackPct?: number;
       mdefPercent?: number;
     }

@@ -8866,8 +8866,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer baralho aleatório com efeitos de combate entre personagens.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -14891,8 +14890,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 270,
-    "unsupported": 78,
+    "supported": 271,
+    "unsupported": 77,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15021,8 +15020,8 @@
       },
       "clown": {
         "sourceTree": 34,
-        "supported": 17,
-        "unsupported": 17
+        "supported": 18,
+        "unsupported": 16
       },
       "dancer": {
         "sourceTree": 28,
@@ -15031,8 +15030,8 @@
       },
       "gypsy": {
         "sourceTree": 34,
-        "supported": 16,
-        "unsupported": 18
+        "supported": 17,
+        "unsupported": 17
       },
       "priest": {
         "sourceTree": 36,
@@ -15267,6 +15266,7 @@
       "BA_APPLEIDUN",
       "BA_PANGVOICE",
       "CG_ARROWVULCAN",
+      "CG_TAROTCARD",
       "DC_DANCINGLESSON",
       "DC_THROWARROW",
       "DC_SCREAM",
@@ -15537,11 +15537,6 @@
         "skillId": "cg_hermode",
         "sourceName": "CG_HERMODE",
         "reason": "Requer guilda e área de combate entre personagens."
-      },
-      {
-        "skillId": "cg_tarotcard",
-        "sourceName": "CG_TAROTCARD",
-        "reason": "Requer baralho aleatório com efeitos de combate entre personagens."
       },
       {
         "skillId": "dc_uglydance",
@@ -16451,6 +16446,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "c7fa90403e7997b651e77e10324a125ef49784bc4f2457a2e8a3a585d6df9c53",
+  "catalogSha256": "43faea02bd817e4320fd0cf8378ce0fd7ad338965ba4aa1292000a5fbb1e05d4",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

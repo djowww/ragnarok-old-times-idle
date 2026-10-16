@@ -367,6 +367,7 @@ passiveSkills.add('BS_FINDINGORE');
 activeSpecial.add('WZ_ESTIMATION');
 activeSpecial.add('AL_RUWACH');
 activeSpecial.add('DC_WINKCHARM');
+activeSpecial.add('CG_TAROTCARD');
 activeSpecial.add('RG_CLOSECONFINE');
 activeSpecial.add('PF_MINDBREAKER');
 activeSpecial.add('PF_FOGWALL');
@@ -388,7 +389,7 @@ const unsupported = {
     BS_REPAIRWEAPON: 'O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.',
     PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
-    CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.', CG_TAROTCARD: 'Requer baralho aleatório com efeitos de combate entre personagens.',
+    CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.',
     WZ_ICEWALL: 'Requer edição de células bloqueadas do mapa.', HW_GANBANTEIN: 'Requer remoção de unidades de habilidades em células do mapa.',
 };
 const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;

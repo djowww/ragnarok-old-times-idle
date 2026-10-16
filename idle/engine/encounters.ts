@@ -27,12 +27,13 @@ import { captureNpcSpell } from './plagiarism.js';
 import { castControlEligible,spellBreakerCastMs,findInterruptibleNpcCast,resolveSpellBreaker } from './castControl.js';
 import {conversionSpec} from './elementalConversionRules.js';
 import {elementalConversionEligible,elementalConversionTarget,resolveElementalConversion,expireElementalConversion} from './elementalConversion.js';
-import {priestControlSources,priestControlEligible,priestControlTarget,resolvePriestSoloControl,monsterAttackTarget,reacquireReleasedMonster,rememberMonsterAttacker,expirePriestMonsterStatus} from './priestSoloControl.js';
+import {priestControlSources,priestControlEligible,priestControlTarget,resolvePriestSoloControl,monsterAttackTarget,reacquireReleasedMonster,rememberMonsterAttacker,releaseMonsterAttackTarget,expirePriestMonsterStatus} from './priestSoloControl.js';
 import { pangVoiceTarget, resolvePangVoice, expirePangVoice } from './pangVoice.js';
 import { winkCharmTarget, resolveWinkCharm, expireWinkCharm } from './winkCharm.js';
 import { applyCloseConfine, clearCloseConfine, closeConfineActive, closeConfineEligible, expireCloseConfine, releaseCloseConfineTarget, RG_CLOSECONFINE_STATUS } from './rgCloseConfine.js';
 import { classSkills, derivedStats, healFull, activeFreeCastLevel, learnedFreeCastLevel } from "./stats.js";
 import { mindBreakerEligible, resolveMindBreaker } from './mindBreaker.js';
+import { resolveTarotCardDraw, tarotCardSuccess, type TarotCardEffect } from './tarotCard.js';
 import { fogWallDamage, fogWallHitChance, fogWallDefending } from './fogWall.js';
 import { pickStoneAfkNeeded, PICK_STONE_ITEM_ID } from './pickStone.js';
 import {
@@ -1071,7 +1072,10 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
     enemy.enemyNextAttackAt = at + monsterAttackInterval(monster);
     return;
   }
-  const [matkMin, matkMax] = monsterMagicAttack(monster.stats.int, enemy.statuses?.SC_MINDBREAKER?.magicAttackPct ?? 0);
+  const activeMatkPct = Object.values(enemy.statuses ?? {})
+    .filter(status => status.expiresAt > at)
+    .reduce((total, status) => total + (status.magicAttackPct ?? 0), 0);
+  const [matkMin, matkMax] = monsterMagicAttack(monster.stats.int, activeMatkPct);
   const matk = matkMin + (matkMax > matkMin ? Math.floor(random(s) * (matkMax - matkMin)) : 0);
   const ratio = sourceSkill?.power[skill.level - 1] ?? 100;
   // Armor property is resolved independently; player race remains normal.
@@ -2214,6 +2218,218 @@ function hindsightAttack(s: GameState, c: Catalog, target: BattleEnemy, at: numb
     enemyId: target.id, monsterId: target.monsterId, targetActorId: target.id, ...action });
   damageEnemies(s, c, target, at, spell, proc.level, undefined, action, false, undefined, context);
 }
+const TAROT_CARD_DURATION_MS = 30_000;
+const TAROT_DISPELLABLE_MONSTER_BUFFS = [
+  'SC_AGIUP', 'SC_INCREASEAGI', 'SC_BLESSING', 'SC_IMPOSITIO', 'SC_GLORIA',
+  'SC_KYRIE', 'SC_ANGELUS', 'SC_ASSUMPTIO', 'SC_ENDURE', 'SC_AUTOGUARD',
+  'SC_DEFENDER', 'SC_REFLECTSHIELD', 'SC_ENERGYCOAT', 'SC_MAGICPOWER',
+  'SC_SPEEDUP0', 'SC_SPEEDUP1', 'SC_SPEEDUP2', 'SC_ATKUP', 'SC_MATKUP',
+  'SC_ARMOR_PROPERTY', 'SC_CHANGEUNDEAD',
+] as const;
+
+type TarotStatusValues = {
+  attackPercent?: number;
+  magicAttackPct?: number;
+  hitPercent?: number;
+  fleePercent?: number;
+  defensePercent?: number;
+};
+
+function tarotMetadata(s: GameState, skill: Skill, level: number, target: BattleEnemy, action: Partial<GameEvent>) {
+  return {
+    skillId: skill.id, skillLevel: level, enemyId: target.id,
+    monsterId: target.monsterId, sourceActorId: s.id, targetActorId: target.id,
+    ...action,
+  };
+}
+
+function applyTarotStatus(
+  s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
+  at: number, statusName: string, action: Partial<GameEvent>,
+  options: { chancePct?: number; durationMs?: number; values?: TarotStatusValues } = {},
+) {
+  const base = c.monsters[target.monsterId];
+  if (!base || target.hp <= 0) return false;
+  let chancePct = options.chancePct ?? 100;
+  let durationMs = options.durationMs ?? TAROT_CARD_DURATION_MS;
+  if (isClassicResistedStatus(statusName)) {
+    const attrs = derivedStats(s, c).attributes ?? s.stats;
+    const resistance = classicStatusResistance(
+      combatStatus(c, target, at).monster,
+      statusName,
+      chancePct,
+      durationMs,
+      { level: s.baseLevel, luk: attrs.luk },
+    );
+    chancePct = resistance.chancePct;
+    durationMs = resistance.durationMs;
+  }
+  if (durationMs <= 0 || random(s) * 100 >= chancePct) return false;
+
+  const stone = statusName === 'SC_STONE'
+    ? classicStoneTiming(durationMs, skill.durationMs ?? 5000)
+    : undefined;
+  (target.statuses ??= {})[statusName] = {
+    startsAt: at,
+    expiresAt: at + (stone?.totalDurationMs ?? durationMs),
+    ...(stone && { petrifiesAt: at + stone.delayMs }),
+    level,
+    skillId: skill.id,
+    sourceActorId: s.id,
+    sourceActionId: action.actionId,
+    ...(statusName === 'SC_POISON' && { nextTickAt: at + 1000 }),
+    ...options.values,
+  };
+  provokeEnemy(s, c, target, at);
+  if (statusName === 'SC_CONFUSION') {
+    const expiresAt = at + durationMs;
+    releaseMonsterAttackTarget(s, c, target, at, {
+      ...action, skillId: skill.id, skillLevel: level,
+    });
+    if (target.npcCombat) target.npcCombat.nextTargetCheckAt = expiresAt;
+    target.confusionWalkAt = at;
+  }
+  if (at < target.arrivedAt && combatStatus(c, target, at).immobilized)
+    target.approachPausedAt ??= at;
+  event(s, at, 'status-start', statusName.replace(/^SC_/, '').replaceAll('_', ' '),
+    undefined, 'enemy', { ...tarotMetadata(s, skill, level, target, action), statusName });
+  return true;
+}
+
+function applyTarotDamage(
+  s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
+  at: number, fixedDamage: number, action: Partial<GameEvent>,
+) {
+  if (target.hp <= 0) return 0;
+  const monster = c.monsters[target.monsterId];
+  const before = target.hp;
+  const damage = Math.min(before, Math.max(0, Math.trunc(fixedDamage)));
+  target.hp = Math.max(0, before - damage);
+  if (damage > 0) {
+    rememberMonsterAttacker(s, target, damage, at);
+    interruptMonsterStatusCast(s, c, target, at, damage);
+    breakControlOnDamage(target, damage, at);
+    event(s, at, 'damage', 'Carta do Destino', damage, 'enemy', {
+      ...tarotMetadata(s, skill, level, target, action),
+      targetHpBefore: before,
+      enemyPosition: { ...enemyPositionAt(target, at) },
+      hitMotionMs: monster.damageMotionMs ?? 400,
+      actorAction: 'skill',
+    });
+    if (target.hp <= 0) awardKill(s, c, target, at, skill);
+  }
+  return damage;
+}
+
+function applyTarotComa(
+  s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
+  at: number, action: Partial<GameEvent>,
+) {
+  if (target.hp <= 0 || c.monsters[target.monsterId]?.boss) return;
+  const before = target.hp;
+  if (random(s) * 100 < 100) {
+    target.hp = 1;
+    const damage = Math.max(0, before - 1);
+    if (damage > 0) {
+      rememberMonsterAttacker(s, target, damage, at);
+      event(s, at, 'damage', 'Coma', damage, 'enemy', {
+      ...tarotMetadata(s, skill, level, target, action),
+      targetHpBefore: before,
+      enemyPosition: { ...enemyPositionAt(target, at) },
+      hitMotionMs: c.monsters[target.monsterId].damageMotionMs ?? 400,
+      actorAction: 'none',
+      });
+    }
+  }
+}
+
+function applyTarotCardEffect(
+  s: GameState, c: Catalog, skill: Skill, level: number, target: BattleEnemy,
+  at: number, effect: TarotCardEffect, action: Partial<GameEvent>,
+) {
+  const metadata = tarotMetadata(s, skill, level, target, action);
+  const status = (name: string, chancePct = 100, durationMs = TAROT_CARD_DURATION_MS, values?: TarotStatusValues) =>
+    applyTarotStatus(s, c, skill, level, target, at, name, action, { chancePct, durationMs, values });
+  switch (effect) {
+    case 'drain-target-sp':
+      target.sp = 0;
+      event(s, at, 'status-start', 'Todo o SP do monstro foi drenado.', undefined, 'enemy', metadata);
+      return;
+    case 'halve-target-magic-attack':
+      status('SC_TAROTCARD_MATK_PERC', 100, TAROT_CARD_DURATION_MS, { magicAttackPct: -50 });
+      return;
+    case 'clear-target-buffs':
+      for (const statusName of TAROT_DISPELLABLE_MONSTER_BUFFS) {
+        const active = target.statuses?.[statusName];
+        if (!active || active.expiresAt <= at) continue;
+        delete target.statuses![statusName];
+        event(s, at, 'status-end', 'Efeito removido pela Carta do Destino.', undefined, 'enemy', {
+          ...metadata, statusName,
+        });
+      }
+      return;
+    case 'fixed-damage-1000':
+      applyTarotDamage(s, c, skill, level, target, at, 1000, action);
+      // Hercules selects and attempts to break one of three equipment slots when the target survives.
+      if (target.hp > 0) random(s);
+      return;
+    case 'halve-target-attack':
+      status('SC_TAROTCARD_ATK_PERC', 100, TAROT_CARD_DURATION_MS, { attackPercent: -50 });
+      return;
+    case 'heal-caster-and-teleport-target': {
+      const d = derivedStats(s, c);
+      const before = s.hp;
+      s.hp = Math.min(d.maxHp, s.hp + 2000);
+      event(s, at, 'heal', 'A Carta do Destino restaurou HP.', s.hp - before, 'player', {
+        ...metadata, targetActorId: s.id, actorAction: 'none',
+      });
+      const origin = enemyPositionAt(target, at);
+      const angle = random(s) * Math.PI * 2;
+      const distance = 1 + random(s) * 6;
+      const position = {
+        x: origin.x + Math.cos(angle) * distance,
+        y: origin.y + Math.sin(angle) * distance,
+      };
+      stopEnemyMovement(target, position, at);
+      event(s, at, 'status-start', 'O monstro foi teleportado.', undefined, 'enemy', {
+        ...metadata, enemyPosition: { ...position },
+      });
+      return;
+    }
+    case 'stop-target': status('SC_STOP'); return;
+    case 'freeze-target': status('SC_FREEZE'); return;
+    case 'stone-target': status('SC_STONE'); return;
+    case 'curse-coma-poison-target':
+      applyTarotComa(s, c, skill, level, target, at, action);
+      status('SC_CURSE');
+      status('SC_POISON');
+      return;
+    case 'confuse-target':
+      status('SC_CONFUSION');
+      return;
+    case 'fixed-damage-6666-and-debuff-target':
+      applyTarotDamage(s, c, skill, level, target, at, 6666, action);
+      status('SC_TAROTCARD_ATK_PERC', 100, TAROT_CARD_DURATION_MS, { attackPercent: -50 });
+      status('SC_TAROTCARD_MATK_PERC', 100, TAROT_CARD_DURATION_MS, { magicAttackPct: -50 });
+      status('SC_CURSE', level);
+      return;
+    case 'fixed-damage-4444':
+      applyTarotDamage(s, c, skill, level, target, at, 4444, action);
+      return;
+    case 'stun-target':
+      status('SC_STUN', 100, 5000);
+      return;
+    case 'weaken-target-combat-stats':
+      status('SC_TAROTCARD_ATK_PERC', 100, TAROT_CARD_DURATION_MS, { attackPercent: -20 });
+      status('SC_TAROTCARD_MATK_PERC', 100, TAROT_CARD_DURATION_MS, { magicAttackPct: -20 });
+      status('SC_INCHITRATE', 100, TAROT_CARD_DURATION_MS, { hitPercent: -20 });
+      status('SC_INCFLEERATE', 100, TAROT_CARD_DURATION_MS, { fleePercent: -20 });
+      status('SC_TAROTCARD_DEF_PERC', 100, TAROT_CARD_DURATION_MS, { defensePercent: -20 });
+      status('SC_TAROTCARD');
+      return;
+  }
+}
+
 function resolveSkill(
   s: GameState,
   c: Catalog,
@@ -2292,6 +2508,15 @@ function resolveSkill(
   const soloGround = ['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(mechanic ?? '');
   if (!groundTick && soloGround && !canPlaceSoloGround(s, c, mechanic!, target, at)) return false;
   if (!groundTick && mechanic === 'PF_FOGWALL' && !canPlaceSelfGround(s, c, skill, level, at, context)) return false;
+  const tarotRollPercent = !groundTick && mechanic === 'CG_TAROTCARD'
+    ? Math.floor(random(s) * 100) : undefined;
+  if (tarotRollPercent !== undefined && !tarotCardSuccess(level, tarotRollPercent)) {
+    event(s, at, 'cast-failed', 'A Carta do Destino falhou.', undefined, 'player', {
+      skillId: skill.id, skillLevel: level, sourceActorId: s.id, targetActorId: target.id,
+      enemyId: target.id, monsterId: target.monsterId, ...action,
+    });
+    return false;
+  }
   if (!groundTick && !paySkillResources(s, c, skill, level, at)) {
     event(
       s,
@@ -2303,6 +2528,19 @@ function resolveSkill(
       { skillId: skill.id },
     );
     return false;
+  }
+  if (!groundTick && mechanic === 'CG_TAROTCARD') {
+    event(s, at, 'skill', skill.name, undefined, 'enemy', {
+      ...tarotMetadata(s, skill, level, target, action),
+      castMs: val(skill.castTimeMs, level),
+    });
+    resolveTarotCardDraw(
+      level,
+      tarotRollPercent!,
+      upperBound => Math.floor(random(s) * upperBound) as 3 | 14,
+      effect => applyTarotCardEffect(s, c, skill, level, target, at, effect, action),
+    );
+    return true;
   }
   if (!groundTick && val(skill.groundDurationMs, level) > 0 &&
     sourceGroundShape(skill.sourceName ?? '', { x: 0, y: 0 })) {

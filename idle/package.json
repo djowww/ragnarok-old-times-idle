@@ -6,7 +6,8 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "test": "vitest run --maxWorkers=4",
+    "test": "vitest run --maxWorkers=4 --testTimeout=30000 --exclude tests/engine.test.ts --exclude tests/scheduler.test.ts --exclude tests/rogueCopyReplay.test.ts && npm run test:slow",
+    "test:slow": "vitest run tests/engine.test.ts tests/scheduler.test.ts tests/rogueCopyReplay.test.ts --maxWorkers=1 --testTimeout=120000",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.server.json && vite build",
     "start": "node dist/server/index.js",

@@ -15,6 +15,6 @@ describe('RG_CLOSECONFINE content adaptation', () => {
     expect(manifest.skillCoverage.supportedSourceNames).toContain('RG_CLOSECONFINE');
     expect(manifest.skillCoverage.combatExpansion).toContain('RG_CLOSECONFINE');
     expect(manifest.skillCoverage.unavailable.some(skill => skill.skillId === 'rg_closeconfine')).toBe(false);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 270, unsupported: 78 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 271, unsupported: 77 });
   });
 });

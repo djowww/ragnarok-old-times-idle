@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "99a819762fc437bbdc88c3adb735e5cfb6e4cd46f9001e9841a778db2285ae44"
+    "hash": "f0627ac58f79c23f4dff6b77ecad8cfc675e93bd4f943979cab41f3a8432e6b1"
   },
   "rates": {
     "baseExp": 4,
@@ -103078,9 +103078,8 @@
       "herculesId": 489,
       "sourceName": "CG_TAROTCARD",
       "mechanic": "CG_TAROTCARD",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer baralho aleatório com efeitos de combate entre personagens.",
-      "description": "Tarot Card of Fate. Aplica TAROTCARD. Requer baralho aleatório com efeitos de combate entre personagens.",
+      "implementation": "supported",
+      "description": "Tarot Card of Fate. Aplica TAROTCARD.",
       "iconResource": "data/texture/유저인터페이스/item/cg_tarotcard.bmp",
       "spCost": [
         40,
