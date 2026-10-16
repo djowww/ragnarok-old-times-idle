@@ -178,9 +178,9 @@ describe('persistent hunter traps in authoritative combat', () => {
     const resumed = applyCommand(ctx.s, ctx.c, { type: 'setHuntFocus', areaId: ctx.c.areas[0].id, focus: 'any' }, 100000);
     expect(resumed.battle!.traps![0]).toMatchObject({ placedAt: 99000, nextTickAt: 101000, expiresAt: 129000 });
   });
-  it('Shockwave Trap drains the pinned share of a monster SP once when triggered', () => {
+  it('Shockwave Trap drains the source percentage of current monster SP', () => {
     const ctx = setup('HT_SHOCKWAVE');
-    expect((ctx.enemy as typeof ctx.enemy & { sp?: number }).sp).toBe(100);
+    ctx.enemy.sp = 20;
 
     const placed = advanceState(ctx.s, ctx.c, 1000);
     const trap = placed.battle!.traps![0];
@@ -196,10 +196,29 @@ describe('persistent hunter traps in authoritative combat', () => {
     const triggered = advanceState(placed, ctx.c, 2000);
     expect(triggered.events.some(event => event.kind === 'trap-trigger' && event.skillId === ctx.skill.id)).toBe(true);
     expect(triggered.events.find(event => event.kind === 'sp-drain')).toMatchObject({
-      amount: 80, resource: 'sp', target: 'enemy', skillId: ctx.skill.id,
+      amount: 16, resource: 'sp', target: 'enemy', skillId: ctx.skill.id,
     });
-    expect((triggered.battle!.enemies![0] as typeof ctx.enemy & { sp?: number }).sp).toBe(20);
-    expect(advanceState(triggered, ctx.c, 4000).battle!.enemies![0].sp).toBe(20);
+    expect((triggered.battle!.enemies![0] as typeof ctx.enemy & { sp?: number }).sp).toBe(4);
+    expect(advanceState(triggered, ctx.c, 4000).battle!.enemies![0].sp).toBe(4);
+  });
+
+  it('Shockwave Trap drains every monster in its Hercules splash area', () => {
+    const ctx = setup('HT_SHOCKWAVE');
+    const placed = advanceState(ctx.s, ctx.c, 1000);
+    const trap = placed.battle!.traps![0];
+    placed.rotation = [];
+    placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+    const first = placed.battle!.enemies![0];
+    Object.assign(first, { position: { ...trap.position }, approachFrom: { ...trap.position }, arrivedAt: 1000 });
+    const adjacentCell = { x: trap.position.x + 1 / 12, y: trap.position.y };
+    const second = structuredClone(first);
+    Object.assign(second, { id: 'enemy-shockwave-nearby', sp: 50, position: adjacentCell, approachFrom: adjacentCell });
+    placed.battle!.enemies!.push(second);
+
+    const triggered = advanceState(placed, ctx.c, 2000);
+    expect(triggered.battle!.enemies![0].sp).toBe(20);
+    expect(triggered.battle!.enemies!.find(enemy => enemy.id === second.id)?.sp).toBe(10);
+    expect(triggered.events.filter(event => event.kind === 'sp-drain')).toHaveLength(2);
   });
 
 });

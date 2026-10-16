@@ -17,7 +17,7 @@ export function hunterTrapSpec(id: HunterTrapSkill, level: number, sourceDuratio
     : (6 - lv) * (id === 'HT_SKIDTRAP' ? 60000 : id === 'HT_ANKLESNARE' ? 50000 : 30000);
   return {
     lifetimeMs, triggerRadius: 1, intervalMs: 1000, usedLifetimeMs: 1500,
-    splashRadius: id === 'HT_SANDMAN' ? 2 : id === 'HT_FLASHER' ? 1 : 0,
+    splashRadius: id === 'HT_SHOCKWAVE' ? 1 : id === 'HT_SANDMAN' ? 2 : id === 'HT_FLASHER' ? 1 : 0,
     spDrainPct: id === 'HT_SHOCKWAVE' ? 15 * lv + 5 : 0,
     knockbackTiles: id === 'HT_SKIDTRAP' ? 5 + lv : 0,
     statusDurationMs: id === 'HT_ANKLESNARE' ? 4000 * lv : id === 'HT_SANDMAN' ? 10000 + 2000 * lv : id === 'HT_FLASHER' ? 9000 + 1000 * lv : 0,

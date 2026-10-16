@@ -576,8 +576,7 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
   const spec = hunterTrapSpec(source, trap.level, skill.groundDurationMs?.[trap.level - 1]), cell = sourceCell(trap.position);
   trap.nextTickAt = at + spec.intervalMs;
   const live = enemies(s).filter(enemy => enemy.hp > 0 && enemy.startedAt <= at &&
-    (enemy.statuses?.SC_HOVERING?.expiresAt ?? 0) <= at &&
-    (source !== 'HT_SHOCKWAVE' || (enemy.sp ?? c.monsters[enemy.monsterId]?.maxSp ?? 0) > 0));
+    (enemy.statuses?.SC_HOVERING?.expiresAt ?? 0) <= at);
   const target = live.find(enemy => hunterTrapWithinRange(cell, sourceCell(enemyPositionAt(enemy, at)), spec.triggerRadius));
   if (!target) return;
   trap.triggeredAt = at; trap.expiresAt = at + spec.usedLifetimeMs;
@@ -585,14 +584,17 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
     enemyId: target.id, monsterId: target.monsterId, enemyPosition: { ...trap.position },
     ...playerAction(s, c, at, "none"), targetActorId: target.id });
   if (source === 'HT_SHOCKWAVE') {
-    const monster = c.monsters[target.monsterId];
-    const maxSp = Math.max(0, Math.trunc(monster?.maxSp ?? 0));
-    const currentSp = Math.min(maxSp, Math.max(0, Math.trunc(target.sp ?? maxSp)));
-    const drained = Math.min(currentSp, Math.floor(maxSp * spec.spDrainPct / 100));
-    target.sp = currentSp - drained;
-    if (drained > 0) event(s, at, 'sp-drain', `${skill.name} drenou ${drained} SP de ${monster.name}.`, drained, 'enemy', {
-      resource: 'sp', skillId: skill.id, skillLevel: trap.level, enemyId: target.id, monsterId: target.monsterId,
-      enemyPosition: { ...trap.position }, targetActorId: target.id });
+    const affected = live.filter(enemy => hunterTrapWithinRange(cell, sourceCell(enemyPositionAt(enemy, at)), spec.splashRadius));
+    for (const enemy of affected) {
+      const monster = c.monsters[enemy.monsterId];
+      const maxSp = Math.max(0, Math.trunc(monster?.maxSp ?? 0));
+      const currentSp = Math.min(maxSp, Math.max(0, Math.trunc(enemy.sp ?? maxSp)));
+      const drained = Math.floor(currentSp * spec.spDrainPct / 100);
+      enemy.sp = currentSp - drained;
+      if (drained > 0) event(s, at, 'sp-drain', `${skill.name} drenou ${drained} SP de ${monster.name}.`, drained, 'enemy', {
+        resource: 'sp', skillId: skill.id, skillLevel: trap.level, enemyId: enemy.id, monsterId: enemy.monsterId,
+        enemyPosition: enemyPositionAt(enemy, at), targetActorId: enemy.id });
+    }
     return;
   }
   if (source === "HT_SKIDTRAP") {
