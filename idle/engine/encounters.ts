@@ -1276,6 +1276,8 @@ function chooseSkill(
       (!detectingCanStart(s,c,skill,level,at) || !detectingAfkUseful(s,at))) continue;
     if (configurableSkillUseLevel(skill) && !soloAlchemyAfkUseful(s, c, skill, level, at)) continue;
     if (skill.targetType === 'enemy' && target.hp <= 0) continue;
+    if (skill.sourceName === 'HT_POWER' &&
+      !['brute', 'insect'].includes(c.monsters[target.monsterId]?.race.toLowerCase() ?? '')) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
     if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
@@ -3209,6 +3211,10 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
   const previousDefense = new Set(s.combatEffects?.defensiveGrounds ?? []);
   const succeeded = resolveSkill(s, c, skill, level, target, at, false, center,
     playerAction(s, c, at, "skill", actionId), context);
+  if (succeeded && source === "AC_DOUBLE" && (learnedBySource(s, c).HT_POWER ?? 0) > 0)
+    (s.combatEffects ??= {}).combo = { sourceName: "AC_DOUBLE", expiresAt: at + 2000 };
+  if (succeeded && source === "HT_POWER" && s.combatEffects?.combo?.sourceName === "AC_DOUBLE")
+    s.combatEffects.combo = undefined;
   if (succeeded) {
     const effect = b.groundEffects?.find(g => g.skillId === skill.id && !previousEffects.has(g));
     const unit = b.skillUnits?.find(g => g.skillId === skill.id && !previousUnits.has(g));

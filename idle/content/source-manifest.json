@@ -263,7 +263,7 @@
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
     "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
     "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
-    "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
+    "No scripts execute. Double Strafe and Beast Strafing consume one Arrow each; ammunition requirements for other skills remain waived. Source zeny and per-level item reagents remain real costs.",
     "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
     "Non-positive element coefficients yield zero damage rather than healing the target.",
     "Fire Wall uses one contact unit in the idle encounter formation; the full source creates oriented three-cell walls. Map collision and exact contact/knockback paths are outside this formation.",
@@ -291,7 +291,8 @@
     "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido.",
     "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item.",
     "Falcon rental keeps the native fixed 2500 zeny fee without Discount; the Idle service is exposed in Prontera instead of the original Hugel breeder NPC.",
-    "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action."
+    "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action.",
+    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -674,11 +675,6 @@
       "itemId": 4012,
       "aegisName": "Thief_Bug_Egg_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 1750,
-      "aegisName": "Arrow",
-      "sourceType": "IT_AMMO"
     },
     {
       "itemId": 627,
@@ -3264,10 +3260,7 @@
       "sourceSplashRange": 0,
       "implementation": "supported",
       "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
-      "unsupportedRequirements": [
-        "AmmoTypes",
-        "AmmoAmount"
-      ]
+      "unsupportedRequirements": []
     },
     "arrow_shower": {
       "id": 47,
@@ -7791,13 +7784,10 @@
         2
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer estado de Espírito da classe, ainda não implementado.",
-      "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": [
-        "AmmoTypes",
-        "AmmoAmount"
-      ]
+      "implementation": "supported",
+      "adaptation": "Bow combo after AC_DOUBLE for 2000 ms; two pre-renewal 50 + 8*STR weapon hits against Brute or Insect targets, consuming 12 SP and one Arrow.",
+      "ratioSource": "src/map/battle.c:battle_calc_skillratio (pre-renewal branches)",
+      "unsupportedRequirements": []
     },
     "sn_sight": {
       "id": 380,
@@ -14901,8 +14891,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 269,
-    "unsupported": 79,
+    "supported": 270,
+    "unsupported": 78,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15016,13 +15006,13 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 22,
-        "unsupported": 6
+        "supported": 23,
+        "unsupported": 5
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 26,
-        "unsupported": 6
+        "supported": 27,
+        "unsupported": 5
       },
       "bard": {
         "sourceTree": 28,
@@ -15262,6 +15252,7 @@
       "HT_BLITZBEAT",
       "HT_DETECTING",
       "HT_PHANTASMIC",
+      "HT_POWER",
       "SN_SIGHT",
       "SN_FALCONASSAULT",
       "SN_SHARPSHOOTING",
@@ -15476,11 +15467,6 @@
         "skillId": "ht_springtrap",
         "sourceName": "HT_SPRINGTRAP",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "ht_power",
-        "sourceName": "HT_POWER",
-        "reason": "Requer estado de Espírito da classe, ainda não implementado."
       },
       {
         "skillId": "bd_adaptation",
@@ -16410,7 +16396,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "930c9a5ff31c8e1f46ae85f44238c8e6ff500de006895b69ef2f6b745ad46cd8",
+  "rulesSha256": "8d13bf290ac47d2f0c3ab3c95da156a5d45a5b94da5c49f916cb68cb5230425e",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16465,6 +16451,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "7aacc491ca706094805bf171a743120e234cea57a1fb19b58cec6efe71c127ad",
+  "catalogSha256": "c7fa90403e7997b651e77e10324a125ef49784bc4f2457a2e8a3a585d6df9c53",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

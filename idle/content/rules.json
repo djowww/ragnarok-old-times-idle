@@ -28,7 +28,7 @@
     "MVP encounters come from Hercules MVP rewards, excluding event-only sprite variants. Mini-boss ids follow the community classification documented by iRO Wiki and are limited to records in this pinned pre-renewal database.",
     "Combat damage, DEX cast reduction, source cast/after-cast timings, job bonuses and skill prerequisites are derived from the pinned Hercules pre-renewal source. Skills requiring absent party, crafting, trading or spatial systems remain explicitly unavailable.",
     "Offensive spell damage keeps its pinned Hercules formula and receives a separate per-level idleDamageMultiplierPct after that formula. Storm Gust is tuned toward 240–960% total MATK across levels 1–10; other implemented offensive spells default to 100% until they need an explicit idle adjustment.",
-    "No scripts execute. Ammunition requirements are waived; source zeny and per-level item reagents remain real costs.",
+    "No scripts execute. Double Strafe and Beast Strafing consume one Arrow each; ammunition requirements for other skills remain waived. Source zeny and per-level item reagents remain real costs.",
     "Ground skills use an encounter formation; source radius, duration and pulse metadata remain visible. Actual map-cell geometry, knockback and random meteor placement require the full map simulation.",
     "Non-positive element coefficients yield zero damage rather than healing the target.",
     "Fire Wall uses one contact unit in the idle encounter formation; the full source creates oriented three-cell walls. Map collision and exact contact/knockback paths are outside this formation.",
@@ -56,7 +56,8 @@
     "Campos elementais do Sábio: colocação solo sob o personagem com 49 células fixas recortadas pelo terreno Hercules, NoSave, efeitos independentes por ocupante e substituição do campo mantendo o tempo restante. Texturas originais em planos no chão; o cone 3D do cliente não é reproduzido.",
     "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item.",
     "Falcon rental keeps the native fixed 2500 zeny fee without Discount; the Idle service is exposed in Prontera instead of the original Hugel breeder NPC.",
-    "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action."
+    "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action.",
+    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow."
   ],
   "classes": [
     {
@@ -985,7 +986,15 @@
       "requiredWeapon": [
         "bow"
       ],
-      "description": "Dispara uma rajada que causa dano físico elevado. Requer um arco equipado."
+      "itemCost": {
+        "itemId": 1750,
+        "quantity": 1
+      },
+      "handledRequirements": [
+        "AmmoTypes",
+        "AmmoAmount"
+      ],
+      "description": "Dispara uma rajada que causa dano físico elevado. Requer arco e uma flecha."
     },
     {
       "id": "arrow_shower",
@@ -1245,6 +1254,26 @@
       "powerStep": 40,
       "cooldownMs": 3000,
       "description": "Comanda uma investida que causa dano físico ao inimigo atual. Acrescenta uma opção ofensiva à rotação."
+    },
+    {
+      "id": "ht_power",
+      "source": "HT_POWER",
+      "name": "Beast Strafing",
+      "kind": "physical",
+      "maxLevel": 1,
+      "powerStart": 100,
+      "powerStep": 0,
+      "cooldownMs": 0,
+      "description": "Atinge Brutos e Insetos com dois golpes de arco após Rajada de Flechas. Consome 12 SP e uma Flecha.",
+      "itemCost": {
+        "itemId": 1750,
+        "quantity": 1
+      },
+      "requiredState": "combo",
+      "handledRequirements": [
+        "AmmoTypes",
+        "AmmoAmount"
+      ]
     },
     {
       "id": "beast_bane",

@@ -67,7 +67,7 @@ describe('Auto Blitz native boundaries and splash ownership',()=>{
   }
  });
  it('does not trigger from Double Strafe, another active bow skill',()=>{
-  const{s,c}=setup(),skill=Object.values(c.skills).find(k=>k.sourceName==='AC_DOUBLE')!;s.sp=100;s.learnedSkills[skill.id]=10;s.rotation=[skill.id];s.battle!.playerNextAttackAt=999999;s.battle!.playerNextSkillAt=0;
+  const{s,c}=setup();addItem(s,c,1750,1);const skill=Object.values(c.skills).find(k=>k.sourceName==='AC_DOUBLE')!;s.sp=100;s.learnedSkills[skill.id]=10;s.rotation=[skill.id];s.battle!.playerNextAttackAt=999999;s.battle!.playerNextSkillAt=0;
   const next=advanceState(s,c,250);expect(next.events.some(e=>e.kind==='damage'&&e.skillId===skill.id)).toBe(true);expect(next.falconStrikes??[]).toHaveLength(0);
  });
  it('shifts pending impact deadlines exactly once when resuming the offline cap',()=>{
@@ -86,4 +86,61 @@ it('persists splash Lex consumption on independent field copies before the fligh
  expect(next.fieldPopulation!.enemies.find(e=>e.id===extra.id)!.statuses!.SC_LEXAETERNA).toBeUndefined();
  const rest=applyCommand(next,c,{type:'rest'},251);
  expect(rest.fieldPopulation!.enemies.find(e=>e.id===extra.id)!.statuses!.SC_LEXAETERNA).toBeUndefined();
+});
+
+
+describe('Hunter Beast Strafing combo', () => {
+  it('chains after Double Strafe against a brute and pays its SP and arrow costs', () => {
+    const { s, c } = setup();
+    const double = Object.values(c.skills).find(skill => skill.sourceName === 'AC_DOUBLE')!;
+    const beast = Object.values(c.skills).find(skill => skill.sourceName === 'HT_POWER')!;
+    const target = s.battle!.enemies![0];
+    c.monsters[target.monsterId].race = 'Brute';
+    target.hp = target.maxHp = 100000;
+    s.sp = 100;
+    addItem(s, c, 1750, 3);
+    s.learnedSkills[double.id] = 10;
+    s.learnedSkills[beast.id] = 1;
+    s.rotation = [beast.id, double.id];
+    s.battle!.playerNextAttackAt = 999999;
+    s.battle!.playerNextSkillAt = 0;
+    s.battle!.playerActionReadyAt = 0;
+
+    const first = advanceState(s, c, 250);
+    expect(first.events.some(event => event.kind === 'damage' && event.skillId === double.id)).toBe(true);
+    first.skillReadyAt[double.id] = 999999;
+    const next = advanceState(first, c, 1000);
+    const beastHit = next.events.find(event => event.kind === 'damage' && event.skillId === beast.id);
+
+    expect(beastHit).toMatchObject({ hitCount: 2 });
+    expect(next.sp).toBe(76);
+    expect(next.inventory.filter(entry => entry.itemId === 1750).reduce((sum, entry) => sum + entry.quantity, 0)).toBe(1);
+  });
+});
+
+describe('Hunter Beast Strafing eligibility', () => {
+  it.each([
+    ['without its combo', 'Brute', false],
+    ['against another race', 'Plant', true],
+  ])('does not use Beast Strafing %s', (_reason, race, comboActive) => {
+    const { s, c } = setup();
+    const beast = Object.values(c.skills).find(skill => skill.sourceName === 'HT_POWER')!;
+    const target = s.battle!.enemies![0];
+    c.monsters[target.monsterId].race = race;
+    s.sp = 100;
+    addItem(s, c, 1750, 3);
+    s.learnedSkills[beast.id] = 1;
+    s.rotation = [beast.id];
+    s.battle!.playerNextAttackAt = 999999;
+    s.battle!.playerNextSkillAt = 0;
+    s.battle!.playerActionReadyAt = 0;
+    if (comboActive) s.combatEffects!.combo = { sourceName: 'AC_DOUBLE', expiresAt: 2000 };
+
+    const next = advanceState(s, c, 250);
+
+    expect(next.events.some(event => event.kind === 'damage' && event.skillId === beast.id)).toBe(false);
+    expect(next.sp).toBe(100);
+    expect(next.inventory.filter(entry => entry.itemId === 1750).reduce((sum, entry) => sum + entry.quantity, 0)).toBe(3);
+  });
+
 });

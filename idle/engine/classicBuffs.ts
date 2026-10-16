@@ -328,6 +328,8 @@ export function comboAllowed(
 ): boolean {
   const previous = activeCombo(s, c, at);
   switch (sourceName(skill)) {
+    case "HT_POWER":
+      return previous === "AC_DOUBLE";
     case "MO_CHAINCOMBO":
       return previous === "MO_TRIPLEATTACK" || (() => {
         const link = s.combatEffects?.bladeStopLink;
