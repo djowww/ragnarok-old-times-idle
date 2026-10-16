@@ -8,7 +8,8 @@ export const TRICK_DEAD_BUFF_ID = 'nv_trickdead';
 export const SIGHT_BLASTER_BUFF_ID = 'sight_blaster';
 export const MAGIC_ROD_BUFF_ID = 'sa_magicrod';
 export const PRESERVE_BUFF_ID = 'st_preserve';
-const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID, MAGIC_ROD_BUFF_ID, PRESERVE_BUFF_ID, 'chasewalk_strength', 'pf_fogwall', 'pr_suffragium'] as const;
+const SUFFRAGIUM_BUFF_ID = 'pr_suffragium';
+const VOLATILE_BUFF_IDS = [TRICK_DEAD_BUFF_ID, SIGHT_BLASTER_BUFF_ID, MAGIC_ROD_BUFF_ID, PRESERVE_BUFF_ID, 'chasewalk_strength', 'pf_fogwall', SUFFRAGIUM_BUFF_ID] as const;
 const MAX_REMEMBERED_OPEN_CONNECTIONS = 256;
 type VolatileBuffs = Record<string, GameState['buffs'][string]>;
 type BladeStopStatus = NonNullable<NonNullable<BattleEnemy['statuses']>['SC_BLADESTOP']>;
@@ -365,7 +366,10 @@ export class SessionStateRepository implements StateRepository {
 
   private stripDurableBuff(state: GameState): void {
     if (state.buffs) for (const id of VOLATILE_BUFF_IDS) delete state.buffs[id];
-    if (state.combatEffects?.buffLevels) delete state.combatEffects.buffLevels[PRESERVE_BUFF_ID];
+    if (state.combatEffects?.buffLevels) {
+      delete state.combatEffects.buffLevels[PRESERVE_BUFF_ID];
+      delete state.combatEffects.buffLevels[SUFFRAGIUM_BUFF_ID];
+    }
   }
 
   private rememberOpenedConnection(connectionId: string): void {
