@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "f0627ac58f79c23f4dff6b77ecad8cfc675e93bd4f943979cab41f3a8432e6b1"
+    "hash": "241fecbc2567e1d36194bd11c187f89cfec009891caf2fb47e3a3083ff52d13b"
   },
   "rates": {
     "baseExp": 4,
@@ -96363,9 +96363,8 @@
       "herculesId": 289,
       "sourceName": "SA_DISPELL",
       "mechanic": "SA_DISPELL",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Dispell. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "description": "Dispell. Habilidade utilitária.",
       "iconResource": "data/texture/유저인터페이스/item/sa_dispell.bmp",
       "spCost": [
         1,
