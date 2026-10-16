@@ -50,6 +50,8 @@ export interface PresentedActorAction {
   actionAt: number;
   sourceActorId: string;
   actorAction: 'attack' | 'skill' | 'none';
+  visualActorAction?: 'attack' | 'skill';
+  skill?: Partial<Pick<Skill, 'kind' | 'sourceName'>>;
   start: number;
   effectStart: number;
   impact: number;
@@ -63,10 +65,10 @@ export interface PresentedActorAction {
 }
 /** Place an attack's visible contact no earlier than its decoded ACT completes. */
 export function actorActionImpactAt(
-  action: Pick<PresentedActorAction, 'actorAction' | 'start' | 'effectStart' | 'actionDuration'> & { motionMs?: number },
+  action: Pick<PresentedActorAction, 'actorAction' | 'visualActorAction' | 'start' | 'effectStart' | 'actionDuration'> & { motionMs?: number },
 ) {
   if (action.actorAction === 'none') return action.effectStart;
-  const contactDelay = action.actorAction === 'attack'
+  const contactDelay = (action.visualActorAction ?? action.actorAction) === 'attack'
     ? Math.max(action.motionMs ?? 0, action.actionDuration)
     : action.actionDuration * 0.5;
   return Math.max(action.effectStart, action.start + contactDelay);
@@ -320,14 +322,17 @@ export function reconcileActorPlayback<T extends PresentedActorAction>(cues: T[]
     if (cue.sourceActorId !== active.sourceActorId || cue.actorAction === 'none' || !cue.presented) continue;
     if (cue.actionAt === active.actionAt && cue.actionId === active.actionId) {
       cue.actionDuration = actionDuration;
-      if (cue.actorAction === 'attack') {
+      if ((cue.visualActorAction ?? cue.actorAction) === 'attack') {
         const oldImpact = cue.impact;
         cue.impact = Math.max(oldImpact, actorActionImpactAt({
           ...cue, motionMs: cue.motionMs ?? 0,
         }));
         if (cue.impact > oldImpact) moved.set(cue.id, cue.impact - oldImpact);
       }
-      cue.duration = maxFiniteDuration(cue.duration ?? actionDuration, actionDuration,
+      const oldEffectStart = cue.effectStart;
+      cue.effectStart = skillVisualEffectAt({ ...cue, skillKind: cue.skill?.kind });
+      const effectShift = cue.effectStart - oldEffectStart;
+      cue.duration = maxFiniteDuration((cue.duration ?? actionDuration) + effectShift, actionDuration,
         cue.impact - cue.start + (cue.reactionDuration ?? 0));
     } else if (delta > 0 && cue.start >= oldEnd) {
       cue.start += delta; cue.effectStart += delta; cue.impact += delta;
@@ -371,6 +376,18 @@ export function heroWorldAtAction(strike: { world?: WorldPoint } | null | undefi
 export function isSoloPotionPitcher(skill: Pick<Skill,'sourceName'> | undefined): boolean {
   return !!skill && ['AM_POTIONPITCHER','CR_SLIMPITCHER'].includes(skill.sourceName ?? '');
 }
+/** Weapon-driven physical skill flashes follow the actual ACT contact, not the server event timestamp. */
+export function skillVisualEffectAt(cue: {
+  actorAction: 'attack' | 'skill' | 'none';
+  visualActorAction?: 'attack' | 'skill';
+  skillKind?: Skill['kind'];
+  effectStart: number;
+  impact: number;
+}): number {
+  return cue.actorAction === 'skill' && cue.visualActorAction === 'attack' && cue.skillKind === 'physical' && Number.isFinite(cue.impact)
+    ? Math.max(cue.effectStart, cue.impact) : cue.effectStart;
+}
+
 /** A resolved pitcher event already follows its authoritative cast; never invent a second visual cast. */
 export function skillCueCastDuration(event: GameEvent, skill: Skill | undefined, playerId: string): number | undefined {
   return event.sourceActorId === playerId && !isSoloPotionPitcher(skill) ? undefined : event.castMs ?? 0;

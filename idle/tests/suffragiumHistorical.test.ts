@@ -1,9 +1,13 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/suffragiumBaseline.json';
 import { beforeSuffragiumCatalog, beforeSuffragiumManifest } from './suffragium-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 
 const prettySha = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n').digest('hex');

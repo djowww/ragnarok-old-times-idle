@@ -993,6 +993,118 @@
           "y": 3
         }
       ]
+    },
+    {
+      "areaId": "payon_cave_third",
+      "map": "pay_dun02",
+      "origin": {
+        "x": 139,
+        "y": 121
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "byalan_third",
+      "map": "iz_dun03",
+      "origin": {
+        "x": 161,
+        "y": 155
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "geffen_dungeon_first",
+      "map": "gef_dun01",
+      "origin": {
+        "x": 145,
+        "y": 156
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
+    },
+    {
+      "areaId": "glast_heim_prison",
+      "map": "gl_prison",
+      "origin": {
+        "x": 99,
+        "y": 100
+      },
+      "homeOffsets": [
+        {
+          "x": -7,
+          "y": -10
+        },
+        {
+          "x": 9,
+          "y": -9
+        },
+        {
+          "x": -10,
+          "y": 2
+        },
+        {
+          "x": 10,
+          "y": 3
+        }
+      ],
+      "originRemapped": false,
+      "remappedHomeSlots": []
     }
   ]
 }

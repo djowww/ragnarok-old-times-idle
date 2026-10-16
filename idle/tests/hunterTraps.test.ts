@@ -10,6 +10,15 @@ describe('pinned Hunter trap rules', () => {
     expect(traps.hunterTrapSpec?.('HT_SANDMAN', 5)).toMatchObject({ lifetimeMs: 30000, splashRadius: 2, statusDurationMs: 20000, chancePct: 90 });
     expect(traps.hunterTrapSpec?.('HT_FLASHER', 5)).toMatchObject({ splashRadius: 1, statusDurationMs: 14000, chancePct: 80 });
   });
+  it('uses Hercules lifetimes and splash sizes for damaging ground traps', () => {
+    expect(traps.hunterTrapSpec('HT_LANDMINE', 5)).toMatchObject({ lifetimeMs: 40000, splashRadius: 1, usedLifetimeMs: 1500 });
+    expect(traps.hunterTrapSpec('HT_FREEZINGTRAP', 5)).toMatchObject({ lifetimeMs: 30000, splashRadius: 1 });
+    expect(traps.hunterTrapSpec('HT_BLASTMINE', 5)).toMatchObject({ lifetimeMs: 5000, splashRadius: 1 });
+    expect(traps.hunterTrapSpec('HT_CLAYMORETRAP', 5)).toMatchObject({ lifetimeMs: 100000, splashRadius: 2 });
+    expect(traps.hunterTrapSpec('HT_CLAYMORETRAP', 1, 7500).lifetimeMs).toBe(7500);
+    expect(traps.isHunterTrapSkill('HT_LANDMINE')).toBe(true);
+    expect(traps.hunterTrapStatus(fixture().monsters[1002], 'HT_LANDMINE', 5, { level: 1, luk: 0 })).toBeUndefined();
+  });
   it('uses square trigger geometry including diagonal adjacent cells', () => {
     expect(traps.hunterTrapWithinRange?.({x:0,y:0}, {x:1,y:1}, 1)).toBe(true);
     expect(traps.hunterTrapWithinRange?.({x:0,y:0}, {x:2,y:0}, 1)).toBe(false);

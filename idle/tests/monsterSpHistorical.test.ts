@@ -1,7 +1,11 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { describe, expect, it } from 'vitest';
-import rawCatalog from '../content/catalog.json';
-import rawManifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import { beforeMonsterSpCatalog, beforeMonsterSpManifest, monsterSpHistoricalJsonHash } from './monster-sp-historical';
+
+const rawCatalog = beforeFourMapExpansionCatalog(currentCatalog);
+const rawManifest = beforeFourMapExpansionManifest(currentManifest);
 
 describe('audited monster SP and Shockwave catalog delta', () => {
   it('reconstructs the exact catalog bytes from before the SP and skill promotion', () => {

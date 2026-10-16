@@ -1,9 +1,13 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import {createHash} from 'node:crypto';
 import {describe,expect,it} from 'vitest';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/miningSlimBaseline.json';
 import {beforeMiningSlimCatalog,beforeMiningSlimManifest} from './mining-slim-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 const hash=(x:unknown)=>createHash('sha256').update(JSON.stringify(x,null,2)+'\n').digest('hex');
 describe('strict mining and compact pitcher delta',()=>{
  it('reconstructs complete prior catalog and manifest bytes',()=>{

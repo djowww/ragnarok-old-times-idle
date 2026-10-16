@@ -46,3 +46,17 @@ CREATE TABLE IF NOT EXISTS idle_sessions (
   INDEX idle_sessions_expiry (expires_at_ms),
   CONSTRAINT idle_sessions_account FOREIGN KEY (account_id) REFERENCES idle_accounts(id) ON DELETE CASCADE
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS idle_admin_audit (
+  target_profile_id VARCHAR(80) NOT NULL,
+  request_id VARCHAR(64) NOT NULL,
+  actor_account_id VARCHAR(80) NOT NULL,
+  actor_profile_id VARCHAR(80) NOT NULL,
+  target_account_id VARCHAR(80) NOT NULL,
+  action_type VARCHAR(32) NOT NULL,
+  action_json JSON NOT NULL,
+  created_at_ms BIGINT UNSIGNED NOT NULL,
+  PRIMARY KEY (target_profile_id, request_id),
+  INDEX idle_admin_audit_actor (actor_account_id, created_at_ms),
+  INDEX idle_admin_audit_target (target_account_id, created_at_ms)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

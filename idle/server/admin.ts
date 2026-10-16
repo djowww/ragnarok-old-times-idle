@@ -9,7 +9,12 @@ import { addItem, event, GameError } from '../engine/state.js';
 import { gainExp } from '../engine/progression.js';
 import { advanceState, advanceStateCooperatively } from '../engine/index.js';
 import { isIP } from 'node:net';
-import type { StateRepository } from './repository.js';
+import type { AdminAuditRecord, StateRepository } from './repository.js';
+import type { GameProfiles } from './identity/types.js';
+import { PortalError } from './identity/types.js';
+import type { AccountView } from '../shared/portal-types.js';
+import type { AdminCharacter } from '../shared/admin.js';
+import type { AdminCharacterRecord, AdminDirectory } from './adminDirectory.js';
 import { ValidationError } from './validation.js';
 import type { SimulationContext } from '../engine/fieldNavigation.js';
 import { canReceiveItem } from '../engine/itemCapacity.js';
@@ -70,12 +75,16 @@ function parseAction(value: unknown): AdminAction {
   }
 }
 
-function parseAdminActionRequest(value: unknown): { requestId: string; action: AdminAction } {
-  if (!object(value) || Object.keys(value).length !== 2 ||
-      !Object.hasOwn(value, 'requestId') || !Object.hasOwn(value, 'action') ||
+function parseAdminActionRequest(value: unknown): { requestId: string; action: AdminAction; targetProfileId?: string } {
+  if (!object(value) || !Object.hasOwn(value, 'requestId') || !Object.hasOwn(value, 'action') ||
+      Object.keys(value).some(key => !['requestId', 'action', 'targetProfileId'].includes(key)) ||
       typeof value.requestId !== 'string' || !/^[A-Za-z0-9_-]{12,64}$/.test(value.requestId))
     throw new ValidationError();
-  return { requestId: value.requestId, action: parseAction(value.action) };
+  const target = value.targetProfileId;
+  if (Object.hasOwn(value, 'targetProfileId') &&
+      (typeof target !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(target))) throw new ValidationError();
+  return { requestId: value.requestId, action: parseAction(value.action),
+    ...(typeof target === 'string' ? { targetProfileId: target } : {}) };
 }
 
 function pruneLoginFailures(failures: Map<string, LoginAttempts>, at: number, preserveIp: string): void {
@@ -113,16 +122,17 @@ function cookieHeader(request: FastifyRequest, value: string, maxAge: number): s
   return `${COOKIE_NAME}=${value}; Path=/api/admin; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${https ? '; Secure' : ''}`;
 }
 
-function authenticated(request: FastifyRequest, sessions: Map<string, number>, at: number): boolean {
+type AdminSessionRecord = { expiresAt: number; accountId?: string };
+function authenticated(request: FastifyRequest, sessions: Map<string, AdminSessionRecord>, at: number, accountId?: string): boolean {
   const token = parseCookie(request);
   if (!token) return false;
   const key = digest(token).toString('hex');
-  const expiresAt = sessions.get(key);
-  if (!expiresAt || expiresAt <= at) {
+  const session = sessions.get(key);
+  if (!session || session.expiresAt <= at) {
     sessions.delete(key);
     return false;
   }
-  return true;
+  return !accountId || session.accountId === accountId;
 }
 
 function grantLevels(state: GameState, catalog: Catalog, amount: number, at: number): number {
@@ -231,6 +241,22 @@ function applyAction(state: GameState, catalog: Catalog, action: AdminAction, at
   }
 }
 
+function visibleCharacter(record: AdminCharacterRecord): AdminCharacter {
+  return { profileId: record.profileId, username: record.username, characterName: record.characterName,
+    classId: record.classId, baseLevel: record.baseLevel, jobLevel: record.jobLevel,
+    gender: record.gender, status: record.status, zeny: record.zeny };
+}
+function changedCharacter(record: Pick<AdminCharacterRecord, 'profileId' | 'username'>, state: GameState): AdminCharacter {
+  return { profileId: record.profileId, username: record.username, characterName: state.name,
+    classId: state.job, baseLevel: state.baseLevel, jobLevel: state.jobLevel,
+    gender: state.gender, status: state.status, zeny: state.zeny };
+}
+export interface AdminScope {
+  resolveActor(request: FastifyRequest): Promise<AccountView>;
+  directory: AdminDirectory;
+  profiles: GameProfiles;
+  authorizedAccountId?: string;
+}
 export function registerAdminRoutes(
   app: FastifyInstance,
   resolveRepository: StateRepository | ((request: FastifyRequest) => Promise<StateRepository>),
@@ -239,30 +265,35 @@ export function registerAdminRoutes(
   configuredToken?: string,
   trustedProxyAddresses: readonly string[] = [],
   context?: SimulationContext,
+  scope?: AdminScope,
 ): void {
   const expected = configuredToken && configuredToken.length >= 32 && configuredToken.length <= 256
     ? digest(configuredToken)
     : undefined;
-  const sessions = new Map<string, number>();
+  const sessions = new Map<string, AdminSessionRecord>();
   const failures = new Map<string, LoginAttempts>();
   const trustedProxies = new Set(trustedProxyAddresses.filter(address => isIP(address)));
 
-  // The admin cookie is shared by tabs. Validate the browser's account scope
-  // before reading or changing it, using the same cookie-selected resolver as
-  // actions. Resolving a repository does not simulate or mutate the profile.
-  const assertCallerIdentity = async (request: FastifyRequest): Promise<void> => {
+  // The account session cookie, never a client-provided target or identity header,
+  // identifies the administrator. The header only detects a stale browser tab.
+  const resolveActor = async (request: FastifyRequest): Promise<AccountView | undefined> => {
+    if (scope) {
+      const actor = await scope.resolveActor(request);
+      if (scope.authorizedAccountId && actor.accountId !== scope.authorizedAccountId)
+        throw new PortalError('ADMIN_ACCOUNT_FORBIDDEN', 403, 'Esta conta não tem acesso ao painel administrativo.');
+      return actor;
+    }
     if (typeof resolveRepository === 'function') await resolveRepository(request);
+    return undefined;
   };
   app.get('/api/admin/session', async (request) => {
-    await assertCallerIdentity(request);
-    return {
-      enabled: !!expected,
-      authenticated: !!expected && authenticated(request, sessions, now()),
-    };
+    const actor = await resolveActor(request);
+    return { enabled: !!expected,
+      authenticated: !!expected && authenticated(request, sessions, now(), actor?.accountId) };
   });
 
   app.post('/api/admin/session', async (request, reply) => {
-    await assertCallerIdentity(request);
+    const actor = await resolveActor(request);
     if (!expected) return reply.code(503).send({ error: { code: 'ADMIN_DISABLED', message: 'O painel administrativo não está configurado no servidor.' } });
     const at = now();
     // Only the explicitly trusted immediate peer may supply a sanitized client IP.
@@ -293,45 +324,76 @@ export function registerAdminRoutes(
 
     failures.delete(ip);
     const sessionToken = randomBytes(32).toString('base64url');
-    sessions.set(digest(sessionToken).toString('hex'), at + SESSION_MS);
-    for (const [key, expiresAt] of sessions) if (expiresAt <= at) sessions.delete(key);
+    sessions.set(digest(sessionToken).toString('hex'), { expiresAt: at + SESSION_MS,
+      ...(actor ? { accountId: actor.accountId } : {}) });
+    for (const [key, session] of sessions) if (session.expiresAt <= at) sessions.delete(key);
     reply.header('Set-Cookie', cookieHeader(request, sessionToken, SESSION_MS / 1000));
     return { enabled: true, authenticated: true };
   });
 
   app.post('/api/admin/logout', async (request, reply) => {
-    await assertCallerIdentity(request);
+    const actor = await resolveActor(request);
     const token = parseCookie(request);
-    if (token) sessions.delete(digest(token).toString('hex'));
+    if (token && authenticated(request, sessions, now(), actor?.accountId))
+      sessions.delete(digest(token).toString('hex'));
     reply.header('Set-Cookie', cookieHeader(request, '', 0));
     return { ok: true };
   });
 
+  app.get('/api/admin/characters', async (request, reply) => {
+    if (!expected || !scope) return reply.code(503).send({ error: { code: 'ADMIN_DISABLED', message: 'Busca administrativa indisponível.' } });
+    const actor = await resolveActor(request);
+    if (!authenticated(request, sessions, now(), actor?.accountId))
+      return reply.code(401).send({ error: { code: 'ADMIN_SESSION_REQUIRED', message: 'Entre novamente no painel administrativo.' } });
+    const params = request.query;
+    if (!object(params) || Object.keys(params).length !== 1 || typeof params.query !== 'string' ||
+        params.query.trim().length < 2 || params.query.trim().length > 60) throw new ValidationError();
+    const characters = await scope.directory.search(params.query.trim());
+    return { characters: characters.map(visibleCharacter) };
+  });
+
   app.post('/api/admin/action', async (request, reply) => {
     if (!expected) return reply.code(503).send({ error: { code: 'ADMIN_DISABLED', message: 'O painel administrativo não está configurado no servidor.' } });
-    if (!authenticated(request, sessions, now()))
+    const actor = await resolveActor(request);
+    if (!authenticated(request, sessions, now(), actor?.accountId))
       return reply.code(401).send({ error: { code: 'ADMIN_SESSION_REQUIRED', message: 'Entre novamente no painel administrativo.' } });
-    const repository = typeof resolveRepository === 'function' ? await resolveRepository(request) : resolveRepository;
-    const { requestId, action } = parseAdminActionRequest(request.body);
-    const at = now();
-    const fingerprint = createHash('sha256').update(`admin:${JSON.stringify(action)}`).digest('hex');
-    // Preserve lastSeenAt/contactTotals: admin access must not consume the
-    // next player's offline summary. Settle elapsed simulation before grants.
-    if (repository.transactCooperatively) {
-      await repository.transactCooperatively(requestId, async state => {
-        const settled = await advanceStateCooperatively(state, catalog, at, context);
-        applyAction(settled, catalog, action, at);
-        reconcileWeaponRefine(settled,catalog,at);
-        return settled;
-      }, fingerprint);
-    } else {
-      await repository.transact(requestId, state => {
-        const settled = advanceState(state, catalog, at, context);
-        applyAction(settled, catalog, action, at);
-        reconcileWeaponRefine(settled,catalog,at);
-        return settled;
-      }, fingerprint);
+    const { requestId, action, targetProfileId } = parseAdminActionRequest(request.body);
+    const callerRepository = typeof resolveRepository === 'function' ? await resolveRepository(request) : resolveRepository;
+    let repository = callerRepository;
+    let target: Pick<AdminCharacterRecord, 'accountId' | 'profileId' | 'username'> | undefined = actor && {
+      accountId: actor.accountId, profileId: actor.profileId, username: actor.username };
+    if (targetProfileId && targetProfileId !== actor?.profileId) {
+      if (!scope || !actor) throw new ValidationError();
+      const linked = await scope.directory.find(targetProfileId);
+      if (!linked) throw new PortalError('ADMIN_TARGET_NOT_FOUND', 404, 'Personagem vinculado a conta não encontrado.');
+      target = linked;
+      repository = scope.profiles.forProfile(linked.profileId);
     }
-    return { ok: true };
+    const crossAccount = !!actor && !!target && target.profileId !== actor.profileId;
+    const at = now();
+    const fingerprint = createHash('sha256').update(crossAccount
+      ? `admin:${actor.accountId}:${target!.profileId}:${JSON.stringify(action)}`
+      : `admin:${JSON.stringify(action)}`).digest('hex');
+    const audit: AdminAuditRecord | undefined = actor && target ? {
+      actorAccountId: actor.accountId, actorProfileId: actor.profileId,
+      targetAccountId: target.accountId, targetProfileId: target.profileId,
+      actionType: action.type, actionJson: JSON.stringify(action), at,
+    } : undefined;
+    // Settle elapsed simulation first, without consuming the player's offline summary.
+    // The grant, request receipt and audit record share one profile transaction.
+    const settled = repository.transactCooperatively
+      ? await repository.transactCooperatively(requestId, async state => {
+        const next = await advanceStateCooperatively(state, catalog, at, context);
+        applyAction(next, catalog, action, at);
+        reconcileWeaponRefine(next, catalog, at);
+        return next;
+      }, fingerprint, audit)
+      : await repository.transact(requestId, state => {
+        const next = advanceState(state, catalog, at, context);
+        applyAction(next, catalog, action, at);
+        reconcileWeaponRefine(next, catalog, at);
+        return next;
+      }, fingerprint, audit);
+    return { ok: true, ...(crossAccount && target ? { target: changedCharacter(target, settled) } : {}) };
   });
 }

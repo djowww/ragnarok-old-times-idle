@@ -52,7 +52,9 @@ export function skillTargetInRange(s: GameState, c: Catalog, skill: Skill, level
   }
   // Hunter traps target a free nearby cell, independently of the enemy's range.
   // The authoritative placer validates the chosen cell at start and cast end.
-  if (['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER'].includes(skill.sourceName ?? '')) return true;
+  if (['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE',
+    'HT_LANDMINE', 'HT_FREEZINGTRAP', 'HT_BLASTMINE', 'HT_CLAYMORETRAP']
+    .includes(skill.sourceName ?? '')) return true;
   if (!offensiveSkill(skill) && !['PF_SOULCHANGE','SA_SPELLBREAKER','PR_STRECOVERY','PR_LEXDIVINA','SA_ELEMENTWATER','SA_ELEMENTGROUND','SA_ELEMENTFIRE','SA_ELEMENTWIND'].includes(skill.sourceName ?? '')) return true;
   const point = enemyPositionAt(target, at);
   const hero = battleHeroAt(s, at);

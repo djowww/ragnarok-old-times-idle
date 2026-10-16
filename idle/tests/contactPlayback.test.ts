@@ -23,6 +23,25 @@ function cue(id: number, actionId: string, job: string, motionMs: number, start 
 }
 
 describe('contact-aligned combat playback', () => {
+  it('spreads short attack ACTs through server contact across jobs, weapons and directions', () => {
+    const examples: { job: string; weapon?: WeaponAppearance['type']; frames: number }[] = [
+      { job: 'monk', frames: 5 },
+      { job: 'swordsman', weapon: 'sword', frames: 4 },
+      { job: 'novice', frames: 3 },
+      { job: 'assassin', weapon: 'katar', frames: 2 },
+    ];
+    for (const { job, weapon, frames } of examples) {
+      const value = actor(job, weapon, frames);
+      for (const motionMs of [300, 900]) for (let direction = 0; direction < 8; direction++) {
+        expect(render.getActorPlaybackDuration(value, 'attack', motionMs, direction)).toBe(motionMs);
+        expect(render.getActorPose(value, 'attack', motionMs * (frames - 1) / frames - 0.001,
+          direction, motionMs)[0]?.x).toBe(frames - 2);
+        expect(render.getActorPose(value, 'attack', motionMs - 0.001, direction, motionMs)[0]?.x)
+          .toBe(frames - 1);
+      }
+    }
+  });
+
   it.each(['monk', 'champion'])('%s unarmed attacks keep the final ACT frame through impact in every direction at 300ms and 900ms', job => {
     const value = actor(job);
     for (const motionMs of [300, 900]) for (let direction = 0; direction < 8; direction++) {
@@ -30,7 +49,7 @@ describe('contact-aligned combat playback', () => {
       const marks = new Map();
       presentation.presentLatestActorActions([hit], marks, hit.start);
       const nativeDuration = render.getActorPlaybackDuration(value, 'attack', motionMs, direction);
-      expect(nativeDuration).toBe(motionMs * 5 / 6);
+      expect(nativeDuration).toBe(motionMs);
       presentation.reconcileActorPlayback([hit], marks, hit, nativeDuration);
 
       expect(hit.actionDuration).toBe(motionMs);
@@ -63,14 +82,15 @@ describe('contact-aligned combat playback', () => {
   });
 
   it('extends an AoE contact once, shifts later queued actions and watermarks, and keeps late siblings and health on the impact clock', () => {
-    const first = cue(1, 'aoe', 'monk', 300);
+    // Simulate a cue queued with a stale, shorter playback estimate before ACT decoding.
+    const first = { ...cue(1, 'aoe', 'monk', 300), actionDuration: 250, duration: 250 };
     const sibling = { ...first, id: 2, targetActorId: 'mob-2' };
     const next = { ...cue(3, 'next', 'monk', 300, 1250), actionDuration: 300 };
     const otherActor = { ...cue(4, 'other', 'monk', 300, 1250), sourceActorId: 'other' };
     const marks = new Map([['hero', { actionAt: 1250, actionId: 'next', id: 3, start: 1250, end: 1550, presented: true }]]);
     const cues = [first, sibling, next, otherActor];
     const nativeDuration = render.getActorPlaybackDuration(actor('monk'), 'attack', 300, 0);
-    expect(nativeDuration).toBe(250);
+    expect(nativeDuration).toBe(300);
     presentation.reconcileActorPlayback(cues, marks, first, nativeDuration);
 
     expect(first.actionDuration).toBe(300);
@@ -102,6 +122,68 @@ describe('contact-aligned combat playback', () => {
     expect(lateMarks.get('hero')?.end).toBe(first.start + 300);
   });
 
+  it('keeps Bash damage and death on the weapon swing contact', () => {
+    const motionMs = 388, start = 1000;
+    const value = actor('knight', 'sword', 9);
+    const visualAction = render.getCombatActorAction('skill', 'SM_BASH');
+    expect(visualAction).toBe('attack');
+    const duration = render.getActorPlaybackDuration(value, visualAction, motionMs);
+    expect(duration).toBe(582);
+    const impact = presentation.actorActionImpactAt({
+      actorAction: 'skill', visualActorAction: 'attack', start, effectStart: start,
+      actionDuration: duration, motionMs,
+    });
+    expect(impact).toBe(start + duration);
+    const hit = { id: 1, targetActorId: 'mob', hit: true, impact,
+      targetHpBefore: 30, amount: 30, presented: true };
+    expect(presentation.targetHealthAt(0, 30, [hit], 'mob', impact - 0.001)).toBe(30);
+    expect(presentation.targetHealthAt(0, 30, [hit], 'mob', impact)).toBe(0);
+    expect(render.getCombatActorAction('skill', 'KN_BRANDISHSPEAR')).toBe('attack');
+    const castFinishedAt = start + 800;
+    expect(presentation.actorActionImpactAt({
+      actorAction: 'skill', visualActorAction: 'attack', start: castFinishedAt,
+      effectStart: castFinishedAt, actionDuration: duration, motionMs,
+    })).toBe(castFinishedAt + duration);
+    expect(presentation.actorActionImpactAt({
+      actorAction: 'skill', visualActorAction: 'skill', start, effectStart: start,
+      actionDuration: duration, motionMs,
+    })).toBe(start + duration / 2);
+  });
+
+  it('moves a late-decoded Bash flash with contact without shifting spell or falcon FX', () => {
+    const physical = { id: 1, actionId: 'bash', actionAt: 1000, sourceActorId: 'hero',
+      actorAction: 'skill' as const, visualActorAction: 'attack' as const,
+      skill: { kind: 'physical' as const }, start: 1000, effectStart: 1388,
+      impact: 1388, actionDuration: 388, duration: 1588, motionMs: 388, presented: true };
+    const spell = { ...physical, id: 2, actionId: 'spell', sourceActorId: 'mage',
+      visualActorAction: 'skill' as const, skill: { kind: 'magical' as const }, effectStart: 1000 };
+    const falcon = { ...physical, id: 3, actionId: 'falcon', sourceActorId: 'falcon',
+      actorAction: 'none' as const, visualActorAction: undefined, effectStart: 1100 };
+    const cues = [physical, spell, falcon];
+    const marks = new Map([['hero', { actionAt: 1000, actionId: 'bash', id: 1,
+      start: 1000, end: 1388, presented: true }]]);
+    presentation.reconcileActorPlayback(cues, marks, physical, 582);
+    presentation.reconcileActorPlayback(cues, new Map(), spell, 582);
+    presentation.reconcileActorPlayback(cues, new Map(), falcon, 582);
+    expect(physical.impact).toBe(1582);
+    expect(physical.effectStart).toBe(1582);
+    expect(physical.duration).toBe(1782);
+    expect(spell.effectStart).toBe(1000);
+    expect(falcon.effectStart).toBe(1100);
+  });
+
+  it('moves a late-decoded Bash hit to the end of its attack ACT', () => {
+    const late = { id: 1, actionId: 'bash', actionAt: 1000, sourceActorId: 'hero',
+      actorAction: 'skill' as const, visualActorAction: 'attack' as const, start: 1000, effectStart: 1000,
+      impact: 1388, actionDuration: 388, duration: 708, presented: true };
+    const marks = new Map([['hero', { actionAt: late.actionAt, actionId: late.actionId,
+      id: late.id, start: late.start, end: late.start + late.actionDuration, presented: true }]]);
+    presentation.reconcileActorPlayback([late], marks, late, 582);
+    expect(late.actionDuration).toBe(582);
+    expect(late.impact).toBe(1582);
+    expect(marks.get('hero')?.end).toBe(1582);
+  });
+
   it('aligns attack contact and monster death with the end of a longer decoded ACT', () => {
     const hit = cue(1, 'swordsman-contact', 'swordsman', 300, 1000, 'sword');
     expect(hit.actionDuration).toBe(600);
@@ -123,9 +205,9 @@ describe('contact-aligned combat playback', () => {
     expect(presentation.presentedActorReactionAt(retained, hit.targetActorId, reactionAt)).toBe(hit);
   });
 
-  it('keeps server motion contact when the decoded attack ACT is shorter', () => {
+  it('keeps server motion contact with a short decoded attack ACT', () => {
     const hit = cue(1, 'monk-contact', 'monk', 300, 1000);
-    expect(hit.actionDuration).toBe(250);
+    expect(hit.actionDuration).toBe(300);
     expect(presentation.actorActionImpactAt(hit)).toBe(1300);
   });
 
@@ -143,8 +225,8 @@ describe('contact-aligned combat playback', () => {
     invalidImpact.impact = Number.POSITIVE_INFINITY;
     const marks = new Map();
     presentation.presentLatestActorActions([invalidImpact], marks, invalidImpact.start);
-    expect(invalidImpact.actionDuration).toBe(250);
-    expect(marks.get('hero')?.end).toBe(invalidImpact.start + 250);
+    expect(invalidImpact.actionDuration).toBe(300);
+    expect(marks.get('hero')?.end).toBe(invalidImpact.start + 300);
   });
   it('does not shorten decoded playback when only the action watermark remains', () => {
     const hit = cue(1, 'long-armed', 'assassin', 300, 1000, 'katar');
@@ -171,4 +253,20 @@ describe('contact-aligned combat playback', () => {
     expect(moved?.get(next.id)).toBe(600);
   });
 
+});
+
+describe('visual skill effect timing', () => {
+  it('waits for the weapon contact on Bash and Brandish Spear', () => {
+    const cue = { actorAction: 'skill' as const, visualActorAction: 'attack' as const,
+      skillKind: 'physical' as const, effectStart: 1000, impact: 1582 };
+    expect(presentation.skillVisualEffectAt(cue)).toBe(1582);
+    expect(presentation.skillVisualEffectAt({ ...cue, impact: 900 })).toBe(1000);
+  });
+
+  it('keeps spell and nonweapon effects on their original timeline', () => {
+    const cue = { actorAction: 'skill' as const, visualActorAction: 'skill' as const,
+      skillKind: 'magical' as const, effectStart: 1000, impact: 1582 };
+    expect(presentation.skillVisualEffectAt(cue)).toBe(1000);
+    expect(presentation.skillVisualEffectAt({ ...cue, skillKind: 'physical' })).toBe(1000);
+  });
 });

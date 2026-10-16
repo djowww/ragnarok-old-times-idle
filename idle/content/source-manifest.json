@@ -948,6 +948,101 @@
       "sourceType": "IT_CARD"
     },
     {
+      "itemId": 2264,
+      "aegisName": "Munak_Turban",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 609,
+      "aegisName": "Amulet",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 2337,
+      "aegisName": "Ninja_Suit",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1558,
+      "aegisName": "Girls_Diary",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4090,
+      "aegisName": "Munak_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 618,
+      "aegisName": "Worn_Out_Scroll",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4212,
+      "aegisName": "Bon_Gun_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4077,
+      "aegisName": "Phen_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 10003,
+      "aegisName": "Transparent_Headgear",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 4084,
+      "aegisName": "Marine_Sphere_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4089,
+      "aegisName": "Sword_Fish_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4105,
+      "aegisName": "Marc_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2331,
+      "aegisName": "Tights_",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 535,
+      "aegisName": "Pumpkin",
+      "sourceType": "IT_HEALING"
+    },
+    {
+      "itemId": 4109,
+      "aegisName": "Jakk_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 660,
+      "aegisName": "Prohibition_Red_Candle",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 4268,
+      "aegisName": "Injustice_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4275,
+      "aegisName": "Zombie_Prisoner_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4194,
+      "aegisName": "Rybio_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
       "itemId": 1232,
       "aegisName": "Assasin_Dagger",
       "sourceType": "IT_WEAPON"
@@ -1376,11 +1471,6 @@
       "itemId": 4135,
       "aegisName": "Orc_Load_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 2331,
-      "aegisName": "Tights_",
-      "sourceType": "IT_ARMOR"
     },
     {
       "itemId": 2622,
@@ -13735,7 +13825,11 @@
       "moc_pryd05",
       "gl_chyard",
       "anthell01",
-      "anthell02"
+      "anthell02",
+      "pay_dun02",
+      "iz_dun03",
+      "gef_dun01",
+      "gl_prison"
     ],
     "selection": "All selected monsters must appear on their configured map in the pinned spawn scripts; missing maps are rejected."
   },
@@ -16162,6 +16256,7 @@
       1016,
       1020,
       1023,
+      1026,
       1028,
       1035,
       1036,
@@ -16169,10 +16264,12 @@
       1039,
       1041,
       1044,
+      1045,
       1046,
       1059,
       1061,
       1068,
+      1069,
       1077,
       1087,
       1088,
@@ -16193,6 +16290,7 @@
       1124,
       1125,
       1126,
+      1130,
       1132,
       1147,
       1149,
@@ -16202,16 +16300,20 @@
       1157,
       1159,
       1163,
+      1188,
       1190,
       1191,
       1192,
+      1197,
       1200,
+      1201,
       1203,
       1204,
       1205,
       1219,
       1251,
       1252,
+      1257,
       1258,
       1259,
       1262,
@@ -16305,7 +16407,9 @@
       1116,
       1121,
       1141,
+      1142,
       1144,
+      1158,
       1160,
       1166,
       1167,
@@ -16353,6 +16457,7 @@
       1160,
       1176,
       1190,
+      1201,
       1203,
       1204,
       1205,
@@ -16422,7 +16527,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "3121673981ce51480b025342402f6cda574505f3d80bee88b87e0c47f2aa742a",
+  "rulesSha256": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16477,6 +16582,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "1d42623745796d1a3d6970d1f915e16c289a5f135b334a8719605b4bbe11ed0f",
+  "catalogSha256": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

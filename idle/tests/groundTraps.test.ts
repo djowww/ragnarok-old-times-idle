@@ -50,3 +50,14 @@ describe('persistent Hunter trap presentation', () => {
     expect(actor.body!.action.actions[0].frames[0].layers[0].color[3]).toBe(255);
   });
 });
+
+describe('offensive Hunter trap scene state', () => {
+  it.each(['HT_LANDMINE', 'HT_FREEZINGTRAP', 'HT_BLASTMINE', 'HT_CLAYMORETRAP'])(
+    '%s stays visible while armed and becomes spent after activation', source => {
+      const trap = { skillId: source, placedAt: 1000, expiresAt: 5000 };
+      expect(groundTrapVisualState(trap, 1500)).toBe('armed');
+      expect(groundTrapVisualState({ ...trap, triggeredAt: 2000 }, 2500)).toBe('spent');
+      expect(groundTrapVisualState({ ...trap, triggeredAt: 2000 }, 5000)).toBeNull();
+    },
+  );
+});

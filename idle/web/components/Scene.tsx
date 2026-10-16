@@ -3,7 +3,7 @@ import {falconAsset,FalconPresentation,alignFalconCues,falconDestinationWorld,fa
 import {isFalconEquipped} from '../../engine/falcon';
 import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
-import { isSoloPotionPitcher, skillCueCastDuration, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
+import { isSoloPotionPitcher, skillCueCastDuration, skillVisualEffectAt, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
@@ -484,6 +484,7 @@ type CombatCue = {
   sourceActorId: string;
   targetActorId: string;
   actorAction: "attack" | "skill" | "none";
+  visualActorAction?: "attack" | "skill";
   actionId: string;
   actionAt: number;
   action: "attack" | "enemyAttack" | "skill";
@@ -927,23 +928,26 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         : sourceMonster?.attackMotionMs ?? actorActionDuration(enemyActors.current.get(monsterId ?? -1) ?? actorsRef.current.enemy, 16, ENEMY_COMBAT_DIRECTION, 700);
       const motionMs = Math.max(1, event.actionMotionMs ?? fallbackMotion);
       const sourceActor = sourceActorId === state.id ? actorsRef.current.hero : undefined;
+      const visualAction = getCombatActorAction(actorAction, skill?.sourceName);
+      const visualActorAction = visualAction === 'attack' ? 'attack' : actorAction === 'skill' ? 'skill' : undefined;
       const actionDuration = sourceActor && actorAction !== 'none'
-        ? getActorPlaybackDuration(sourceActor, getCombatActorAction(actorAction, skill?.sourceName), motionMs, HERO_COMBAT_DIRECTION) : motionMs;
+        ? getActorPlaybackDuration(sourceActor, visualAction, motionMs, HERO_COMBAT_DIRECTION) : motionMs;
       const start = serverOffset + (event.actionStartedAt ?? event.at);
       const effectStart = serverOffset + event.at;
       const impact = selfSkill ? effectStart : actorActionImpactAt({
-        actorAction, start, effectStart, actionDuration, motionMs,
+        actorAction, visualActorAction, start, effectStart, actionDuration, motionMs,
       });
+      const visualEffectStart = skillVisualEffectAt({ actorAction, visualActorAction, skillKind: skill?.kind, effectStart, impact });
       const reactionDuration = Math.max(0, event.hitMotionMs ?? (targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320));
       return {
         id: event.id, triggerActionId:event.triggerActionId,
         falconFlight:event.kind==='falcon-flight'||event.kind==='skill'&&skill?.sourceName==='HT_DETECTING',
-        start, effectStart, impact, actionDuration, motionMs, reactionDuration,
+        start, effectStart: visualEffectStart, impact, actionDuration, motionMs, reactionDuration,
         targetHpBefore: event.targetHpBefore, amount: event.kind === 'damage' ? event.amount : undefined,
         sourcePosition: event.actionSourcePosition, movementDestination: event.movementDestination,
         actionFacing: event.actionFacing, actionAreaId: event.areaId,
-        duration: Math.max(actionDuration, impact - start + reactionDuration, skill ? effectStart - start + SKILL_EFFECT_MS : 0),
-        sourceActorId, targetActorId, actorAction, castAction:event.kind === "cast",
+        duration: Math.max(actionDuration, impact - start + reactionDuration, skill ? visualEffectStart - start + SKILL_EFFECT_MS : 0),
+        sourceActorId, targetActorId, actorAction, visualActorAction, castAction:event.kind === "cast",
         actionId: event.actionId ?? (skill ? `${sourceActorId}:${skill.id}:${event.at}` : `${event.id}`),
         actionAt: event.actionStartedAt ?? event.at,
         action: incoming ? "enemyAttack" : skill ? "skill" : "attack",

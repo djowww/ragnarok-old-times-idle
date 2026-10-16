@@ -5,7 +5,8 @@ export const GROUND_TRAP_ASSET = {
   spr: 'data/sprite/이팩트/기본트랩.spr',
   act: 'data/sprite/이팩트/기본트랩.act',
 };
-const HUNTER_CONTROL_TRAPS = new Set(['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE']);
+const HUNTER_TRAPS = new Set(['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE',
+  'HT_LANDMINE', 'HT_FREEZINGTRAP', 'HT_BLASTMINE', 'HT_CLAYMORETRAP']);
 export function hasSceneAction(kind: string, hasSkill: boolean): boolean {
   return ['damage', 'miss', 'dodge'].includes(kind) || hasSkill && ['cast', 'skill', 'treatment', 'trap-placed', 'trap-trigger', 'ground-placed'].includes(kind);
 }
@@ -21,7 +22,7 @@ interface TrapLifetime {
 }
 
 export function groundTrapVisualState(trap: TrapLifetime, now: number): 'armed' | 'captured' | 'spent' | null {
-  if (!HUNTER_CONTROL_TRAPS.has(trap.skillId) || !Number.isFinite(now) ||
+  if (!HUNTER_TRAPS.has(trap.skillId) || !Number.isFinite(now) ||
     now < trap.placedAt || now >= trap.expiresAt) return null;
   if (trap.triggeredAt === undefined || now < trap.triggeredAt) return 'armed';
   return trap.skillId === 'HT_ANKLESNARE' && trap.capturedEnemyId ? 'captured' : 'spent';

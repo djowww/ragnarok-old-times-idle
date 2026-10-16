@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { PanelProps } from '../components/common';
 import type { AccountView } from '../../shared/portal-types';
+import type { AdminCharacter } from '../../shared/admin';
 import '../admin.css';
 
 type AdminSession = { enabled: boolean; authenticated: boolean };
@@ -60,6 +61,7 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
   const [loginBusy, setLoginBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
   const [itemSearch, setItemSearch] = useState('');
   const [itemId, setItemId] = useState(501);
   const [itemQuantity, setItemQuantity] = useState(1);
@@ -67,16 +69,27 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
   const [jobLevels, setJobLevels] = useState(1);
   const [zeny, setZeny] = useState(1000);
   const [classId, setClassId] = useState(snapshot.state.job);
+  const [targetSearch, setTargetSearch] = useState('');
+  const [targetResults, setTargetResults] = useState<AdminCharacter[]>([]);
+  const [target, setTarget] = useState<AdminCharacter | null>(null);
+  const [searchBusy, setSearchBusy] = useState(false);
+  const searchGeneration = useRef(0);
   const actionRequestIds = useRef(restorePendingAdminRequestIds(identity));
 
   useEffect(() => {
     const scope: AdminScope = { key: identityKey, controller: new AbortController() };
     scopeRef.current = scope;
     actionRequestIds.current = restorePendingAdminRequestIds(identity);
-    setSessionState(null); setNotice(''); setToken(''); setActionBusy(false); setLoginBusy(false);
+    setSessionState(null); setNotice(''); setAccessDenied(false); setToken(''); setActionBusy(false); setLoginBusy(false);
+    searchGeneration.current++;
+    setTarget(null); setTargetResults([]); setTargetSearch(''); setSearchBusy(false);
     const current = () => scopeRef.current === scope && identityKeyRef.current === scope.key && !scope.controller.signal.aborted;
     void readSession(identity, scope.controller.signal).then(value => { if (current()) setSessionState({ key: identityKey, value }); })
-      .catch(error => { if (current()) { if ((error as Error & { code?: string }).code === 'AUTH_REQUIRED') authRequired.current(); else setNotice((error as Error).message); } });
+      .catch(error => { if (current()) {
+        const failure = error as Error & { code?: string };
+        if (failure.code === 'AUTH_REQUIRED') authRequired.current();
+        else { if (failure.code === 'ADMIN_ACCOUNT_FORBIDDEN') setAccessDenied(true); setNotice(failure.message); }
+      } });
     return () => { scope.controller.abort(); if (scopeRef.current === scope) scopeRef.current = null; };
   }, [identityKey]);
 
@@ -85,9 +98,14 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
     return scope && scope.key === identityKey && identityKeyRef.current === identityKey && !scope.controller.signal.aborted ? scope : null;
   }
 
+  const activeGender = target?.gender ?? snapshot.state.gender;
+  const activeJob = target?.classId ?? snapshot.state.job;
+  const activeBaseLevel = target?.baseLevel ?? snapshot.state.baseLevel;
+  const activeJobLevel = target?.jobLevel ?? snapshot.state.jobLevel;
+  useEffect(() => { setClassId(activeJob); }, [activeJob]);
   const classes = useMemo(() => Object.values(catalog.classes)
-    .filter(job => !job.gender || job.gender === snapshot.state.gender)
-    .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name, 'pt-BR')), [catalog.classes, snapshot.state.gender]);
+    .filter(job => !job.gender || job.gender === activeGender)
+    .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name, 'pt-BR')), [catalog.classes, activeGender]);
   const items = useMemo(() => Object.values(catalog.items)
     .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')), [catalog.items]);
   const matches = useMemo(() => {
@@ -96,8 +114,8 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
     return items.filter(item => `${item.id} ${item.name}`.toLocaleLowerCase('pt-BR').includes(query)).slice(0, 30);
   }, [items, itemSearch, itemId]);
   const selectedItem = catalog.items[itemId];
-  const jobCap = catalog.classes[snapshot.state.job].jobCap;
-  const grantedJobLevels = Math.min(jobLevels, Math.max(0, jobCap - snapshot.state.jobLevel));
+  const jobCap = catalog.classes[activeJob]?.jobCap ?? 1;
+  const grantedJobLevels = Math.min(jobLevels, Math.max(0, jobCap - activeJobLevel));
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -123,20 +141,50 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
     }
   }
 
+  async function searchCharacters(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const scope = currentScope(); if (!scope || targetSearch.trim().length < 2) return;
+    const generation = ++searchGeneration.current;
+    setSearchBusy(true); setNotice('');
+    try {
+      const response = await fetch(`/api/admin/characters?query=${encodeURIComponent(targetSearch.trim())}`, {
+        cache: 'no-store', headers: identityHeaders(identity), signal: scope.controller.signal,
+      });
+      const result = await response.json() as { characters?: AdminCharacter[]; error?: { code?: string; message?: string } };
+      if (currentScope() !== scope || searchGeneration.current !== generation) return;
+      if (result.error?.code === 'AUTH_REQUIRED') { authRequired.current(); return; }
+      if (!response.ok) throw new Error(result.error?.message ?? 'Não foi possível buscar personagens.');
+      setTargetResults(result.characters ?? []);
+      if (!result.characters?.length) setNotice('Nenhum personagem encontrado.');
+    } catch (error) {
+      if (currentScope() === scope && searchGeneration.current === generation) setNotice((error as Error).message);
+    } finally {
+      if (currentScope() === scope && searchGeneration.current === generation) setSearchBusy(false);
+    }
+  }
+
   async function run(action: AdminAction, success: string) {
     const scope = currentScope(); if (!scope) return;
     setActionBusy(true);
     setNotice('');
-    const actionKey = JSON.stringify(action);
-    const requestId = actionRequestIds.current.get(actionKey) ?? crypto.randomUUID();
+    const selectedTarget = target;
+    const targetProfileId = selectedTarget?.profileId ?? identity.profileId;
+    const actionKey = JSON.stringify([targetProfileId, action]);
+    // Before cross-account grants, v1 stored self-action receipts under the action alone.
+    const legacyActionKey = JSON.stringify(action);
+    const requestId = actionRequestIds.current.get(actionKey) ??
+      (targetProfileId === identity.profileId ? actionRequestIds.current.get(legacyActionKey) : undefined) ??
+      crypto.randomUUID();
+    if (targetProfileId === identity.profileId) actionRequestIds.current.delete(legacyActionKey);
     actionRequestIds.current.set(actionKey, requestId);
     persistPendingAdminRequestIds(identity, actionRequestIds.current);
     try {
       const response = await fetch('/api/admin/action', {
         method: 'POST', headers: identityHeaders(identity, true),
-        body: JSON.stringify({ requestId, action }), cache: 'no-store', signal: scope.controller.signal,
+        body: JSON.stringify({ requestId, action, ...(selectedTarget && selectedTarget.profileId !== identity.profileId
+          ? { targetProfileId: selectedTarget.profileId } : {}) }), cache: 'no-store', signal: scope.controller.signal,
       });
-      const result = await response.json() as { error?: { code?: string; message?: string } };
+      const result = await response.json() as { target?: AdminCharacter; error?: { code?: string; message?: string } };
       if (currentScope() !== scope) return;
       if (result.error?.code === 'AUTH_REQUIRED') { authRequired.current(); return; }
       if (!response.ok) {
@@ -145,8 +193,12 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
       }
       actionRequestIds.current.delete(actionKey);
       persistPendingAdminRequestIds(identity, actionRequestIds.current);
-      onChanged();
-      setNotice(success);
+      if (selectedTarget) {
+        const updatedTarget = result.target;
+        if (updatedTarget?.profileId === selectedTarget.profileId)
+          setTarget(current => current?.profileId === selectedTarget.profileId ? updatedTarget : current);
+      } else onChanged();
+      setNotice(selectedTarget ? `${success} · ${selectedTarget.characterName}` : success);
     } catch (error) {
       if (currentScope() === scope) setNotice((error as Error).message);
     } finally {
@@ -168,6 +220,12 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
     setSessionState(value => value?.key === identityKey ? { ...value, value: { ...value.value, authenticated: false } } : value);
     setNotice('Sessão administrativa encerrada.');
   }
+
+  if (accessDenied) return <div className="admin-panel">
+    <div className="admin-panel-heading"><span className="admin-seal" aria-hidden="true">R</span>
+      <div><h3>Painel administrativo</h3><p>Acesso restrito</p></div></div>
+    {notice && <p className="admin-message" role="alert">{notice}</p>}
+  </div>;
 
   if (!session) return <div className="admin-panel" aria-live="polite">
     <div className="admin-panel-heading"><span className="admin-seal" aria-hidden="true">R</span><div><h3>Painel administrativo</h3><p>Conectando ao controle do servidor…</p></div></div>
@@ -199,15 +257,48 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
     </div>
     <p className="admin-notice">As alterações são validadas e salvas pelo servidor. Trocar a classe inicia o Job 1; o Base e os itens são preservados.</p>
 
+    <section className="admin-target-panel" aria-label="Personagem de destino">
+      <div className="admin-target-heading">
+        <div><strong>Destino das alterações</strong><p>{target
+          ? `${target.characterName} · ${target.username} · Base ${activeBaseLevel} · Job ${activeJobLevel}`
+          : `${snapshot.state.name} · sua conta`}</p></div>
+        {target && <button type="button" onClick={() => { setTarget(null); setTargetResults([]); }}>
+          Voltar ao meu personagem
+        </button>}
+      </div>
+      <form className="admin-target-search" onSubmit={searchCharacters}>
+        <label htmlFor="ragidle-admin-character-search">Buscar personagem ou conta
+          <input id="ragidle-admin-character-search" type="search" minLength={2} maxLength={60}
+            value={targetSearch} onChange={event => {
+              searchGeneration.current++; setSearchBusy(false); setTargetResults([]);
+              setTargetSearch(event.target.value);
+            }}
+            placeholder="Nome do personagem ou usuário" />
+        </label>
+        <button type="submit" disabled={targetSearch.trim().length < 2}>
+          {searchBusy ? 'Buscando…' : 'Buscar'}
+        </button>
+      </form>
+      {!!targetResults.length && <div className="admin-target-results" aria-label="Personagens encontrados">
+        {targetResults.map(character => <button key={character.profileId} type="button"
+          aria-pressed={target?.profileId === character.profileId || (!target && character.profileId === identity.profileId)}
+          onClick={() => { searchGeneration.current++; setSearchBusy(false);
+            setTarget(character.profileId === identity.profileId ? null : character); setTargetResults([]); setNotice(''); }}>
+          <strong>{character.characterName}</strong><span>{character.username}</span>
+          <small>Base {character.baseLevel} · Job {character.jobLevel} · {catalog.classes[character.classId]?.name ?? character.classId}</small>
+        </button>)}
+      </div>}
+    </section>
+
     <div className="admin-actions">
       <section className="admin-action-card">
         <span className="admin-step">01</span><h4>Progressão Base</h4><p>Conceda níveis respeitando a curva de EXP do personagem.</p>
         <div className="admin-inline-form">
           <label>Níveis <input type="number" min={1} max={20} step={1} value={baseLevels} onChange={event => setBaseLevels(Math.max(1, Math.min(20, Number(event.target.value) || 1)))} /></label>
-          <button type="button" disabled={actionBusy || snapshot.state.baseLevel >= 99}
-            onClick={() => void run({ type: 'baseLevels', amount: baseLevels }, `Níveis Base concedidos. Agora Base ${Math.min(99, snapshot.state.baseLevel + baseLevels)}.`)}>Conceder</button>
+          <button type="button" disabled={actionBusy || activeBaseLevel >= 99}
+            onClick={() => void run({ type: 'baseLevels', amount: baseLevels }, `Níveis Base concedidos. Agora Base ${Math.min(99, activeBaseLevel + baseLevels)}.`)}>Conceder</button>
         </div>
-        {snapshot.state.baseLevel >= 99 && <small>Base máximo atingido.</small>}
+        {activeBaseLevel >= 99 && <small>Base máximo atingido.</small>}
       </section>
 
       <section className="admin-action-card">
@@ -215,9 +306,9 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
         <div className="admin-inline-form">
           <label>Níveis <input type="number" min={1} max={20} step={1} value={jobLevels} onChange={event => setJobLevels(Math.max(1, Math.min(20, Number(event.target.value) || 1)))} /></label>
           <button type="button" disabled={actionBusy || grantedJobLevels === 0}
-            onClick={() => void run({ type: 'jobLevels', amount: jobLevels }, `${grantedJobLevels} ${grantedJobLevels === 1 ? 'nível Job concedido' : 'níveis Job concedidos'}. Agora Job ${snapshot.state.jobLevel + grantedJobLevels}.`)}>Conceder</button>
+            onClick={() => void run({ type: 'jobLevels', amount: jobLevels }, `${grantedJobLevels} ${grantedJobLevels === 1 ? 'nível Job concedido' : 'níveis Job concedidos'}. Agora Job ${activeJobLevel + grantedJobLevels}.`)}>Conceder</button>
         </div>
-        <small>{snapshot.state.jobLevel >= jobCap ? 'Job máximo atingido para esta classe.' : `Job ${snapshot.state.jobLevel} / ${jobCap}. Até ${grantedJobLevels} ${grantedJobLevels === 1 ? 'nível' : 'níveis'} nesta operação.`}</small>
+        <small>{activeJobLevel >= jobCap ? 'Job máximo atingido para esta classe.' : `Job ${activeJobLevel} / ${jobCap}. Até ${grantedJobLevels} ${grantedJobLevels === 1 ? 'nível' : 'níveis'} nesta operação.`}</small>
       </section>
 
       <section className="admin-action-card">
@@ -226,7 +317,7 @@ export default function Admin({ catalog, snapshot, identity, onAuthRequired, onC
           <label>Classe <select value={classId} onChange={event => setClassId(event.target.value)}>
             {classes.map(job => <option key={job.id} value={job.id}>{job.name}</option>)}
           </select></label>
-          <button type="button" disabled={actionBusy || classId === snapshot.state.job}
+          <button type="button" disabled={actionBusy || classId === activeJob}
             onClick={() => void run({ type: 'class', classId }, `Classe alterada para ${catalog.classes[classId]?.name ?? classId}.`)}>Alterar</button>
         </div>
       </section>

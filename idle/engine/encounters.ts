@@ -107,7 +107,7 @@ import {
   consumeSuffragiumForCast,
 } from "./classicBuffs.js";
 import { canSteal, attemptSteal, attemptGank } from "./steal.js";
-import { isHunterTrapSkill, hunterTrapSpec, hunterTrapStatus, hunterTrapWithinRange } from "./hunterTraps.js";
+import { isHunterDamageTrapSkill, isHunterTrapSkill, hunterTrapSpec, hunterTrapStatus, hunterTrapWithinRange } from "./hunterTraps.js";
 import { enchantPoisonProc, enchantPoisonCastBlocked, elementalEnchantReplacements } from "./enchantPoison.js";
 import { automaticSpellChoices, hindsightProc, doubleCastingRepeat, memorizeCastStart } from "./sageCasting.js";
 import { energyCoatMagicDamage, magicRodAcceptsCast, magicRodRefund, magicRodWindow, monsterMagicAttack, monsterMagicDamage, monsterMagicElementRate } from "./monsterMagic.js";
@@ -567,6 +567,7 @@ function expireHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["tr
         { itemId: reagent.itemId, quantity: 1, enemyPosition: { ...trap.position }, areaId: s.areaId ?? undefined });
     }
   }
+  removeGroundPlacement(s, trap.groundPlacementId);
   if (s.battle) s.battle.traps = s.battle.traps?.filter(unit => unit !== trap);
 }
 
@@ -575,7 +576,7 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
   if (trap.expiresAt <= at) { expireHunterTrap(s, c, trap, at); return; }
   if (trap.triggeredAt !== undefined) return;
   const skill = c.skills[trap.skillId], source = skill?.sourceName;
-  if (!source || !isHunterTrapSkill(source)) { expireHunterTrap(s, c, trap, at); return; }
+  if (!skill || !source || !isHunterTrapSkill(source)) { expireHunterTrap(s, c, trap, at); return; }
   const spec = hunterTrapSpec(source, trap.level, skill.groundDurationMs?.[trap.level - 1]), cell = sourceCell(trap.position);
   trap.nextTickAt = at + spec.intervalMs;
   const live = enemies(s).filter(enemy => enemy.hp > 0 && enemy.startedAt <= at &&
@@ -585,7 +586,16 @@ function tickHunterTrap(s: GameState, c: Catalog, trap: NonNullable<Battle["trap
   trap.triggeredAt = at; trap.expiresAt = at + spec.usedLifetimeMs;
   event(s, at, "trap-trigger", skill.name, undefined, "enemy", { skillId: skill.id, skillLevel: trap.level,
     enemyId: target.id, monsterId: target.monsterId, enemyPosition: { ...trap.position },
-    ...playerAction(s, c, at, "none"), targetActorId: target.id });
+    ...playerAction(s, c, at, "none"), actionSourcePosition: { ...trap.position },
+    targetActorId: target.id });
+  if (isHunterDamageTrapSkill(source)) {
+    // Hercules skill_unit_onplace: damage and status resolve from the armed unit
+    // on its 1 s timer, then the spent trap remains for 1.5 s.
+    damageEnemies(s, c, target, at, skill, trap.level, trap.position,
+      { ...playerAction(s, c, at, "none"), actionSourcePosition: { ...trap.position } },
+      false, undefined, context);
+    return;
+  }
   if (source === 'HT_SHOCKWAVE') {
     const affected = live.filter(enemy => hunterTrapWithinRange(cell, sourceCell(enemyPositionAt(enemy, at)), spec.splashRadius));
     for (const enemy of affected) {

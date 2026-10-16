@@ -28,6 +28,25 @@ describe('native dungeon populations and material routes', () => {
     expect(bgmForMap(map)).toBe('46.mp3');
     for (const monsterId of ids) expect(c.monsters[monsterId]).toBeDefined();
   });
+  it.each([
+    ['payon_cave_third', 'pay_dun02', [1028, 1026, 1188, 1031, 1016], 33, '20.mp3'],
+    ['byalan_third', 'iz_dun03', [1158, 1142, 1069, 1045, 1068], 38, '49.mp3'],
+    ['geffen_dungeon_first', 'gef_dun01', [1111, 1061, 1015, 1036, 1130], 42, '21.mp3'],
+    ['glast_heim_prison', 'gl_prison', [1257, 1035, 1197, 1201], 70, '40.mp3'],
+  ])('makes %s a source-aligned playable dungeon with map, BGM and navigation',
+    (id, map, ids, minLevel, bgm) => {
+      const area = c.areas.find(candidate => candidate.id === id);
+      expect(area).toMatchObject({ map, monsters: ids, minLevel });
+      const layout = navigation.areas.find(candidate => candidate.areaId === id);
+      expect(layout).toMatchObject({ map });
+      expect(layout?.homeOffsets).toHaveLength(4);
+      expect(bgmForMap(map)).toBe(bgm);
+      for (const monsterId of ids) {
+        expect(c.monsters[monsterId]).toBeDefined();
+        expect(c.monsters[monsterId]?.boss).toBe(false);
+      }
+      expect(getMapLife(map, area, c).filter(actor => actor.kind === 'npc')).toHaveLength(0);
+    });
   it('pins both Ant Hell populations to the official Hercules spawn source', () => {
     const path = 'npc/pre-re/mobs/dungeons/anthell.txt';
     expect(rules.mapSpawnSources).toContain(path);

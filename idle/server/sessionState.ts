@@ -2,7 +2,7 @@ import type { BattleEnemy, Catalog, ElementalField, GameState, GroundPlacement }
 import { clearSageField, sageFieldModifiers } from '../engine/sageFields.js';
 import { derivedStats } from '../engine/stats.js';
 import { ValidationError } from './validation.js';
-import type { StateRepository } from './repository.js';
+import type { AdminAuditRecord, StateRepository } from './repository.js';
 
 export const TRICK_DEAD_BUFF_ID = 'nv_trickdead';
 export const SIGHT_BLASTER_BUFF_ID = 'sight_blaster';
@@ -57,15 +57,15 @@ export class SessionStateRepository implements StateRepository {
 
   constructor(private readonly durable: StateRepository, private readonly catalog?: Catalog) {
     if (durable.transactCooperatively) {
-      this.transactCooperatively = (requestId, action, fingerprint) =>
-        this.withLock(() => this.transactCooperativelyUnlocked(requestId, action, fingerprint));
+      this.transactCooperatively = (requestId, action, fingerprint, audit) =>
+        this.withLock(() => this.transactCooperativelyUnlocked(requestId, action, fingerprint, audit));
       this.openSessionCooperatively = (connectionId, action) =>
         this.withLock(() => this.openSessionCooperativelyUnlocked(connectionId, action));
     }
   }
 
-  transact(requestId: string | null, action: SyncStateAction, fingerprint?: string): Promise<GameState> {
-    return this.withLock(() => this.transactUnlocked(requestId, action, fingerprint));
+  transact(requestId: string | null, action: SyncStateAction, fingerprint?: string, audit?: AdminAuditRecord): Promise<GameState> {
+    return this.withLock(() => this.transactUnlocked(requestId, action, fingerprint, audit));
   }
 
   openSession(connectionId: string, action: SyncStateAction): Promise<GameState> {
@@ -90,7 +90,7 @@ export class SessionStateRepository implements StateRepository {
 
   health(): Promise<boolean> { return this.durable.health(); }
 
-  private async transactUnlocked(requestId: string | null, action: SyncStateAction, fingerprint?: string): Promise<GameState> {
+  private async transactUnlocked(requestId: string | null, action: SyncStateAction, fingerprint?: string, audit?: AdminAuditRecord): Promise<GameState> {
     let invoked = false;
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
@@ -109,14 +109,14 @@ export class SessionStateRepository implements StateRepository {
       this.stripDurableField(durableNext);
       this.stripDurableAlchemy(durableNext);
       return durableNext;
-    }, fingerprint);
+    }, fingerprint, audit);
     // The callback is skipped for an idempotent receipt replay. In that case
     // the committed volatile value is authoritative and must not be replaced.
     if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; this.volatileAlchemy = nextAlchemy ?? emptyAlchemy(); }
     return this.hydrate(saved);
   }
 
-  private async transactCooperativelyUnlocked(requestId: string | null, action: AsyncStateAction, fingerprint?: string): Promise<GameState> {
+  private async transactCooperativelyUnlocked(requestId: string | null, action: AsyncStateAction, fingerprint?: string, audit?: AdminAuditRecord): Promise<GameState> {
     let invoked = false;
     let nextBuffs: VolatileBuffs | undefined;
     let nextField: VolatileField | undefined;
@@ -135,7 +135,7 @@ export class SessionStateRepository implements StateRepository {
       this.stripDurableField(durableNext);
       this.stripDurableAlchemy(durableNext);
       return durableNext;
-    }, fingerprint);
+    }, fingerprint, audit);
     if (invoked) { this.volatileField = nextField ?? emptyField(); this.volatileBuffs = nextBuffs ?? {}; this.volatileBladeStop = nextBladeStop ?? { partners: {}, partnerMovement: {} }; this.volatileAlchemy = nextAlchemy ?? emptyAlchemy(); }
     return this.hydrate(saved);
   }
