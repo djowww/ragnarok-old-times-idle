@@ -104,6 +104,7 @@ import {
   comboAllowed,
   playerHiddenFrom,
   tickClassicBuffs,
+  consumeSuffragiumForCast,
 } from "./classicBuffs.js";
 import { canSteal, attemptSteal, attemptGank } from "./steal.js";
 import { isHunterTrapSkill, hunterTrapSpec, hunterTrapStatus, hunterTrapWithinRange } from "./hunterTraps.js";
@@ -1190,6 +1191,7 @@ import { activePlayerStatus, treatmentSources, statusTreatmentEligible, resolveS
 import { tryMonsterStatusSkill, takeMonsterStatusCast, applyMonsterStatusEffect, interruptMonsterStatusCast, cancelInvalidMonsterStatusCasts } from './monsterStatusSkills.js';
 import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
 import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
+import { suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
 import { tickChasewalk, CHASEWALK_STRENGTH_ID } from './chasewalk.js';
 import { resolveSupportCast } from './supportCasts.js';
 import { beginSkillAction, finishSkillAction, cancelSkillAction, sourceAfterCastDelay } from './skillActionClock.js';
@@ -1271,7 +1273,8 @@ function chooseSkill(
         !(skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'HT_DETECTING' && skill.manualUse === 'activate') &&
-        !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
+        !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') &&
+        !(skill.sourceName === 'PR_SUFFRAGIUM' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
       skill.implementation === "unsupported" ||
       (s.skillReadyAt[id] ?? 0) > at
     )
@@ -1283,6 +1286,7 @@ function chooseSkill(
     if (skill.sourceName === 'HT_POWER' &&
       !['brute', 'insect'].includes(c.monsters[target.monsterId]?.race.toLowerCase() ?? '')) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
+    if (skill.sourceName === 'PR_SUFFRAGIUM' && !suffragiumCanStart(s, c, skill, level, at)) continue;
     if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
@@ -3549,6 +3553,10 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   const skillDecisionDue = !activeCast && at >= (b.playerNextSkillAt ?? 0);
   const skill = skillDecisionDue ? chooseSkill(s, c, at, target, false, false, context) : undefined;
   if (skill) {
+    if (skill.sourceName === 'PR_SUFFRAGIUM') {
+      startSuffragiumCast(s, c, skill, skillUseLevel(s, c, skill.id), at);
+      return;
+    }
     if (skill.sourceName === 'HT_DETECTING') {
       useDetecting(s,c,skill,skillUseLevel(s,c,skill.id),at);
       return;
@@ -3595,6 +3603,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
       s.combatEffects.memorizeCharges = memorize.remaining;
       if (!memorize.remaining) cancelClassicBuff(s, c, "PF_MEMORIZE");
     }
+    consumeSuffragiumForCast(s, c, skill, at);
     const delay = afterCastDelay(s, c, skill, level);
     // Auto Counter's posture owns its visual stillness; the independent source
     // canact clock still applies and only an incoming hit triggers its counter.

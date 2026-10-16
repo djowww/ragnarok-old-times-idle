@@ -292,7 +292,8 @@
     "Manual and AFK potion use share the existing Idle2s cooldown; failed itemskill preconditions reject atomically without consuming the item.",
     "Falcon rental keeps the native fixed 2500 zeny fee without Discount; the Idle service is exposed in Prontera instead of the original Hugel breeder NPC.",
     "Detect uses the source seven-by-seven square centered on the solo player; native selectable distant ground targeting is not exposed by this Idle action.",
-    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow."
+    "HT_POWER uses Hercules combo state after AC_DOUBLE for 2000 ms; its two bow hits deal the pre-renewal 50 + 8*STR ratio against Brute or Insect targets and consume 12 SP plus one Arrow.",
+    "PR_SUFFRAGIUM uses its self-target pre-renewal status in solo hunting: 15% cast reduction per learned level for the next skill cast, source duration by level, and no party requirement; normal attacks do not consume it."
   ],
   "excludedDrops": [],
   "inertDropItems": [
@@ -9354,10 +9355,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Self cast available to Priest and High Priest without party: costs 8 SP, is instant, lasts 30/20/10 s by level and reduces the next skill cast by 15/30/45 percent. Cast reduction is consumed at the next eligible cast start, including instant skills; normal attacks do not consume it. NoSave status clears on a new connection."
     },
     "pr_aspersio": {
       "id": 68,
@@ -14889,8 +14890,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 272,
-    "unsupported": 76,
+    "supported": 273,
+    "unsupported": 75,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15034,13 +15035,13 @@
       },
       "priest": {
         "sourceTree": 36,
-        "supported": 30,
-        "unsupported": 6
+        "supported": 31,
+        "unsupported": 5
       },
       "high_priest": {
         "sourceTree": 40,
-        "supported": 33,
-        "unsupported": 7
+        "supported": 34,
+        "unsupported": 6
       },
       "monk": {
         "sourceTree": 34,
@@ -15278,6 +15279,7 @@
       "ALL_RESURRECTION",
       "PR_MACEMASTERY",
       "PR_IMPOSITIO",
+      "PR_SUFFRAGIUM",
       "PR_ASPERSIO",
       "PR_SANCTUARY",
       "PR_SLOWPOISON",
@@ -15539,11 +15541,6 @@
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
-        "skillId": "pr_suffragium",
-        "sourceName": "PR_SUFFRAGIUM",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "pr_benedictio",
         "sourceName": "PR_BENEDICTIO",
         "reason": "Requer dois Noviços e células de mapa."
@@ -15802,7 +15799,8 @@
       "SA_DELUGE",
       "SA_VIOLENTGALE",
       "MO_BODYRELOCATION",
-      "MO_BLADESTOP"
+      "MO_BLADESTOP",
+      "PR_SUFFRAGIUM"
     ]
   },
   "senseInspection": {
@@ -16386,7 +16384,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "8d13bf290ac47d2f0c3ab3c95da156a5d45a5b94da5c49f916cb68cb5230425e",
+  "rulesSha256": "757d727b9b8081601bb43e9874926ab05e19e671eeb172335dbc861f43e910b3",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16441,6 +16439,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "1269241eb2cf94dda9c55ef387e2f97a0fe44cf6cc9dfa7577858164a040d870",
+  "catalogSha256": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

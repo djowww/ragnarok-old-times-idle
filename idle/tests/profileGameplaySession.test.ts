@@ -13,14 +13,19 @@ const connectionNew = 'd1ae8d7f-a69d-439c-994b-d91cdf54f727';
 const apps: Awaited<ReturnType<typeof buildApp>>[] = [];
 afterEach(async () => { for (const app of apps.splice(0)) await app.close(); });
 
-async function setup() {
+async function setup(job: 'novice' | 'priest' = 'novice') {
   const accounts = new MemoryAccountStore();
   const tokens = { alpha: 'a'.repeat(43), beta: 'b'.repeat(43) };
   for (const name of ['alpha', 'beta'] as const) {
     let profile = createInitialState(catalog, 1000);
     profile.id = 'profile-' + name;
     profile.name = name;
-    profile.learnedSkills.nv_trickdead = 1;
+    profile.job = job;
+    if (job === 'priest') {
+      profile.jobLevel = 50;
+      profile.learnedSkills.pr_impositio = 2;
+      profile.learnedSkills.pr_suffragium = 3;
+    } else profile.learnedSkills.nv_trickdead = 1;
     profile = applyCommand(profile, catalog, { type: 'startHunt', areaId: catalog.areas[0].id }, 1000);
     await accounts.register({ username: name, passwordHash: 'test-only-password-hash', nameKey: name, profile }, {
       tokenHash: createHash('sha256').update(tokens[name]).digest('hex'), createdAt: 1000, expiresAt: 100000,
@@ -52,6 +57,25 @@ describe('authenticated gameplay connection and volatile status ownership', () =
       payload: { connectionId: connectionB } });
     expect(stale.statusCode).toBe(401);
     expect(stale.json().error.code).toBe('AUTH_REQUIRED');
+  });
+
+  it('keeps Suffragium connection-local, available between requests and cleared on reconnect', async () => {
+    const { app, accounts, cookies } = await setup('priest');
+    const activated = await app.inject({ method: 'POST', url: '/api/command', cookies: cookies.alpha,
+      payload: { requestId: 'activate-suffragium-alpha', command: { type: 'useSkill', skillId: 'pr_suffragium' } } });
+    expect(activated.statusCode).toBe(200);
+    expect(activated.json().state.buffs.pr_suffragium).toBeDefined();
+    const durable = await accounts.profiles.forProfile('profile-alpha').read();
+    expect(durable.buffs.pr_suffragium).toBeUndefined();
+    expect(durable.combatEffects?.buffLevels?.pr_suffragium).toBeUndefined();
+
+    const heartbeat = await app.inject({ method: 'POST', url: '/api/session', cookies: cookies.alpha, payload: {} });
+    expect(heartbeat.json().state.buffs.pr_suffragium).toBeDefined();
+    const reconnected = await app.inject({ method: 'POST', url: '/api/session/open', cookies: cookies.alpha,
+      payload: { connectionId: connectionNew } });
+    expect(reconnected.statusCode).toBe(200);
+    expect(reconnected.json().state.buffs.pr_suffragium).toBeUndefined();
+    expect(reconnected.json().state.combatEffects?.buffLevels?.pr_suffragium).toBeUndefined();
   });
 
   it('keeps NoSave buffs between requests per profile and clears only the reconnecting profile', async () => {

@@ -63,8 +63,8 @@ describe('executed solo Resurrection and Soul Change catalog', () => {
   it('preserves all 40 source class trees and the current solo coverage', () => {
     expect(Object.keys(data.classes)).toHaveLength(40);
     expect(Object.keys(data.skills)).toHaveLength(348);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(272);
-    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(76);
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 272, unsupported: 76 });
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'supported')).toHaveLength(273);
+    expect(Object.values(data.skills).filter(skill => skill.implementation === 'unsupported')).toHaveLength(75);
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 273, unsupported: 75 });
   });
 });

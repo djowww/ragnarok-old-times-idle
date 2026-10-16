@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "241fecbc2567e1d36194bd11c187f89cfec009891caf2fb47e3a3083ff52d13b"
+    "hash": "d5ce387f89ba786faf2eafa636f41f8a33c111c82a9130f73e04b4526595ab14"
   },
   "rates": {
     "baseExp": 4,
@@ -104679,9 +104679,9 @@
       "herculesId": 67,
       "sourceName": "PR_SUFFRAGIUM",
       "mechanic": "PR_SUFFRAGIUM",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Suffragium. Aplica SUFFRAGIUM. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Reduz em 15% por nível o tempo de conjuração da próxima habilidade. Dura 30/20/10 segundos conforme o nível.",
       "iconResource": "data/texture/유저인터페이스/item/pr_suffragium.bmp",
       "spCost": [
         8,
