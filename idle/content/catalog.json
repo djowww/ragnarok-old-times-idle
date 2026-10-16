@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "e3c9363a23a9756da4d2ae02f32570782d562d8fb98393d174a3f3cf1f46bd19"
+    "hash": "99a819762fc437bbdc88c3adb735e5cfb6e4cd46f9001e9841a778db2285ae44"
   },
   "rates": {
     "baseExp": 4,
@@ -30215,7 +30215,7 @@
       "id": 1750,
       "name": "Arrow",
       "aegisName": "Arrow",
-      "type": "loot",
+      "type": "material",
       "attack": 25,
       "def": 0,
       "slots": 0,
@@ -30241,7 +30241,6 @@
       "weight": 0.1,
       "resource": "data/texture/유저인터페이스/item/화살.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false
     },
     "1752": {
@@ -82852,6 +82851,68 @@
       "minimumJobLevel": 1,
       "element": "weapon",
       "durationMs": 100,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ]
+      ],
       "requiredWeapon": [
         "bow"
       ]
@@ -99728,20 +99789,19 @@
     "ht_power": {
       "id": "ht_power",
       "name": "Beast Strafing",
-      "kind": "buff",
+      "kind": "physical",
       "maxLevel": 1,
       "herculesId": 499,
       "sourceName": "HT_POWER",
       "mechanic": "HT_POWER",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer estado de Espírito da classe, ainda não implementado.",
-      "description": "Beast Strafing. Habilidade utilitária. Requer estado de Espírito da classe, ainda não implementado.",
+      "implementation": "supported",
+      "description": "Atinge Brutos e Insetos com dois golpes de arco após Rajada de Flechas. Consome 12 SP e uma Flecha.",
       "iconResource": "data/texture/유저인터페이스/item/ht_power.bmp",
       "spCost": [
         12
       ],
       "power": [
-        0
+        100
       ],
       "cooldownMs": 0,
       "castTimeMs": [
@@ -99764,7 +99824,7 @@
         -9
       ],
       "targetType": "enemy",
-      "damageType": "none",
+      "damageType": "weapon",
       "rangeBonusByVulture": true,
       "prerequisites": [
         {
@@ -99789,9 +99849,18 @@
       "minimumJobLevel": 1,
       "element": "weapon",
       "durationMs": 100,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 1750,
+            "quantity": 1
+          }
+        ]
+      ],
       "requiredWeapon": [
         "bow"
-      ]
+      ],
+      "requiredState": "combo"
     },
     "sn_sight": {
       "id": "sn_sight",

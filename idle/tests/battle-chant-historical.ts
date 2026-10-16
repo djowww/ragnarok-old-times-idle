@@ -1,3 +1,4 @@
+import { beforeBeastStrafingCatalog, beforeBeastStrafingManifest } from './beast-strafing-historical.js';
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/battleChantBaseline.json';
 
@@ -6,7 +7,7 @@ const same = (value: unknown, hash: string) => value !== undefined
 
 /** Reverse only the exact Battle Chant records so older catalog snapshots remain stable. */
 export function beforeBattleChantCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeBeastStrafingCatalog(input) as Record<string, any>;
   if (same(result.skills?.pa_gospel, baseline.catalogSkill.afterHash)) {
     result.skills.pa_gospel = structuredClone(baseline.catalogSkill.before);
   }
@@ -17,7 +18,7 @@ export function beforeBattleChantCatalog<T>(input: T): T {
 }
 
 export function beforeBattleChantManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeBeastStrafingManifest(input) as Record<string, any>;
   if (same(result.skillCoverage, baseline.manifestCoverage.afterHash)) {
     const coverage = result.skillCoverage;
     coverage.supported = baseline.manifestCoverage.supported;

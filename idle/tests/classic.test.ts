@@ -222,6 +222,7 @@ describe('Hercules integer arithmetic golden cases', () => {
   it('applies weapon hit multiplication before defense and refinement afterward', () => {
     const armored = { ...monster, def: 50, stats: { ...monster.stats, vit: 10 } };
     expect(classicPhysicalDamage(attacker, armored, skill('AC_DOUBLE'), 10, fixedRng)).toBe(180);
+    expect(classicPhysicalDamage({ ...attacker, str: 50 }, monster, skill('HT_POWER'), 1, fixedRng)).toBe(899);
     expect(classicPhysicalDamage({ ...attacker, weaponRefineAttack: 20 }, armored, skill('AC_DOUBLE'), 10, fixedRng)).toBe(200);
     expect(classicPhysicalDamage(attacker, armored, skill('MO_INVESTIGATE'), 5, fixedRng)).toBe(570);
     expect(classicPhysicalDamage({ ...attacker, weaponWeight: 100, str: 50 }, monster, skill('LK_SPIRALPIERCE'), 5, fixedRng)).toBe(1525);
