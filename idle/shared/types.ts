@@ -101,6 +101,7 @@ export interface Monster {
   sprite: SpriteAsset;
   level: number;
   hp: number;
+  maxSp?: number;
   attack: [number, number];
   def: number;
   mdef: number;
@@ -400,6 +401,8 @@ export interface BattleEnemy {
   monsterId: number;
   hp: number;
   maxHp: number;
+  /** Current monster SP; optional for compatibility with existing saves. */
+  sp?: number;
   startedAt: number;
   arrivedAt: number;
   enemyNextAttackAt: number;

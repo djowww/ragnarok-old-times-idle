@@ -15,7 +15,7 @@ function setup(source = 'HT_ANKLESNARE') {
   c.classes.novice.skills.push(skill.id);
   const reagent = skill.itemCostByLevel![0][0];
   c.items[reagent.itemId] = structuredClone(catalog.items[reagent.itemId]);
-  Object.assign(c.monsters[1002], { hp: 100000, attack: [10, 10], attackRange: 1, baseExp: 0, jobExp: 0, boss: false });
+  Object.assign(c.monsters[1002], { hp: 100000, maxSp: 100, attack: [10, 10], attackRange: 1, baseExp: 0, jobExp: 0, boss: false });
   const s = createInitialState(c, 0);
   s.status = 'challenge'; s.rotation = [skill.id]; s.learnedSkills[skill.id] = 5;
   s.autoPotion = { hpThreshold: 0, spThreshold: 0 };
@@ -177,5 +177,70 @@ describe('persistent hunter traps in authoritative combat', () => {
     trap.placedAt = 0; trap.nextTickAt = 2000; trap.expiresAt = 30000;
     const resumed = applyCommand(ctx.s, ctx.c, { type: 'setHuntFocus', areaId: ctx.c.areas[0].id, focus: 'any' }, 100000);
     expect(resumed.battle!.traps![0]).toMatchObject({ placedAt: 99000, nextTickAt: 101000, expiresAt: 129000 });
+  });
+  it('Shockwave Trap drains the source percentage of current monster SP', () => {
+    const ctx = setup('HT_SHOCKWAVE');
+    ctx.enemy.sp = 20;
+
+    const placed = advanceState(ctx.s, ctx.c, 1000);
+    const trap = placed.battle!.traps![0];
+    expect(trap?.skillId).toBe(ctx.skill.id);
+    expect(trap?.expiresAt).toBe(41000);
+    expect(placed.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity).toBe(18);
+
+    placed.rotation = [];
+    placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+    Object.assign(placed.battle!.enemies![0], {
+      position: { ...trap.position }, approachFrom: { ...trap.position }, arrivedAt: 1000,
+    });
+    const triggered = advanceState(placed, ctx.c, 2000);
+    expect(triggered.events.some(event => event.kind === 'trap-trigger' && event.skillId === ctx.skill.id)).toBe(true);
+    expect(triggered.events.find(event => event.kind === 'sp-drain')).toMatchObject({
+      amount: 16, resource: 'sp', target: 'enemy', skillId: ctx.skill.id,
+    });
+    expect((triggered.battle!.enemies![0] as typeof ctx.enemy & { sp?: number }).sp).toBe(4);
+    expect(advanceState(triggered, ctx.c, 4000).battle!.enemies![0].sp).toBe(4);
+  });
+
+  it('Shockwave Trap drains every monster in its Hercules splash area', () => {
+    const ctx = setup('HT_SHOCKWAVE');
+    const placed = advanceState(ctx.s, ctx.c, 1000);
+    const trap = placed.battle!.traps![0];
+    placed.rotation = [];
+    placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+    const first = placed.battle!.enemies![0];
+    Object.assign(first, { position: { ...trap.position }, approachFrom: { ...trap.position }, arrivedAt: 1000 });
+    const adjacentCell = { x: trap.position.x + 1 / 12, y: trap.position.y };
+    const second = structuredClone(first);
+    Object.assign(second, { id: 'enemy-shockwave-nearby', sp: 50, position: adjacentCell, approachFrom: adjacentCell });
+    placed.battle!.enemies!.push(second);
+
+    const triggered = advanceState(placed, ctx.c, 2000);
+    expect(triggered.battle!.enemies![0].sp).toBe(20);
+    expect(triggered.battle!.enemies!.find(enemy => enemy.id === second.id)?.sp).toBe(10);
+    expect(triggered.events.filter(event => event.kind === 'sp-drain')).toHaveLength(2);
+  });
+
+});
+
+
+describe('Hercules monster SP and solo trap coverage', () => {
+  it('imports source monster SP and enables Shockwave with Hercules duration', () => {
+    const catalog = catalogJson as unknown as Catalog;
+    const shockwave = Object.values(catalog.skills).find(skill => skill.sourceName === 'HT_SHOCKWAVE');
+    expect(Object.values(catalog.monsters).every(monster => Number.isFinite(monster.maxSp ?? 0))).toBe(true);
+    expect(Object.values(catalog.monsters).some(monster => (monster.maxSp ?? 0) > 0)).toBe(true);
+    expect(shockwave).toMatchObject({
+      implementation: 'supported',
+      groundDurationMs: [200000, 160000, 120000, 80000, 40000],
+    });
+  });
+
+  it('does not spend a Shockwave trap when the selected monster has no SP', () => {
+    const ctx = setup('HT_SHOCKWAVE');
+    ctx.enemy.sp = 0;
+    const next = advanceState(ctx.s, ctx.c, 1000);
+    expect(next.battle?.traps ?? []).toHaveLength(0);
+    expect(next.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity).toBe(20);
   });
 });

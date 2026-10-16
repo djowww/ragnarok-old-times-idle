@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "12fad1b1cb7d6b2ea692ed2400636ff6f9e4d01e6d863dc0787847c5cd70729f"
+    "hash": "eb8dd97e6258005543b15b7cd696dbdbc845a99d13b9bc763f3d67eb16333903"
   },
   "rates": {
     "baseExp": 4,
@@ -6611,6 +6611,7 @@
       },
       "level": 51,
       "hp": 6120,
+      "maxSp": 182,
       "attack": [
         150,
         900
@@ -98026,9 +98027,8 @@
       "herculesId": 118,
       "sourceName": "HT_SHOCKWAVE",
       "mechanic": "HT_SHOCKWAVE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer SP do alvo; monstros não têm SP no catálogo.",
-      "description": "Shockwave Trap. Habilidade utilitária. Requer SP do alvo; monstros não têm SP no catálogo.",
+      "implementation": "supported",
+      "description": "Shockwave Trap. Habilidade utilitária.",
       "iconResource": "data/texture/유저인터페이스/item/ht_shockwave.bmp",
       "spCost": [
         45,

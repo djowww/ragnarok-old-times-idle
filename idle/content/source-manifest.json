@@ -7368,8 +7368,7 @@
         1
       ],
       "sourceSplashRange": 1,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer SP do alvo; monstros não têm SP no catálogo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -14903,8 +14902,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 267,
-    "unsupported": 81,
+    "supported": 268,
+    "unsupported": 80,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15018,13 +15017,13 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 21,
-        "unsupported": 7
+        "supported": 22,
+        "unsupported": 6
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 25,
-        "unsupported": 7
+        "supported": 26,
+        "unsupported": 6
       },
       "bard": {
         "sourceTree": 28,
@@ -15251,6 +15250,7 @@
       "HT_SKIDTRAP",
       "HT_LANDMINE",
       "HT_ANKLESNARE",
+      "HT_SHOCKWAVE",
       "HT_SANDMAN",
       "HT_FLASHER",
       "HT_FREEZINGTRAP",
@@ -15465,11 +15465,6 @@
       {
         "skillId": "pf_soulburn",
         "sourceName": "PF_SOULBURN",
-        "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
-      },
-      {
-        "skillId": "ht_shockwave",
-        "sourceName": "HT_SHOCKWAVE",
         "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
       },
       {
@@ -15813,6 +15808,7 @@
       "HT_ANKLESNARE",
       "HT_SANDMAN",
       "HT_FLASHER",
+      "HT_SHOCKWAVE",
       "MO_STEELBODY",
       "LK_BERSERK",
       "ASC_EDP",
@@ -16474,6 +16470,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "f05e0a2f37dba20df233e6d43009713ccec505d1cec956c13105f3523dd7fff1",
+  "catalogSha256": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
