@@ -161,6 +161,20 @@ describe('Hercules integer arithmetic golden cases', () => {
     expect(classicMagicDamage(attacker, monster, skill('HW_NAPALMVULCAN'), 5, fixedRng)).toBe(595);
   });
 
+  it('matches Hercules Turn Undead eligibility, chance boundary, and boss fallback', () => {
+    const turnUndead = skill('PR_TURNUNDEAD');
+    const target = { ...monster, hp: 10000, element: 'undead', mdef: 0,
+      stats: { ...monster.stats, int: 0, vit: 0 } };
+    const stats = { ...attacker, baseLevel: 50, int: 80, luk: 40,
+      targetHp: 5000, targetIsBoss: false };
+
+    expect(classicMagicDamage(stats, target, turnUndead, 10, () => 0)).toBe(4999);
+    expect(classicMagicDamage(stats, target, turnUndead, 10, () => .47)).toBe(229);
+    expect(classicMagicDamage({ ...stats, targetIsBoss: true }, target, turnUndead, 10, () => 0)).toBe(229);
+    expect(classicMagicDamage(stats, { ...target, element: 'neutral', race: 'undead' },
+      turnUndead, 10, () => 0)).toBe(0);
+  });
+
   it('applies idle spell scaling after the complete Hercules result', () => {
     const fireBolt = skill('MG_FIREBOLT');
     expect(classicMagicDamage(attacker, monster,
