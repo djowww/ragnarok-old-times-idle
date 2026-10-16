@@ -48,7 +48,7 @@ import OriginalMap, { type MapStatus } from "./OriginalMap";
 import { NativeActorsBridge } from "../assets/nativeActors";
 import { corpseFrameAt, startCorpsePresentation, shiftCorpsePresentation, type CorpsePresentation } from "../assets/corpsePresentation";
 import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame } from "../assets/enemyActionPresentation";
-import { movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
+import { actorActionImpactAt, movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
 import { backslidingFacingDirection, backslidingPresentationPoint } from '../assets/backslidingPresentation';
 import { sageFieldQuads, visibleSageField } from '../assets/sageFieldVisuals';
 import { SceneClock } from '../assets/sceneClock';
@@ -931,8 +931,9 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
         ? getActorPlaybackDuration(sourceActor, getCombatActorAction(actorAction, skill?.sourceName), motionMs, HERO_COMBAT_DIRECTION) : motionMs;
       const start = serverOffset + (event.actionStartedAt ?? event.at);
       const effectStart = serverOffset + event.at;
-      const impact = actorAction !== "none" && !selfSkill
-        ? Math.max(effectStart, start + (actorAction === 'attack' ? motionMs : actionDuration * 0.5)) : effectStart;
+      const impact = selfSkill ? effectStart : actorActionImpactAt({
+        actorAction, start, effectStart, actionDuration, motionMs,
+      });
       const reactionDuration = Math.max(0, event.hitMotionMs ?? (targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320));
       return {
         id: event.id, triggerActionId:event.triggerActionId,

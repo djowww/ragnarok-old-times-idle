@@ -118,6 +118,7 @@ describe('hero startup through actual Scene seams and native retained-pose proto
   });
   it.each(['attack','skill'] as const)('pins cold %s to frame-zero Canvas after450ms with fresh idle ACKs',action=>{
     const f=fixture(action);
+    const expectedImpact=action==='attack'?1900:1750;
     for(let at=1000;at<1450;at+=50){f.tick(at);expect(f.bridge.getDiagnostics('hero').poseHeld).toBe(true);}
     const first=f.tick(1450);
     expect(first.paint[11]).toBe(true);expect(first.paint[7]).toBe(0);expect(first.owned.has('hero')).toBe(false);
@@ -125,10 +126,10 @@ describe('hero startup through actual Scene seams and native retained-pose proto
     const later=f.tick(1500,true);
     expect(later.paint[11]).toBe(true);expect(later.paint[7]).toBe(50);expect(later.owned.has('hero')).toBe(false);
     expect(f.cue.actionAt).toBe(1000);expect(f.cue.motionMs).toBe(300);expect(f.cue.amount).toBe(100);
-    expect(f.cue.impact).toBe(1750);
-    expect(targetHealthAt(0,100,[f.cue],'mob',1749)).toBe(100);expect(targetHealthAt(0,100,[f.cue],'mob',1750)).toBe(0);
-    expect(f.groupHistory.current.get('mob')).toMatchObject({deadAt:1750,until:3750});
-    expect(f.defeatedOpponent.current.deadAt).toBe(1750);expect(f.effects.current[0].start).toBe(1750);expect(f.lootCues.current[0]).toMatchObject({start:1750,until:6750});
+    expect(f.cue.impact).toBe(expectedImpact);
+    expect(targetHealthAt(0,100,[f.cue],'mob',expectedImpact-1)).toBe(100);expect(targetHealthAt(0,100,[f.cue],'mob',expectedImpact)).toBe(0);
+    expect(f.groupHistory.current.get('mob')).toMatchObject({deadAt:expectedImpact,until:expectedImpact+2000});
+    expect(f.defeatedOpponent.current.deadAt).toBe(expectedImpact);expect(f.effects.current[0].start).toBe(expectedImpact);expect(f.lootCues.current[0]).toMatchObject({start:expectedImpact,until:expectedImpact+5000});
     expect(f.groupHistory.current.get('dot-mob')).toMatchObject({deadAt:1320,until:3320});expect(f.effects.current[1].start).toBe(1320);expect(f.lootCues.current[1].start).toBe(1320);
   });
   it('retains a debuted but never painted hero through snapshot cleanup and RAF1900',()=>{
@@ -137,7 +138,7 @@ describe('hero startup through actual Scene seams and native retained-pose proto
     const first=f.tick(1900,false,true);
     expect(f.combatCues.current).toHaveLength(1);expect(first.paint[2]).toBe('attack');
     expect(first.paint[11]).toBe(true);expect(first.paint[7]).toBe(0);expect(first.owned.has('hero')).toBe(false);
-    expect(f.cue.start).toBe(1900);expect(f.cue.impact).toBe(2200);expect(f.cue.actionAt).toBe(1000);
+    expect(f.cue.start).toBe(1900);expect(f.cue.impact).toBe(2350);expect(f.cue.actionAt).toBe(1000);
     expect(f.tick(1950,true).paint[7]).toBe(50);
   });
   it('shifts queued hero/AoE siblings once while preserving DOT and other actor clocks',()=>{
@@ -159,7 +160,7 @@ describe('hero startup through actual Scene seams and native retained-pose proto
     const f=fixture();f.tick(1000);f.tick(1100);
     const ready=f.tick(1150,true);
     expect(ready.paint[7]).toBe(0);expect(ready.paint[11]).toBe(false);expect(ready.owned.has('hero')).toBe(true);
-    expect(f.bridge.getDiagnostics('hero').poseHeld).toBe(false);expect(f.cue.impact).toBe(1450);
+    expect(f.bridge.getDiagnostics('hero').poseHeld).toBe(false);expect(f.cue.impact).toBe(1600);
     expect(f.tick(1200,true).paint[7]).toBe(50);
   });
   it('expires a pending startup instead of reviving stale history',()=>{

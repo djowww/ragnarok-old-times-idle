@@ -121,8 +121,8 @@ describe('native action ownership recovery through Scene and NativeActorsBridge'
 
     const first = tick(now);
     expect(first.frame).toMatchObject({ elapsed: 0, waited: 0, canvasOnly: false });
-    expect(first.frame!.moved.get(1)).toBe(450);
-    expect(cue.impact).toBe(1750);
+    expect(first.frame!.moved.get(1)).toBe(750);
+    expect(cue.impact).toBe(2050);
     expect(fixture.messages.at(-1).actors.map((entry: any) => entry.id)).toContain('hero');
     expect(first.submitted.has('hero')).toBe(false);
 
@@ -131,15 +131,15 @@ describe('native action ownership recovery through Scene and NativeActorsBridge'
     const recovered = tick(1490);
     expect(recovered.frame).toMatchObject({ elapsed: 0, waited: 40, canvasOnly: false });
     expect(recovered.submitted.has('hero')).toBe(true);
-    expect(cue.start).toBe(1490); expect(cue.impact).toBe(1790); expect(next.start).toBe(1590);
+    expect(cue.start).toBe(1490); expect(cue.impact).toBe(2090); expect(next.start).toBe(1590);
     expect(cue.actionAt).toBe(1000); expect(cue.motionMs).toBe(300);
     expect(dot.impact).toBe(1320);
-    expect(targetHealthAt(0, 100, cues, 'mob', 1789)).toBe(100);
-    expect(targetHealthAt(0, 100, cues, 'mob', 1790)).toBe(0);
-    expect(effects.current[0].start).toBe(1790);
-    expect(groupHistory.current.get('mob')).toMatchObject({ deadAt: 1790, until: 3790 });
-    expect(defeatedOpponent.current).toMatchObject({ deadAt: 1790, until: 3790 });
-    expect(lootCues.current[0]).toMatchObject({ start: 1790, until: 6790 });
+    expect(targetHealthAt(0, 100, cues, 'mob', 2089)).toBe(100);
+    expect(targetHealthAt(0, 100, cues, 'mob', 2090)).toBe(0);
+    expect(effects.current[0].start).toBe(2090);
+    expect(groupHistory.current.get('mob')).toMatchObject({ deadAt: 2090, until: 4090 });
+    expect(defeatedOpponent.current).toMatchObject({ deadAt: 2090, until: 4090 });
+    expect(lootCues.current[0]).toMatchObject({ start: 2090, until: 7090 });
     expect(effects.current[1].start).toBe(1320);
     expect(groupHistory.current.get('dot-mob')).toMatchObject({ deadAt: 1320, until: 3320 });
     expect(lootCues.current[1]).toMatchObject({ start: 1320, until: 6320 });
@@ -184,13 +184,13 @@ describe('native action ownership recovery through Scene and NativeActorsBridge'
         expect(fixture.messages.at(-1).actors).toEqual([]);
       }
     }
-    expect(cue.impact).toBe(2200);
-    expect(targetHealthAt(0, 100, cues, 'mob', 2199)).toBe(100);
-    expect(targetHealthAt(0, 100, cues, 'mob', 2200)).toBe(0);
-    expect(effects.current[0].start).toBe(2200);
-    expect(groupHistory.current.get('mob')).toMatchObject({ deadAt: 2200, until: 4200 });
-    expect(defeatedOpponent.current).toMatchObject({ deadAt: 2200, until: 4200 });
-    expect(lootCues.current[0]).toMatchObject({ start: 2200, until: 7200 });
+    expect(cue.impact).toBe(2500);
+    expect(targetHealthAt(0, 100, cues, 'mob', 2499)).toBe(100);
+    expect(targetHealthAt(0, 100, cues, 'mob', 2500)).toBe(0);
+    expect(effects.current[0].start).toBe(2500);
+    expect(groupHistory.current.get('mob')).toMatchObject({ deadAt: 2500, until: 4500 });
+    expect(defeatedOpponent.current).toMatchObject({ deadAt: 2500, until: 4500 });
+    expect(lootCues.current[0]).toMatchObject({ start: 2500, until: 7500 });
 
     fixture.setNow(1900);
     fixture.ack(2);
