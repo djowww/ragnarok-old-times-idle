@@ -38,6 +38,8 @@ const localMaps = new Set([
   "pay_dun01",
   "iz_dun02",
   "orcsdun01",
+  "anthell01",
+  "anthell02",
 ]);
 
 export type MapStatus = { map: string; phase: "loading" | "ready" | "error"; progress?: number };

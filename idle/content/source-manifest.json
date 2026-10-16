@@ -118,6 +118,11 @@
       "sha256": "7b1b32074dc2bdaf76926fd8e05f4165447f7d63999a328f04077ac5a695c313"
     },
     {
+      "path": "npc/pre-re/mobs/dungeons/anthell.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/dungeons/anthell.txt",
+      "sha256": "34ccf73b437e17082a4492619167f0921b3b79ab10ef1cfd2050995cf3d842ba"
+    },
+    {
       "path": "db/job_db2.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/job_db2.txt",
       "sha256": "c10cfae2823c90a545db072eebfd28784dd2165e508aed65e03cbd8e85db4f56"
@@ -893,6 +898,56 @@
       "sourceType": "IT_CARD"
     },
     {
+      "itemId": 4043,
+      "aegisName": "Andre_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4053,
+      "aegisName": "Vitata_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4087,
+      "aegisName": "Giearth_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 10006,
+      "aegisName": "Queens_Hair_Ornament",
+      "sourceType": "IT_PETARMOR"
+    },
+    {
+      "itemId": 4198,
+      "aegisName": "Maya_Puple_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 4013,
+      "aegisName": "Andre_Egg_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
+      "itemId": 2615,
+      "aegisName": "Safety_Ring",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2234,
+      "aegisName": "Tiara",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2005,
+      "aegisName": "Dea_Staff",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 4146,
+      "aegisName": "Maya_Card",
+      "sourceType": "IT_CARD"
+    },
+    {
       "itemId": 1232,
       "aegisName": "Assasin_Dagger",
       "sourceType": "IT_WEAPON"
@@ -1213,31 +1268,6 @@
       "sourceType": "IT_CARD"
     },
     {
-      "itemId": 10006,
-      "aegisName": "Queens_Hair_Ornament",
-      "sourceType": "IT_PETARMOR"
-    },
-    {
-      "itemId": 2615,
-      "aegisName": "Safety_Ring",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2234,
-      "aegisName": "Tiara",
-      "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 2005,
-      "aegisName": "Dea_Staff",
-      "sourceType": "IT_WEAPON"
-    },
-    {
-      "itemId": 4146,
-      "aegisName": "Maya_Card",
-      "sourceType": "IT_CARD"
-    },
-    {
       "itemId": 1477,
       "aegisName": "Spectral_Spear",
       "sourceType": "IT_WEAPON"
@@ -1490,11 +1520,6 @@
     {
       "itemId": 4300,
       "aegisName": "Chimera_Card",
-      "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 4198,
-      "aegisName": "Maya_Puple_Card",
       "sourceType": "IT_CARD"
     },
     {
@@ -13708,7 +13733,9 @@
       "pay_fild04",
       "pay_fild09",
       "moc_pryd05",
-      "gl_chyard"
+      "gl_chyard",
+      "anthell01",
+      "anthell02"
     ],
     "selection": "All selected monsters must appear on their configured map in the pinned spawn scripts; missing maps are rejected."
   },
@@ -16269,15 +16296,21 @@
       1076,
       1086,
       1094,
+      1095,
+      1097,
       1104,
+      1105,
       1107,
       1113,
       1116,
+      1121,
       1141,
       1144,
+      1160,
       1166,
       1167,
       1175,
+      1176,
       1242,
       1280
     ],
@@ -16305,15 +16338,20 @@
       1092,
       1093,
       1094,
+      1095,
       1096,
+      1105,
       1109,
       1112,
       1115,
       1120,
+      1121,
       1147,
       1150,
       1157,
       1159,
+      1160,
+      1176,
       1190,
       1203,
       1204,
@@ -16384,7 +16422,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "757d727b9b8081601bb43e9874926ab05e19e671eeb172335dbc861f43e910b3",
+  "rulesSha256": "3121673981ce51480b025342402f6cda574505f3d80bee88b87e0c47f2aa742a",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16439,6 +16477,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
+  "catalogSha256": "1d42623745796d1a3d6970d1f915e16c289a5f135b334a8719605b4bbe11ed0f",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

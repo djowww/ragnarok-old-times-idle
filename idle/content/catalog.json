@@ -26,6 +26,7 @@
       "npc/pre-re/mobs/dungeons/moc_pryd.txt",
       "npc/pre-re/mobs/dungeons/gef_dun.txt",
       "npc/pre-re/mobs/dungeons/glastheim.txt",
+      "npc/pre-re/mobs/dungeons/anthell.txt",
       "db/job_db2.txt",
       "db/pre-re/sc_config.conf",
       "src/map/battle.c",
@@ -54,7 +55,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "d5ce387f89ba786faf2eafa636f41f8a33c111c82a9130f73e04b4526595ab14"
+    "hash": "b6879fd273a56cd54b81e7fa2717176932776f76163525185c706883b135e951"
   },
   "rates": {
     "baseExp": 4,
@@ -3977,6 +3978,83 @@
         }
       ]
     },
+    "1095": {
+      "id": 1095,
+      "name": "Andre",
+      "aegisName": "ANDRE",
+      "sprite": {
+        "spr": "data/sprite/몬스터/andre.spr",
+        "act": "data/sprite/몬스터/andre.act"
+      },
+      "level": 17,
+      "hp": 688,
+      "attack": [
+        60,
+        71
+      ],
+      "def": 10,
+      "mdef": 0,
+      "boss": false,
+      "detector": true,
+      "aggressive": false,
+      "canMove": true,
+      "noKnockback": false,
+      "moveSpeedMs": 300,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 1,
+        "agi": 17,
+        "vit": 24,
+        "int": 20,
+        "dex": 26,
+        "luk": 20
+      },
+      "baseExp": 109,
+      "jobExp": 71,
+      "attackDelay": 1288,
+      "attackMotionMs": 288,
+      "damageMotionMs": 384,
+      "attackRange": 1,
+      "element": "earth",
+      "elementLevel": 1,
+      "size": "small",
+      "race": "insect",
+      "drops": [
+        {
+          "itemId": 955,
+          "chance": 9000
+        },
+        {
+          "itemId": 910,
+          "chance": 1000
+        },
+        {
+          "itemId": 938,
+          "chance": 500
+        },
+        {
+          "itemId": 993,
+          "chance": 50
+        },
+        {
+          "itemId": 1001,
+          "chance": 4
+        },
+        {
+          "itemId": 1002,
+          "chance": 350
+        },
+        {
+          "itemId": 757,
+          "chance": 28
+        },
+        {
+          "itemId": 4043,
+          "chance": 1
+        }
+      ]
+    },
     "1096": {
       "id": 1096,
       "name": "Angeling",
@@ -4054,6 +4132,79 @@
         }
       ]
     },
+    "1097": {
+      "id": 1097,
+      "name": "Ant Egg",
+      "aegisName": "ANT_EGG",
+      "sprite": {
+        "spr": "data/sprite/몬스터/ant_egg.spr",
+        "act": "data/sprite/몬스터/ant_egg.act"
+      },
+      "level": 4,
+      "hp": 420,
+      "attack": [
+        1,
+        2
+      ],
+      "def": 20,
+      "mdef": 20,
+      "boss": false,
+      "detector": false,
+      "aggressive": false,
+      "canMove": false,
+      "noKnockback": false,
+      "moveSpeedMs": 1000,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 1,
+        "agi": 1,
+        "vit": 1,
+        "int": 0,
+        "dex": 1,
+        "luk": 20
+      },
+      "baseExp": 5,
+      "jobExp": 4,
+      "attackDelay": 1001,
+      "attackMotionMs": 1,
+      "damageMotionMs": 1,
+      "attackRange": 0,
+      "element": "neutral",
+      "elementLevel": 3,
+      "size": "small",
+      "race": "formless",
+      "drops": [
+        {
+          "itemId": 1010,
+          "chance": 320
+        },
+        {
+          "itemId": 935,
+          "chance": 2000
+        },
+        {
+          "itemId": 909,
+          "chance": 2000
+        },
+        {
+          "itemId": 938,
+          "chance": 650
+        },
+        {
+          "itemId": 713,
+          "chance": 2000
+        },
+        {
+          "itemId": 1002,
+          "chance": 200
+        },
+        {
+          "itemId": 4013,
+          "chance": 1
+        }
+      ]
+    },
     "1104": {
       "id": 1104,
       "name": "Coco",
@@ -4127,6 +4278,83 @@
         },
         {
           "itemId": 4041,
+          "chance": 1
+        }
+      ]
+    },
+    "1105": {
+      "id": 1105,
+      "name": "Deniro",
+      "aegisName": "DENIRO",
+      "sprite": {
+        "spr": "data/sprite/몬스터/deniro.spr",
+        "act": "data/sprite/몬스터/deniro.act"
+      },
+      "level": 19,
+      "hp": 760,
+      "attack": [
+        68,
+        79
+      ],
+      "def": 15,
+      "mdef": 0,
+      "boss": false,
+      "detector": true,
+      "aggressive": false,
+      "canMove": true,
+      "noKnockback": false,
+      "moveSpeedMs": 150,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 1,
+        "agi": 19,
+        "vit": 30,
+        "int": 20,
+        "dex": 43,
+        "luk": 10
+      },
+      "baseExp": 135,
+      "jobExp": 85,
+      "attackDelay": 1288,
+      "attackMotionMs": 288,
+      "damageMotionMs": 576,
+      "attackRange": 1,
+      "element": "earth",
+      "elementLevel": 1,
+      "size": "small",
+      "race": "insect",
+      "drops": [
+        {
+          "itemId": 955,
+          "chance": 9000
+        },
+        {
+          "itemId": 910,
+          "chance": 3000
+        },
+        {
+          "itemId": 938,
+          "chance": 1200
+        },
+        {
+          "itemId": 990,
+          "chance": 50
+        },
+        {
+          "itemId": 1001,
+          "chance": 8
+        },
+        {
+          "itemId": 1002,
+          "chance": 450
+        },
+        {
+          "itemId": 757,
+          "chance": 34
+        },
+        {
+          "itemId": 4043,
           "chance": 1
         }
       ]
@@ -4863,6 +5091,79 @@
         },
         {
           "itemId": 4047,
+          "chance": 1
+        }
+      ]
+    },
+    "1121": {
+      "id": 1121,
+      "name": "Giearth",
+      "aegisName": "GIEARTH",
+      "sprite": {
+        "spr": "data/sprite/몬스터/giearth.spr",
+        "act": "data/sprite/몬스터/giearth.act"
+      },
+      "level": 29,
+      "hp": 2252,
+      "attack": [
+        154,
+        185
+      ],
+      "def": 10,
+      "mdef": 50,
+      "boss": false,
+      "detector": true,
+      "aggressive": false,
+      "canMove": true,
+      "noKnockback": false,
+      "moveSpeedMs": 200,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 25,
+        "agi": 29,
+        "vit": 46,
+        "int": 60,
+        "dex": 64,
+        "luk": 105
+      },
+      "baseExp": 495,
+      "jobExp": 301,
+      "attackDelay": 1848,
+      "attackMotionMs": 1296,
+      "damageMotionMs": 432,
+      "attackRange": 1,
+      "element": "earth",
+      "elementLevel": 1,
+      "size": "small",
+      "race": "demon",
+      "drops": [
+        {
+          "itemId": 997,
+          "chance": 30
+        },
+        {
+          "itemId": 1003,
+          "chance": 150
+        },
+        {
+          "itemId": 1040,
+          "chance": 5500
+        },
+        {
+          "itemId": 2286,
+          "chance": 1
+        },
+        {
+          "itemId": 2227,
+          "chance": 10
+        },
+        {
+          "itemId": 1001,
+          "chance": 100
+        },
+        {
+          "itemId": 4087,
           "chance": 1
         }
       ]
@@ -6161,6 +6462,83 @@
         }
       ]
     },
+    "1160": {
+      "id": 1160,
+      "name": "Piere",
+      "aegisName": "PIERE",
+      "sprite": {
+        "spr": "data/sprite/몬스터/piere.spr",
+        "act": "data/sprite/몬스터/piere.act"
+      },
+      "level": 18,
+      "hp": 733,
+      "attack": [
+        64,
+        75
+      ],
+      "def": 15,
+      "mdef": 0,
+      "boss": false,
+      "detector": true,
+      "aggressive": false,
+      "canMove": true,
+      "noKnockback": false,
+      "moveSpeedMs": 200,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 1,
+        "agi": 18,
+        "vit": 26,
+        "int": 20,
+        "dex": 27,
+        "luk": 15
+      },
+      "baseExp": 122,
+      "jobExp": 78,
+      "attackDelay": 1288,
+      "attackMotionMs": 288,
+      "damageMotionMs": 576,
+      "attackRange": 1,
+      "element": "earth",
+      "elementLevel": 1,
+      "size": "small",
+      "race": "insect",
+      "drops": [
+        {
+          "itemId": 955,
+          "chance": 9000
+        },
+        {
+          "itemId": 910,
+          "chance": 1100
+        },
+        {
+          "itemId": 938,
+          "chance": 600
+        },
+        {
+          "itemId": 992,
+          "chance": 30
+        },
+        {
+          "itemId": 1001,
+          "chance": 5
+        },
+        {
+          "itemId": 1002,
+          "chance": 400
+        },
+        {
+          "itemId": 757,
+          "chance": 31
+        },
+        {
+          "itemId": 4043,
+          "chance": 1
+        }
+      ]
+    },
     "1163": {
       "id": 1163,
       "name": "Raydric",
@@ -6474,6 +6852,83 @@
         },
         {
           "itemId": 4028,
+          "chance": 1
+        }
+      ]
+    },
+    "1176": {
+      "id": 1176,
+      "name": "Vitata",
+      "aegisName": "VITATA",
+      "sprite": {
+        "spr": "data/sprite/몬스터/vitata.spr",
+        "act": "data/sprite/몬스터/vitata.act"
+      },
+      "level": 20,
+      "hp": 894,
+      "attack": [
+        69,
+        80
+      ],
+      "def": 15,
+      "mdef": 20,
+      "boss": false,
+      "detector": true,
+      "aggressive": false,
+      "canMove": true,
+      "noKnockback": false,
+      "moveSpeedMs": 300,
+      "viewRange": 10,
+      "chaseRange": 12,
+      "stats": {
+        "str": 1,
+        "agi": 20,
+        "vit": 25,
+        "int": 65,
+        "dex": 40,
+        "luk": 70
+      },
+      "baseExp": 163,
+      "jobExp": 101,
+      "attackDelay": 1768,
+      "attackMotionMs": 768,
+      "damageMotionMs": 384,
+      "attackRange": 1,
+      "element": "earth",
+      "elementLevel": 1,
+      "size": "small",
+      "race": "insect",
+      "drops": [
+        {
+          "itemId": 993,
+          "chance": 90
+        },
+        {
+          "itemId": 955,
+          "chance": 5000
+        },
+        {
+          "itemId": 911,
+          "chance": 200
+        },
+        {
+          "itemId": 518,
+          "chance": 350
+        },
+        {
+          "itemId": 518,
+          "chance": 350
+        },
+        {
+          "itemId": 526,
+          "chance": 200
+        },
+        {
+          "itemId": 756,
+          "chance": 26
+        },
+        {
+          "itemId": 4053,
           "chance": 1
         }
       ]
@@ -22398,6 +22853,64 @@
       "effects": {},
       "shop": false
     },
+    "1001": {
+      "id": 1001,
+      "name": "Star Dust",
+      "aegisName": "Sparkling_Dust",
+      "type": "loot",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 1500,
+      "sellPrice": 750,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/별의가루.bmp",
+      "effects": {},
+      "shop": false
+    },
     "1002": {
       "id": 1002,
       "name": "Iron Ore",
@@ -24077,6 +24590,64 @@
       "sellPrice": 1000,
       "weight": 1,
       "resource": "data/texture/유저인터페이스/item/새끼악마의날개.bmp",
+      "effects": {},
+      "shop": false
+    },
+    "1040": {
+      "id": 1040,
+      "name": "Elder Pixie's Moustache",
+      "aegisName": "Elder_Pixies_Beard",
+      "type": "loot",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 232,
+      "sellPrice": 116,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/늙은요정의수염.bmp",
       "effects": {},
       "shop": false
     },
@@ -31388,6 +31959,54 @@
       "shop": false,
       "equipSupported": true
     },
+    "2227": {
+      "id": 2227,
+      "name": "Cap",
+      "aegisName": "Cap_",
+      "type": "equipment",
+      "slot": "head",
+      "twoHanded": false,
+      "refinable": true,
+      "attack": 0,
+      "def": 4,
+      "slots": 1,
+      "minLevel": 1,
+      "allowedClasses": [
+        "swordsman",
+        "high_swordsman",
+        "archer",
+        "high_archer",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 12000,
+      "sellPrice": 6000,
+      "weight": 40,
+      "resource": "data/texture/유저인터페이스/item/캡.bmp",
+      "effects": {},
+      "shop": false,
+      "equipSupported": true
+    },
     "2229": {
       "id": 2229,
       "name": "Helm",
@@ -38131,6 +38750,65 @@
       "unsupportedEffect": true,
       "shop": false
     },
+    "4013": {
+      "id": 4013,
+      "name": "Andre Egg Card",
+      "aegisName": "Andre_Egg_Card",
+      "type": "card",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 20,
+      "sellPrice": 10,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/이름없는카드.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false
+    },
     "4015": {
       "id": 4015,
       "name": "Condor Card",
@@ -39265,6 +39943,65 @@
       "unsupportedEffect": true,
       "shop": false
     },
+    "4043": {
+      "id": 4043,
+      "name": "Andre Card",
+      "aegisName": "Andre_Card",
+      "type": "card",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 20,
+      "sellPrice": 10,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/이름없는카드.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false
+    },
     "4044": {
       "id": 4044,
       "name": "Smokie Card",
@@ -39563,6 +40300,65 @@
       "cardSlots": [
         "accessory"
       ],
+      "shop": false
+    },
+    "4053": {
+      "id": 4053,
+      "name": "Vitata Card",
+      "aegisName": "Vitata_Card",
+      "type": "card",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 20,
+      "sellPrice": 10,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/이름없는카드.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
       "shop": false
     },
     "4054": {
@@ -40221,6 +41017,65 @@
       "id": 4086,
       "name": "Soldier Skeleton Card",
       "aegisName": "Soldier_Skeleton_Card",
+      "type": "card",
+      "attack": 0,
+      "def": 0,
+      "slots": 0,
+      "minLevel": 1,
+      "allowedClasses": [
+        "novice",
+        "high_novice",
+        "swordsman",
+        "high_swordsman",
+        "mage",
+        "high_mage",
+        "archer",
+        "high_archer",
+        "acolyte",
+        "high_acolyte",
+        "merchant",
+        "high_merchant",
+        "thief",
+        "high_thief",
+        "knight",
+        "lord_knight",
+        "crusader",
+        "paladin",
+        "wizard",
+        "high_wizard",
+        "sage",
+        "professor",
+        "hunter",
+        "sniper",
+        "bard",
+        "clown",
+        "dancer",
+        "gypsy",
+        "priest",
+        "high_priest",
+        "monk",
+        "champion",
+        "blacksmith",
+        "whitesmith",
+        "alchemist",
+        "creator",
+        "assassin",
+        "assassin_cross",
+        "rogue",
+        "stalker"
+      ],
+      "buyPrice": 20,
+      "sellPrice": 10,
+      "weight": 1,
+      "resource": "data/texture/유저인터페이스/item/이름없는카드.bmp",
+      "effects": {},
+      "unsupportedEffect": true,
+      "shop": false
+    },
+    "4087": {
+      "id": 4087,
+      "name": "Giearth Card",
+      "aegisName": "Giearth_Card",
       "type": "card",
       "attack": 0,
       "def": 0,
@@ -119225,6 +120080,42 @@
       ],
       "scene": "castle",
       "description": "Enfrente os mortos-vivos de Glast Heim. Entre lápides esquecidas, Wraith pode deixar Tecido e os antigos guardiões ainda rondam o cemitério."
+    },
+    {
+      "id": "ant_hell_f1",
+      "name": "Formigueiro de Ants — 1º andar",
+      "map": "anthell01",
+      "minLevel": 20,
+      "monsters": [
+        1005,
+        1095,
+        1160,
+        1105,
+        1176,
+        1121,
+        1289,
+        1097
+      ],
+      "scene": "cave",
+      "description": "Caçada no Formigueiro de Ants, primeiro andar. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "ant_hell_f2",
+      "name": "Formigueiro de Ants — 2º andar",
+      "map": "anthell02",
+      "minLevel": 30,
+      "monsters": [
+        1097,
+        1005,
+        1095,
+        1160,
+        1105,
+        1176,
+        1121,
+        1147
+      ],
+      "scene": "cave",
+      "description": "Caçada no Formigueiro de Ants, segundo andar. Acesso definido pelo balanceamento idle."
     }
   ],
   "quests": [

@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/suffragiumBaseline.json';
+import { beforeAntHellCatalog, beforeAntHellManifest } from './ant-hell-historical.js';
 
 const same = (value: unknown, hash: string) => value !== undefined
   && createHash('sha256').update(JSON.stringify(value)).digest('hex') === hash;
 
 /** Reverse only the exact Suffragium promotion so older snapshots stay stable. */
 export function beforeSuffragiumCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeAntHellCatalog(input)) as Record<string, any>;
   if (same(result.skills?.pr_suffragium, baseline.catalog.afterSkillSha256))
     result.skills.pr_suffragium = structuredClone(baseline.catalog.beforeSkill);
   if (result.source?.hash === baseline.catalog.afterSourceHash)
@@ -16,7 +17,7 @@ export function beforeSuffragiumCatalog<T>(input: T): T {
 
 /** Reverse only Suffragium's source-manifest and coverage delta. */
 export function beforeSuffragiumManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeAntHellManifest(input)) as Record<string, any>;
   const source = result.skillSources?.pr_suffragium;
   if (same(source, baseline.manifest.afterSkillSourceSha256))
     result.skillSources.pr_suffragium = structuredClone(baseline.manifest.beforeSkillSource);
