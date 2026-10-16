@@ -1,487 +1,975 @@
 #!/usr/bin/env node
-/** Reproducible selected Hercules catal±½œ¸A0´Ì¸Àµ½Èµ±…Ñ•È¸9•Ù•È•Ù…±Õ…Ñ•ÌÍÉ¥ÁÑÌ¸€¨¼)¥µÁ½ÉĞìË&VDf–ÆRÂw&—FTf–ÆRÂÖ¶F—"Òg&öÒvæöFS¦g2÷&öÖ—6W2s°¦–×÷'BÈ™\ÛÛ™K\›˜[YHHœ›ÛH	Û›ÙNœ]	ÎÂš[\ÜÈš[UT“Ô]4h } from 'node:url';
-import { createHash } from 'node:crypto¼œì)¥µÁ½ÉĞìÁ…ÉÍ•Q•±•Á½ÉÑ5…Á±…Ìô™É½´€œ¸½Ñ•±•Á½ÉĞµµ…Á™±…w2æÖ§2s°¦–×÷'B²÷&FW&VD6öæf–tVçG&–W2Â'6T6öæf–rÂ&W6öÇfT’[š\š][˜ÙHHœ›ÛH	Ë‹ÛX˜ÛÛ™šYË›ZœÉÎÂš[\ÜÈİ]XÑY™[œÙQElement } from './itemDefenseElement.mjs';
-import { parseMapSMÁ…İ¹MÉ¥ÁĞ°Ù…±¥‘…Ñ•5…ÁMÁ…İ¹M•±•Ñ¥½¹Ìô™É½´€œ¸½µ…ÁMÁ…İ¹Ì¹¶Ö§2s°¦6öç7B&ö÷BÒ&W6öÇfR†F—&æÖR†f–ÆUU$ÅFõF‚†–×÷'BæÖWFë\›
-JK	Ë‹‰ÊNÂ˜ÛÛœİ[\ÈH”ÓÓ‹œ\œÙJ]ØZ]™XYš[J™\ÛÛ¶e(root, 'content/rules.json'), 'utf8'));
-const sha = b => crÉ•…Ñ•!…Í  Í¡„ÈÔØœ¤¹ÕÁ‘…Ñ”¡ˆ¤¹‘¥•ÍĞ ¡•àœ¤ì)½¹ÍĞ…ÉÌ€ôÁÉ¾ö6W72æ&wbç6Æ–6Rƒ"“°¦6öç7B&rÒæÖRÓâ²6öç7B’Ò&w2æ–æI^ÙŠ˜[YJNÈ™]\›ˆHÈ[™Yš[™Yˆ\™ÜÖÚH
-ÈWNÈNÂ˜ÛÛœİ4 source = arg('--source');
-const files = ['mob_skill_db.conf˜œ°€µ½‰}‘ˆ¹½¹˜œ°€¥Ñ•µ}‘ˆ¹½¹˜œ°€©½‰}‘ˆ¹½¹˜œ°€•áÁ}É½ÕÁ}öF"æ6öæbrÂw6¶–ÆÅöF"æ6öæbrÂw6¶–ÆÅ÷G&VRæ6öæbrÂvGG%öf—‚æ6öæi‰Ë	ÜÚ^™WÙš^	Ë	Ø]]ÜÜ[Ù‹˜ÛÛ™‰Ë	İ[š]Ü\˜[Y]\œ×Ù‹®conf'];
+/** Reproducible selected Hercules catalog. GPL-3.0-or-later. Never evaluates scripts. */
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { parseTeleportMapFlags } from './teleport-mapflags.mjs';
+import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
+import { staticDefenseElement } from './itemDefenseElement.mjs';
+import { parseMapSpawnScript, validateMapSpawnSelections } from './mapSpawns.mjs';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const rules = JSON.parse(await readFile(resolve(root, 'content/rules.json'), 'utf8'));
+const sha = b => createHash('sha256').update(b).digest('hex');
+const args = process.argv.slice(2);
+const arg = name => { const i = args.indexOf(name); return i < 0 ? undefined : args[i + 1]; };
+const source = arg('--source');
+const files = ['mob_skill_db.conf', 'mob_db.conf', 'item_db.conf', 'job_db.conf', 'exp_group_db.conf', 'skill_db.conf', 'skill_tree.conf', 'attr_fix.conf', 'size_fix.txt', 'autospell_db.conf', 'unit_parameters_db.conf'];
 const buffers = {};
 const parsed = {};
-const manifesÍĞ€ôì½µµ¥ĞèÉÕ±•Ì¹½µµ¥Ğ°±¥•¹Í”è€A0´Ì¸Àµ½Èµ±…Ñ•Èœ°Í½×W&6W3¢µÒÂFFF–öç3¢'VÆW2æFFF–öç2ÂW†6ÇVFVDG&÷3¢µÒË[™\›Ü][\Îˆ×KZ\ÜÚ[™Ò][T™\Ûİ\˜Ù\Îˆ×KÚÚ[Ûİ\˜Ù\Îº {}, classSources: {} };
+const manifest = { commit: rules.commit, license: 'GPL-3.0-or-later', sources: [], adaptations: rules.adaptations, excludedDrops: [], inertDropItems: [], missingItemResources: [], skillSources: {}, classSources: {} };
 manifest.bossRoster = {
-    miniBosÍÍM½ÕÉ”èÉÕ±•Ì¹µ¥¹¥	½ÍÍI½ÍÑ•ÉM½ÕÉ”°(€€€µ¥¹¥	½ÍÍ5½¹ÍÑ•É%‘Ìë¢'VÆW2æÖ–æ”&÷74Ööç7FW$–G2À¢×g7&—FW&–öã¢t×gW‡÷"×gA›ÜÈ[ˆ[›™Y[Ø—Ù‹˜ÛÛ™‰Ëˆ^ÛYY]œÜš]T™Yš^\Îˆ rules.excludedMvpSpritePrefixes ?? [],
+    miniBossSource: rules.miniBossRosterSource,
+    miniBossMonsterIds: rules.miniBossMonsterIds,
+    mvpCriterion: 'MvpExp or MvpDrops in pinned mob_db.conf',
+    excludedMvpSpritePrefixes: rules.excludedMvpSpritePrefixes ?? [],
 };
-for (const file of˜™¥±•Ì¤ì(€€€½¹ÍĞÕÉ°€ô¡ÑÑÁÌè¼½É…Ü¹¥Ñ¡Õ‰ÕÍ•É½¹Ñ•¹Ğ¹½¶Òô†W&7VÆW5u2ô†W&7VÆW2òG·'VÆW2æ6öÖÖ—GÒöF"÷&R×&RòG¶f–ÆWÖ°¢ÛÛœİY™™\ˆHÛİ\˜ÙHÈ]ØZ]™XYš[J™\ÛÛ™JÛİ\˜ÙK	Ù‹ïpre-re', file)) : Buffer.from(await (await fetch(url)).arrayå	Õ™™•È ¤¤ì(€€€¥˜€¡Í¡„¡‰Õ™™•È¤€„ôôÉÕ±•Ì¹Í½ÕÉ•!…Í¡•Ím™¥±•t¦¢F‡&÷ræWrW'&÷"‚u–ææVB6÷W&6R†6‚Ö—6ÖF6ƒ¢r²iš[JNÂˆY™™\œÖÙš[WHHY™™\ÂˆX[šY™\İœÛİ\˜Ù\Ëœ\Ú
-({ path: 'db/pre-re/' + file, url, sha256: sha(buffer) });
-  €€¥˜€ …™¥±”¹•¹‘Í]¥Ñ  œ¹ÑáĞœ¤¤(€€€€€€€Á…ÉÍ•‘m™¥±•t€ôÁ…ÉÍ•¾öæf–r†'VffW"çFõ7G&–ær‚wWFc‚r’“°§Ğ¦6öç7BÖ7väÖöç7FW$–G2Ò™]ÈX\
-
-NÂ˜ÛÛœİ™\Z\”]H	ÛœËÛY\˜Ú[ËÜ™Yš[™K	ÎÂ˜Ûïnst repairUrl = `https://raw.githubusercontent.com/HerculesW]L½!•ÉÕ±•Ì¼‘íÉÕ±•Ì¹½µµ¥Ñô¼‘íÉ•Á…¥ÉA…Ñ¡õ€ì)½¹ÍĞÉ•Á…¥É	Õ™™–W"Ò6÷W&6Ròv—B&VDf–ÆR‡&W6öÇfR‡6÷W&6RÂ&W—%F‚’’¢ Y™™\‹™œ›ÛJ]ØZ]
-]ØZ]™]Ú
-™\Z\•\›
-JK˜\œ˜^PY™™\Š
-JNÂšY¦ (sha(repairBuffer) !== rules.sourceHashes[repairPath]) thro½Ü¹•ÜÉÉ½È A¥¹¹•Í½ÕÉ”¡…Í µ¥Íµ…Ñ è€œ€¬É•Á…¥ÉA…Ñ ¤ì)¶Öæ–fW7Bç6÷W&6W2çW6‚‡²Fƒ¢&W—%F‚ÂW&Ã¢&W—%W&ÂÂ6†LMˆÚJ™\Z\Y™™\ŠHJNÂ˜ÛÛœİ[\Ü›YÔ]H	ÛœËÛX\0flag/noteleport.txt';
-const teleportFlagUrl = `https://raw.g¥Ñ¡Õ‰ÕÍ•É½¹Ñ•¹Ğ¹½´½!•ÉÕ±•Í]L½!•ÉÕ±•Ì¼‘íÉÕ±•Ì¹½µµ¥Ñô¼‘íÓFVÆW÷'DfÆuF‡Ö°¦6öç7BFVÆW÷'DfÆt'VffW"Ò6÷W&6Ròv—M™XYš[J™\ÛÛ™JÛİ\˜ÙK[\Ü›YÔ]
-JHˆY™™\‹™œ›ÛJawait (await fetch(teleportFlagUrl)).arrayBuffer());
-if (sha(¡Ñ•±•Á½ÉÑ±…	Õ™™•È¤€„ôôÉÕ±•Ì¹Í½ÕÉ•!…Í¡•ÍmÑ•±•Á½ÉÑ±…A…Ñ¡uÒ’F‡&÷ræWrW'&÷"‚u–ææVB6÷W&6R†6‚Ö—6ÖF6ƒ¢r²FVÆW÷'M›YÔ]
-NÂ˜ÛÛœİ[\Ü›ØÚÙYX\ÈH\œÙU[\ÜX\›YÜó(teleportFlagBuffer.toString('utf8'));
-if (!teleportBlockedM5…ÁÌ¹±•¹Ñ ¤Ñ¡É½Ü¹•ÜÉÉ½È µÁÑäÍ½ÕÉ”¹½Ñ•±•Á½ÉĞ±¥ÍĞœ¤ï°¦Öæ–fW7Bç6÷W&6W2çW6‚‡²Fƒ¢FVÆW÷'DfÆuF‚ÂW&Ã¢FVÆWûÜ›YÕ\›ÚLMˆÚJ[\Ü›YĞY™™\ŠHJNÂšYˆ
-KÙ[˜İ[ïn\s+script\s+repairmain/i.test(repairBuffer.toString('utf8')¤¤ñğ€„½p¹qÉ•Á…¥ÉÁÉ¥•qÌ¨õqÌ¨ÔÀÀÀ¼¹Ñ•ÍĞ¡É•Á…¥É	Õ™™•È¹Ñ½MÑÉ¥ºær‚wWFc‚r’’¢F‡&÷ræWrW'&÷"‚u–ææVBå2&W—"6W'f–6R8Ú[™ÙY	ÊNÂ›X[šY™\İ›œÔ™\Z\ˆHÈÛİ\˜ÙNˆ	ÛœËÛY\˜Ú[ËÜ™Yšine.txt:1145..1229', pricePerEquipment: 5000, repairs: 'all b‰É½­•¸•ÅÕ¥Áµ•¹Ğ¥¸½¹”9AÑÉ…¹Í…Ñ¥½¸œ°‘¥Í½Õ¹Ğè™…±Í”ôì(¦f÷"†6öç7BF‚öb'VÆW2æÖ7vå6÷W&6W2óòµÒ’°¢6öç7B\›HÎ‹ËÜ˜]Ë™Ú]X\Ù\˜ÛÛ[˜ÛÛKÒ\˜İ[\ÕÔËÒ\˜İ[\ó/${rules.commit}/${path}`;
-    const buffer = source ? awaitĞÉ•…‘¥±”¡É•Í½±Ù”¡Í½ÕÉ”°Á…Ñ ¤¤€è	Õ™™•È¹™É½´¡…İ…¥Ğ€¡…İ…¥Ğ‚fWF6‚‡W&Â’’æ'&”'VffW"‚’“°¢–b‡6††'VffW"’ÓÒ'VÆW2ç6ûİ\˜ÙR\Ú\ÖÜ]JBˆ›İÈ™]È\œ›ÜŠ	Ô[›™YÛİ\˜ÙH\óh mismatch: ' + path);
+for (const file of files) {
+    const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/db/pre-re/${file}`;
+    const buffer = source ? await readFile(resolve(source, 'db/pre-re', file)) : Buffer.from(await (await fetch(url)).arrayBuffer());
+    if (sha(buffer) !== rules.sourceHashes[file])
+        throw new Error('Pinned source hash mismatch: ' + file);
+    buffers[file] = buffer;
+    manifest.sources.push({ path: 'db/pre-re/' + file, url, sha256: sha(buffer) });
+    if (!file.endsWith('.txt'))
+        parsed[file] = parseConfig(buffer.toString('utf8'));
+}
+const mapSpawnMonsterIds = new Map();
+const repairPath = 'npc/merchants/refine.txt';
+const repairUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${repairPath}`;
+const repairBuffer = source ? await readFile(resolve(source, repairPath)) : Buffer.from(await (await fetch(repairUrl)).arrayBuffer());
+if (sha(repairBuffer) !== rules.sourceHashes[repairPath]) throw new Error('Pinned source hash mismatch: ' + repairPath);
+manifest.sources.push({ path: repairPath, url: repairUrl, sha256: sha(repairBuffer) });
+const teleportFlagPath = 'npc/mapflag/noteleport.txt';
+const teleportFlagUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${teleportFlagPath}`;
+const teleportFlagBuffer = source ? await readFile(resolve(source, teleportFlagPath)) : Buffer.from(await (await fetch(teleportFlagUrl)).arrayBuffer());
+if (sha(teleportFlagBuffer) !== rules.sourceHashes[teleportFlagPath]) throw new Error('Pinned source hash mismatch: ' + teleportFlagPath);
+const teleportBlockedMaps = parseTeleportMapFlags(teleportFlagBuffer.toString('utf8'));
+if (!teleportBlockedMaps.length) throw new Error('Empty source noteleport list');
+manifest.sources.push({ path: teleportFlagPath, url: teleportFlagUrl, sha256: sha(teleportFlagBuffer) });
+if (!/function\s+script\s+repairmain/i.test(repairBuffer.toString('utf8')) || !/\.\@repairprice\s*=\s*5000/.test(repairBuffer.toString('utf8')))
+    throw new Error('Pinned NPC repair service changed');
+manifest.npcRepair = { source: 'npc/merchants/refine.txt:1145..1229', pricePerEquipment: 5000, repairs: 'all broken equipment in one NPC transaction', discount: false };
+for (const path of rules.mapSpawnSources ?? []) {
+    const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
+    const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
+    if (sha(buffer) !== rules.sourceHashes[path])
+        throw new Error('Pinned source hash mismatch: ' + path);
     buffers[path] = buffer;
-    manif™•ÍĞ¹Í½ÕÉ•Ì¹ÁÕÍ ¡ìÁ…Ñ °ÕÉ°°Í¡„ÈÔØèÍ¡„¡‰Õ™™•È¤ô¤ì(€€€™¾÷"†6öç7B¶ÖÂ–G5Òöb'6TÖ7vå67&—B†'VffW"çFõ7G&–ær‚yİ]	ÊJJHÂˆÛÛœİ[Ûœİ\œÈHX\Ü]Û“[Ûœİ\’YË™Ù]
-map) ?? new Set();
-        for (const id of ids) monsters.add¡¥¤ì(€€€€€€€µ…ÁMÁ…İ¹5½¹ÍÑ•É%‘Ì¹Í•Ğ¡µ…À°µ½¹ÍÑ•ÉÌ¤ì(€€€ô)÷Ğ§fÆ–FFTÖ7vå6VÆV7F–öç2‡'VÆW2æ&V2ÂÖ7väÖöç7FW$–G2šNÂ›X[šY™\İ›X\Ü]Û•˜[Y][ÛˆHÈX\Îˆ[\Ë˜\™X\Ë›X\
-\™Xa => area.map),
-    selection: 'All selected monsters must apÁÁ•…È½¸Ñ¡•¥È½¹™¥ÕÉ•µ…À¥¸Ñ¡”Á¥¹¹•ÍÁ…İ¸ÍÉ¥ÁÑÌìµ¦—76–ærÖ2&R&V¦V7FVBârÓ°¦6öç7B&W6÷W&6UF‚Ò&r‚rÒÖ—FY[K\™\Ûİ\˜Ù\ÉÊNÂ˜ÛÛœİ™\Ûİ\˜ÙPY™™\ˆH™\Ûİ\˜ÙT]È]ØZ]²eadFile(resolve(resourcePath)) : Buffer.from(await (await fe•Ñ  ¡…Éœ œ´µ…ÍÍ•Ğµ½É¥¥¸œ¤€üü€¡ÑÑÀè¼¼ÄÈÜ¸À¸À¸ÄèàÀàÀœ¤€¬€œ½’FFö–FçVÓ&—FV×&W6æÖWF&ÆRçG‡Br’’æ'&”'VffW"‚’“°¦6öç7B&W6ûİ\˜Ù\ÈHßNÂ™›Üˆ
-ÛÛœİ[™HÙˆ™]È^XÛÙ\Š	Ù]XËZÜ‰ÊK™Xãode(resourceBuffer).split(/\r?\n/)) {
-    const m = line.matÑ  ½yqÌ¨¡q¬¤Œ¡mxt¬¤Œ¼¤ì(€€€¥˜€¡´¤(€€€€€€€É•Í½ÕÉ•ÍmµlÅuuÒÒÕ³%ÒçG&–Ò‚“°§Ğ¦Öæ–fW7Bæ—FVÕ&W6÷W&6W2Ò²Fƒ¢vFFö–Fë[Lš][\™\Û˜[Y]X›K	Ë[˜ÛÙ[™Îˆ	ĞÔMH
-ÒUÑÈ]XËZÜŠIË, sha256: sha(resourceBuffer), redistributed: false };
-const ©½‰Ì€ôÁ…ÉÍ•‘l©½‰}‘ˆ¹½¹˜tì)™½È€¡½¹ÍĞm¹…µ”°Ù…±Õ•t½˜=Š&¦V7BæVçG&–W2†¦ö'2’¢–b„'&’æ—4'&’‡fÇVR’¢¦ûØœÖÛ˜[YWHH˜[YK˜]
-LJNÂ˜ÛÛœİÚÚ[S˜[YHHØš™Xİ™œ›ÛQ[²ies(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));ì(¼¼M½ÕÉ”™½ÉµÕ±…Ì…¹©½ˆ‰½¹ÕÍ•Ì…É”Á¥¹¹•…±½¹Í¥‘”Ñ¡–RFF&6W2âF†W’&P¢òòVF—FVBFF²F†RW‡÷'FW"æWfW"Wf[X]\È\˜İ[\ÈÈÜˆ][HØÜš\Ë‚™›Üˆ
-ÛÛœİ]ÙˆÉÙ‹Úªob_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c',°€ÍÉŒ½µ…À½ÍÑ…ÑÕÌ¹Œœ°€ÍÉŒ½µ…À½Í­¥±°¹Œœ°€ÍÉŒ½µ…À½ÁŒ¹Œœ°€ÍÉ2öÖ÷2æ‚rÂw7&2öÖ÷Væ—Bæ2rÂw7&2öÖöÖö"æ2rÂw7&2öÖöÖö"ëš	Ë	Ù‹Ü›ÙXÙWÙ‹	Ë	ÛœËÛY\˜Ú[ËÜÚÜË	Ë	ÛœËÛY\²chants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'srÉŒ½µ…À½±¥˜¹Œœ°€‘ˆ½ÁÉ”µÉ”½É•™¥¹•}‘ˆ¹½¹˜œ°€ÍÉŒ½µ…À½É•™¥¹”¹2rÂw7&2öÖö6Æ–bæ‚rÂvF"÷&R×&Rö—FVÕö6†–âæ6öæbrÂw7&2öÖöš][Y‹˜ÉË	ÜÜ˜ËÛX\ÜØÜš\˜ÉË	ØÛÛ™‹ÛX\Ø˜]KÙ›ÜË˜ÛÛ™‰Ë 'npc/merchants/renters.txt', 'src/map/map.h', 'conf/map/battÑ±”½Á±…å•È¹½¹˜œ°€½¹˜½µ…À½‰…ÑÑ±”½Í­¥±°¹½¹˜œ°€½¹˜½µ…À½‰…ÓGFÆRö&GFÆRæ6öæbuÒ’°¢6öç7BW&ÂÒ‡GG3¢ò÷&ræv—F‡V'W6W,˜ÛÛ[˜ÛÛKÒ\˜İ[\ÕÔËÒ\˜İ[\ËÉÜ[\Ë˜ÛÛ[Z]KÉÜ]XÂˆ   const buffer = source ? await readFile(resolve(source, patÑ ¤¤€è	Õ™™•È¹™É½´¡…İ…¥Ğ€¡…İ…¥Ğ™•Ñ ¡ÕÉ°¤¤¹…ÉÉ…å	Õ™™•È ¤¤ì(‚–b‡6††'VffW"’ÓÒ'VÆW2ç6÷W&6T†6†W5·F…Ò’F‡&÷ræWrQ\œ›ÜŠ	Ô[›™YÛİ\˜ÙH\ÚZ\ÛX]Úˆ	È
-È]
-NÂˆY™™\œÖÜath] = buffer;
-    manifest.sources.push({ path, url, sha256:èÍ¡„¡‰Õ™™•È¤ô¤ì)ô)½¹ÍĞÉ•™¥¹•M½ÕÉ”€ôÁ…ÉÍ•½¹™¥œ¡‰Õ™™•ÉÍm²vF"÷&R×&R÷&Vf–æUöF"æ6öæbuÒçFõ7G&–ær‚wWFc‚r’“°¦6öç7Bæ÷&ÖÅ$™Yš[™T˜]\ÈHÌK‹ËK›X\
-]™[OˆÂˆÛÛœİ˜]\ÈH™YšineSource['WeaponLevel'+level]?.Rates;
-    if (!rates) throw ¹•ÜÉÉ½È 5¥ÍÍ¥¹œ¹…Ñ¥Ù”İ•…Á½¸É•™¥¹•µ•¹ĞÉ…Ñ•Ì€œ­±•Ù•°¤ì(¢&WGW&â'&’æg&öÒ‡¶ÆVæwFƒ£ÒÂ…òÆ–æFW‚“Óç&FW5²tÇbr²†–æI^
-ÌJWOË“›Ü›X[Ú[˜ÙHÏÈL
-NÂŸJNÂ˜ÛÛœİ^XİY™Yš[™T˜]\È = [
- [100,100,100,100,100,100,100,60,40,19], [100,100,100,10ÀÀ°ÄÀÀ°ÄÀÀ°ØÀ°ĞÀ°ÈÀ°Äåt°(lÄÀÀ°ÄÀÀ°ÄÀÀ°ÄÀÀ°ÄÀÀ°ØÀ°ÔÀ°ÈÀ°ÈÀ°Äç•ÒÂ³ÃÃÃÃcÃCÃCÃ#Ã#Ã•ÒÀ¥Ó°¦–b„¥4ôâç7G&–æv–g’Š›Ü›X[™Yš[™T˜]\ÊHOOR”ÓÓ‹œİš[™ÚYJ^XİY™Yš[™T˜]\ÊJBˆ4hrow new Error('Native normal weapon-refine rates changed');ì)½¹ÍĞÉ•™¥¹•M­¥±°õÍ­¥±±	å9…µ”¹]M}]A=9I%9ì)¥˜¡É•™¥¹•M­¦–ÆÃòä–BÓÓCswÇÇ&Vf–æU6¶–ÆÂäÖ„ÆWfVÂÓÓÇÇ&Vf–æU6¶–ÆÂå&WV—&Y[Y[ÏË”ÔÛÜİOOM_ˆØš™XİšÙ^\Ê™Yš[™TÚÚ[”™\]Z\™[Y[ÊK›,ength!==1||!refineSkill.SkillType?.Self||!refineSkill.Damage•QåÁ”ü¹9½…µ…•ñğ(€¡É•™¥¹•M­¥±°¹…ÍÑQ¥µ”üüÀ¤„ôôÁñğ¡É•™¥¹•M­¥²ÆÂägFW$67D7DFVÆ“óó’ÓÓÇÂ‡&Vf–æU6¶–ÆÂä6ööÄF÷vãóó’ÓÓ¢ˆ›İÈ™]È\œ›ÜŠ	Ó˜]]™HÙX\Ûˆ™Yš[™HXİ]˜][ÛˆÚ[™ÙY	ÊNû
-const refineHandler=buffers['src/map/skill.c'].toString('utÑ˜àœ¤¹ÍÁ±¥Ğ ÍÑ…Ñ¥ŒÙ½¥Í­¥±±}İ•…Á½¹É•™¥¹” œ¥lÅtü¹ÍÁ±¥Ğ ÍÑ†F–2fö–B6¶–ÆÅöWF÷7VÆÅ÷6VÆV7E÷7VÆÅ÷2r•³Ó°¦f÷"†6öç7Bg&YÛY[ÙˆÉÒUSRQÔPÓÓ‰Ë	ÒUSRQÑSU‘T‘UTÓÓ‰Ë	ÒUSRQÓÔ’IDECON',
- 'per += 5 * (sd->status.job_level - 50)','per > rnd ¤€”€ÄÀÀÀœ°¥Ñ•´´ùÉ•™¥¹”€øôÍ´ùµ•¹ÕÍ­¥±±}Ù…°œ°¥Ñ•´´ùÉ•™¥¹–RãÒuÒ¢–b‚&Vf–æT†æFÆW#òæ–æ6ÇVFW2†g&vÖVçB’—F‡&÷ræWrQ\œ›ÜŠ	Ó˜]]™HÙX\Ûˆ™Yš[™H[™\ˆÚ[™ÙYˆ	ÊÙœ˜YÛY[
-NÂ›X[®ifest.weaponRefine = {
- source:'db/pre-re/refine_db.conf; re•™¥¹”¹ŒèÈÄà¸¸ÈÈà°ÔÄÜ¸¸ÔÔÜìÍ­¥±°¹ŒèÄàÄÀÀ¸¸ÄàÄàØì±¥˜¹ŒèÜÀÀÔºâãsC"Ã3““2âãCrÀ¢æ÷&ÖÅ&FW3¦æ÷&ÖÅ&Vf–æU&FW2ÂÖFW&–[UÙX\Û“]™[–ÌLLLLKNNK˜\ÙTÜÛ“Ü[K™[PÛÜİ4:0,
- rateIndex:'current refinement 0..9; source LvN maps to Ñ…É•ĞÉ•™¥¹•µ•¹Ğ8ì½µ¥ÑÑ•9½Éµ…±¡…¹”‘•™…Õ±ÑÌÄÀÀœ°(Ñ¡Ë&W6†öÆC¢væ÷&ÖÅW&6VçB£²R¢‡&W7öç6T¦ö$ÆWfVÂÓS“²æò6Æ×™Y›Ü™HİšXİÛÛ\\š\ÛÛ‰Ëˆ˜[™ÛN‰ØÛÛœİ[YHÛ™HÜ™K[ˆexactly one raw uint32 RNG modulo1000, including guaranteed o½ÕÑ½µ•Ìœ°(±•…É¹•‘1¥µ¥Ğè™Õ±°±•…É¹•Í­¥±°±•Ù•°…ÁÑÕÉ•†BÖVçR÷Væ–ærÂæ÷B6öæf–wW&VBW6RÆWfVÂrÀ¢f–ÇW&S¢vFW7G&÷HHÙ[XİYÙX\ÛˆÚ]Ø\™È[™›Û\Ù\ÎÈ›ÈÔÚ\™ÙYat answer or cancellation',
- adaptations:['Durable profile-bo½Õ¹µ•¹ÔÍÕÉÙ¥Ù•ÌÉ•½¹¹•Ğ…¹É•ÍÑ…ÉĞ¸œ°(€€I•Á•…Ğ±•¥Ñ¥¶ÖFRÆV&æVBö6Æ72Â–FVçF–f–6F–öâæBVæWV—VBwV&G2B[œİÙ\‹‰Ëˆ	Ñ˜]›Üš]\È[™œ›ÚÙ[ˆÙX\ÛœÈ™[XZ[ˆ[YÚX›NÈİuccessful refinement does not repair.',
-  'UID plus explicit Á•ÉÍ¥ÍÑ•µ¥Ñ•´Í¥¹…ÑÕÉ”°…ÁÑÕÉ•µ•¹Ô½™™•È±¥ÍĞ…¹½¹”µÏ6†÷Bç7vW"ârÀ¢tFVF‚ÂÖv'Â–æ6ö×F–&ÆR6Æ72÷6¶–ÆÂûÜˆØ][ÙÈÚ[™ÙHÛÜÙHHY[HÚ]İ]™Y[™‰Ëˆ	ÓX]Ú[®g-menu rejection commits a visible result instead of rollingœ‰…¬‰ä•á•ÁÑ¥½¸¸œ°(€€ÕÉÉ•¹ĞÍ½±¼‘½µ…¥¸¡…Ì¹¼™½É•µ¶Ö¶W"fÖR7—7FVÒâuĞ§Ó°¦6öç7BfÆ6öå&VçFÃÖ'VffW'5²vç2öÖW&6Š[ËÜ™[\œË	×KÔİš[™Ê	İ]	ÊNÂ™›ÜŠÛÛœİœ˜YÛY[ÙˆÛ'Falcon Breeder','Job_Hunter','HT_FALCON','2500'])
-    if(!f™…±½¹I•¹Ñ…°¹¥¹±Õ‘•Ì¡™É…µ•¹Ğ¤¤Ñ¡É½Ü¹•ÜÉÉ½È A¥¹¹•…±6öâ'&VVFW"6†ævVC¢r¶g&vÖVçB“°¦f÷"†6öç7B·F‚ÇGFW&åÒöiˆÂˆÉØÛÛ™‹ÛX\Ø˜]KÜ^Y\‹˜ÛÛ™‰ËÙš^İØ\œÚ]Ù[^WØX¢use:\s*false/],
-    ['conf/map/battle/skill.conf',/skill_min¹}‘…µ…”éqÌ¨Ø üéqÍğ¤½t°(€€€l½¹˜½µ…À½‰…ÑÑ±”½‰…ÑÑ±”¹½¹˜œ°¾öFVÆ•ö&GFÆUöFÖvS¥Ç2§G'VRõÒÀ¢²v6öæböÖö&GFÆRö&GFÆRë˜ÛÛ™‰ËÜÛ˜\ÙÙÙN—Ê™˜[ÙK×K—JHYŠ\]\›‹\İ
-Y™™\œÖÜath].toString('utf8'))) throw new Error('Pinned Falcon configÕÉ…Ñ¥½¸¡…¹•è€œ­Á…Ñ ¤ì)µ…¹¥™•ÍĞ¹™…±½¹IÕ±•Ìõì(€€€Í½ÕÉ”ë¢vç2öÖW&6†çG2÷&VçFW'2çG‡C£cbâã#C²6¶–ÆÂæ3£c#‚âãcCÃ#C]LË‹ŒLŒNÈ˜]K˜ÎŒ‹ŒÍMKLK‹ÍK‹Ì‰Ëˆ™[4alZeny:2500,rentalDiscount:false,autoChance:'raw1000 <= effe•Ñ¥Ù•1U,€¨€Ìœ°(€€€…ÕÑ½1•Ù•°èµ¥¸¡±•…É¹•‘	±¥Ñè°€Ô°™±½½È¡)½Š$ÆWfVÂó’³’rÆFVÆ”&GFÆTFÖvS§G'VRÀ¢6æFöFvS¦fÇ6RÇv\œ[^Qš^™˜[ÙKZ[š[][Q[XYÙSX\ÚÎ‹ˆ]]ÔÜ]‰İ[˜Ø]4e the source parcel by all living splash entities before mul±Ñ¥Á±å¥¹œÍ½ÕÉ”¡¥ÑÌœ°(€€€‘…µ…•M¹…ÁÍ¡½Ğè™¥¹…°9•ÕÑÉ…°µ¥Ï66VÆÆæV÷W2FÖvRBÆVæ6ƒ²VÆVÖVçBÂÆW‚F†Vâ÷6—F—fR†—BZ[š[][NÈ][[İ[ÛˆXY[™IËˆ™\]Z\™Yİ]N‰Ù\]Z\ed Falcon at cast begin; an already started legal cast survivÙ•Ì‘¥Íµ¥ÍÍ…°œ°(€€€‘•Ñ•ÑM•±™•¹Ñ•É•éÑÉÕ”±‘•Ñ•ÑÉ•„èœİàÜÏ6÷W&6R7V&S²öæR–ç7FçB&WfVÂÂæòW&rÀ¢FWFV7E7FGW<Ù\Î–ÉÔĞ×ÒQS‘ÉË	ÔĞ×ĞÓĞRÒS‘ÉË	ÔĞ×ĞÓĞRÒS‘ÑVÑQQ	Ë	ÔĞ×ĞĞSSÕQ†LAGE','SC_NEWMOON'],
+    manifest.sources.push({ path, url, sha256: sha(buffer) });
+    for (const [map, ids] of parseMapSpawnScript(buffer.toString('utf8'))) {
+        const monsters = mapSpawnMonsterIds.get(map) ?? new Set();
+        for (const id of ids) monsters.add(id);
+        mapSpawnMonsterIds.set(map, monsters);
+    }
+}
+validateMapSpawnSelections(rules.areas, mapSpawnMonsterIds);
+manifest.mapSpawnValidation = { maps: rules.areas.map(area => area.map),
+    selection: 'All selected monsters must appear on their configured map in the pinned spawn scripts; missing maps are rejected.' };
+const resourcePath = arg('--item-resources');
+const resourceBuffer = resourcePath ? await readFile(resolve(resourcePath)) : Buffer.from(await (await fetch((arg('--asset-origin') ?? 'http://127.0.0.1:8080') + '/data/idnum2itemresnametable.txt')).arrayBuffer());
+const resources = {};
+for (const line of new TextDecoder('euc-kr').decode(resourceBuffer).split(/\r?\n/)) {
+    const m = line.match(/^\s*(\d+)#([^#]+)#/);
+    if (m)
+        resources[m[1]] = m[2].trim();
+}
+manifest.itemResources = { path: 'data/idnum2itemresnametable.txt', encoding: 'CP949 (WHATWG euc-kr)', sha256: sha(resourceBuffer), redistributed: false };
+const jobs = parsed['job_db.conf'];
+for (const [name, value] of Object.entries(jobs))
+    if (Array.isArray(value))
+        jobs[name] = value.at(-1);
+const skillByName = Object.fromEntries(parsed['skill_db.conf'].skill_db.map(s => [s.Name, s]));
+// Source formulas and job bonuses are pinned alongside the databases. They are
+// audited data; the exporter never evaluates Hercules C or item scripts.
+for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battle.c', 'src/map/status.c', 'src/map/skill.c', 'src/map/pc.c', 'src/map/pc.h', 'src/map/unit.c', 'src/map/mob.c', 'src/map/mob.h', 'db/produce_db.txt', 'npc/merchants/shops.txt', 'npc/merchants/alchemist.txt', 'npc/pre-re/merchants/shops.txt', 'src/map/clif.c', 'db/pre-re/refine_db.conf', 'src/map/refine.c', 'src/map/clif.h', 'db/pre-re/item_chain.conf', 'src/map/itemdb.c', 'src/map/script.c', 'conf/map/battle/drops.conf', 'npc/merchants/renters.txt', 'src/map/map.h', 'conf/map/battle/player.conf', 'conf/map/battle/skill.conf', 'conf/map/battle/battle.conf']) {
+    const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
+    const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
+    if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
+    buffers[path] = buffer;
+    manifest.sources.push({ path, url, sha256: sha(buffer) });
+}
+const refineSource = parseConfig(buffers['db/pre-re/refine_db.conf'].toString('utf8'));
+const normalRefineRates = [1,2,3,4].map(level => {
+    const rates = refineSource['WeaponLevel'+level]?.Rates;
+    if (!rates) throw new Error('Missing native weapon refinement rates '+level);
+    return Array.from({length:10},(_,index)=>rates['Lv'+(index+1)]?.NormalChance ?? 100);
+});
+const expectedRefineRates = [
+ [100,100,100,100,100,100,100,60,40,19], [100,100,100,100,100,100,60,40,20,19],
+ [100,100,100,100,100,60,50,20,20,19], [100,100,100,100,60,40,40,20,20,9],
+];
+if(JSON.stringify(normalRefineRates)!==JSON.stringify(expectedRefineRates))
+ throw new Error('Native normal weapon-refine rates changed');
+const refineSkill=skillByName.WS_WEAPONREFINE;
+if(refineSkill?.Id!==477||refineSkill.MaxLevel!==10||refineSkill.Requirements?.SPCost!==5||
+ Object.keys(refineSkill.Requirements).length!==1||!refineSkill.SkillType?.Self||!refineSkill.DamageType?.NoDamage||
+ (refineSkill.CastTime??0)!==0||(refineSkill.AfterCastActDelay??0)!==0||(refineSkill.CoolDown??0)!==0)
+ throw new Error('Native Weapon Refine activation changed');
+const refineHandler=buffers['src/map/skill.c'].toString('utf8').split('static void skill_weaponrefine(')[1]?.split('static void skill_autospell_select_spell_pc')[0];
+for(const fragment of ['ITEMID_PHRACON','ITEMID_EMVERETARCON','ITEMID_ORIDECON',
+ 'per += 5 * (sd->status.job_level - 50)','per > rnd() % 1000','item->refine >= sd->menuskill_val','item->refine >= 10'])
+ if(!refineHandler?.includes(fragment))throw new Error('Native Weapon Refine handler changed: '+fragment);
+manifest.weaponRefine = {
+ source:'db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011',
+ normalRates:normalRefineRates, materialByWeaponLevel:[1010,1011,984,984], baseSpOnOpen:5, zenyCost:0,
+ rateIndex:'current refinement 0..9; source LvN maps to target refinement N; omitted NormalChance defaults100',
+ threshold:'normalPercent*10 + 5*(responseJobLevel-50); no clamp before strict comparison',
+ random:'consume one ore, then exactly one raw uint32 RNG modulo1000, including guaranteed outcomes',
+ learnedLimit:'full learned skill level captured at menu opening, not configured use level',
+ failure:'destroy the selected weapon with cards and bonuses; no SP charged at answer or cancellation',
+ adaptations:['Durable profile-bound menu survives reconnect and restart.',
+  'Repeat legitimate learned/class, identification and unequipped guards at answer.',
+  'Favorites and broken weapons remain eligible; successful refinement does not repair.',
+  'UID plus explicit persisted-item signature, captured menu offer list and one-shot answer.',
+  'Death, map warp, incompatible class/skill or catalog change close the menu without refund.',
+  'Matching-menu rejection commits a visible result instead of rolling back by exception.',
+  'Current solo domain has no forged-maker fame system.']
 };
-const converterRecipes=buffers['db/pÁÉ½‘Õ•}‘ˆ¹ÑáĞt¹Ñ½MÑÉ¥¹œ ÕÑ˜àœ¤¹ÍÁ±¥Ğ ½qÈıq¸¼¤¹™¥±Ñ•È¡±¥¹”÷Óâõã#³BÓuÒÂòçFW7B†Æ–æR’’æÖ†Æ–æSÓç°¢6öç7B¶÷WGWD—FVÔ–BË][S]™[ÚÚ[YÚÚ[]™[‹‹›X]\šX[O[[™KœÜ]
-	Ë	ÊK›Xap(Number);
- const ingredients=[];for(let n=0;n<material.lengÑ í¸¬ôÈ¥¥¹É•‘¥•¹ÑÌ¹ÁÕÍ ¡í¥Ñ•µ%éµ…Ñ•É¥…±m¹t±ÅÕ…¹Ñ¥Ñäéµ…Ñ•É¦–Å¶â³×Ò“°¢&WGW&â¶÷WGWD—FVÔ–BÆ—FVÔÆWfVÂÇ6¶–ÆÄ–BÇ6¶–ÆÄÆWfY[[™Ü™YY[ßNÂŸJNÂ˜ÛÛœİ^XİYÛÛ™\\œÏVŞÛİ]]][RYº12114,itemLevel:23,skillId:1007,skillLevel:1,ingredients:[{i¥Ñ•µ%èÜĞÌÌ±ÅÕ…¹Ñ¥ÑäèÅô±í¥Ñ•µ%èäÀĞ±ÅÕ…¹Ñ¥ÑäèÍõuô±í½ÕÑÁÕÑ%Ñ•¶Ô–C£#RÆ—FVÔÆWfVÃ£#2Ç6¶–ÆÄ–C£rÇ6¶–ÆÄÆWfVÃ£Æ–æw&VF–VçG3®–ŞÚ][RYÍÌË]X[]NŒ_KÚ][RYM‹]X[]NŒßW_KÛİ]]ItemId:12116,itemLevel:23,skillId:1007,skillLevel:1,ingredien¹ÑÌémí¥Ñ•µ%èÜĞÌÌ±ÅÕ…¹Ñ¥ÑäèÅô±í¥Ñ•µ%èäĞÜ±ÅÕ…¹Ñ¥ÑäèÍõuô±í½ÕÑÃWD—FVÔ–C£#rÆ—FVÔÆWfVÃ£#2Ç6¶–ÆÄ–C£rÇ6¶–ÆÄÆWfVÃ£Æ–æw&VIY[Î–ŞÚ][RYÍÌË]X[]NŒ_KÚ][RYŒLLË]X[]NŒßW_WNû
-if(JSON.stringify(converterRecipes)!==JSON.stringify(expectÑ•‘½¹Ù•ÉÑ•ÉÌ¤¥Ñ¡É½Ü¹•ÜÉÉ½È A¥¹¹•½¹Ù•ÉÑ•ÈÉ•¥Á•Ì‘¥™šfW"r“°¦–b‚'VffW'5²vç2öÖW&6†çG2÷6†÷2çG‡BuÒçFõ7G&–ær‚wWFc‚yÊKš[˜ÛY\Ê	ÜÙ[][HØÜ›ÛÉÊJ]›İÈ™]È\œ›ÜŠ	Ô[›™Y›[šë Scroll shop absent');
-manifest.converterCraft={recipeSource”è‘ˆ½ÁÉ½‘Õ•}‘ˆ¹ÑáĞèÌàä¸¸ÌäÔœ±Í¡½ÁM½ÕÉ”è¹ÁŒ½µ•É¡…¹ÑÌ½Í¡½Ã2çG‡C£“2âã“brÇ&V6—W3¦6öçfW'FW%&V6—W2Ç7W$7F—fF–öã£3Ë]X[]S[Z]–ÌKLK˜[™ÛQ˜]ÜÎ‰ÌJÜ]X[]HY\ˆ˜[Y]4ion, even guaranteed100%',acquisitionAdaptation:'Prontera agÉ•…Ñ”Á…¥9AÍ¡½ÀèÜĞÌÌ¼äÀĞ¼äĞÜÍ½ÕÉ”ÁÉ¥•ÌìäĞØ¼ÄÀÄÌ•ã†—7F–ærG&÷2rÆæWEvV–v‡C§G'VWÓ°¦6öç7BW‡V7FVE†&Ö7•&÷w2ÒÈLKŒ‹ŒKÌMLËKLLËH‹LËŒ‹ŒKÌML08,1,1093,1", "504,22,228,1,7144,0,509,1,1093,1", "505,22,228à°Ä°ÜÄĞĞ°À°ÔÄÀ°Ä°äÄÄ°Ä°ÄÀäÌ°Äˆ°€ˆÔĞÔ°ÈÈ°ÈÈà°Ä°ÜÄÌÌ°À°ÔÀÄ°Ä°ÄÃ“"ÃÃ“S"Ã"Â#SCbÃ#"Ã##‚ÃÃs32ÃÃS2ÃÃ“"ÃÃrÃ"Â#SC}ËŒ‹ŒKÌLÌËLKLL‹KLŒKH‹ÌLÍKŒ‹ŒKÌL0,970,1,1059,1,713,1", "7136,22,228,1,7129,0,713,1,929,1", "7ÜÄÌÜ°ÈÈ°ÈÈà°Ä°ÜÄÌÀ°À°ÜÄÌ°Ä°ÄÀÌÈ°Èˆ°€ˆÜÄÌà°ÈÈ°ÈÈà°Ä°ÜÄÌÄ°À°ÜÄÏ2ÃÃSÃÃSÃ"Â#s3’Ã#"Ã##‚ÃÃs3"ÃÃ“sÃÃ“SÃÃCBÃËÌLËH‹ŒLŒLNŒ‹ŒKÍÍLL‹‹ÌM‹KLLËH‹ŒLŒLNK,22,228,1,7434,0,950,3,717,1,1093,1", "12120,22,228,1,7434,0,°ÜÄÈØ°È°ÜÄÔ°Ä°ÄÀäÌ°Äˆ°€ˆÄÈÄÈÄ°ÈÈ°ÈÈà°Ä°ÜĞÌĞ°À°ÄÀÔÜ°Ì°ÜÄÜ°Ä°ÄÃ“2Ã"Â#cRÃ#"Ã##‚ÃÃsCBÃÃs‚ÃÃ“sÃÃs2Ã"Â#cbÃ#"Ã##‚ËKÌMÌKLNKÌLËH‹MÌŒ‹ŒKÌLËÌLËKÌÌó,5,905,5,1092,1", "7142,22,228,1,7144,0,7140,1,7141,1,7143,1Ä‰tì)½¹ÍĞÁ¡…Éµ…åI½İÌ€ô‰Õ™™•ÉÍl‘ˆ½ÁÉ½‘Õ•}‘ˆ¹ÑáĞt¹Ñ½MÑÉ¦–ær‚wWFc‚r’ç7Æ—B‚õÇ#õÆâò’æf–ÇFW"†Æ–æRÓâõåÆB²ÅÆB²Ã##‚ÂòçFW<İ
-[™JJNÂšYˆ
-”ÓÓ‹œİš[™ÚYJ\›XXŞT›İÜÊHOOH”ÓÓ‹œİš[™ÚY¦y(expectedPharmacyRows)) throw new Error('Pinned Pharmacy re•¥Á•Ì‘¥™™•Èœ¤ì)½¹ÍĞÁ¡…Éµ…åI•¥Á•Ì€ôÁ¡…Éµ…åI½İÌ¹µ…À¡±¥ºæRÓâ°¢6öç7B¶÷WGWD—FVÔ–BÆ—FVÔÆWfVÂÇ6¶–ÆÄ–BÇ6¶–ÆÄÆWfVÂÂâë‹›X]\šX[×O[[™KœÜ]
-	Ë	ÊK›X\
-[X™\ŠK[™Ü™YY[ÏV×NÂˆ›ïr(let i=0;i<materials.length;i+=2)ingredients.push({itemId:mµ…Ñ•É¥…±Ím¥t±ÅÕ…¹Ñ¥Ñäéµ…Ñ•É¥…±Ím¤¬Åuô¤ì(€É•ÑÕÉ¸í½ÕÑÁÕÑ%Ñ•µ$–BÆ—FVÔÆWfVÂÇ6¶–ÆÄ–BÇ6¶–ÆÄÆWfVÂÆ–æw&VF–VçG7Ó°§Ò“°¦6öç7B†&ÛXXŞTÛİ\˜ÙO\ÚÚ[S˜[YKSWÔT“PPÖNÂšYŠ\›XXŞTÛİ\˜ÙOË’YOOL²28||pharmacySource.MaxLevel!==10||pharmacySource.RequirementÑÌü¹MA½ÍĞ„ôôÕñğ()M=8¹ÍÑÉ¥¹¥™ä¡Á¡…Éµ…åM½ÕÉ”¹I•ÅÕ¥É•µ•¹ÑÌÿòä—FV×2’ÓÔ¥4ôâç7G&–æv–g’‡´ÖVF–6–æUô&÷vÃ£Ò’—F‡&÷ræWrW'&÷"Š	Ô[›™Y\›XXŞHXİ]˜][ÛˆY™™\œÉÊNÂ˜ÛÛœİ\›XXŞSœÔİØãk=[
- {itemId:7134,price:8,discount:false,source:'npc/merchan¹ÑÌ½…±¡•µ¥ÍĞ¹ÑáĞô°(€¸¸¹lÜÄĞĞ°ÜÄÈÜ°ÜÄÈà°ÜÄÈä°ÜÄÌÀ°ÜÄÌÄ°ÜÄÌÉuÒæÖ†—FVÔ–CÓâ‡¶—FVÔ–BÇ&–6S£ÆF—66÷VçC¦fÇ6RÇ6÷W&6S¢vçËÛY\˜Ú[ËØ[Ú[Z\İ	ßJJKˆÚ][RYÌLÌËšXÙNŒiscount:false,source:'npc/merchants/alchemist.txt'},
- ...[[10ÀäÈ°Ít±lÄÀäÌ°ÄÁut¹µ…À ¡m¥Ñ•µ%±ÁÉ¥•t¤ôø¡í¥Ñ•µ%±ÁÉ¥”±‘¥Í½×VçC§G'VRÇ6÷W&6S¢vç2÷&R×&RöÖW&6†çG2÷6†÷2çG‡BwÒ’’À¢ââåµ³sMŒKÍÌMKŒKÍÌMËLWK›X\
+const falconRental=buffers['npc/merchants/renters.txt'].toString('utf8');
+for(const fragment of ['Falcon Breeder','Job_Hunter','HT_FALCON','2500'])
+    if(!falconRental.includes(fragment)) throw new Error('Pinned Falcon breeder changed: '+fragment);
+for(const [path,pattern] of [
+    ['conf/map/battle/player.conf',/fix_warp_hit_delay_abuse:\s*false/],
+    ['conf/map/battle/skill.conf',/skill_min_damage:\s*6(?:\s|$)/],
+    ['conf/map/battle/battle.conf',/delay_battle_damage:\s*true/],
+    ['conf/map/battle/battle.conf',/snap_dodge:\s*false/],
+]) if(!pattern.test(buffers[path].toString('utf8'))) throw new Error('Pinned Falcon configuration changed: '+path);
+manifest.falconRules={
+    source:'npc/merchants/renters.txt:166..241; skill.c:1628..1641,12453..12461; battle.c:264..355,4411..4434,4649..4702',
+    rentalZeny:2500,rentalDiscount:false,autoChance:'raw1000 <= effectiveLUK * 3',
+    autoLevel:'min(learnedBlitz, 5, floor(JobLevel/10)+1)',delayBattleDamage:true,
+    snapDodge:false,warpDelayFix:false,minimumDamageMask:6,
+    autoSplit:'truncate the source parcel by all living splash entities before multiplying source hits',
+    damageSnapshot:'final Neutral miscellaneous damage at launch; element, Lex then positive hit minimum; HP at amotion deadline',
+    requiredState:'equipped Falcon at cast begin; an already started legal cast survives dismissal',
+    detectSelfCentered:true,detectArea:'7x7 source square; one instant reveal, no aura',
+    detectStatuses:['SC_HIDING','SC_CLOAKING','SC_CLOAKINGEXCEED','SC_CAMOUFLAGE','SC_NEWMOON'],
+};
+const converterRecipes=buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/).filter(line=>/^1211[4-7],/.test(line)).map(line=>{
+ const [outputItemId,itemLevel,skillId,skillLevel,...material]=line.split(',').map(Number);
+ const ingredients=[];for(let n=0;n<material.length;n+=2)ingredients.push({itemId:material[n],quantity:material[n+1]});
+ return {outputItemId,itemLevel,skillId,skillLevel,ingredients};
+});
+const expectedConverters=[{outputItemId:12114,itemLevel:23,skillId:1007,skillLevel:1,ingredients:[{itemId:7433,quantity:1},{itemId:904,quantity:3}]},{outputItemId:12115,itemLevel:23,skillId:1007,skillLevel:1,ingredients:[{itemId:7433,quantity:1},{itemId:946,quantity:3}]},{outputItemId:12116,itemLevel:23,skillId:1007,skillLevel:1,ingredients:[{itemId:7433,quantity:1},{itemId:947,quantity:3}]},{outputItemId:12117,itemLevel:23,skillId:1007,skillLevel:1,ingredients:[{itemId:7433,quantity:1},{itemId:1013,quantity:3}]}];
+if(JSON.stringify(converterRecipes)!==JSON.stringify(expectedConverters))throw new Error('Pinned converter recipes differ');
+if(!buffers['npc/merchants/shops.txt'].toString('utf8').includes('sellitem Scroll;'))throw new Error('Pinned Blank Scroll shop absent');
+manifest.converterCraft={recipeSource:'db/produce_db.txt:389..395',shopSource:'npc/merchants/shops.txt:913..916',recipes:converterRecipes,spPerActivation:30,quantityLimit:[1,1000],randomDraws:'1+quantity after validation, even guaranteed100%',acquisitionAdaptation:'Prontera aggregate paid NPC shop:7433/904/947 source prices;946/1013 existing drops',netWeight:true};
+const expectedPharmacyRows = ["501,22,228,1,7144,0,507,1,1093,1", "503,22,228,1,7144,0,508,1,1093,1", "504,22,228,1,7144,0,509,1,1093,1", "505,22,228,1,7144,0,510,1,911,1,1093,1", "545,22,228,1,7133,0,501,1,1092,1,952,1", "546,22,228,1,7133,0,503,1,1092,1,1017,1", "547,22,228,1,7133,0,504,1,1092,1,1061,1", "7135,22,228,1,7128,0,970,1,1059,1,713,1", "7136,22,228,1,7129,0,713,1,929,1", "7137,22,228,1,7130,0,713,1,1032,2", "7138,22,228,1,7131,0,713,1,1050,1,1051,1", "7139,22,228,1,7132,0,970,1,950,1,1044,1,713,1", "12118,22,228,1,7434,0,1012,2,716,1,1093,1", "12119,22,228,1,7434,0,950,3,717,1,1093,1", "12120,22,228,1,7434,0,7126,2,715,1,1093,1", "12121,22,228,1,7434,0,1057,3,717,1,1093,1", "605,22,228,1,7144,0,708,1,970,1,713,1", "606,22,228,1,7144,0,704,1,518,1,713,1", "970,22,228,1,7127,0,713,1,7033,5,905,5,1092,1", "7142,22,228,1,7144,0,7140,1,7141,1,7143,1"];
+const pharmacyRows = buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/).filter(line => /^\d+,\d+,228,/.test(line));
+if (JSON.stringify(pharmacyRows) !== JSON.stringify(expectedPharmacyRows)) throw new Error('Pinned Pharmacy recipes differ');
+const pharmacyRecipes = pharmacyRows.map(line => {
+  const [outputItemId,itemLevel,skillId,skillLevel,...materials]=line.split(',').map(Number),ingredients=[];
+  for(let i=0;i<materials.length;i+=2)ingredients.push({itemId:materials[i],quantity:materials[i+1]});
+  return {outputItemId,itemLevel,skillId,skillLevel,ingredients};
+});
+const pharmacySource=skillByName.AM_PHARMACY;
+if(pharmacySource?.Id!==228||pharmacySource.MaxLevel!==10||pharmacySource.Requirements?.SPCost!==5||
+ JSON.stringify(pharmacySource.Requirements?.Items)!==JSON.stringify({Medicine_Bowl:1}))throw new Error('Pinned Pharmacy activation differs');
+const pharmacyNpcStock=[
+ {itemId:7134,price:8,discount:false,source:'npc/merchants/alchemist.txt'},
+ ...[7144,7127,7128,7129,7130,7131,7132].map(itemId=>({itemId,price:100000,discount:false,source:'npc/merchants/alchemist.txt'})),
+ {itemId:7133,price:240000,discount:false,source:'npc/merchants/alchemist.txt'},
+ ...[[1092,3],[1093,10]].map(([itemId,price])=>({itemId,price,discount:true,source:'npc/pre-re/merchants/shops.txt'})),
+ ...[[7140,60000],[7141,20000],[7143,5000]].map(([itemId,price])=>({itemId,price,discount:true,source:'npc/merchants/shops.txt'}))
+];
+const alchemistShopSource=buffers['npc/merchants/alchemist.txt'].toString('utf8');
+if(!/\.@sell\s*=\s*\.@input\s*\*\s*8\s*;/.test(alchemistShopSource))throw new Error('Pinned Medicine Bowl price differs');
+for(const [name,price] of [['Normal_Potion_Book',100000],['Alcol_Create_Book',100000],['FireBottle_Create_Book',100000],['Acid_Create_Book',100000],['Plant_Create_Book',100000],['Mine_Create_Book',100000],['Coating_Create_Book',100000],['Slim_Potion_Create_Book',240000]])
+ if(!new RegExp('S_SellManual,\\s*'+name+',\\s*'+price).test(alchemistShopSource))throw new Error('Pinned manual price differs:'+name);
+const geffenShopSource=buffers['npc/pre-re/merchants/shops.txt'].toString('utf8').match(/geffen_in,171,123,4\s+trader\s+Tool Dealer#gef2\s+1_M_WIZARD,\{([\s\S]*?)^\}/m)?.[1];
+if(!geffenShopSource||!/sellitem Empty_Cylinder;/.test(geffenShopSource)||!/sellitem Empty_Potion;/.test(geffenShopSource))throw new Error('Pinned Pharmacy trader differs');
+const supportedPotionScripts = new Map([
+ [545,'itemheal rand(45,65),0;'],[546,'itemheal rand(175,235),0;'],[547,'itemheal rand(325,405),0;'],
+ [605,'itemskill SM_ENDURE,1;'],[606,'itemskill SM_SELFPROVOKE,1;'],
+ [12118,'sc_start2(SC_RESIST_PROPERTY_FIRE,1200000,20,-15);'],
+ [12119,'sc_start2(SC_RESIST_PROPERTY_WATER,1200000,20,-15);'],
+ [12120,'sc_start2(SC_RESIST_PROPERTY_GROUND,1200000,20,-15);'],
+ [12121,'sc_start2(SC_RESIST_PROPERTY_WIND,1200000,20,-15);'],
+]);
+const inertPharmacyOutputIds=new Set([7142]);
+manifest.pharmacyCraft={recipeSource:'db/produce_db.txt:329..380',recipes:pharmacyRecipes,
+ activationSource:'db/pre-re/skill_db.conf AM_PHARMACY',spPerAttempt:5,activationItem:{itemId:7134,quantity:1},
+ guideRule:'Quantity-zero materials require inventory presence and are not consumed.',
+ chanceSource:'src/map/skill.c:20249..20482 and20553; potion_produce_rate100; no homunculus or Baby system',
+ productionRule:'N repeated qty1 attempts, including costs and RNG on failures; inner RNG on success.',
+ confirmationAdaptation:'Free preview; town-only atomic batch charged on confirmation. Worst-case success weight must permit all activations.',
+ npcStock:pharmacyNpcStock,locationAdaptation:'Paid native NPC stock aggregated into Prontera city services.',
+ scriptRule:'Production never evaluates item scripts; existing explicit handlers only.',inertOutputItemIds:[...inertPharmacyOutputIds],
+ unavailableAcquisition:[{itemId:7434,reason:'Original Pisruik research not yet available; no NPC sale enabled.'}]};
 
-Ú][RYšXÙWJOOŠûitemId,price,discount:true,source:'npc/merchants/shops.txt'}ô¤¤)tì)½¹ÍĞ…±¡•µ¥ÍÑM¡½ÁM½ÕÉ”õ‰Õ™™•ÉÍl¹ÁŒ½µ•É¡…¹ÑÌ½…±¡–VÖ—7BçG‡BuÒçFõ7G&–ær‚wWFc‚r“°¦–b‚õÂä6VÆÅÇ2£ÕÇ2¥Âä–çWEÇ2¥Ç
-—ÊÊËË\İ
-[Ú[Z\İÚÜÛİ\˜ÙJJ]›İÈ™]È\œ›ÜŠ	Ô[›™Y$ Medicine Bowl price differs');
-for(const [name,price] of [[l9½Éµ…±}A½Ñ¥½¹}	½½¬œ°ÄÀÀÀÀÁt±l±½±}É•…Ñ•}	½½¬œ°ÄÀÀÀÀÁt±ltf—&T&÷GFÆUô7&VFUô&öö²rÃÒÅ²t6–Eô7&VFUô&öö²rÃÒËÉÔ[ĞÜ™X]WĞ›ÛÚÉËLKÉÓZ[™WĞÜ™X]WĞ›ÛÚÉËLKÉĞÃoating_Create_Book',100000],['Slim_Potion_Create_Book',24000ÀÁut¤(¥˜ …¹•ÜI•áÀ M}M•±±5…¹Õ…°±qqÌ¨œ­¹…µ”¬œ±qqÌ¨œ­ÁÉ¥”¦’çFW7B†Æ6†VÖ—7E6†÷6÷W&6R’—F‡&÷ræWrW'&÷"‚u–ææVBÖçVÂ,šXÙHY™™\œÎ‰ÊÛ˜[YJNÂ˜ÛÛœİÙY™™[”ÚÜÛİ\˜ÙOXY™™\œÖÉÛœËÜ™e-re/merchants/shops.txt'].toString('utf8').match(/geffen_in,°ÄÜÄ°ÄÈÌ°ÑqÌ­ÑÉ…‘•ÉqÌ­Q½½°•…±•È•˜ÉqÌ¬Å}5}]%iI±qì¡mqÍqMuÒ£ò•åÇÒöÒ“òå³Ó°¦–b‚vVffVå6†÷6÷W&6WÇÂ÷6VÆÆ—FVÒV×G•ô7–Æ–ë™\ËË\İ
-ÙY™™[”ÚÜÛİ\˜ÙJ_KÜÙ[][H[\WÔİ[ÛËË\İ4(geffenShopSource))throw new Error('Pinned Pharmacy trader d‘¥™™•ÉÌœ¤ì)½¹ÍĞÍÕÁÁ½ÉÑ•‘A½Ñ¥½¹MÉ¥ÁÑÌ€ô¹•Ü5…À¡l(lÔĞÔ°¥ÓFVÖ†VÂ&æBƒCRÃcR’Ã²uÒÅ³SCbÂv—FVÖ†VÂ&æBƒsRÃ#3R’Ã²uÒÅ³]MË	Ú][ZX[˜[™
-ÌKJKÉ×KˆÍŒK	Ú][\ÚÚ[ÓWÑS‘T‘K,1;'],[606,'itemskill SM_SELFPROVOKE,1;'],
- [12118,'sc_start2È¡M}IM%MQ}AI=AIQe}%I°ÄÈÀÀÀÀÀ°ÈÀ°´ÄÔ¤ìt°(lÄÈÄÄä°Í}ÍÑ†'C"…45õ$U4•5Eõ$õU%E•õtDU"Ã#Ã#ÂÓR“²uÒÀ¢³##Âw68×Üİ\ŠĞ×Ô‘TÒTÕÔ“ÔT•WÑÔ“ÕS‘LŒŒLMJNÉ×KˆÌLŒL²1,'sc_start2(SC_RESIST_PROPERTY_WIND,1200000,20,-15);'],
-]);ì)½¹ÍĞ¥¹•ÉÑA¡…Éµ…å=ÕÑÁÕÑ%‘Ìõ¹•ÜM•Ğ¡lÜÄĞÉt¤ì)µ…¹¥™•ÍĞ¹Á¡…Ë&Ö7”7&gC×·&V6—U6÷W&6S¢vF"÷&öGV6UöF"çG‡C£3#’âã3ƒrÇ&V6—W<Îœ\›XXŞT™XÚ\\ËˆXİ]˜][Û”Ûİ\˜ÙN‰Ù‹Ü™K\™KÜÚÚ[Ù‹˜ÛÛ™¦ AM_PHARMACY',spPerAttempt:5,activationItem:{itemId:7134,qua…¹Ñ¥ÑäèÅô°(Õ¥‘•IÕ±”èEÕ…¹Ñ¥Ñäµé•É¼µ…Ñ•É¥…±ÌÉ•ÅÕ¥É”¥¹Ù•¹ÓF÷'’&W6Væ6RæB&Ræ÷B6öç7VÖVBârÀ¢6†æ6U6÷W&6S¢w7&2öÖûÜÚÚ[˜ÎŒŒK‹ŒŒˆ[™ŒMLÎÈİ[Û—Ü›ÙXÙWÜ˜]LLÈ›Èïmunculus or Baby system',
- productionRule:'N repeated qty1 a…ÑÑ•µÁÑÌ°¥¹±Õ‘¥¹œ½ÍÑÌ…¹I9½¸™…¥±ÕÉ•Ìì¥¹¹•ÈI9½¸Ï7V66W72ârÀ¢6öæf—&ÖF–öäFFF–öã¢tg&VR&Wf–Ws²F÷vâÖöæÇ’]ÛZXÈ˜]ÚÚ\™ÙYÛˆÛÛ™š\›X][Û‹ˆÛÜœİXØ\ÙHİXØÙ\ÜÈÙZYçht must permit all activations.',
- npcStock:pharmacyNpcStock¬±±½…Ñ¥½¹‘…ÁÑ…Ñ¥½¸èA…¥¹…Ñ¥Ù”9AÍÑ½¬…É•…Ñ•¥¹Ñ¼A&öçFW&6—G’6W'f–6W2ârÀ¢67&—E'VÆS¢u&öGV7F–öâæWfW"WfÇ]X]\È][HØÜš\ÎÈ^\İ[™È^XÚ][™\œÈÛ›K‰Ë[™\İutputItemIds:[...inertPharmacyOutputIds],
- unavailableAcquisi¥Ñ¥½¸émí¥Ñ•µ%èÜĞÌĞ±É•…Í½¸è=É¥¥¹…°A¥ÍÉÕ¥¬É•Í•…É ¹½Ğå•ÓBf–Æ&ÆS²æòå26ÆRVæ&ÆVBâwÕ×Ó° ¦6öç7B6¶–ÆÅG&VW2Ò\œÙYÉÜÚÚ[İ™YK˜ÛÛ™‰×NÂ™[˜İ[ÛˆÛİ\˜ÙU™YJ˜[YK˜Z[HÛ]) {
-    if (trail.includes(name)) throw new Error('Skill-trÉ•”¥¹¡•É¥Ñ…¹”å±”è€œ€¬¹…µ”¤ì(€€€½¹ÍĞÉ½Ü€ôÍ­¥±±QÉ••Ím¶æÖUÓ°¢–b‚&÷r’F‡&÷ræWrW'&÷"‚tÖ—76–ær6÷W&6R6¶–ÆÂM™YNˆ	È
-È˜[YJNÂˆ]™\İ[HßNÂˆ›Üˆ
-ÛÛœİ\™[ïf row.inherit ?? []) result = { ...result, ...sourceTree(parÉ•¹Ğ°l¸¸¹ÑÉ…¥°°¹…µ•t¤ôì(€€€É•ÍÕ±Ğ€ôì€¸¸¹É•ÍÕ±Ğ°€¸¸¹É½Ü¹Ï6¶–ÆÇ2Ó°¢òò†W&7VÆW2W‡Æ–6—FÇ’&WfVçG2æöâÔæ÷f–6W2–æŠ\š][™È^HXY‚ˆYˆ
-VÉÓ›İšXÙIË	Ó›İšXÙWÒYÚ	×Kš[˜ÛY$es(name)) delete result.NV_TRICKDEAD;
+const skillTrees = parsed['skill_tree.conf'];
+function sourceTree(name, trail = []) {
+    if (trail.includes(name)) throw new Error('Skill-tree inheritance cycle: ' + name);
+    const row = skillTrees[name];
+    if (!row) throw new Error('Missing source skill tree: ' + name);
+    let result = {};
+    for (const parent of row.inherit ?? []) result = { ...result, ...sourceTree(parent, [...trail, name]) };
+    result = { ...result, ...row.skills };
+    // Hercules explicitly prevents non-Novices inheriting Play Dead.
+    if (!['Novice', 'Novice_High'].includes(name)) delete result.NV_TRICKDEAD;
     return result;
 }
-c½¹ÍĞÍ½ÕÉ•±¥…Í•Ì€ôì€¸¸¹ÉÕ±•Ì¹Í­¥±±±¥…Í•Ì°€¸¸¹=‰©•Ğ¹™É½¶ÔVçG&–W2‡'VÆW2ç6¶–ÆÇ2æÖ‡2Óâ·2ç6÷W&6RÂ2æ–EÒ’’Âââç'VÆW2ç<ÚÚ[Yİ™\œšY\ÈNÂ˜ÛÛœİÚÚ[YH˜[YHOˆÛİ\˜ÙP[X\Ù\ÖÛ˜[me] ?? name.toLowerCase();
-const familySkills = Object.keys(sÍ­¥±±	å9…µ”¤¹™¥±Ñ•È¡¹…µ”€ôø¹…µ”¹ÍÑ…ÉÑÍ]¥Ñ  ]|œ¤¤ì)½¹ÍĞÑË&VT'”6Æ72Òö&¦V7Bæg&öÔVçG&–W2‡'VÆW2æ6Æ76W2æÖ‡"Óâ°¢ÛÛœİ™YHHÛİ\˜ÙU™YJ‹œÛİ\˜ÙJNÂˆ›Üˆ
-ÛÛœİ˜[YHÙˆ˜amilySkills) delete tree[name];
-    if (r.family !== 'merchan¹Ğœ¤‘•±•Ñ”ÑÉ•”¹11}%9IIdì(€€€É•ÑÕÉ¸mÈ¹¥°ÑÉ••tì)ô¤¤ì(¦Öæ–fW7Bæ6Æ756¶–ÆÄW†6ÇW6–öç2Ò°¢ÆÄ6Æ76W3¢fÖ–Ç•6¶–ËËˆ›Û“Y\˜Ú[˜[Z[Y\ÎˆÉĞSÒSĞĞT”–I×Kˆ™X\ÛÛˆ	çFamily skills disabled for all idle classes; Increase WeightĞ1¥µ¥ĞHÉ•Ñ…¥¹•½¹±ä™½È5•É¡…¹Ğ…¹•Ù½±ÕÑ¥½¹Ì¸9…Ñ¥Ù”4Ô5ô”ä44%%’&W6W'fVBâp§Ó°¦6öç7B6¶–ÆÄæÖW2Ò²ââææWr6WB„ö&ª™Xİ˜[Y\Ê™YPPÛ\ÜÊK™›]X\
-™YHOˆØš™XİšÙ^\Ê™YJJJW];
-const bonusRows = Object.fromEntries(buffers['db/job_db2.tÑáĞt¹Ñ½MÑÉ¥¹œ ÕÑ˜àœ¤¹ÍÁ±¥Ğ ½qÈıq¸¼¤¹µ…À¡±¥¹”€ôø±¥¹”¹ÍÁ±¥Ğ¢‚ròòr•³ÒçG&–Ò‚’’æf–ÇFW"„&ööÆVâ’æÖ†Æ–æRÓâ²6öç7B¶¦ö"Âë‹‹˜›Û\Ù\×HH[™KœÜ]
-	Ë	ÊK›X\
-[X™\ŠNÈ™]\›ˆÚ›Ø‹›Û\óes]; }));
-const statKeys = ['str', 'agi', 'vit', 'int', 'dexàœ°€±Õ¬tì)½¹ÍĞ©½‰%‘Ì€ôì9½Ù¥”è€À°Mİ½É‘Íµ…¸è€Ä°5…¥¥†ã¢"Â&6†W#¢2Â6öÇ—FS¢BÂÖW&6†çC¢RÂF†–Vc¢bÂ¶æ–v‡C¢ËšY\İˆÚ^˜\™ˆK›XÚÜÛZ]ˆL[\ˆLK\ÜØ\ÜÚin: 12, Crusader: 14, Monk: 15, Sage: 16, Rogue: 17, AlchemisÍĞè€Äà°	…Éè€Ää°…¹•Èè€ÈÀ°9½Ù¥•}!¥ è€ĞÀÀÄ°Mİ½É‘Íµ…¹}!¦–vƒ¢C"ÂÖv–6–åô†–vƒ¢C2Â&6†W%ô†–vƒ¢CBÂ6öÇ—FUô†šYÚˆKY\˜Ú[ÒYÚˆ‹YY—ÒYÚˆËÜ™ÒÛšYÚ4: 4008, High_Priest: 4009, High_Wizard: 4010, Whitesmith: 40ÀÄÄ°M¹¥Á•Èè€ĞÀÄÈ°ÍÍ…ÍÍ¥¹}É½ÍÌè€ĞÀÄÌ°A…±…‘¥¸è€ĞÀÄÔ°¡…µÃ–öã¢CbÂ&öfW76÷#¢CrÂ7FÆ¶W#¢C‚Â7&VF÷#¢C’Â6ËİÛˆŒŞ\ŞNˆŒHNÂ˜ÛÛœİ[İ[Û’Ù^\ÈHÈš\İˆ	Ùš\İ	Ë, Dagger: 'dagger', Sword: 'sword', TwoHandSword: 'twoHandSwo½Éœ°MÁ•…Èè€ÍÁ•…Èœ°Qİ½!…¹‘MÁ•…Èè€Ñİ½!…¹‘MÁ•…Èœ°á”è€…á–RrÂGvô†æD†S¢wGvô†æD†RrÂÖ6S¢vÖ6RrÂGvô†æDÖ6S¢wGvûÒ[™XXÙIË›Ùˆ	ÜİY™‰ËÛÒ[™›Ùˆ	İÛÒ[™İY™‰Ë›İÎˆ	Ø¢ow', Knuckle: 'knuckle', Instrument: 'instrument', Whip: 'wh¡¥Àœ°	½½¬è€‰½½¬œ°-…Ñ…Èè€­…Ñ…Èœôì)½¹ÍĞÁ…É…µ•Ñ•ÉÉ½ÕÁÌ€÷Ò'6VE²wVæ—E÷&ÖWFW'5öF"æ6öæbuÓ°¦gVæ7F–öâ&W6öÇfU&ÖWFY\‘Ü›İ\
-˜[YK˜Z[H×JHÂˆYˆ
-˜Z[š[˜ÛY\Ê˜[YJJH²ow new Error(`Unit parameter inheritance cycle: ${[...trail,°¹…µ•t¹©½¥¸ œ€´ø€œ¥õ€¤ì(€€€½¹ÍĞÉ½Ü€ôÁ…É…µ•Ñ•ÉÉ½ÕÁÍm¹…µ–UÓ°¢–b‚&÷r’F‡&÷ræWrW'&÷"†Ö—76–ærVæ—B&ÖWFW"w&ûİ\ˆ	Û˜[Y_X
-NÂˆÛÛœİ\™[H›İË’[š\š]ÂˆYˆ
-\™[®t !== undefined && typeof parent !== 'string') throw new ErrÉ½È¡%¹Ù…±¥Õ¹¥ĞÁ…É…µ•Ñ•È¥¹¡•É¥Ñ…¹”™½È€‘í¹…µ•õ€¤ì(€€€É–WGW&â²âââ‡&VçBò&W6öÇfU&ÖWFW$w&÷W‡&VçBÂ²ââçG&–ÂË˜[YWJHˆßJK‹‹œ›İÈNÂŸB˜ÛÛœİ™\ÛÛ™Y\˜[Y]\‘Ü›İ\ÈHÏbject.fromEntries(Object.keys(parameterGroups).map(name => [m¹…µ”°É•Í½±Ù•A…É…µ•Ñ•ÉÉ½ÕÀ¡¹…µ”¥t¤¤ì)½¹ÍĞ…±±%Ñ•µÌ€ôÁ…ÉÍ–VE²v—FVÕöF"æ6öæbuÒæ—FVÕöF#°¦6öç7B—FVÔ'”æÖRÒö&¦V7Bæg&öÔVçMšY\Ê[][\Ë›X\
-HOˆÚKYYÚ\Ó˜[YKWJJNÂ˜ÛÛœİ][PRYH Object.fromEntries(allItems.map(i => [i.Id, i]));
-manifest.b‰½½­]•…Á½¸€ôì(€€€Í½ÕÉ”è€‘ˆ½ÁÉ”µÉ”½¥Ñ•µ}‘ˆ¹½¹˜èÄÔÔÀ¸¸ÄÔàË"²¦ö%öF"æ6öæc¤&6T5B²6—¦Uöf—‚çG‡C¤&öö²rÀ¢6Æ76W3¢¶ÉÔØYÙIË	Ô›Ù™\ÜÛÜ‰Ë	ÔšY\İ	Ë	ÒYÚšY\İ	×KˆÚÜ][Nº { id: 1550, sourceBuyPrice: itemById[1550]?.Buy, acquisitio½¸è€%‘±”…É•…Ñ•Í¡½Àì¹ÁŒ½µ•É¡…¹ÑÌ½Í¡½ÁÌ¹ÑáĞ½¹Ñ…¥¹Ìºæò&öö²6ÆRrÒÀ¢Gfæ6VD&öö³¢²Ö7FW'”GF6µW$ÆWfVÃ¢<ËX\İ\TÛİ\˜ÙNˆ	ÜÜ˜ËÛX\Ø˜]K˜Î‹‰Ë\Ü˜]T\“]¶el: -5, aspdRateScale: 1000, aspdSource: 'src/map/status.c:2ÈÄĞÄ¸¸ÈÄĞÈœ°¡¥Ñ	½¹ÕÌè™…±Í”ô°(€€€…Ñ½ÉM½ÕÉ”è€É½	É½İÍ•É1–Vv7’Cƒ†66CBD"ô—FV×2õvVöåF&ÆRæ§3£#‚ÂD"ô—FV×2õvVöåG—KšœÎŒIËˆ]XÚĞXİ[Û”Ûİ\˜ÙNˆ	Ü›Ğœ›İÜÙ\“YØXŞHLØÙ DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; directi¥½¸µÉ½ÕÀ½™™Í•Ğ€à¨ÄÄôààœ°)ôì)™Õ¹Ñ¥½¸¥¹¡•É¥Ñ•‘%Ñ•´¡¥Ñ•´°ÑË&–ÂÒµÒ’²–b‚—FVÒä6ÆöæT—FVÒ¢&WGW&â—FVÓ²–b‡G&–Âëš[˜ÛY\Ê][K’Y
-JBˆ›İÈ™]È\œ›ÜŠ	ĞÛÛ™R][HŞXÛIÊNÈãonst parent = typeof item.CloneItem === 'number' ? itemById[m¥Ñ•´¹±½¹•%Ñ•µt€è¥Ñ•µ	å9…µ•m¥Ñ•´¹±½¹•%Ñ•µtì¥˜€ …Á…É•¹Ğ¤(‚F‡&÷ræWrW'&÷"‚tÖ—76–ær6ÆöæT—FVÒr“²&WGW&â²ââæ–æ†W&—MY][J\™[Ë‹‹˜Z[][K’YJK‹‹š][HNÈB˜ÛÛœİ^ectedFindingOreChain = [[1002,600],[998,380],[993,100],[1003,°àÁt±lääÈ°ÄÀÁt±lÄÀÄÀ°ØÀÁt±lääÄ°ÄÀÁt±lääÀ°ÄÀÁt±läää°ÔÁt±lÄÀÄÄ²Ã3ƒÒÅ³sSrÃsÒÅ³sSbÃƒÒÅ³““rÃCÒÅ³““bÃCÒÅ³““RÃCÒÅ³““BÃCÒÅ¶ÎNKŒKÎNŒKÎMKLKÍÌMWWNÂ˜ÛÛœİš[™[™ÓÜ™PÚZ[ˆH orderedConfigEntries(parseConfig(buffers['db/pre-re/item_cha…¥¸¹½¹˜t¹Ñ½MÑÉ¥¹œ ÕÑ˜àœ¤¤¹%Q5!%9}=I¤¹µ…À ¡m¹…µ”±¡…¹•uÒ’Óâ°¢6öç7B&sÖ—FVÔ'”æÖU¶æÖUÓ°¢–b‚&rÇÂçVÖ&Y\‹š\ÔØY™R[YÙ\ŠÚ[˜ÙJHÚ[˜ÙOLÚ[˜ÙOŒL
-H›İÈ new Error('Invalid pinned Ore chain entry: '+name);
-    consÍĞ¥Ñ•´õ¥¹¡•É¥Ñ•‘%Ñ•´¡É…Ü¤ì(€€€¥˜ …9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡¥Ñ•¶Òä–B’ÇÂ—FVÔ'”–E¶—FVÒä–EÒÓ×&r’F‡&÷ræWrW'&÷"‚t–çfÆ–Bš[›™YÜ™HÚZ[ˆ][Nˆ	ÊÛ˜[YJNÂˆ™]\›ˆÚ][RYš][K’YÚance};
+const sourceAliases = { ...rules.skillAliases, ...Object.fromEntries(rules.skills.map(s => [s.source, s.id])), ...rules.skillIdOverrides };
+const skillId = name => sourceAliases[name] ?? name.toLowerCase();
+const familySkills = Object.keys(skillByName).filter(name => name.startsWith('WE_'));
+const treeByClass = Object.fromEntries(rules.classes.map(r => {
+    const tree = sourceTree(r.source);
+    for (const name of familySkills) delete tree[name];
+    if (r.family !== 'merchant') delete tree.ALL_INCCARRY;
+    return [r.id, tree];
+}));
+manifest.classSkillExclusions = {
+    allClasses: familySkills,
+    nonMerchantFamilies: ['ALL_INCCARRY'],
+    reason: 'Family skills disabled for all idle classes; Increase Weight Limit R retained only for Merchant and evolutions. Native MC_INCCARRY preserved.'
+};
+const skillNames = [...new Set(Object.values(treeByClass).flatMap(tree => Object.keys(tree)))];
+const bonusRows = Object.fromEntries(buffers['db/job_db2.txt'].toString('utf8').split(/\r?\n/).map(line => line.split('//')[0].trim()).filter(Boolean).map(line => { const [job, ...bonuses] = line.split(',').map(Number); return [job, bonuses]; }));
+const statKeys = ['str', 'agi', 'vit', 'int', 'dex', 'luk'];
+const jobIds = { Novice: 0, Swordsman: 1, Magician: 2, Archer: 3, Acolyte: 4, Merchant: 5, Thief: 6, Knight: 7, Priest: 8, Wizard: 9, Blacksmith: 10, Hunter: 11, Assassin: 12, Crusader: 14, Monk: 15, Sage: 16, Rogue: 17, Alchemist: 18, Bard: 19, Dancer: 20, Novice_High: 4001, Swordsman_High: 4002, Magician_High: 4003, Archer_High: 4004, Acolyte_High: 4005, Merchant_High: 4006, Thief_High: 4007, Lord_Knight: 4008, High_Priest: 4009, High_Wizard: 4010, Whitesmith: 4011, Sniper: 4012, Assassin_Cross: 4013, Paladin: 4015, Champion: 4016, Professor: 4017, Stalker: 4018, Creator: 4019, Clown: 4020, Gypsy: 4021 };
+const motionKeys = { Fist: 'fist', Dagger: 'dagger', Sword: 'sword', TwoHandSword: 'twoHandSword', Spear: 'spear', TwoHandSpear: 'twoHandSpear', Axe: 'axe', TwoHandAxe: 'twoHandAxe', Mace: 'mace', TwoHandMace: 'twoHandMace', Rod: 'staff', TwoHandRod: 'twoHandStaff', Bow: 'bow', Knuckle: 'knuckle', Instrument: 'instrument', Whip: 'whip', Book: 'book', Katar: 'katar' };
+const parameterGroups = parsed['unit_parameters_db.conf'];
+function resolveParameterGroup(name, trail = []) {
+    if (trail.includes(name)) throw new Error(`Unit parameter inheritance cycle: ${[...trail, name].join(' -> ')}`);
+    const row = parameterGroups[name];
+    if (!row) throw new Error(`Missing unit parameter group: ${name}`);
+    const parent = row.Inherit;
+    if (parent !== undefined && typeof parent !== 'string') throw new Error(`Invalid unit parameter inheritance for ${name}`);
+    return { ...(parent ? resolveParameterGroup(parent, [...trail, name]) : {}), ...row };
+}
+const resolvedParameterGroups = Object.fromEntries(Object.keys(parameterGroups).map(name => [name, resolveParameterGroup(name)]));
+const allItems = parsed['item_db.conf'].item_db;
+const itemByName = Object.fromEntries(allItems.map(i => [i.AegisName, i]));
+const itemById = Object.fromEntries(allItems.map(i => [i.Id, i]));
+manifest.bookWeapon = {
+    source: 'db/pre-re/item_db.conf:1550..1582 + job_db.conf:BaseASPD + size_fix.txt:Book',
+    classes: ['Sage', 'Professor', 'Priest', 'High Priest'],
+    shopItem: { id: 1550, sourceBuyPrice: itemById[1550]?.Buy, acquisition: 'Idle aggregated shop; npc/merchants/shops.txt contains no Book sale' },
+    advancedBook: { masteryAttackPerLevel: 3, masterySource: 'src/map/battle.c:804..806', aspdRatePerLevel: -5, aspdRateScale: 1000, aspdSource: 'src/map/status.c:2141..2142', hitBonus: false },
+    actorSource: 'roBrowserLegacy d88a3cd4 DB/Items/WeaponTable.js:28, DB/Items/WeaponType.js:25',
+    attackActionSource: 'roBrowserLegacy d88a3cd4 DB/Jobs/WeaponAction.js: Priest/Sage BOOK variant 2; direction-group offset 8*11=88',
+};
+function inheritedItem(item, trail = []) { if (!item.CloneItem)
+    return item; if (trail.includes(item.Id))
+    throw new Error('CloneItem cycle'); const parent = typeof item.CloneItem === 'number' ? itemById[item.CloneItem] : itemByName[item.CloneItem]; if (!parent)
+    throw new Error('Missing CloneItem'); return { ...inheritedItem(parent, [...trail, item.Id]), ...item }; }
+const expectedFindingOreChain = [[1002,600],[998,380],[993,100],[1003,80],[992,100],[1010,600],[991,100],[990,100],[999,50],[1011,380],[757,70],[756,80],[997,40],[996,40],[995,40],[994,40],[985,20],[984,20],[969,10],[714,5]];
+const findingOreChain = orderedConfigEntries(parseConfig(buffers['db/pre-re/item_chain.conf'].toString('utf8')).ITMCHAIN_ORE).map(([name,chance]) => {
+    const raw=itemByName[name];
+    if(!raw || !Number.isSafeInteger(chance) || chance<=0 || chance>10000) throw new Error('Invalid pinned Ore chain entry: '+name);
+    const item=inheritedItem(raw);
+    if(!Number.isSafeInteger(item.Id) || itemById[item.Id]!==raw) throw new Error('Invalid pinned Ore chain item: '+name);
+    return {itemId:item.Id,chance};
 });
-if(JSON.stringify(findingOreChain.map(e=>[e.itemId±”¹¡…¹•t¤¤„ôõ)M=8¹ÍÑÉ¥¹¥™ä¡•áÁ•Ñ•‘¥¹‘¥¹=É•¡…¥¸¤¤Ñ¡É¾÷ræWrW'&÷"‚u–ææVB÷&R6†–âF–ffW'2r“°¦6öç7B6†–äG&÷FVf][Ï\\œÙPÛÛ™šYÊY™™\œÖÉØÛÛ™‹ÛX\Ø˜]KÙ›ÜË˜ÛÛ™‰×KÔİ²ing('utf8'));
-if(chainDropDefaults.item_rate_add_chain!==100Àñğ¡…¥¹É½Á•™…Õ±ÑÌ¹¥Ñ•µ}‘É½Á}…‘‘}¡…¥¹}µ¥¸„ôôÄñğ¡…¥¹Ë&÷FVfVÇG2æ—FVÕöG&÷öFEö6†–åöÖ‚ÓÓ’F‡&÷ræWrW'&÷"Š	Ô[›™YÜ™H›ÜY˜][ÈY™™\‰ÊNÂ›X[šY™\İ™š[™[™ÓÜ™O^ØÚain:findingOreChain,selection:'uniform-entry-then-strict-chan¹”œ±‘É…İÍA•É±¥¥‰±•-¥±°èÈ±‘É½ÁI…Ñ•5Õ±Ñ¥Á±¥•Èé™…±Í”°(€€€¡†–å6÷W&6S¢vF"÷&R×&Rö—FVÕö6†–âæ6öæc¤•DÔ4„”åôõ$RrÇ&æFöÕ6÷W,˜ÙN‰ÜÜ˜ËÛX\Ú][Y‹˜Îš][Y—ØÚZ[—Ú][IËˆİÛ™\œÚ\Ûİ\˜Ùe:'src/map/mob.c:mob_dead PC killer and damage owner',
-    owİ¹•ÉÍ¡¥Á‘…ÁÑ…Ñ¥½¸èÕÉÉ•¹ĞÁ•ÉÍ½¹…°¡Õ¹Ğ¡…Ì½¹”‘¥É•ĞA®¶–ÆÆW"æBFÖvR÷væW"âæòWBÂ†ö×Væ7VÇW2Â7VÖÖöâ÷"ÆÆ–VIÚ[[™È›ÙXÙ\‹‰ËˆXÜ]Z\Ú][Û‰Ñ^\İ[™È›ÛÜˆÛİ0ickup, inventory capacity and pending-loot path; one extra i¥Ñ•´…Ğµ½ÍĞÁ•È•±¥¥‰±”½İ¹•­¥±°¸ôì)½¹ÍĞ…Ñ…±½œ€ôìÙ–W'6–öã¢'VÆW2çfW'6–öâÂ6÷W&6S¢²6öÖÖ—C¢'VÆW2æ6öÖÖ—BÂf–ÆW3®ˆX[šY™\İœÛİ\˜Ù\Ë›X\
-ÈOˆËœ]
-K\Úˆ	ÉÈK˜]\Îˆ[\ó.rates, monsters: {}, items: {}, classes: {}, skills: {}, arÉ•…ÌèÉÕ±•Ì¹…É•…Ì°ÅÕ•ÍÑÌèmt°¡…±±•¹•Ìèmt°•áÀèì‰…Í”èmµÒÂ¦ö#¢·ÒÒÂVÆVÖVçDÖöF–f–W'3¢·ÒÂ6—¦TÖöF–f–W'3¢·ÒÓ°¦6M[ÙË[\Ü›ØÚÙYX\ÈH[\Ü›ØÚÙYX\ÎÂ˜Ø][ÙË˜]]ïspellChoices = Object.fromEntries(parsed['autospell_db.conf't¹…ÕÑ½ÍÁ•±±}‘ˆ¹µ…À¡É½Ü€ôø(€€€mÉ½Ü¹M­¥±±%°ÉÉ…ä¹™É½´¡ì±•ºæwFƒ¢ÒÂ…òÂ’’ÓâG—Vöb&÷rå6¶–ÆÄÆWfVÂÓÓÒvçVÖ&W"p¢È›İË”ÚÚ[]™[ˆ›İË”ÚÚ[]™[Ë–ÉÓ‰È
-È
-H
-ÈJWHÏÈ0)]));
-function actorSprite(job, gender) { const sex = genderÈ€ôôô€µ…±”œ€ü€Ÿ®
- œ€è€Ÿ²^°œì½¹ÍĞ‰…Í”€ô€‘…Ñ„½ÍÁÉ¥Ñ”¿²vãªÃNÊşº«ØkRòr²6W‚²ròr²'VÆW2ç7&—FT¦ö'5¶¦ö%Ò²uòr²6Y^ÈÛÛœİXYH	Ù]KÜÜš]Kû'n:¬!;(lKúê.:é«;a­KÉÈ
-ÈÙ^
-È	ç/1_' + sex; return { spr: base + '.spr', act: base + '.act',°¡•…‘MÁÈè¡•…€¬€œ¹ÍÁÈœ°¡•…‘Ğè¡•…€¬€œ¹…Ğœôìô)™½È€¡¾öç7B'VÆRöb'VÆW2æ6Æ76W2’°¢6öç7B¦ö"Ò&W6öÇfT–æ†W&—F[˜ÙJ›ØœË[KœÛİ\˜ÙJNÂˆÛÛœİ\˜[Y]\‘Ü›İ\H›Ø‹”\˜[metersGroup;
-    const maxAspd = resolvedParameterGroups[para…µ•Ñ•ÉÉ½ÕÁtü¹5…áMAì(€€€¥˜€ …9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡µ…áÍÁ¦’ÇÂÖ„7BÃÒÇÂÖ„7Bâ#’F‡&÷ræWrW'&÷"†–çfÆ–BX^TÔ›Üˆ	Ü[KœÛİ\˜Ù_Nˆ	ÛX^\ÜX
-NÂˆÛÛœİÈÛİ\˜Ùe, spriteJob, mountedSpriteJob, ...rest } = rule;
-    const j©½‰…À€ôÉÕ±”¹Ñ¥•È€ôôô€À€ü€ÄÀ€èÉÕ±”¹ÑÉ…¹Ì€˜˜ÉÕ±”¹Ñ¥•È€ôôô€Ë"òs¢S°¢6öç7B&öçW2Òö&¦V7Bæg&öÔVçG&–W2‡7FD¶W—2æÖ\
-ÈOˆÚËJJNÂˆÛÛœİ›Ø›Û\Ù\ÈH\œ˜^K™œ›ÛJÈ[™İº jobCap }, (_, index) => { const stat = statKeys[(bonusRows[m©½‰%‘ÍmÍ½ÕÉ•utü¹m¥¹‘•át€üü€À¤€´€Åtì¥˜€¡ÍÑ…Ğ¤‰½¹ÕÍmÍÑ…Ñt¬®³²&WGW&â²ââæ&öçW2Ó²Ò“°¢6öç7BGF6´Ö÷F–öâÒö&¦V7Bæiœ›ÛQ[šY\ÊØš™Xİ™[šY\Ê›Ø‹˜\ÙPTÔÏÈßJK›X\
-
-ÚË—JH}> [motionKeys[k] ?? k, v]));
-    const weaponAspd = { ...Obj©•Ğ¹™É½µ¹ÑÉ¥•Ì¡=‰©•Ğ¹•¹ÑÉ¥•Ì¡…ÑÑ…­5½Ñ¥½¸¤¹™¥±Ñ•È ¡m­t¤€ôûâ²vFvvW"rÂw7v÷&BrÂwGvô†æE7v÷&BrÂw7V"rÂwGvô†æE7V"yË	Ø^IË	İÛÒ[™^IË	ÛXXÙIË	İÛÒ[™XXÙIË	ÜİY™‰Ë	İÛÒandStaff', 'book', 'bow', 'instrument', 'whip', 'katar'].inc±Õ‘•Ì¡¬¤¤¤°Õ¹…Éµ•è…ÑÑ…­5½Ñ¥½¸¹™¥ÍĞ€üü€ÈÀÀÀôì(€€€…Ñ…±¾öræ6Æ76W5·'VÆRæ–EÒÒ²ââç&W7BÂ6¶–ÆÇ3¢ö&¦V7Bæ¶W—2‡G&VT'”6Ë\ÜÖÜ[KšYJK›X\
-ÚÚ[Y
-K›ØØ\^Ü›İ\ˆ›Ø‹’›Ø‘^Ü›İup, hp: job.HPTable.slice(0, 99).map(n => rule.trans ? n + Ma…Ñ ¹™±½½È¡¸€¨€ÈÔ€¼€ÄÀÀ¤€è¸¤°ÍÀè©½ˆ¹MAQ…‰±”¹Í±¥” À°€ää¤¹µ††âÓâ'VÆRçG&ç2òâ²ÖF‚æfÆö÷"†â¢#Rò’¢â’Â¦ö$&ûÛ\Ù\ÎˆØš™Xİ™œ›ÛQ[šY\Êİ]Ù^\Ë›X\
-ÈOˆÚË›Ø›Û\Ù\Ë›map(row => row[k])])), attackMotion, weaponAspd, minimumAttac­5½Ñ¥½¹5Ìè€ÈÀÀÀ€´€ÄÀ€¨µ…áÍÁ°‰…Í•]•¥¡Ğè€¡©½ˆ¹]•¥¡Ğ€üü€Ë#’òÂ7&—FS¢²ÖÆS¢7F÷%7&—FR‡7&—FT¦ö"Â'VÆRævVæI\ˆÏÈ	ÛX[IÊK™[X[NˆXİÜ”Üš]JÜš]R›Ø‹[K™Ù[™\ˆÏÿ 'female') } };
-    if (mountedSpriteJob) catalog.classes[ruÕ±”¹¥‘t¹µ½Õ¹Ñ•‘MÁÉ¥Ñ”€ôì(€€€€€€€µ…±”è…Ñ½ÉMÁÉ¥Ñ”¡µ½Õ¹Ñ•‘MÃ&—FT¦ö"ÂvÖÆRr’ÂfVÖÆS¢7F÷%7&—FR†Ö÷VçFVE7&—FT¦ö"ÂvfVÛX[IÊKˆNÂˆX[šY™\İ˜Û\ÜÔÛİ\˜Ù\ÖÜ[KšYHHÈ›ØˆÛïurce, sourceJobId: jobIds[source], baseExpGroup: job.BaseExpÁÉ½ÕÀ°©½‰áÁÉ½ÕÀè©½ˆ¹)½‰áÁÉ½ÕÀ°Í­¥±±QÉ•”èÍ½ÕÉ”°©½‰&öçW6W3¢vF"ö¦ö%öF#"çG‡BrÂGF6´Ö÷F–öã¢vF"÷&R×&Rö¦ö%öF"æ6ûÛ™˜\ÙPTÔ	ËZ[š[][P]XÚÓ[İ[ÛˆÈÛİ\˜ÙNˆ‹Ü™K\™Kİ[š]4_parameters_db.conf:${parameterGroup}.MaxASPD`, formula: '20ÀÀÀ€´€ÄÀ€¨5…áMAœ°Á…Á5…É¼è€ÍÉŒ½µ…À½ÁŒ¹ éÁ}µ…á}…ÍÁœ÷ÒÀ¢âââ†Ö÷VçFVE7&—FT¦ö"bb²Ö÷VçFVE7&—FT¦ö"ÂÖ÷VçFYYÜš]TÛİ\˜ÙNˆ	Ü›Ğœ›İÜÙ\“YØXŞHLØÙ‹Ò›ØœËÒ›Ø“˜[YUX›,e.js' }) };
+if(JSON.stringify(findingOreChain.map(e=>[e.itemId,e.chance]))!==JSON.stringify(expectedFindingOreChain)) throw new Error('Pinned Ore chain differs');
+const chainDropDefaults=parseConfig(buffers['conf/map/battle/drops.conf'].toString('utf8'));
+if(chainDropDefaults.item_rate_add_chain!==100 || chainDropDefaults.item_drop_add_chain_min!==1 || chainDropDefaults.item_drop_add_chain_max!==10000) throw new Error('Pinned Ore drop defaults differ');
+manifest.findingOre={chain:findingOreChain,selection:'uniform-entry-then-strict-chance',drawsPerEligibleKill:2,dropRateMultiplier:false,
+    chainSource:'db/pre-re/item_chain.conf:ITMCHAIN_ORE',randomSource:'src/map/itemdb.c:itemdb_chain_item',
+    ownershipSource:'src/map/mob.c:mob_dead PC killer and damage owner',
+    ownershipAdaptation:'Current personal hunt has one direct PC killer and damage owner. No pet, homunculus, summon or allied killing producer.',
+    acquisition:'Existing floor loot, pickup, inventory capacity and pending-loot path; one extra item at most per eligible owned kill.'};
+const catalog = { version: rules.version, source: { commit: rules.commit, files: manifest.sources.map(s => s.path), hash: '' }, rates: rules.rates, monsters: {}, items: {}, classes: {}, skills: {}, areas: rules.areas, quests: [], challenges: [], exp: { base: [], job: {} }, elementModifiers: {}, sizeModifiers: {} };
+catalog.teleportBlockedMaps = teleportBlockedMaps;
+catalog.autospellChoices = Object.fromEntries(parsed['autospell_db.conf'].autospell_db.map(row =>
+    [row.SkillId, Array.from({ length: 10 }, (_, i) => typeof row.SkillLevel === 'number'
+        ? row.SkillLevel : row.SkillLevel?.['Lv' + (i + 1)] ?? 0)]));
+function actorSprite(job, gender) { const sex = gender === 'male' ? 'ë‚¨' : 'ì—¬'; const base = 'data/sprite/ì¸ê°„ì¡±/ëª¸í†µ/' + sex + '/' + rules.spriteJobs[job] + '_' + sex; const head = 'data/sprite/ì¸ê°„ì¡±/ë¨¸ë¦¬í†µ/' + sex + '/1_' + sex; return { spr: base + '.spr', act: base + '.act', headSpr: head + '.spr', headAct: head + '.act' }; }
+for (const rule of rules.classes) {
+    const job = resolveInheritance(jobs, rule.source);
+    const parameterGroup = job.ParametersGroup;
+    const maxAspd = resolvedParameterGroups[parameterGroup]?.MaxASPD;
+    if (!Number.isSafeInteger(maxAspd) || maxAspd <= 0 || maxAspd > 200) throw new Error(`Invalid MaxASPD for ${rule.source}: ${maxAspd}`);
+    const { source, spriteJob, mountedSpriteJob, ...rest } = rule;
+    const jobCap = rule.tier === 0 ? 10 : rule.trans && rule.tier === 2 ? 70 : 50;
+    const bonus = Object.fromEntries(statKeys.map(k => [k, 0]));
+    const jobBonuses = Array.from({ length: jobCap }, (_, index) => { const stat = statKeys[(bonusRows[jobIds[source]]?.[index] ?? 0) - 1]; if (stat) bonus[stat]++; return { ...bonus }; });
+    const attackMotion = Object.fromEntries(Object.entries(job.BaseASPD ?? {}).map(([k, v]) => [motionKeys[k] ?? k, v]));
+    const weaponAspd = { ...Object.fromEntries(Object.entries(attackMotion).filter(([k]) => ['dagger', 'sword', 'twoHandSword', 'spear', 'twoHandSpear', 'axe', 'twoHandAxe', 'mace', 'twoHandMace', 'staff', 'twoHandStaff', 'book', 'bow', 'instrument', 'whip', 'katar'].includes(k))), unarmed: attackMotion.fist ?? 2000 };
+    catalog.classes[rule.id] = { ...rest, skills: Object.keys(treeByClass[rule.id]).map(skillId), jobCap, expGroup: job.JobExpGroup, hp: job.HPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), sp: job.SPTable.slice(0, 99).map(n => rule.trans ? n + Math.floor(n * 25 / 100) : n), jobBonuses: Object.fromEntries(statKeys.map(k => [k, jobBonuses.map(row => row[k])])), attackMotion, weaponAspd, minimumAttackMotionMs: 2000 - 10 * maxAspd, baseWeight: (job.Weight ?? 20000) / 10, sprite: { male: actorSprite(spriteJob, rule.gender ?? 'male'), female: actorSprite(spriteJob, rule.gender ?? 'female') } };
+    if (mountedSpriteJob) catalog.classes[rule.id].mountedSprite = {
+        male: actorSprite(mountedSpriteJob, 'male'), female: actorSprite(mountedSpriteJob, 'female'),
+    };
+    manifest.classSources[rule.id] = { job: source, sourceJobId: jobIds[source], baseExpGroup: job.BaseExpGroup, jobExpGroup: job.JobExpGroup, skillTree: source, jobBonuses: 'db/job_db2.txt', attackMotion: 'db/pre-re/job_db.conf:BaseASPD', minimumAttackMotion: { source: `db/pre-re/unit_parameters_db.conf:${parameterGroup}.MaxASPD`, formula: '2000 - 10 * MaxASPD', pcCapMacro: 'src/map/pc.h:pc_max_aspd' },
+        ...(mountedSpriteJob && { mountedSpriteJob, mountedSpriteSource: 'roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js' }) };
 }
 function byLevel(value, max, fallback = 0) {
- €€€É•ÑÕÉ¸ÉÉ…ä¹™É½´¡ì±•¹Ñ èµ…àô°€¡|°¤¤€ôøì(€€€€€€€¾öç7B&W7VÇBÒG—VöbfÇVRÓÓÒvçVÖ&W"ròfÇVR¢çVÖ&W"‡fÇ]YOË–ÉÓ‰È
-È
-H
-ÈJWHÏÈ˜[˜XÚÊNÂˆYˆ
-S[X™\‹š\Ñš[šite(result)) throw new Error(`Invalid numeric Hercules value …Ğ1Ø‘í¤€¬€Åôè€‘í)M=8¹ÍÑÉ¥¹¥™ä¡Ù…±Õ”¥õ€¤ì(€€€€€€€É•ÑÕÉ¸É–W7VÇC°¢Ò“°§Ğ¦6öç7BÖv–5&F–÷2Ò°¢ÔuôäÄÔ$TC¢ÂßOˆÌ
-ÈL
-ˆQ×ÔÓÕSÕ’RÑNˆ
-
-HOˆLQ×ĞÓÓ“Óˆ
-
-HOˆ 100,
-    MG_FROSTDIVER: l => 100 + 10 * l, MG_FIREBALL: l =>ø€ÜÀ€¬€ÄÀ€¨°°5}%I]10è€ ¤€ôø€ÔÀ°(€€€5}%I	=1Pè€ ¤€ôø‚ÂÔuôÄ”t…Dä”ät$ôÅC¢‚’ÓâÂÔuõD…TäDU%5Dõ$Ó¢‚’ÓâƒËˆÖ—Ñ’T‘TSTˆOˆ
-ÈŒ
-ˆÖ—ÔÒQÒTÒTˆOˆq00 + 20 * l, WZ_METEOR: () => 100,
-    WZ_JUPITEL: () => 100À°]i}YI5%1%=8è°€ôø€àÀ€¬€ÈÀ€¨°°]i}]QI	10è°€ôø€ÄÀÀ€¬€Ï3¢ÂÀ¢u¥ôe$õ5Däõd¢ÂÓâÖF‚æfÆö÷"‚ƒ²¢Â’¢"ÈÊKÖ—ÔÕÔ“QÕTÕˆOˆL
-È
-ˆˆÖ—ÑPT•ÔRÑNˆ
-
-i => 100, WZ_HEAVENDRIVE: () => 100, HW_NAPALMVULCAN: l => 70À€¬€ÄÀ€¨°°(€€€]i}M%!Q	1MQHè€ ¤€ôø€ÄÀÀ°1}!=1e1%!Pè€ ¤‚Óâ#RÂÅõ%Ut4ƒ¢‚’ÓâCRÂ%ôÔtåU3¢‚’ÓâÀ§Ó°¦6öç7MÙX\Û”˜][ÜÈHÂˆÓWĞTÒˆOˆL
-ÈÌ
-ˆÓWÓPQÓ•SNº l => 100 + 20 * l, MC_MAMMONITE: l => 100 + 50 * l,
-    AC_}=U	1è°€ôø€äÀ€¬€ÄÀ€¨°°!Q}A=]Hè€ ¤€ôø€ÄÀÀ°}M!=]Hè°‚ÓâsR²R¢ÂÂ5ô4„$tT%$õs¢‚’ÓâSÀ¢´åõ”U$4S¢ÂßOˆL
-ÈL
-ˆÓ—ÔÔPT”ÕPˆOˆL
-ÈŒ
-ˆÓ—ÔÔPT“ÓÏMERANG: l => 100 + 50 * l,
-    KN_BRANDISHSPEAR: l => 100 + €ÈÀ€¨°°-9}	=]1%9	M è°€ôø€ÄÀÀ€¬€ĞÀ€¨°°(€€€M}I%5Q==Q ë¢ÂÓâ²#¢ÂÂ5õ4ôä”4$Äõs¢ÂÓâC²C¢ÂÀ¢5÷ÔÒTÓÓ”‘PPÕˆOˆL
-ÈÌ
-ˆ—ÔÔ’S’ÓTĞS‘ˆ
-
-HOˆLÌ MC_CARTREVOLUTION: () => 150,
-    RG_BACKSTAP: l => 300 + 40À€¨°°I}I%è°€ôø€ÄÀÀ€¬€ĞÀ€¨°°I}%9Q%5%Qè°€ôø€ÄÀÀ€¬‚3¢ÂÀ¢5%õ4„”TÄD4„$tS¢ÂÓâ²#¢ÂÂ5%õ4„”TÄD$ôóÓQTS‘ÎˆOˆL
-ÈÌ
-ˆˆÔ—ÒÓPÔ“ÔÔÎˆOˆL
-ÈÍH
-ª l, AM_DEMONSTRATION: l => 100 + 20 * l, AM_ACIDTERROR: l =>ø€ÄÀÀ€¬€ĞÀ€¨°°(€€€5=}%9I=9M%Yè°€ôø€ÄÀÀ€¬€ÔÀ€¨°°5<õô”ådU5D”tDS¢ÂÓâ²sR¢ÂÀ¢ÔõõE$•ÄTED4³¢ÂÓâL
-ÈŒ
-ˆS×ĞÒRSÓÓP“ÎˆOˆML
-ÈL
-ˆS×ĞÓÓP“Ñ’S’TÓH: l => 240 + 60 * l,
-    BA_MUSICALSTRIKE: l => 125 + 25 * °°}Q!I=]II=\è°€ôø€ÄÈÔ€¬€ÈÔ€¨°°(€€€!}Q%I%MPè°€ôø‚C²¢ÂÂ4…ô4„”ä5%U4ƒ¢ÂÓâC²¢ÂÂ4…õÄÕ5E$’RÑNˆOˆŒ
-ÈL
-ˆˆ×ÒPQÔ•TÒˆOˆL
-È
-ˆ, LK_JOINTBEAT: l => 50 + 10 * l,
-    ASC_METEORASSAULT: l =>ø€ĞÀ€¬€ĞÀ€¨°°M9}M!IAM!==Q%9è°€ôø€ÈÀÀ€¬€ÔÀ€¨°°(€€€}I%$õueTÄ4ã¢ÂÓâ#²¢ÂÂ5õ5Ä4„U#¢ÂÓâS²S¢ˆWÔÒQSÒRSˆOˆL
-ÈÌ
-ˆÔS•TÓRPÎˆ
-
-H => 150, MO_BALKYOUNG: () => 300,
-    HT_FREEZINGTRAP: l => 5ÔÀ€¬€ÄÀ€¨°°!]}5%IM!Hè€ ¤€ôø€ÄÀÀ°Q}A=%M=8è€ ¤€ôø€ÄÀÃÀ¢´åô4„$tTD³¢‚’ÓâÂ5õdTäôÔ´ä”dS¢‚’ÓâÀ§Ó°¢˜ÛÛœİZ\ØÔÚÚ[ÈH™]ÈÙ]
-ÉÒÓS‘RS‘IË	ÒĞ“TÕRS‘IË	çHT_CLAYMORETRAP', 'HT_BLITZBEAT', 'SN_FALCONASSAULT', 'TF_TH!I=]MQ=9œ°€A}AIMMUIœ°€I}%5=9MQIQ%=8œ°€M}	I,´U"rÂt…uôu$d•DD”ôârÂt$ôD•54ôää4RrÂtÔõôU…E$TÔ•E”d•5BrÂ	Ó×ÔÔTSQTÑIË	ÕÔ×ĞĞT•T“RSUSÓ‰Ë	ĞÔ—ÑÔS‘Ô“ÔÔÉË	ÔF_SOULBURN', 'PR_TURNUNDEAD']);
-const spellBalanceSources = ¹•ÜM•Ğ¡lAI}QUI9U9œ°€I}I9I=MLœ°€!]}IY%QQ%=8œ²Ât…uôÔt”45$4„U"uÒ“°¦6öç7B†VÅ6¶–ÆÇ2ÒæWr6WB…²tåeôd•%5DRQ	Ë	ĞSÒPS	Ë	Ô—ÔĞSÕPT–IË	ĞSWÔÕSÓ”UÒT‰Ë	ĞÔ—ÔÓSMPITCHER']);
-// A source row alone is not an implementation. Ù•ÉäÍÕÁÁ½ÉÑ•¹½¸µ‘…µ…”(¼¼Í­¥±°µÕÍĞ¡…Ù”…¸™™•ÑÌÑÉ†ç6ÆF–öâ÷"âW‡Æ–6—BVæv–æRF—7F6†W"à¦6öç7BVffV7E6¶–ÆËÈH™]ÈÙ]
-ÉĞSĞ“TÔÒS‘ÉË	ĞSÒSĞQÒIË	ÓP×ÓÕQ	Ë	Ô—ÒSTÏSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN'œ°€	M}I91%9œ°€I}MAIEU%-8œ°€	M}=YIQ!IUMPœ°€]M}<õdU%D…%U5DÔ‚rÂtÄµô4ôä4TåE$D”ôârÂu4åõ4”t…BrÂu4åõt”äEtÄ²yË	ÓS×ÑVÔÒSÓ”ÔT’UÉË	ĞWÕÒTÕIË	ĞWĞTÔĞTÔÒSÔ“ÔÔÉË	çBA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISSLœ°€}MIY%=Ie=Tœ°€1}91ULœ°€I}UQ=UIœ°€I}IdÄT5E4„”TÄBrÂtÄµõ%%””ärrÂt…ô55TÕD”òrÂu4ôdÄÔTÄTä4„QT‰Ë	ÔĞWÑ”“ÔÕÑPTÓ‰Ë	ÔĞWÓQÒ’S‘ÓĞQT‰Ë	ÔĞWÔÑRTÓRPÕÑPTÏN', 'PR_SUFFRAGIUM']);
-const passiveSkills = new Set(['SM_SW]=Iœ°€M5}Q]=!9œ°€M5}I=YIdœ°€M5}5=Y%9I=YIdœ°€M5}ôdDÄ$ÄõrrÂt´åõ5T$Ô5DU%’rÂtÔuõ5$T4õdU%’rÂt5ôõtÂrÂt0×Õ•ST‘IË	ĞSÑSSÓS‘IË	Õ—ÑÕP“IË	Õ—ÓRTÔÉË	ÓS×ÒT“Ó’AND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_B	MQ	9œ°€!Q}MQ1I=\œ°€!Q}1=8œ°€	}5UM%11MM=8œ°‚tD5ôDä4”ätÄU54ôârÂt%5ô„”ÅD$”äD”ärrÂt%5õtTôå$U4T$4‚rÂyÓP×ÑTĞÓÕS•	Ë	ÓP×ÓÕ‘TÒT‘ÑIË	ÓP×ÒSĞĞT”–IË	ĞSÒSĞĞT”–Iç, 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL0œ°€M}-QHœ°€I}QIUMPœ°€!]}M=U1I%8œ°€!A}5%QQ%<œ°‚t…ôÔä$T4„$tRrÂtÕôÄT$ä”äuõD”ôârÂt%5õ4´”åDTÕU"rÂu4WÑQÓÓ“ÓÑÖIË	ĞSÑ	Ë	Ô‘×ÔÓUÒT‰Ë	ÔĞWĞQSÑQ“ÓÒÉ×JNÂŠfor (const name of ['BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE', 'M5=}MA%I%QMI=YIdt¤Á…ÍÍ¥Ù•M­¥±±Ì¹…‘¡¹…µ”¤ì)™½È€¡½¹ÍĞ¹…¶ÖRöb²t´åõ$”D”ärrÂt´åô4dÄ”U$Ô5DU%’uÒ’76—fU6¶–ÆÇ2æFBŠ˜[YJNÂ˜ÛÛœİXİ]™TÜXÚX[H™]ÈÙ]
-ÉÓQ×ÔÒQÒ	Ë	ÓQ×ÔĞQ‘UYWALL', 'MG_STONECURSE', 'MG_ENERGYCOAT', 'WZ_QUAGMIRE', 'HW_}5%A=]Hœ°€Q}MQ0œ°€I}MQ1=%8œ°€Q}!%%9œ°€M}0Äô´”ärrÂt%5ô„ÔÔU$dÄÂrÂt$ôe$õ5D¤ô´RrÂt$õäudô”4RrÂtA×ÔĞÔ‘PSIË	ÓS×ĞĞSÔT’UÉË	ÓS×ĞP”ÓÔ”ÔT’UÉË	ÓS×Ğ“QTÕOP', 'CH_SOULCOLLECT', 'PR_KYRIE', 'PR_MAGNIFICAT', 'WS_CARTQ	==MPœ°€M5}AI=Y=-œ°€1}$œ°€1}IU%Lœ°€1-}UI	1DRrÂtÄµô¤ô”åD$TBrÂu%ôÄU„D•d”ärÂu%ôÄU„UDU$ärÂt%5õtTTÓ”T‘‘PÕ	Ë	Ğ”×ÓPVSRV‘IË	Ô—ĞTÔT”ÒSÉË	Ô‘×ÔÕ’TÑPTÓ‰Ë, 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', 'RG_STRI%AM!%1œ°€M}9!9QA=%M=8œ°€5}%9Q%dt¤ì)…Ñ¥Ù•MÁ•¥†ÂæFB‚tD5ôDôåDdõ$tUDÔRr“°¦6öç7BöæU6†÷EG&2ÒæWr6WB…²t…E÷ÓS‘RS‘IË	ÒĞ“TÕRS‘IË	ÒĞÓVSSÔ‘UT	Ë	ÒÑ”‘QV’S‘Õ’AP']);
-const controlTraps = ['HT_SKIDTRAP', 'HT_ANKLESNARE',°€!Q}M958œ°€!Q}1M!Hœ°€!Q}M!=-]Ytì)™½È€¡½¹ÍĞ¹…¶ÖRöb6öçG&öÅG&2’7F—fU7V6–ÂæFB†æÖR“°¦f÷"†6öç7BæÖRÙˆÉÓS×ÔÕQS“ÑIË	Ó×Ğ‘T”ÑT’ÉË	ĞTĞ×ÑQ	Ë	Ó•—Õ’PÒÑPQ	×]) activeSpecial.add(name);
-for (const name of ['ST_FULLSTRIP@œ°€MQ}I)QM]=Iœ°€M5}UQ=	IMI,t¤…Ñ¥Ù•MÁ•¥…°¹…‘¡¹†ÖR“°¦f÷"†6öç7BæÖRöb²t5õdTäôÔEU5BrÂueõ5”DU%tT"uÒ’8İ]™TÜXÚX[˜Y
-˜[YJNÂ™›Üˆ
-ÛÛœİ˜[YHÙˆÉĞT×ÔÒTÓÓ”‘PPÕ	Ë, 'AS_SPLASHER']) activeSpecial.add(name);
-activeSpecial.add( -9}UQ==U9QHœ¤ì)…Ñ¥Ù•MÁ•¥…°¹…‘ 1-}Q9M%=9I1`œ¤ì)…ÓF—fU7V6–ÂæFB‚u%õ5Tde$t•TÒr“°¦f÷"†6öç7BæÖRöb²u4ôUEÔÔS	Ë	Ô—ÑÕP“PĞTÕS‘ÉË	Ô—ÓQSSÔ’V‘IË	ĞSÔ‘USPIË	ÔÓM_ENDURE', 'CR_DEFENDER']) activeSpecial.add(name);
-for (consÍĞ¹…µ”½˜l11}IMUIIQ%=8œ°€A}M=U1!9t¤…Ñ¥Ù•MÁ•¦–ÂæFB†æÖR“°¦7F—fU7V6–ÂæFB‚uDeõ”4µ5DôäRr“°¦f÷"†6öç7B˜[YHÙˆÉÔĞWĞĞTÕĞSÑS	Ë	ÔĞWÔÔS”‘PRÑT‰Ë	ÔĞWÓPQÒPÔ“Ñ	×JHactiveSpecial.add(name);
-for (const name of ['AL_CURE', 'TF_DQ=a%dœ°€AI}M1=]A=%M=8t¤…Ñ¥Ù•MÁ•¥…°¹…‘¡¹…µ”¤ì)…Ñ¥Ù•M7V6–ÂæFB‚u%õ5E$T4õdU%’r“°¦f÷"†6öç7BæÖRöb²t5%õ4…$”ä²yË	ÔWÔĞPÔ’Q’PÑI×JHXİ]™TÜXÚX[˜Y
-˜[YJNÂ™›ÜŠÛÛœİ˜[YHïf ['SA_CREATECON','SA_ELEMENTWATER','SA_ELEMENTGROUND','SA_E159Q%Iœ°M}159Q]%9t¥…Ñ¥Ù•MÁ•¥…°¹…‘¡¹…µ”¤ì)Á…ÍÍ¦—fU6¶–ÆÇ2æFB‚u$uô4ôÕTÅ4”ôâr“°§76—fU6¶–ÆÇ2æFB‚u$uõÄt”$’TÓIÊNÂœ\ÜÚ]™TÚÚ[Ë˜Y
-	ÔĞWÑ”‘QPĞTÕ	ÊNÂœ\ÜÚ]™TÚÚ[Ë˜Y
-	çBS_FINDINGORE');
-activeSpecial.add('WZ_ESTIMATION');
-activeSMÁ•¥…°¹…‘ 1}IU] œ¤ì)…Ñ¥Ù•MÁ•¥…°¹…‘ }]%9-!I4œ¤ì(¦7F—fU7V6–ÂæFB‚t4uõD$õD4$Br“°¦7F—fU7V6–ÂæFB‚u4ôD•4ÔS	ÊNÂ˜Xİ]™TÜXÚX[˜Y
-	Ô‘×ĞÓÔÑPÓÓ‘’S‘IÊNÂ˜Xİ]™TÜXÚX[®add('PF_MINDBREAKER');
-activeSpecial.add('PF_FOGWALL');
-acti¥Ù•MÁ•¥…°¹…‘ 5=}	=eI1=Q%=8œ¤ì)…Ñ¥Ù•MÁ•¥…°¹…‘ MQ}AI$U4U%dRr“°¦7F—fU7V6–ÂæFB‚u5Eô4„4UtÄ²r“°¦f÷"†6öç7BæÖYHÙˆÉÔĞWÕ“ÓĞS“ÉË	ÔĞWÑSQÑIË	ÔĞWÕ’SÓS•ĞSI×JHXİ]™TÜecial.add(name);
-activeSpecial.add('AL_TELEPORT');
-activeSpec¥…°¹…‘ !Q}QQ%9œ¤ì)…Ñ¥Ù•MÁ•¥…°¹…‘ ]M}]A=9I%9r“°¦f÷"†6öç7BæÖRöb²uu5ôÔTÅDDõtârÂtÕõõD”ôå•D4„U"rÂtSWÔT“PPÖIË	ĞÔ—ÔÓSTUÒT‰×JHXİ]™TÜXÚX[˜Y
-˜[YJNÂ˜ÛÛ®st unsupported = {
-    NV_BASIC: 'AÃ§Ãµes sociais do Aprendi¥è»¼•á¥ÍÑ•´¹„Í¥µÕ±‡Ÿ¼‘”‡„¸œ°]}		dè€I•ÅÕ•ÈÏ6—7FVÖFRfÜ:ÖÆ–RW'6öævVç2f–æ7VÆF÷2ârÂtUô4ÄÅ$TåEˆ	Ô™\]Y\ˆÚ\İ[XHH˜[pë[XHH\œÛÛ˜YÙ[œÈš[˜İ[YÜË‰ËÑE_CALLBABY: 'Requer sistema de famÃ­lia e personagens vincula…‘½Ì¸œ°(€€€1}]I@è€A½ÉÑ…¥ÌÁ…É„µ…Á…Ì”µ•µ½É¥é‡ŸÕ•Ì‘”‚6ö÷&FVæF2W†–vVÒæfVv:|:6òVÒÖârÂÅô„ôÅ•tDU#¢u&ûÙpéğèÛÈH0àYİXH™[H^YÙHğê[[\ÈH0èYİXHHœ˜\ØÛÈ˜^šio.', PR_REDEMPTIO: 'RessurreiÃ§Ã£o de grupo exige outros perÉÍ½¹…•¹Ì¸œ°(€€€5}Y9%9è€I•ÅÕ•È½·¥É¥¼½´½ÕÑÉ½ÌÁ•Ë'6öævVç2ârÂÄÅô%U””äuõ5Dõ$S¢u&WVW"6öÜ:—&6–ò6öÒ÷WG&÷2\œÛÛ˜YÙ[œË‰ËP×ĞĞT•PÓÔUNˆ	ÑXÛÜ˜péğèÛÈHØ\œš[šÈ^Yçe objetos de carrinho.', MC_CHANGECART: 'AparÃªncia do carri¥¹¡¼•á¥”½‰©•Ñ½Ì‘”…ÉÉ¥¹¡¼¸œ°(€€€I}I%Q$è€I•ÅÕ•È¥ºç67&œ:|;VW2VÒ<:–ÇVÆ2FòÖârÂ$uôdÄtu$dd•D“¢u&WVW"(˜[™Z\˜\ÈHİZ[H›ÈX\K‰Ë‘×ĞÓPS‘Tˆ	Ô™\]Y\ˆ[œØÜšpéğíues em cÃ©lulas do mapa.', RG_GANGSTER: 'Requer aliados da me•Íµ„±…ÍÍ”¸œ°(€€€I}Y=Q%=8è€I•ÅÕ•È½ÕÑÉ¼Á•ÉÍ½¹…•´Á…É†G&ç6fW&—"FæòârÂ%ô$TäTD”5D”ó¢u&WVW"Fö—2æ÷fœ:v÷2R8ğê[[\ÈHX\K‰ËĞTÒSPĞNˆ	Ô™\]Y\ˆ0è\™XH›İYÚYHH[®teraÃ§Ã£o com vÃ¡rios personagens.', MO_KITRANSLATION: 'RequÕ•È½ÕÑÉ¼Á•ÉÍ½¹…•´Á…É„ÑÉ…¹Í™•É¥È•Í™•É…Ì¸œ°A}M=U1	UI8è‚u&WVW"5FòÇfó²Ööç7G&÷2ì:6òL:¦Ò5æò6L:ÆövòârÀ¢ĞWĞP”PĞQP”Nˆ	Ô™\]Y\ˆÙ[péğèÛÈ[X]0ìÜšXHHXš[YYes especiais e transformaÃ§Ãµes.', SA_LANDPROTECTOR: 'Requer ¥±Õ±…Ì‘”µ…Á„”…¹•±…µ•¹Ñ¼‘”…µÁ½Ì¸œ°(€€€	M}IA%I]Tôã¢tò&W&ò÷"å2W6ò6W'fœ:vò&W&òvW&ÂFöf–6š[˜NÈ\İHXš[YYH^YÙHÙ[XÚ[Û˜\ˆ[H›ÙØYÜˆH\]Z\[Y[4o por um fluxo de alvo distinto, ainda indisponÃ­vel.',
-    A}MA%I]è€I•ÅÕ•È¥µ½‰¥±¥é‡Ÿ¼±¥…‘„„Õµ„Õ¹¥‘…‘”‘–R6öÆòR6öç7VÖòFFV–÷"FæòFRfövòârÀ¢Õô5õtTôãˆ	Ô›İpéğèÛÈÛÛ˜H]YXœ˜HH™[[ğéğèÛÈ^YÙH\İYÈH\]Zipamento quebrado ou removido do personagem.', AM_CP_SHIELD: €AÉ½Ñ—Ÿ¼½¹ÑÉ„ÅÕ•‰É„”É•µ¿Ÿ¼•á¥”•ÍÑ…‘¼‘”•ÅÕ¥Á†ÖVçFòVV'&Fò÷R&VÖ÷f–FòFòW'6öævVÒârÂÕô5ô$Ôõ#¢u,›İpéğèÛÈÛÛ˜H]YXœ˜HH™[[ğéğèÛÈ^YÙH\İYÈH\]Z\[Y[®to quebrado ou removido do personagem.', AM_CP_HELM: 'ProteÃŸ¼½¹ÑÉ„ÅÕ•‰É„”É•µ¿Ÿ¼•á¥”•ÍÑ…‘¼‘”•ÅÕ¥Á…µ•¹Ñ¼ÇVV'&Fò÷R&VÖ÷f–FòFòW'6öævVÒârÂ5%ôeTÄÅ$õDT5D”ôã¢u&ûİpéğèÛÈÛÛ\]H^YÙH\İYÈH\]Z\[Y[È]YXœ˜YÈİH™[movido do personagem.',
-    CG_MARIONETTE: 'Requer outro persÍ½¹…•´Á…É„ÑÉ…¹Í™•É¥È…ÑÉ¥‰ÕÑ½Ì¸œ°}5==91%Pè€I•ÅÕ•ÈÁ…É6V—&òR–çFW&:|:6òW76–ÂFRw'WòârÂ4uôÄôät”äte$TTDôÓ¢yÔ™\]Y\ˆ\˜ÙZ\›È\˜[HY]Ë‰ËÑ×ÒT“SÑNˆ	Ô™\]Y\ˆİZ[H e Ã¡rea de combate entre personagens.',
-    WZ_ICEWALL: 'ReqÅÕ•È•‘§Ÿ¼‘”¥±Õ±…Ì‰±½ÅÕ•…‘…Ì‘¼µ…Á„¸œ°!]}9	9Q%8ã¢u&WVW"&VÖü:|:6òFRVæ–FFW2FR†&–Æ–FFW2VÒ<:–ÇVÆ2IÈX\K‰ËŸNÂ˜ÛÛœİİÛ”]\›œÈH×Š”×ÊT“ÓŸÕQSSÒS•EDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|ñMAIñIA%I]A=9ñ%9%9=I¥ñ5|¡A!I5eñ99%	1%iñMA!U$TÔ”äWÄ$”ôUD„”57Ä4ÄÄ„ôÕTçÅ$U5GÅ$U5U%$T5D„ôÕTçÅEt”Ä”t…EÆB—Ä0Ô—ĞÕSUUSÓŸTĞ×ĞÑĞWĞÔ‘PUPÓÓŸP×ÓPRÒS‘ĞT”“ÕßÔ×ÕÑPTÓ”’EFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
-function b‰…­Í±¥‘¥¹M½ÕÉ•5…Ñ¡•ÍM½ÕÉ•½¹ÑÉ…Ğ¡Í½ÕÉ”¤ì(€€€½¹ÍĞÉ–WV—&VÖVçG2Ò6÷W&6Rå&WV—&VÖVçG2óò·Ó°¢6öç7B&WV—&VÖVëÙ^\ÈHØš™XİšÙ^\Ê™\]Z\™[Y[ÊNÂˆÛÛœİÚÚ[\RÙ^\È} Object.keys(source.SkillType ?? {});
-    const damageTypeKe•åÌ€ô=‰©•Ğ¹­•åÌ¡Í½ÕÉ”¹…µ…•QåÁ”€üüíô¤ì(€€€É•ÑÕÉ¸Í½ÕÉ–Rä–BÓÓÒSbb6÷W&6RäæÖRÓÓÒuDeô$4µ4Ä”D”ärrbb6÷W&6RäÖ^]™[OOHH	‰‚ˆÛİ\˜ÙK’]OOH	Ğ‘ÔÒÒS	È	‰ˆÛİ\˜Ùe.AttackType === 'Misc' &&
-        source.SkillType?.Self ===ôÑÉÕ”€˜˜Í­¥±±QåÁ•-•åÌ¹±•¹Ñ €ôôô€Ä€˜˜Í­¥±±QåÁ•-•åÍlÁt€ôôô‚u6VÆbrb`¢6÷W&6RäFÖvUG—SòäæôFÖvRÓÓÒG'VRbbF[XYÙU\RÙ^\Ë›[™İOOHH	‰ˆ[XYÙU\RÙ^\ÖÌHOOH	Ó›Ñ[XYÙe' &&
-        source.KnockBackTiles === 5 && requirementKeys.¹±•¹Ñ €ôôô€Ä€˜˜É•ÅÕ¥É•µ•¹ÑÌ¹MA½ÍĞ€ôôô€Ü€˜˜(€€€€€€€Í½ÕÉ”ºä67EF–ÖRÓÓÒVæFVf–æVBbb6÷W&6RägFW$67D7DFVÆ’ÓÓÒVæFViš[™Y	‰ˆÛİ\˜ÙKÛÛÛİÛˆOOH[™Yš[™Y	‰‚ˆÛİ\˜ÙK’[erruptCast !== true && source.Unit === undefined && source.SpÁ±…Í¡I…¹”€ôôôÕ¹‘•™¥¹•ì)ô)½¹ÍĞ‘•ÍÉ¥ÁÑ¥½¹Ì€ôì(€€€!Q}A=]tU#¢tF–ævR''WF÷2R–ç6WF÷26öÒFö—2vöÇW2FR&6ò;72$˜Z˜YHH›XÚ\ËˆÛÛœÛÛYHLˆÔH[XH›XÚK‰Ëˆ”×Ñ’S‘INGORE: 'Chance passiva de encontrar um minÃ©rio adicional ao¼‘•ÉÉ½Ñ…ÈÕ´µ½¹ÍÑÉ¼¸UÍ„„…‘•¥„½É¥¥¹…°‘¼!•ÉÕ±•Ì°Í•¶Ò×VÇF—Æ–6F÷&W2FRG&÷²òÖ–ì:—&–ò6VwVR6öÆWFæ÷&ÖÂIHØpéØK‰ËˆÔ—ÔÓSTUÒTˆ	Ğ\œ™[Y\ÜØH[XHğéğèÛÈÛÛ\Xãta para recuperar seu HP. NÃ­veis 1â€“5 usam a vermelha, 6â€Lä„…µ…É•±„”€ÄÀ„‰É…¹„¸½¹Í½µ”€ÌÀM@”Õµ„Á¿Ÿ¼°½¶Ò6öæ§W&:|:6ò&6RFR2R;72Ö6öæ§W&:|:6òFR2â÷2ì:×fYZ\È\™[™YÜÈH\œ™[Y\ÜØ\ˆğéğèÛÈH™\\˜\ˆğéğèÛÈ][Y[®tam a cura.',
-    AL_TELEPORT: 'Teleporta para uma posiÃ§Ã£o¼…±•…ÓÍÉ¥„Á…ÍÏ…Ù•°‘¼µ…Á„¸9¼»µÙ•°€È°Á•Éµ¥Ñ”Ù½±Ñ…È†&öçFW&âW6òÖçVÂGW&çFR6:v²7W7FòVÆòì:×fVÂ,™[™YËˆÈ\İ[›È[X]0ìÜš[È\›X[™XÙH˜H™YÚpèÛÈÛÛ™XİYH da caÃ§a.',
-    ST_CHASEWALK: 'Oculta vocÃª dos monstros comµÕ¹Ì”Á•Éµ¥Ñ”…µ¥¹¡…È°½´…ÑÉ…Í¼‘”€Ì×Š"H×]»µÙ•°”¸½¹Í¾öÖR³,9vì:×fVÂ56F3²ò&–ÖV—&òVÇ6ò6öæ6VFR5E"—Š°ë]™[8¢$ŒJHÜˆÌËÙ[H™[›İ˜\ˆ[H°í\È]]›Ëˆ[\YH atacar ou usar outras habilidades; chefes, detectores e magi¥„«„½¹©ÕÉ…‘„…¥¹‘„Á½‘•´…Ñ¥¹¥ÈÙ½¨¸•Í…Ñ¥Ù…Èƒ¤¥µ•’F–FòRw&GV—FòârÀ¢$uõÄt”$•4Ó¢t6÷–VÖÖv–FRÖûÛœİ›È]YHØ]\Ø\ˆ[›ÈÙ[H\œ›İ\ˆ›Øğê‹ˆÈ°ë]™[šXØH[Zitado pelo PlÃ¡gio, sem consumir pontos. Uma nova magia substÑ¥ÑÕ¤„…¹Ñ•É¥½ÈìÉ••‰•È„µ•Íµ„»¼µ•±¡½É„„ÍÁ¥„¸ÌÇVG&òÖv–2FRÖvò&W6VçFW2æ÷2FVW2å2<:6ò6÷œ:fYZ\ÎÈİ]˜\È›Û\ÈZ[™H°èÛÈ\İ0èÛÈÚ[][Y\Ë‰ËˆÕÔ‘TÓERVE: 'Protege a magia copiada contra substituiÃ§Ã£o por dezèµ¥¹ÕÑ½Ì¸½¹©ÕÉ‡Ÿ¼‰…Í”‘”Õ´Í•Õ¹‘¼”ÕÍÑ¼‘”€ÌÀM@¸‚6:vWFöÜ:F–6<;2F—f;72ö'FW"VÖ<;7–âòVfVš]È\›Z[˜H˜H[ÜK[ÈØZ\ˆHÛÛHİH™XÛÛ™Xİ\ÈHXYÚXa copiada continua salva.',
-    TF_BACKSLIDING: 'Desliza imed‘¥…Ñ…µ•¹Ñ”…Ó¤¥¹¼¥±Õ±…ÌÁ…É„ÑË…Ì°¹„‘¥É—Ÿ¼½Á½ÍÓFò6WRöÆ†"Â&æFòæ&–ÖV—&&VFR÷R&÷&FFòÖëˆİ\İHÈÔÈ°èÛÈÛÛš\˜K°èÛÈ[\œ›Û\H[XHÛÛš\˜péğèÛÈ em andamento e nÃ£o tem recarga. Use manualmente durante uma„‡„•´µ…Á„½´¹…Ù•‡Ÿ¼…ÉÉ•…‘„¸œ°(€€€AI}MQI=YI%“¢u&V7WW&:|:6òFR7FGW2VÒVÒÖöç7G&ó¢æòVÆVÖVçFòÖ÷'FûËUš]›ÈY™]]›Ë[HÙYİYZ\˜HÛÛH™\Ú\İ0ê›˜ÚXHÜˆ]šX]Üó e nÃ­vel; nos demais, remove PetrificaÃ§Ã£o, Congelamento, M½¹¼°Ñ½É‘½…µ•¹Ñ¼°AÉ¥Ï¼	É…¹„”9•Ñ¡•Éİ½É±¸M½±Ñ„¼…²ÇfòFRFVRR–çFW'&ö×RW'6VwVœ:|:6òÂ&W6W'fæFò6öæ§]\˜péğíY\È”È°èH[šXÚXY\ÈHÙ]\Èİ\İÜËˆÙYİYZ\˜H™Y^ˆH¶isÃ£o do monstro a trÃªs cÃ©lulas; ele pode readquirir o alvÙ¼Í•´ÁÉ½Ñ—Ÿ¼…É…¹Ñ¥‘„¸±…¹”¹½Ù”°€ÔM@”ÃÍÌµ½¹©ÕË&:|:6òFRFö—26VwVæF÷2â&÷F:|:6òW6Væ2Ööç7G&÷2Ö÷,ÜËUš]›ÜÈ]YH\İZ˜[H]XØ[™ÈHZ[™HÙ[HÙYİYZ\˜Kˆ°èÛÈermite escapar do prÃ³prio Atordoamento.',
-    PR_LEXDIVINA: €Á±¥„M¥³©¹¥¼„Õ´µ½¹ÍÑÉ¼°ÍÕ©•¥Ñ¼„Y%P°M=H°»µÙ•°–R–×Væ–FFRFR6†VfW2â6–Ì:¦æ6–ò–×VFRò–ì:Ö6–òFRæ÷f2†Xš[YY\È”ÎÈ]\]Y\È›Ü›XZ\ÈÛÛ[X[HHÛÛš\˜péğíY\È°èa iniciadas terminam normalmente. Usar em um monstro jÃ¡ sile•¹¥…‘¼É•µ½Ù”¼•™•¥Ñ¼ì„É½Ñ‡Ÿ¼•Ù¥Ñ„•ÍÍ„É•µ¿Ÿ¼”–W66öÆ†R6öÖVçFRÖöç7G&÷26öÒ:|;VW2å2–×ÆVÖVçFF2âÆ6ë˜ÙHÚ[˜ÛËÛÛš\˜péğèÛÈ[œİ[0è›™XHH0ìÜËXÛÛš\˜péğèÛÈH4rÃªs segundos.',
-    RG_COMPULSION: 'Desconto nas compras de”9Aè€ä”°€ÄÌ”°€ÄÜ”°€ÈÄ””€ÈÔ”¹½Ì»µÙ•¥ÌÕ´„¥¹¼¸UÍ„¼‚Ö–÷"FW66öçFòVçG&RW7F†&–Æ–FFRRFW66öçFòFòÖW&6F÷"ËÙ[HÛÛX\‹ˆÈ™péÛÈ0êH[˜ØYÈH[Hpë[š[[ÈHH™[NÈ°Ã£o altera vendas. Requer estudar Gangster, cujo efeito de al±¥…‘½Ì½¹Ñ¥¹Õ„¥¹‘¥ÍÁ½»µÙ•°¸œ°(€€€11}IMUIIQ%=8è€9„†:v6öÆòÂF6Væ2Ööç7G&÷2FRVÆVÖVçFòÖ÷'FòÕf—fò6öÒI[›ÈpèYÚXÛÈØYÜ˜YËİZ™Z]È0èQ“HH[È[[Y[ÈÈ[›Ëˆ A chance prÃ³pria pode usar o HP atual como dano bruto; chef™•ÌÉ••‰•´Í½µ•¹Ñ”¼‘…¹¼µ•¹½È¸½¹Í½µ”€ØÀM@”Õµ„•µ„ë§VÂâ&W77W66—F"÷WG&÷2W'6öævVç26öçF–çVF–Fó²&V7WW&péğèÛÈHİ]\È0êHÈ°êK\™\]Z\Ú]È›Ü›X[H0è\›Ü™K‰Ëˆ  PF_SOULCHANGE: 'Na caÃ§a solo, recupera 3% do seu SP mÃ¡ximµ¼°ÑÉÕ¹…‘¼”±¥µ¥Ñ…‘¼…¼·…á¥µ¼°…¼ÕÍ…ÈÕ´µ½¹ÍÑÉ¼Ù¥Ù¼ºì:6ò6†VfRâ6F–ç7L:&æ6–FRÖöç7G&òW&Ö—FRVÒ;¦æ–6òW6ò\˜[HİXHšYKˆ0âH[XH][YYH[Z\İÜØHÛÛH[Ø[˜ÙHH®ove cÃ©lulas, custo de 5 SP, conjuraÃ§Ã£o de 3 segundos e pÃÍÌµ½¹©ÕÉ‡Ÿ¼‘”€ÔÍ•Õ¹‘½Ì¸É½Ñ‡Ÿ¼•Ù¥Ñ„ÕÍ¼½´M@‚6†V–ò÷Rvæ†ò–ì;§F–ÂâG&ö6"5VçG&RW'6öævVç26öçF–çVHYXYÎÈ\İY\ˆÜÈ°êK\™\]Z\Ú]ÜÈ°èÛÈÛÛ˜ÙYHÜÈY™Z]ÜÈ indisponÃ­veis de Espelho MÃ¡gico e Desconjurar.',
-    KN_RI%%9è€A•Éµ¥Ñ”µ½¹Ñ…È”‘•Íµ½¹Ñ…ÈÕ´A•¼A•¼µ…¹Õ…±µ•¹Ñ”¸‚ÖöçFFòÂ6Ö–æ†Ö—2,:–FòR6'&VvFRW6òF–6–öë˜[ˆ[°éØ\ÈÛÛ˜H[Ûœİ›ÜÈpêY[ÜÈ\Ø[HHÛÜœ™péğèÛÈH[Û®stros grandes e o bÃ´nus de PerÃ­cia com LanÃ§a aumenta. CavÙ…±…É¥„É•‘Õè„Á•¹…±¥‘…‘”‘”Ù•±½¥‘…‘”‘”…Ñ…ÅÕ”¸œ°(€€€-9}ô4dÄ”U$Ô5DU%“¢u&VGW¢VæÆ–FFRFRfVÆö6–FFRFRFVYH[œ]X[È[ÛYÎˆHL	HÙ[HØ]˜[\šXH]0êH™[š[XH[˜[Y$ade no nÃ­vel 5. O efeito depende da montaria ativa.',
-    K-9}	I9%M!MAHè€I•ÅÕ•ÈA•¼A•¼…Ñ¥Ù¼”±…»„‘”Õµ„½Ô‚GV2Ü:6÷2âvöÇV–<:–ÇVÆ2F—&V6–öæ—2:g&VçFRFòÇfòÂÛÛH[›ÈY™\™[HÜˆ˜Z^HH™Xİ[ÈH°êœÈğê[[\ËˆH0èarea cresce com o nÃ­vel; chefes e monstros imunes nÃ£o recua…´¸œ°(€€€5=}MA%I%QMI=YIdè€¹ÅÕ…¹Ñ¼Í•¹Ñ…‘¼°É•ÕÁ•É„!@‚R5F–6–öæ—26F6VwVæF÷2â6öÒW6ò'F—"FRSYKÈ[\˜[È0êHHŒÙYİ[™ÜËˆÜÈØ[˜Z\ÈH]X[YY\ÈÙYçuem o Hercules; levantar zera somente os acumuladores extrasÌÍ•¹Ñ…‘½Ì¸œ°(€€€M}MQ90è€…¹•±„µ…¹Õ…±µ•¹Ñ”„ÍÕ„6öæ§W&:|:6òVÒ7W'6òâv"5æ÷&Ö—2RF–6–öæÂFR“ósÍLÌÌÌL	HÈİ\İËX˜\ÙHHXYÚXHØ[˜Ù[YK[Z]YÈ[ÈÔ restante. NÃ£o recupera Memorize nem resolve a magia cancela…‘„¸œ°(€€€M}MA11	I-Hè€%¹Ñ•ÉÉ½µÁ”„½¹©ÕÉ‡Ÿ¼…ÑÕ…°‚FRVÒÖöç7G&òVÒÆ6æ6R’â7W7F5RFVÒ6öæ§W&:|:6ò(˜\ÙHHÌ\Ë™Y^šYHÜˆVˆ[Ûœİ›È›Ü›X[\™H‰HH HP mÃ¡ximo; nÃ­vel 5 cura metade do valor calculado. Boss te•´€ÄÀ”‘”¡…¹””»¼Í½™É”‘…¹¼¹•´ÕÉ„!@¸É½Ñ‡Ÿ¼Ï<;2–æ–6–VæFòöFR6öæ6ÇV—"çFW2FòÖöç7G&òârÀ¢%õ5UQ‘”QÒUSNˆ	Ô™Y^ˆ[HMIHÜˆ°ë]™[È[\ÈHÛÛš\˜péğèÛÈ$a prÃ³xima habilidade. Dura 30/20/10 segundos conforme o nÃ­µÙ•°¸œ°(€€€M}5%I=è€AÉ•Á…É„Õµ„É•‡Ÿ¼Á½È€ĞÀÀ¼ØÀÀ¼àÃóó#×2â–çFW&6WFÖv–å2VR6öæ6ÇVFVçG&òFª˜[™[HH™Xİ\\˜HŒÍÍŒÎÌL	HÈÔX˜\ÙHHXYÚXH™XÙXšida. Custa 2 SP; sem conjuraÃ§Ã£o ou recarga prÃ³pria.',
-    1-}Q9M%=9I1`è€UÍ”µ…¹Õ…±µ•¹Ñ”‘ÕÉ…¹Ñ”„‡„Á…É„Í•¹Ñ†"R&VÆ†"â7W7FR5–æ–6–ÆÖVçFRRGW&L:’2Ö–çWF÷2ËÛÛHÚXØYÙ[HHHØYHLÙYİ[™ÜËˆXÙ[\˜HÛÛY[H™XİuperaÃ§Ã£o de HP natural e por habilidade em trÃªs vezes; com´Á•Í¼…¥µ„‘”€ÔÀ”°Á•Éµ¥Ñ”!@Í•´¼µÕ±Ñ¥Á±¥…‘½È¸1•Ù…¹Ñ…Ë"Væ6W'&òVfV—FòâföçFRf—†Fì:6ò6ö'&5&V6÷'&VçFRâyËˆÓ—ĞUUĞÓÕS•Tˆ	ÔÜİ\˜HHÛÛ˜KP]\]YHÜˆÙYİundo por nÃ­vel. Custa 3 SP e impede caminhar ou iniciar outrÉ…Ì¡…‰¥±¥‘…‘•Ì¸%¹Ñ•É•ÁÑ„…Ñ…ÅÕ•Ì¹½Éµ…¥ÌÙ¥¹‘½Ì‘„™É•¹Ñ”‚÷RF–vöæ—2,;7†–Ö2ÂL:’òÆ6æ6RF&Ö³²ÖW6Ö8ğê[[HXÙZ]H]X[]Y\ˆ\™péğèÛËˆÛÛœÛÛYHHÜİ\˜H[\Èï golpe de arma com movimento pela metade. Ataques bÃ¡sicos tÑ…µ‹¥´Á½‘•´½¹ÍÕµ¤µ±„¹¼É…µ¼ËµÑ¥¼ìµÕ±Ñ¥¡¥ĞÁÉ•Í•ÉÙ„‚÷7GW&âì:6òöFR6W"W6F6öÒ&6òârÀ¢%5õTäd•$Å•E$’PÒÎˆ	ÓX[[[Ûš]Hİ\İHL	HY[›ÜÈ™[KˆÈ\ØÛÛÈ0êH[˜ØYï antes de subtrair do preÃ§o. NÃ£o altera dano ou SP.',
-    I}QU991I%Yè€A•Éµ¥Ñ”…µ¥¹¡…È‘ÕÉ…¹Ñ”Í½¹‘•É¥©¼¸Á•ºæÆ–FFRFRfVÆö6–FFRF–Ö–çV’6öÒòì:×fVÂâÖçL:–ÒG&VævVÛHHÔ]XğéğèÛË™\İšpéğèÛÈH]\]Y\ÈH™Xİ\\˜péğèÛÈ$e Esconderijo.',
-    AS_POISONREACT: 'Prepara reaÃ§Ãµes a atÑ…ÅÕ•Ì¹½Éµ…¥ÌÉ••‰¥‘½Ì°¥¹±ÕÍ¥Ù”Ñ•¹Ñ…Ñ¥Ù…Ì‰±½ÅÕ•…‘…Ì¸¾öçG&6÷'òFRfVæVæòF—7&VÒFVRæWWG&òRVæ6W'&òVi™Z]ÎÈÛÛ˜Hİ]›ÜÈÛÜœÜÈ0èHL	HHÚ[˜ÙHH\Ø\ˆ[™[™[®ar 5 sem custo adicional de SP. Cargas e duraÃ§Ã£o seguem o !•ÉÕ±•Ì¸œ°(€€€M}MA1M!Hè€Éµ„Õµ„‰½µ‰„•´…±Ù¼»¼¢†VfR6öÒL:’sRRFò…â6öç6öÖRVÖvVÖfW&ÖVÆ†âFWFöæ0ìÜÈKHHLÙYİ[™ÜÈ˜HÜÚpéğèÛÈ]X[È[›ÎÈ˜Z[ÈHuas cÃ©lulas, bÃ´nus pelo nÃ­vel de Refletir Veneno. A revisÃ¼™¥á…‘„¥¹½É„•±•µ•¹Ñ¼”•ÍÅÕ¥Ù„”»¼‘¥Ù¥‘”¼‘…¹¼¸5¾÷'FRFòÇfò6æ6VÆ&öÖ&ârÀ¢5EôeTÄÅ5E$•¢uVÖFVçFM]˜HÛÛš[HÙH™[[İ™\ˆ\›XK\ØİYË\›XY\˜HH[[ÈÈmonstro. Contra monstros reduz ATQ, DEF, VIT e INT; chance e ‘ÕÉ‡Ÿ¼ÕÍ…´`•™•Ñ¥Ù„¸™•Ñ„Ñ…µ‹¥´¡•™•Ì½¹™½Éµ”¼‚†W&7VÆW2f—†FòârÀ¢5Eõ$T¤T5E5tõ$C¢u&W&G,:§2&V:|0íY\È™[K\İXÙYY\ËˆØYH[XH[HMH0åÈ°ë]™[ÜˆÙ[ÈHÚ(ance de reduzir Ã  metade o dano fÃ­sico residual e devolverÈ•ÍÍ„µ•Ñ…‘”…¼µ½¹ÍÑÉ¼¸A•Éµ…¹•”…Ñ¥Ù¼…Ó¤½¹ÍÕµ¥È…ÌÑË,:§26&v2ârÀ¢4ÕôUDô$U%4U$³¢tF—fRÖçVÆÖVçFR÷"4Ôˆ[œ]X[ÈYØYÈHÛÛH\İš][Y[HX˜Z^ÈH[H]X\ï do mÃ¡ximo, aplica Provocar 10: ATQ +32% e defesa de VIT âˆ"HÔÔ”¸;¼É•‘Õè¡…É¸I•ÕÁ•É…È!@•¹•ÉÉ„Í½µ•¹Ñ”¼‹;FçW2WFöÜ:F–6òârÀ¢5%õ4…$”ä³¢tF—fR÷"R5VçVçFûÈ\İ]™\ˆÛÛH[H\ØİYÈ\]Z\YÎÈ\˜HHZ[]ÜÈHÙHÙ\ˆ$esativado sem custo. Quando Auto Guard bloqueia um ataque de”…Éµ„°£„½ÕÑÉ„¡…¹”‘”€Ô”Á½È»µÙ•°‘”ÕÑ¼Õ…ÉÁ…É„‚&V7V"òw&W76÷"VÒ"<:–ÇVÆ2â6†æ6RW6òì:×fVÂF—fûÈH]]ÈİX\™ˆÚY™\ÈH[›ÜÈ[][™\ÈH™Xİ[ÈZ[™HÛÛœÛÛY[m essa chance, mas nÃ£o se deslocam.',
-    PA_SACRIFICE: 'Ati¥Ù”Á½È€ÄÀÀM@Á…É„ÁÉ•Á…É…È€Ô…É…Ì¸…‘„…Ñ…ÅÕ”‹…Í¥¼•²ÆV|:×fVÂf—&VÒvöÇRl:×6–6òæWWG&ò7V¦&6R:’’RFò…Ûpè^[[ËÛÛH›ÜÜ°éğèÛÈHL	HHM	H[È°ë]™[ÈYÛ›Ü˜HEF e esquiva, mas ainda considera elemento, refino e maestri¥„¸•Á½¥Ì‘¼‘…¹¼…¼…±Ù¼°…‘„½±Á”É•µ½Ù”€ä”‘¼!@·…á¥¶ÖòGVÂFF—f:|:6òÂÖW6Öò6R6W6"Fæò¦W&òâW&F,°ìÜšXHÙH\œ›İ\ˆ›Øğê‹ˆ°èÛÈÛÛœÛÛYHØ\™Ø\ÈÛÛHİ]˜\È(abilidades. Requer estudar DevoÃ§Ã£o nÃ­vel 3; estudar nÃ£o ½¹•‘”¼•™•¥Ñ¼‘”•Ù¿Ÿ¼¸œ°(€€€5=}	1MQ=@è€½¹Í½µ”‚5RVÖW6fW&â&W&VÖW7W&FRÃRÃ26VwVæFò[È]\]YH°è\ÚXÛÈH[H[Ûœİ›È°èÛÈÚY™HH]0êHX\Èğêilulas; cria um vÃ­nculo recÃ­proco por 20 a 60 segundos. O vÛµ¹Õ±¼¥¹Ñ•ÉÉ½µÁ”…µ¥¹¡…‘„”…Ñ…ÅÕ•Ì‹…Í¥½Ì‘¼Á…È¸ÕÉ†çFRòl:Öæ7VÆòÂvöÇRFRW6fW&2&WVW"ì:×fVÂ"Â–×7Fò<ğë\]ZXÛÈËÛÛX›È]pèY\ÈH[šÈİ\™[[ÈKˆÈÛÛX›È]pÃ¡druplo dispensa Ataque Triplo e continua a sequÃªncia; Punh¡¼MÕÁÉ•µ¼½¹Í½µ”ÅÕ…ÑÉ¼•Í™•É…Ì¸•ÍÁ•É„,ÏÌƒ¤…Ñ¥Ù…’FF–çFRFRVÒFVRVÆV|:×fVÂ&W7FW26†Vv"ârÀ¢Ôõõ4ÕQS“ÑNˆ	ĞÛÛœÛÛYHÚ[˜ÛÈ\Ù™\˜\ÈHŒÔˆš^HQˆHQ“H$e equipamentos em 90, reduz a velocidade de ataque e fixa o Ñ•µÁ¼Á½È¥±Õ±„•´€ÈÀÀµÌ¸A•Éµ¥Ñ”…Ñ…ÅÕ•Ì¹½Éµ…¥Ì”¥µÁ•’FR†&–Æ–FFW2GW&çFR36VwVæF÷2÷"ì:×fVÂârÀ¢Äµô$U%4QT’Îˆ	Ñœ™[™\ÚHš\XØHÈpè^[[ÈH™Xİ\\˜HÈ[È]]˜\²; zera SP e defesas, reduz esquiva e acelera ataques e camin¹¡…‘„¸	±½ÅÕ•¥„¡…‰¥±¥‘…‘•Ì°¥Ñ•¹Ì”ÑÉ½„‘”•ÅÕ¥Á…µ•¹Ñ½Ì¸G&VæRRFò…Ü:†–Öò6FR6VwVæF÷2ÂL:’RÖ–çWF÷2âûÈ\›Z[˜\‹[Z]HHLH›Ü]YZXH™Xİ\\˜péğèÛÈ˜]\˜[ por 5 minutos.',
-    ASC_EDP: 'Consome uma Garrafa de Veneno¼¸Õµ•¹Ñ„‘…¹¼‘”…Éµ„…¹Ñ•Ì‘„‘•™•Í„”Á•Éµ¥Ñ”Y•¹•¹¼5½ÉÓFÂVÒFVW2æ÷&Ö—2Â6VÒ×VF"òVÆVÖVçFòF&Öâv'&f\ÈÙ[HÙ\ˆÛÛ\˜Y\È˜HÚ˜HÈYNÈ\İY\ˆÜšX\ˆ™[™[›È Mortal cumpre o prÃ©-requisito, mas sua produÃ§Ã£o ainda nÃ£¼•ÍÓ„‘¥ÍÁ½»µÙ•°¸œ°(€€€]M}]A=9I%9è€‰É”Õµ„±¥ÍÑ„‚FR&Ö2–FVçF–f–6F2RFW6WV—F2÷"R5Â7V¦V—F÷2÷<È[ÙYšXØYÜ™\ÈHİ\İËˆÈ°ë]™[\™[™YÈ[Z]HÈ™Yš[›Îû o Job atual modifica a chance. Cada tentativa consome Phrac½¸°µÙ•É•Ñ…É½¸½Ô=É¥‘•½¸½¹™½Éµ”¼»µÙ•°‘„…Éµ„°Í•´‚¦Vç’âæfÆ†Â&ÖR7V26'F2R,;FçW2<:6òFW7G'\:ÖIÜËˆØ[˜Ù[\ˆ°èÛÈ]›Û™HÈÔ‰ËˆÔÒÒQTˆ	ĞÛÛØØHuma armadilha no chÃ£o, verificada a cada segundo. Empurra o ¥¹¥µ¥¼¹„‘¥É—Ÿ¼½Á½ÍÑ„ƒ€ÅÕ”•±”•ÍÓ„½±¡…¹‘¼ì¡•™•Ï2RÖöç7G&÷2–×VæW2ì:6ò<:6òV×W'&F÷2âæ&÷F:|:6òÂÖçL0ê[H[XHğìÜXH\›XYHHØYHXš[YYK‰ËˆĞS’ÓTÓT‘E: 'Armadilha fixa que prende o movimento de um inimigo sem i¥µÁ•‘¥ÈÍ•ÕÌ…Ñ…ÅÕ•Ì¸ÕÉ‡Ÿ¼É•‘Õé¥‘„Á½È$”½¹ÑÉ„¡–VfW2Â6öÒÜ:Öæ–ÖòFRR6VwVæF÷2â6öç6öÖR&ÖF–Æ†ârÀ¢‚ÔĞS‘PSˆ	Ğ\›XY[HHÛÛ›È[H0è\™XHHH0åÈHğê[[\ËˆÃhance base de 40 + 10 Ã— nÃ­vel por cento, antes das resistÃ©¹¥…Ìì‘…¹¼…½É‘„¼…±Ù¼¸½¹Í½µ”€ÄÉµ…‘¥±¡„¸œ°(€€€!Q}0Ä4„U#¢t&ÖF–Æ†FR6VwVV—&VÒ:&VFR29r2<:–ÇVÆ2â0Ú[˜ÙH˜\ÙHHÌ
-ÈL0åÈ°ë]™[ÜˆÙ[Ë[\È\È™\Ú\İ0Ãªncias. Consome 2 Armadilhas.',
-    SA_AUTOSPELL: 'Escolha uÕµ„µ…¥„…ÁÉ•¹‘¥‘„Á…É„¥¹Ù½„µ±„…ÕÑ½µ…Ñ¥…µ•¹Ñ”¹½Ì…Ñ…Å×VW2æ÷&Ö—2â6†æ6RÂì:×fVÂR7W7FòFR56VwVVÒò†W&7VÆW2°êK\™[›İ˜péğèÛË‰Ëˆ—ÑÕP“PĞTÕS‘Îˆ	Ó[°éØ\ÈH›ÙÛËÇelo e RelÃ¢mpago podem ser repetidas apÃ³s o movimento do atÑ…ÅÕ”°Í•´Í•Õ¹‘¼ÕÍÑ¼‘”M@¸É•Á•Ñ§Ÿ¼»¼•É„½ÕÑÉ†&WWFœ:|:6òârÀ¢eôÔTÔõ$•¤S¢u&W&6–æ6ò6&v2VR,™Y^™[H[HY]YHHÛÛš\˜péğèÛÈ[Yğë]™[ˆHØ\™ØH0êHÛÛœóumida no inÃ­cio da conjuraÃ§Ã£o, inclusive se ela for interÉÉ½µÁ¥‘„¸œ°(€€€1}A9U5è€É¥„Õµ„ƒ…É•„™¥á„‘”€Ìƒ\€Ì¦–ÇVÆ2÷"6VwVæF÷2VR&Æ÷VV–FVW2l:×6–6÷2:F—7L0è›˜ÚXKˆ°èÛÈXÛÛ\[šHÈ\œÛÛ˜YÙ[H™[HÙHÛØœ™\Üˆ\ØİYÈ MÃ¡gico.',
-    SM_ENDURE: 'Aumenta a DEFM e impede a reaÃ§Ã£¼‘”‘…¹¼Á½ÈÕ´»éµ•É¼±¥µ¥Ñ…‘¼‘”½±Á•ÌÉ••‰¥‘½Ì¸‘ÕË&:|:6òFWVæFRFòì:×fVÂR†&–Æ–FFRì:6ò–×VFR–çFW''W0éğíY\ÈHÛÛš\˜péğèÛË‰ËˆÔ—ÑQ‘S‘Tˆ	Ô™\]Y\ˆ\ØİYËˆ’eduz dano fÃ­sico Ã  distÃ¢ncia, aumenta o tempo de deslocamµ•¹Ñ¼”…Á±¥„„Á•¹…±¥‘…‘”‘”Ù•±½¥‘…‘”‘”…Ñ…ÅÕ”‘¼!•ÉÕ²ÆW2ârÀ¢$uõ4äD4„U#¢tFVW2æ÷&Ö—26÷'ò6÷'òöFVÒ[\ˆ\È]]ÛX]XØ[Y[KÙ[Hİ\İÈYXÚ[Û˜[HÔˆHãhance depende dos nÃ­veis de Gank e Furto.',
-    RG_STRIPSHI%1è€Q•¹Ñ„É•µ½Ù•È¼•ÍÕ‘¼‘¼…±Ù¼¸½¹ÑÉ„µ½¹ÍÑÉ½ÌÉ•‘Õè‚FVfW6VÒRS²6†æ6RRGW&:|:6òFWVæFVÒFF–fW&Vì:vIHV‰ËˆT×ÑSÒS•ÒTÓÓˆ	Ñ[˜Ø[HH\›XHÛÛH™[™[›ËˆAtaques normais podem envenenar o alvo; a resistÃªncia e a duÕÉ‡Ÿ¼Í•Õ•´¼!•ÉÕ±•Ì¸MÕ‰ÍÑ¥ÑÕ¤ÍÁ•ÉÍ¥¼”»¼Á½‘”Í–W"W6Fò6ö'&RVæ6çFÖVçF÷2VÆVÖVçF—2FR<:&–òârÀ¢Ô5ô’QS•Q–Nˆ	ÒY[YšXØH[H\]Z\[Y[È˜H[ØÚ[HÜˆLÔ™evelando tambÃ©m sua raridade e seus bÃ´nus. NÃ£o consome LupÁ„¸œ°(€€€I}1=M=9%9è€½¹™¥¹…µ•¹Ñ¼ÁÉ•¹‘”Ù½¨”Õ´µ¾öç7G&òF¦6VçFR÷"6VwVæF÷2âòÇfòöFR6öçF–çV"F6[™ÈH™XÙX™[™ÈÙ]\ÈÛÛ\ÎÈHØpéØH›ÛHHÙH[İ™\ˆ]X[™ï o alvo morre ou o efeito termina. Custa 25 SP e sÃ³ Ã© usad‘¼½¹ÑÉ„Õ´…±Ù¼Ù¥Ù¼•´½¹Ñ…Ñ¼‘ÕÉ…¹Ñ”„‡„¹¼…µÁ¼¸œ²À¢u5ôÔTÅDDõtã¢tFVW2l:×6–6÷2öFVÒVæg&VV6W"&ÖHHH\›XY\˜HH[Ûœİ›ÜÈÛÛ][œËˆÈ°ë]™[\ØÛÛYÈYš[™H SP, conjuraÃ§Ã£o e duraÃ§Ã£o; chefes sÃ£o imunes.',
-    AM_PA=Q%=9A%Q!Hè€ÉÉ•µ•ÍÍ„Õµ„Á¿Ÿ¼•´Í¤µ•Íµ¼¸;µÙ•¥Ì€ÇŠ(	3BW6Òü:|;VW2fW&ÖVÆ†ÂÆ&æ¦ÂÖ&VÆR'&æ6²ì:×fY[H\ØH^[\˜HÔˆH™Xİ\\˜péğèÛÈ\ØHÈ°ë]™[\™[™Yï e Pesquisa de PoÃ§Ãµes.',
-    PA_GOSPEL: 'Na caÃ§a solo, atÑ¥Ù„=MA0Á½È€ØÀÍ•Õ¹‘½Ì¸…‘„€ÄÀÍ•Õ¹‘½ÌÉ•ÕÁ•É„€ÌÀ …R#5æ÷2ì:×fV—2(	3RÂ÷RCR…R3R5æ÷2ì:×fV—2n( $ÌLˆH]]˜péğèÛÈ™[[İ™HY™œÈH\İYÜÈ™YØ]]›ÜËÛÛ[È›ï Hercules; efeitos aleatÃ³rios para aliados nÃ£o se aplicam Í•´ÉÕÁ¼¸œ°(€€€€¸¸¸¡ÉÕ±•Ì¹Í­¥±±•ÍÉ¥ÁÑ¥½¹Ì€üüíô¤°)ôì)½¹Ï7B7FGW46†æ6W2Ò²Ôuôe$õ5DD•dU#¢ÂÓâ3R²2¢ÂÂu¥ôe$õ5E“ÕNˆOˆÍH
-ÈÈ
-ˆQ×ÔÕÓ‘PÕT”ÑNˆOˆŒ
-È
-ˆÖ—ÓQETEOR: l => 3 * l, WZ_VERMILION: l => 4 * l, HW_NAPALMVULCAN:è€ ¤€ôø€Ô°Q}A=%M=8è°€ôø€ÄÀ€¬€Ğ€¨°°M}M=9%	1=\è°€ôø€ÄÀ‚²"¢ÂÂ$ôe$õ5D¤ô´S¢ÂÓâR²R¢ÂÂ$õäudô”4S¢‚’ÓâL×ÔĞÔ‘PSNˆOˆH
-ÈH
-ˆ”×ÒSSQT‘SˆOˆŒ
-ÈL * l, HT_LANDMINE: l => 30 + 5 * l, HT_FREEZINGTRAP: l => 35 €¬€Ì€¨°°M}I=MQ]A=8è°€ôø5…Ñ ¹µ¥¸ ÄÀÀ°€ØÀ€¬€ÄÀ€¨°¤°Mõ4T•4Ô”5tTôã¢ÂÓâÖF‚æÖ–âƒÂc²¢Â’Â4ôdÄÔTÄUSÒTˆOˆX]›Z[ŠLŒ
-ÈL
-ˆ
-KĞWÓQÒ’S‘ÓĞQTˆ l => Math.min(100, 60 + 10 * l) };
-statusChances.DC_WINKCHARI4€ô€ ¤€ôø€ÜÀì)ÍÑ…ÑÕÍ¡…¹•Ì¹A}5%9	I-H€ô°€ôø€ÔÔ€¬€Ô€¨²Ã°¦f÷"†6öç7BæÖRöb6¶–ÆÄæÖW2’°¢6öç7B7&2Ò6¶–ÆÄ'”æ[YVÛ˜[YWNÂˆYˆ
-\Ü˜ÊH›İÈ™]È\œ›ÜŠ	ÓZ\ÜÚ[™ÈÛİ\˜ÙHÚÚ[,l ' + name);
-    const rule = rules.skills.find(s => s.sourc”€ôôô¹…µ”¤ì(€€€½¹ÍĞ‰…­Í±¥‘¥¹MÕÁÁ½ÉÑ•€ô¹…µ”€ôôô€Q}$4µ4Ä”D”ärrbb&6·6Æ–F–æu6÷W&6TÖF6†W56÷W&6T6öçG&7B‡7&2“°¢ˆÛÛœİX^]™[HX]›Z[ŠÜ˜Ë“X^]™[X]›X^
-‹‹“Øš™ect.values(treeByClass).map(tree => typeof tree[name] === 'nuÕµ‰•Èœ€üÑÉ••m¹…µ•t€èÑÉ••m¹…µ•tü¹5…á1•Ù•°€üü€À¤¤¤ì(€€€½¹ÍÓB&W&WV—6—FW4'”6Æ72Òö&¦V7Bæg&öÔVçG&–W2„ö&¦V7BæVçG&–W2‡G,™YPPÛ\ÜÊK™š[\Š
-Ë™YWJHOˆ™YVÛ˜[YWJK›X\
-
-Ú›Ø‹™YW]) => [job, Object.entries(typeof tree[name] === 'number' ? {íô€èÑÉ••m¹…µ•t¤¹™¥±Ñ•È ¡m­•åt¤€ôø€…l5…á1•Ù•°œ°€5¥¹)½‰1•Ù•²ÂuÒæ–æ6ÇVFW2†¶W’’’æÖ‚…¶¶W’ÂÆWfVÅÒ’Óâ‡²6¶–ÆÄ–C¢6¶–ÆÄ–BŠÙ^JK]™[JJWJJNÂˆÛÛœİ\™Ù]\HHÉÔĞWÑ“SQSUSÒER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPO=8t¹¥¹±Õ‘•Ì¡¹…µ”¤€ü€Í•±˜œ€è¹…µ”€ôôô€11}IMUIIQ%=8œ€ü‚vVæV×’r¢7&2å6¶–ÆÅG—Ròw76—fRr¢7&2å6¶–ÆÅG—RåÆ6RÿÈ	ÙÜ›İ[™	ÈˆÜ˜Ë”ÚÚ[\K‘[™[^HÈ	Ù[™[^IÈˆÜ˜Ë”ÚÚ[\K”Ùelf ? 'self' : 'support';
-    let kind = targetType === 'passÍ¥Ù”œ€ü€Á…ÍÍ¥Ù”œ€è¡•…±M­¥±±Ì¹¡…Ì¡¹…µ”¤€ü€¡•…°œ€èlQ}MQÂrÂu$uõ5DTÄ4ô”âuÒæ–æ6ÇVFW2†æÖR’òw7FVÂr¢Öv–5&F–÷5¶ë˜[YWHÈ	ÛXYÚXØ[	ÈˆÙX\Û”˜][ÜÖÛ˜[YWHZ\ØÔÚÚ[Ëš\Ê˜[Ye) ? 'physical' : 'buff';
-    if (name === 'AS_POISONREACT') ­¥¹€ô€‰Õ™˜œì(€€€¥˜€¡¹…µ”€ôôô€11}IMUIIQ%=8œ¤­¥¹€ô€vÖv–6Âs°¢ÆWBFÖvUG—RÒÖv–5&F–÷5¶æÖUÒòvÖv–2r®ˆÙX\Û”˜][ÜÖÛ˜[YWHÈ	İÙX\Û‰ÈˆZ\ØÔÚÚ[Ëš\Ê˜[YJHÈ	ÛZ\óc' : 'none';
-    if (name === 'ALL_RESURRECTION') damageType”€ô€µ…¥Œœì(€€€½¹ÍĞÍÕÁÁ½ÉÑ•‘5•¡…¹¥Œ€ôµ…¥I…Ñ¥½Ím¹…µ•t‚ÇÂvVöå&F–÷5¶æÖUÒÇÂÖ—656¶–ÆÇ2æ†2†æÖR’ÇÂVffV7E6¶–ÆËËš\Ê˜[YJH\ÜÚ]™TÚÚ[Ëš\Ê˜[YJHXİ]™TÜXÚX[š\Ê(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', €AI}M9QUIdœ°€A}=MA0t¹¥¹±Õ‘•Ì¡¹…µ”¤ì(€€€½¹ÍĞÕ¹ÍÕÃ÷'FVE&V6öâÒ…²t5õdTäôÔEU5BrÂueõ5”DU%tT"uÒæ–æ6ÇVFW2†æ[YJHÈ[™Yš[™Yˆ[œİ\ÜYÛ˜[YWJHÏÈ
-Ü˜Ë”ÚÚ[[™›ÏË”Ü\²it && rule?.requiredState !== 'combo' ? 'Requer estado de EsÍÃµÉ¥Ñ¼‘„±…ÍÍ”°…¥¹‘„»¼¥µÁ±•µ•¹Ñ…‘¼¸œ€è€ …lM}IQT4ôârÂtÕõ„$Ô5’rÂt%5ôd”äD”ätõ$RrÂuu5õtTôå$Td”äRuÒæ–æ6ÇVI\Ê˜[YJH	‰ˆİÛ”]\›œË\İ
-˜[YJJHÈ	Ô™\]Y\ˆ›ÙpéğèÛËïbjetos persistentes, parceiros ou ediÃ§Ã£o de cÃ©lulas do ma…Á„¸œ€è€…ÍÕÁÁ½ÉÑ•‘5•¡…¹¥Œ€ü€5•‰¹¥„!•ÉÕ±•Ì¥µÁ½ÉÑ…‘„ì†6–×VÆ:|:6òGVÂ–æFì:6òW†V7WFW7FRVfV—Fòâr¢VæFVfš[™Y
-NÂˆÛÛœİ[\[Y[][ÛˆH[œİ\ÜY™X\ÛÛˆÈ	İ[œİ\0orted' : 'supported';
-    if (name === 'PF_SOULBURN') damage•QåÁ”€ô€¹½¹”œì(€€€½¹ÍĞÉ…İ!¥ÑÌ€ô‰å1•Ù•°¡ÍÉŒ¹9Õµ‰•É=™!¥ÑÌ²ÂÖ„ÆWfVÂÂ“°¢6öç7B†—D6÷VçBÒ&t†—G2æÖ„ÖF‚æ'2“°¢ÛÛœİ][PÛÜİS]™[H\œ˜^K™œ›ÛJÈ[™İˆX^]™[K (_, i) => Object.entries(src.Requirements?.Items ?? {}).flatÑ5…À ¡m¥Ñ•µ9…µ”°…µ½Õ¹Ñt¤€ôøì½¹ÍĞ¥Ñ•´€ô¥Ñ•µ	å9…µ•m¥Ñ•µ9†ÖUÓ²–b‚—FVÒ’F‡&÷ræWrW'&÷"‚tÖ—76–ær&VvVçC¢r²—FVÔæ[YJNÈÛÛœİ]X[]HHS]™[
-[[İ[X^]™[
-VÚWNÈ™]\›ˆquantity > 0 ? [{ itemId: item.Id, quantity }] : []; }));
-   €¥˜€¡ÉÕ±”ü¹¥Ñ•µ½ÍĞ€˜˜ÉÕ±”ü¹¡…¹‘±•‘I•ÅÕ¥É•µ•¹ÑÌü¹±•¹Ñ ¤™¾÷"†6öç7B6÷7G2öb—FVÔ6÷7D'”ÆWfVÂ’°¢6öç7BW†—7F–ærHÛÜİË™š[™
-ÛÜİOˆÛÜİš][RYOOH[Kš][PÛÜİš][RY
-NÂŠ        if (existing) existing.quantity += rule.itemCost.qua…¹Ñ¥Ñäì(€€€€€€€•±Í”½ÍÑÌ¹ÁÕÍ ¡ì€¸¸¹ÉÕ±”¹¥Ñ•µ½ÍĞô¤ì(€€€ô(¢6öç7B÷vW"Ò'&’æg&öÒ‡²ÆVæwFƒ¢Ö„ÆWfVÂÒÂ…òÂ’’Óïˆ
-XYÚXÔ˜][ÜÖÛ˜[YWHÏÈÙX\Û”˜][ÜÖÛ˜[YWHÏÈ
-˜[YHOOH	Ó•—Ñ†IRSTAID' ? () => 5 : name === 'PR_SANCTUARY' ? l => l > 6 ? €ÜÜÜ€è€ÄÀÀ€¨°€è€ ¤€ôø€À¤¤¡¤€¬€Ä¤¤ì(€€€½¹ÍĞ¥‘±•…µ…•5Õ±Ñ¦—Æ–W%7BÒFÖvUG—RÓÓÒvÖv–2rÇÂ7VÆÄ&Ææ6U6÷W&6W2æ†<Ê˜[YJBˆÈ\œ˜^K™œ›ÛJÈ[™İˆX^]™[K
-ËJHOˆ Number(rule?.idleDamageMultiplierPct?.[i] ?? 100))
-        :èÕ¹‘•™¥¹•ì(€€€½¹ÍĞ¥¹¡•É¥Ñ•‘™™•Ğ€ô¹…µ”€ôôô€}=]0œ€ü‚²FWƒ¢Ò¢æÖRÓÓÒuDeôÔ•52rò²fÆVS¢2Ò¢VæFVf–æVC°¢ËÈH™YØ]]™HÜ\Ú˜[™ÙHÙ[XİÈHY˜][T‘PWÔÒV‘H
-(14). Negative
-    // Unit.Layout values instead select speci¥…°•±°±…å½ÕÑÌ…¹…É”¹½ĞÉ…‘¥¤¸(€€€½¹ÍĞÉ…‘¥ÕÌ€ô‰å1•Ù–VÂ‡7&2å7Æ6…&ævRóò7&2åVæ—CòäÆ–÷WBóò7&2åVæ—Còå&ævRÂÖ^]™[
-K›X\
-ˆOˆÜ˜Ë”Ü\Ú˜[™ÙHOOH[™Yš[™Y	‰ˆˆÈM4 : Math.max(0, n));
-    const duration = byLevel(src.SkillDa…Ñ„Ä°µ…á1•Ù•°¤ì(€€€½¹ÍĞÍÑ…ÑÕÍ™™•Ğ€ôÍÉŒ¹MÑ…ÑÕÍ¡…¹”€üÿò†æÖRÓÓÒt%5ô„ÔÔU$dÄÂròu45õ5ETâr¢æÖRÓÓÒt$õäudóÒPÑIÈÈ	ÔĞ×ĞÓÓ‘•TÒSÓ‰Èˆ[™Yš[™Y
-NÂˆÛÛœİ˜Z[š[™ÈHÉĞ‚S_MAXIMIZE', 'TF_HIDING', 'AS_CLOAKING'].includes(name);
-   €½¹ÍĞÍÁÉ…¥¹%¹Ñ•ÉÙ…±5Ì€ô¹…µ”€ôôô€Q}!%%9œ€üÉÉ…ä¹™É½¶Ò‡²ÆVæwFƒ¢Ö„ÆWfVÂÒÂ…òÂ’’Óâ†’²B’¢’¢GW&F–öã¾ÂˆÛÛœİÙX\Û”™\]Z\™[Y[ÈHØš™XİšÙ^\ÊÜ˜Ë”™\]Z\™[Y[ó?.WeaponTypes ?? {}).filter(k => src.Requirements.WeaponType•Ím­t¤ì(€€€½¹ÍĞÉ•ÅÕ¥É•‘]•…Á½¸€ôl¸¸¹¹•ÜM•Ğ¡İ•…Á½¹I•ÅÕ¥É•¶ÖVçG2æÖ†²Óâ‡²FvvW'3¢vFvvW"rÂs…7v÷&G2s¢w7v÷&BrÂs$‚İÛÜ™ÉÎˆ	ÜİÛÜ™	Ë	ÌRÜX\œÉÎˆ	ÜÜX\‰Ë	Ì’ÜX\œÉÎˆ	ÜÜX\‰Ë '1HAxes': 'axe', '2HAxes': 'axe', Maces: 'mace', '2HMaces': €µ…”œ°MÑ…Ù•Ìè€ÍÑ…™˜œ°€œÉ!MÑ…Ù•Ìœè€ÍÑ…™˜œ°	½İÌè€‰½Üœ°,¶F'3¢v¶F"rÂ–ç7G'VÖVçG3¢v–ç7G'VÖVçBrÂv†—3¢wv†—rÒ•¶Ú×JK™š[\Š›ÛÛX[ŠJWNÂˆÛÛœİÛ›UÛÒ[™YHÙX\Û”™\]Zirements.length && weaponRequirements.every(k => ['2HSwords',°€œÉ!MÁ•…ÉÌœ°€œÉ!á•Ìœ°€œÉ!5…•Ìœ°€œÉ!MÑ…Ù•Ìt¹¥¹±Õ‘•Ì¡¬¤¤ì(¢6FÆörç6¶–ÆÇ5·6¶–ÆÄ–B†æÖR•ÒÒ°¢–C¢6¶–ÆÄ–B†æ[YJK˜[YNˆ
-ÈSÕSTÔ•ˆ	Õ[\ÜIË‘×ÔQÒPT’TÓNˆ	Ô0èagio', ST_PRESERVE: 'Preservar', ST_CHASEWALK: 'Furtividade' ô¥m¹…µ•t€üüÉÕ±”ü¹¹…µ”€üüÉÕ±•Ì¹Í­¥±±9…µ•Ìü¹m¹…µ•t€üüÍÉŒ¹–W67&—F–öâÂ¶–æBÂÖ„ÆWfVÂÀ¢†W&7VÆW4–C¢7&2ä–BÂ6÷W&8ÙS˜[YNˆ˜[YKYXÚ[šXÎˆ˜[YK[\[Y[][Û‹‹‹Š[œİ\ÜY$Reason && { unsupportedReason }),
-        ...(name === 'MC_I%9Q%dœ€˜˜ìµ…¹Õ…±UÍ”è€¥¹Ù•¹Ñ½Éäœô¤°(€€€€€€€€¸¸¸¡¹…µ”€ô÷ÓÒtÅõDTÄUõ%Brbb²ÖçVÅW6S¢wFVÆW÷'BrÒ’À¢âââ†ë˜[YHOOH	ÔÓWĞUUĞ‘T”ÑT’ÉÈ	‰ˆÈX[X[\ÙNˆ	İÙÙÛIËÙÙÛNˆ4rue }),
-        ...(name === 'CR_SHRINK' && { manualUse: 'to½±”œ°Ñ½±”èÑÉÕ”ô¤°(€€€€€€€€¸¸¸¡¹…µ”€ôôô€9Y}QI%-œ‚bb²ÖçVÅW6S¢wFövvÆRrÂFövvÆS¢G'VRÒ’À¢âââ†æÖROOH	ÔÕĞÒTÑUĞSÉÈ	‰ˆÈX[X[\ÙNˆ	İÙÙÛIËÙÙÛNˆYHJi,
-        ...(['PA_SACRIFICE', 'WS_MELTDOWN', 'AM_POTIONPITC!Hœ°€I}M1%5A%Q!Ht¹¥¹±Õ‘•Ì¡¹…µ”¤€˜˜ìµ…¹Õ…±UÍ”è€…Ñ¦—fFRrÒ’À¢âââ†æÖRÓÓÒtÔõô$ÄDU5Dõrbb²ÖçVÅW6YNˆ	ØXİ]˜]IÈJKˆ‹‹Š˜[YHOOH	ÔĞWÓPQÒPÔ“Ñ	È	‰ˆÈX[®ualUse: 'activate' }),
-        ...(name === 'PR_SUFFRAGIUM' €˜˜ìµ…¹Õ…±UÍ”è€…Ñ¥Ù…Ñ”œô¤°(€€€€€€€€¸¸¸¡¹…µ”€ôôô€!Q}QT5D”ärrbb²ÖçVÅW6S¢v7F—fFRrÒ’À¢âââ†&6·6Æ–F–ë™Ôİ\ÜY	‰ˆÈX[X[\ÙNˆ	ØXİ]˜]IÈJKˆ‹‹ŠÉÔĞWÑ†LAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SM%M5%]A=8œ°€M}Y=19<œ°€M}1Uœ°€M}Y%=19Q1tºæ–æ6ÇVFW2†æÖR’bb²ÖçVÅW6S¢v7F—fFRrÒ’À¢âââ†æ[YHOOH	ÔĞWĞĞTÕĞSÑS	È	‰ˆÈX[X[\ÙNˆ	ØØ\İØ[˜Ù[	ÈJKˆ     ...(name === 'SA_CREATECON' && { manualUse: 'converterCrÉ…™Ğœô¤°(€€€€€€€€¸¸¸¡¹…µ”€ôôô€5}A!I5dœ€˜˜ìµ…¹Õ…±UÍ”è‚w†&Ö7”7&gBrÒ’À¢âââ†æÖRÓÓÒuu5õtTôå$Td”äRri‰ˆÈX[X[\ÙNˆ	İÙX\Û”™Yš[™IÈJKˆ‹‹Š˜[YHOOH	ÕÖ—ÑESTIMATION' && { manualUse: 'inspect' }),
-        ...(name ==ôô€1-}Q9M%=9I1`œ€˜˜ìµ…¹Õ…±UÍ”è€É•ÍĞœô¤°(€€€€€€€€¸¸¸¡ºæÖRÓÓÒt´åõ$”D”ärrbb²ÖçVÅW6S¢vÖ÷VçBrÒ’À¢FW68Üš\[Ûˆ\ØÜš\[ÛœÖÛ˜[YWHÏÈ	ÜÜ˜Ë‘\ØÜš\[ÛŸKˆ	İ\™Ù]4Type === 'passive' ? 'Habilidade passiva.' : damageType === €µ…¥Œœ€ü€…¹¼·…¥¼½¹™½Éµ”!•ÉÕ±•ÌÁË¤µÉ•¹½Ù‡Ÿ¼¸r¢FÖvUG—RÓÓÒwvVöâròtFæòFR&Ö6öæf÷&ÖR†W&7VÆW<È°êK\™[›İ˜péğèÛË‰Èˆ[XYÙU\HOOH	ÛZ\ØÉÈÈ	Ñ°ìÜ›][H\ÜecÃ­fica de dano conforme Hercules prÃ©-renovaÃ§Ã£o.' : src.SMÑ…ÑÕÍ¡…¹”€ü€Á±¥„€œ€¬ÍÉŒ¹MÑ…ÑÕÍ¡…¹”¹É•Á±…” M|œ°€œr’²râr¢t†&–Æ–FFRWF–Æ—L:&–âwÒG·Vç7W÷'FVE&V6öâòr	È
-È[œİ\ÜY™X\ÛÛˆˆ	ÉßXˆXÛÛ”™\Ûİ\˜ÙNˆ	Ù]Kİexture/ìœ ì €ì¸í„°í˜ì´ìŠ¤/item/' + src.Name.toLowerCase() €¬€œ¹‰µÀœ°(€€€€€€€ÍÁ½ÍĞè‰å1•Ù•°¡ÍÉŒ¹I•ÅÕ¥É•µ•¹ÑÌü¹MA½ÍĞ°‚Ö„ÆWfVÂ’Â÷vW"À¢âââ†–FÆTFÖvT×VÇF—Æ–W%7Bbb²šYQ[XYÙS][\Y\”İJKˆÛÛÛİÛ“\Îˆ˜[YHOOH	ÔĞWßMAGICROD' ? 0 : byLevel(src.CoolDown, maxLevel)[0],
-        …ÍÑQ¥µ•5Ìè¹…µ”€ôôô€M}5%I=œ€üÉÉ…ä¡µ…á1•Ù•°¤¹™¥±° À¦’¢'”ÆWfVÂ‡7&2ä67EF–ÖRÂÖ„ÆWfVÂ’À¢gFW$67DFVÆ”×<Îˆ˜[YHOOH	ÔĞWÓPQÒPÔ“Ñ	ÈÈ\œ˜^JX^]™[
-K™š[
-
-HˆS]™[,(src.AfterCastActDelay, maxLevel),
-        interruptCast: srÉŒ¹%¹Ñ•ÉÉÕÁÑ…ÍĞ€ôôôÑÉÕ”°(€€€€€€€€¸¸¸¡ÍÉŒ¹…ÍÑ•™I…Ñ”€„ôôÕºæFVf–æVBbb²67DFVfVç6U&VGV7F–öå7C¢7&2ä67DFVe&FRÒ’À¢]Ûİ[Ûİ\˜ÙR]Ûİ[ˆ˜]Ò]Ë[ÙT˜Y]\Îˆ˜Y]\Ë range: byLevel(src.Range, maxLevel), targetType, damageType,°(€€€€€€€€¸¸¸¡ÍÉŒ¹M­¥±±%¹™¼ü¹I…¹•5½‘	åYÕ±ÑÕÉ”€˜˜ìÉ…¹•	½¹×W4'•gVÇGW&S¢G'VRÒ’À¢âââ‡7&2å6¶–ÆÄ–æfóòäÆÆ÷uÆv–,š\ÛHOOHYH	‰ˆÈ[İÔYÚX\š\ÛNˆYHJKˆ™\™\]Zisites: Object.values(prerequisitesByClass)[0] ?? [], prerequÕ¥Í¥Ñ•Í	å±…ÍÌ°(€€€€€€€µ¥¹¥µÕµ)½‰1•Ù•°è5…Ñ ¹µ…à Ä°€¸¸¹=‰©•7BçfÇVW2‡G&VT'”6Æ72’æÖ‡G&VRÓâG&VU¶æÖUÓòäÖ–ä¦ö$ÆWfVÂóÿÈ
-JKˆ‹‹ŠÜ˜Ë‘[[Y[	‰ˆÈ[[Y[ˆÜ˜Ë‘[[Y[œ™\,ace('Ele_', '').toLowerCase() }),
-        ...(src.CastTimeOpÁÑ¥½¹Ìü¹%¹½É••à€˜˜ì¥¹½É•Í•àèÑÉÕ”ô¤°(€€€€€€€€¸¸¸¡ÍÉŒ¹67EF–ÖT÷F–öç3òä–væ÷&U7FGW4VffV7Bbb²–væ÷&W57FGW4VffV7G<ÎˆYHJKˆ‹‹ŠÜ˜Ë‘[XYÙU\OË”Ü][XYÙH	‰ˆÈÜitDamage: true }), ...(src.DamageType?.IgnoreDefense && { ign¹½É••™•¹Í”èÑÉÕ”ô¤°(€€€€€€€€¸¸¸¡ÍÉŒ¹…µ…•QåÁ”ü¹%¹½É•±•µ–VçBbb²–væ÷&TVÆVÖVçC¢G'VRÒ’À¢âââ‡7&2äFÖvUG—Sòë’YÛ›Ü™Q›YH	‰ˆÈYÛ›Ü™Q›YNˆYHJKˆ‹‹Šİ]\ÑY™™Xãt && { statusEffect, statusDurationMs: byLevel(['AS_ENCHANTPA=%M=8œ°€M5}9UIœ°€5=}MQ1	=dœ°€1-}	IMI,œ°€M}@rÂtD5õt”ä´4„$ÒrÂuu5ôÔTÅDDõtâuÒæ–æ6ÇVFW2†æÖR’ò7&2å6¶–ÆÄA]LHˆÜ˜Ë”ÚÚ[]LˆÏÈÜ˜Ë”ÚÚ[]LKX^]™[
-HJKˆ    ...(statusChances[name] && { statusChance: Array.from({ l±•¹Ñ èµ…á1•Ù•°ô°€¡|°¤¤€ôøÍÑ…ÑÕÍ¡…¹•Ím¹…µ•t¡¤€¬€Ä¤¤ô¤²À¢âââ‡7&2åVæ—Bbb²w&÷VæDGW&F–öä×3¢GW&F–öâÂw&÷Vë™[\˜[\ÎˆÜ˜Ë•[š]’[\˜[ÏÈLJKˆ‹‹ŠÛ™TÚ(otTraps.has(name) && { groundHitLimit: 1 }),
-        ...(['B	}I=MQ)=-œ°€}MI4t¹¥¹±Õ‘•Ì¡¹…µ”¤€˜˜ì•™™•Ñ•±…å5Ï3¢#Ò’À¢âââ†G&–æ–ærbb²7G&–ä–çFW'fÄ×2Â7G,˜Z[[[İ[ˆKÙÙÛNˆYHJKˆ‹‹Š\˜][Û–ÌHˆ	¦& { durationMs: duration[0] }),
-        ...(src.RequirementsÌü¹i•¹å½ÍĞ€˜˜ìé•¹å½ÍĞè‰å1•Ù•°¡ÍÉŒ¹I•ÅÕ¥É•µ•¹ÑÌ¹i•¹å½ÍĞ²ÂÖ„ÆWfVÂ’Ò’À¢âââ†—FVÔ6÷7D'”ÆWfVÂç6öÖR†6÷7BÓâ6÷7M›[™İ
-H	‰ˆÈ][PÛÜİS]™[JKˆ‹‹Š™\]Z\™YÙX\Û®.length && !weaponRequirements.includes('NoWeapon') && { reqÅÕ¥É•‘]•…Á½¸ô¤°(€€€€€€€€¸¸¸¡½¹±åQİ½!…¹‘•€˜˜ìÉ•ÅÕ¥É•‘Qİ½!†æFVC¢G'VRÒ’À¢âââ‚‡7&2å&WV—&VÖVçG3òå7FFRóò'VÆSÿËœ™\]Z\™Yİ]JH	‰ˆÈ™\]Z\™Yİ]NˆÜ˜Ë”™\]Z\™[Y[ÏË”İ]H ?? rule?.requiredState }),
-        ...(src.Requirements?.HPC½ÍĞ€˜˜ì¡Á½ÍĞè‰å1•Ù•°¡ÍÉŒ¹I•ÅÕ¥É•µ•¹ÑÌ¹!A½ÍĞ°µ…á1•Ù•°¤‚Ò’À¢âââ‡7&2å&WV—&VÖVçG3òä…&FT6÷7Bbb²‡6÷7EW&8Ù[ˆ\[ÙˆÜ˜Ë”™\]Z\™[Y[Ë’˜]PÛÜİOOH	Û[X™\‰ÈÈÜ˜Ë”’equirements.HPRateCost : byLevel(src.Requirements.HPRateCostĞ°µ…á1•Ù•°¥lÁtô¤°(€€€€€€€€¸¸¸¡ÍÉŒ¹I•ÅÕ¥É•µ•¹ÑÌü¹MÁ¥É¥ÑMÁ¡•Ë&T6÷7Bbb²7†W&T6÷7C¢'”ÆWfVÂ‡7&2å&WV—&VÖVçG2å7—&—E7†W&YPÛÜİX^]™[
-HJKˆ‹‹Š[OËœ™\]Z\™YÛİ	‰ˆÈ™\]uiredSlot: rule.requiredSlot }),
-        ...(inheritedEffect €˜˜ì•™™•ÑÌè¥¹¡•É¥Ñ•‘™™•Ğô¤°(€€€ôì)µ…¹¥™•ÍĞ¹Í­¥±±M½ÕÉ6W5·6¶–ÆÄ–B†æÖR•ÒÒ²–C¢7&2ä–BÂæÖRÂ6÷W&6TÖ„ÆWfVÃ¢7&2ë“X^]™[Ûİ\˜ÙT™\]Z\™[Y[ÎˆÜ˜Ë”™\]Z\™[Y[ÈÏÈßKÛİ\˜ÙeDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}ô°Í½ÕÉ•!¥Ñ½Õ¹ĞèÉ…İ!¥ÑÌ°Í½ÕÉ•MÁ±…Í¡I…¹”èÍÉŒ¹MÁ±…Í¡I…¹vRóòÂ–×ÆVÖVçFF–öâÂâââ†–FÆTFÖvT×VÇF—Æ–W%7Bbb²–FËQ[XYÙS][\Y\”İJK‹‹Š[œİ\ÜY™X\ÛÛˆ	‰ˆÈ[œİ\Ü²tedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation¸è€=¹”Ù½±…Ñ¥±”¡…É”ì¥ÑÌ™¥ÉÍĞÍ½ÕÉ”µÉ…‘¥ÕÌ½¹Ñ…Ğ‘…µ†vW2VÆ–v–&ÆRæV&'’F&vWG2æBW6†W2V6‚'’F‡&VR6VÆÇ2â›ÜÜË[Ûœİ\ˆ›ÒÛ›ØÚØ˜XÚÈ[™X\›ÒÛ›ØÚØ˜XÚÈ™]™[[İ™[Yent.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aurÉ„™½È€ÄÀÍ•½¹‘Ìì•Ù•¹Ğµ‘É¥Ù•¸€ÈÀµÌÁÕ±Í•ÌÉ•Ù•…°Ñ¡”™¥Ù”‚†W&7VÆW26öæ6VÆÖVçB7FGW6W2–â&F—W2"æBFVÂCRR†öÇHPUÈÛ›HÈXXÚ™]ÛH™]™X[Y[™[^KˆQ’È\›\È\š[™È\0roach and does not provoke before damage.' }), ...(name === €1-})=%9Q	Pœ€˜˜ì…‘…ÁÑ…Ñ¥½¸è€M•±•ÑÌ½¹”É…¹‘½´‰½‘äÁ…Ë'B&Vf÷&RvVöâFÖvS²æV6²F÷V&ÆW2öæÇ’F†RFF—F—fR6¶–ÆË˜][ËˆHİXØÙ\ÜÙ[]›ÛÈH
-ÈJ›]™[\˜Ù[È\Kïrefresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoul±‘•È°İÉ¥ÍĞ°­¹•”…¹…¹­±”™••Q,°°…ÑÑ…¬µ‘•±…ä…¹¶Ö÷fVÖVçB6öç7VÖW'2âæV6²Ç6òGFV×G245ô$ÄôôD”ärW6–ær—G2İÛˆÛİ\˜ÙH™\Ú\İ[˜ÙH[™LÈÈŒMÎNHXÚÜËˆ›ÜÜÙ\È™eject the body-part status.' }), ...(name === 'PF_FOGWALL' &&˜ì…‘…ÁÑ…Ñ¥½¸è€M½±¼…‘…ÁÑ…Ñ¥½¸èÁ±…•Ì„™¥á•€ÕàÌÉ½Õ¹šf–VÆBVæFW"F†R67FW"Âv—F‚BÖ÷7BGvòw&÷W2æBFVfVç6RûÛ›HÚ[H[œÚYH]™HÙ[Ëˆ›ÛØ[›ËÑØ[HÙ[È™Z™Xİ›ÙÎÈ only cells overlapping Deluge last 40 seconds instead of 20.¸•½µ•ÑÉä…¹M}=]10…É”9½M…Ù”¸,Á±…•Ì¥Ğİ¡•¸Ñ¡”‚F&vWB†2æ÷&ÖÂ&ævR&÷fR2÷"ÖöFVÆVBå2Öv–26¶–ÆËÚ]˜[™ÙHX›İ™HÎÈİÙ\œÈÜ™[˜\H˜[™ÙY]˜]HHL0ercentage points and quarters ranged normal-attack damage. TQ…É•Ñ•9Aµ…¥Œ¡…Ì„€ÜÔ”…ÍĞµ•¹™…¥±ÕÉ”É½±°…¹„€ÈÔ”‚FÖvR&VGV7F–öâöâ†—BâF†R†W&7VÆW2&Æ–æBÖöâÖö67WçG2yÜ›İ[™XÙ[™Z]š[Üˆ\È›İÚ[][]Y‰ÈJK‹‹ŠÉÔĞWÕ“ÓĞS“Éç, 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptatÑ¥½¸è€M½±¼Á±…•µ•¹Ğ•¹Ñ•É•Õ¹‘•ÈÑ¡”…ÍÑ•Èì™¥á•Í½ÕÉ–RwƒrFW'&–âÖ6Æ—VB6VÆÇ2Â–æFWVæFVçBVçG'’öW†—BæBVÆVÖY[[YY™[œÙHÛ˜\ÚİÈ\ˆXİÜ‹ˆÜšYÚ[˜[™\Ûİ\˜ÙHÛÜİÈ[®d remaining-time replacement; NoSave group and excess HP. GrÉ½Õ¹Ñ•áÑÕÉ•ÌÕÍ”„ÁÉ½©•Ñ•™±…ĞÁ±…¹”É…Ñ¡•ÈÑ¡…¸Ñ¡”¹…ÓF—fR4B6öæRârÒ’Ââââ†æÖRÓÓÒueôÔ”äD%$T´U"rbb²FFM[Ûˆ	ÔÚ[™ÛK]\™Ù]›ËY[XYÙHÚÚ[]˜[™ÙHNÈÛİ\˜ÙHİXØÙess chance 55 + 5 per level, 30 s duration, 12% per-level MATQ,¥¹É•…Í”…¹Í½™Ğµ5Í…±…ÈÉ•‘ÕÑ¥½¸¸	½ÍÍ•Ì…¹Õ¹‘•…’BF&vWG2&R&V¦V7FVC²7V66W76gVÂÆ–6F–öâVæG2g&VW¦RÂ4İÛ™H[™ÛY\[™Ø[˜Ù[ÈH[Ù[Y[™[^HØ\İˆQ’ÈÛ›HÛïnsumes SP after the existing target/range/resource gates. ItÑÌ5Q,¥¹É•…Í”…ÁÁ±¥•ÌÑ¼µ½‘•±•9Aµ…¥Œ¸œô¤°€¸¸¸¡¹…µ”‚ÓÓÒt…EõõtU"rbb²FFF–öã¢t&÷r6öÖ&ògFW"5ôDõT$ÄRi›ÜˆŒ\ÎÈÛÈ™K\™[™]Ø[L
-È
-”ÕˆÙX\Ûˆ]ÈYØZ[œİ‚rute or Insect targets, consuming 12 SP and one Arrow.' }), É…Ñ¥½M½ÕÉ”èµ…¥I…Ñ¥½Ím¹…µ•tñğİ•…Á½¹I…Ñ¥½Ím¹…µ•t€ü€ÍÉŒ¾öÖö&GFÆRæ3¦&GFÆUö6Æ5÷6¶–ÆÇ&F–ò‡&R×&VæWvÂ'&æ6†W2’rˆZ\ØÔÚÚ[Ëš\Ê˜[YJHÈ	ÜÜ˜ËÛX\Ø˜]K˜Î˜˜]WØØ[×ÛZ\Ø×ßattack / battle_calc_weapon_attack' : 'src/map/skill.c and sÍÉŒ½µ…À½ÍÑ…ÑÕÌ¹Œœ°Õ¹ÍÕÁÁ½ÉÑ•‘I•ÅÕ¥É•µ•¹ÑÌè=‰©•Ğ¹­•åÌ¡ÍÉŒ¹I&WV—&VÖVçG2óò·Ò’æf–ÇFW"†²Óâ²u56÷7BrÂu¦Vç”6÷7BrÂt—FVÛ\ÉË	ÕÙX\Û•\\ÉË	Ôİ]IË	ÒÛÜİ	Ë	Ò˜]PÛÜİ	Ë	ÔÜ\š]ÓphereCost'].includes(k) && !(rule?.handledRequirements ?? []t¤¹¥¹±Õ‘•Ì¡¬¤¤ôì)ô)µ…¹¥™•ÍĞ¹Í­¥±±M½ÕÉ•Ì¹İÍ}İ•…Á½¹É•™¥¹”¹…’FFF–öâÒÖæ–fW7BçvVöå&Vf–æRæFFF–öç2æ¦ö–â‚rr“°¦ÖæšY™\İœÚÚ[Ûİ\˜Ù\ËÜ×ÛY[İÛ‹˜Y\][ÛˆH	Ó˜]]™HÙ[ˆY™¦ at the selected learned level; SkillData1 lifetime15â€“60s,°½É¥¥¹…°M@½…ÍĞ±½­Ì°Á¡åÍ¥…°µ¡¥Ğİ•…Á½¸½…Éµ½È‰É•…¬¢†æ6W3ósW"ÆWfVÂöâ66ÆSâÔEô$õ52–Ö×Væ—G“²æF—m™Hİš\Œİ™\›\\˜][Ûˆœ›ÛH‘×ÔÕ’TÊ“ŒKˆÛ™HY]ional-effect phase per living hit target, excluding Cart Termµ¥¹…Ñ¥½¸½Q½µ…¡…İ¬½I•™±•ĞM¡¥•±¸,Í­¥ÁÌ…±°µ‰½ÍÌ‰…ÑÑ±•Ìºâæõ6fR'VfbæB6GW&VBÆWfVÂ&R&ö6W72ÖÆö6ÂÂ6ÆV&VBûÛˆØ\İ\ˆ™]ÈÛÛ›™Xİ[Û‹ÛÙÛİ]È›ÑX]™\Ù]İ\š]™\ÈY™X]4. Monster NoSave strips remain on the same live instance acrÉ½ÍÌ…ÍÑ•ÈÉ•½¹¹•Ğ½±½½ÕĞ°‘¥Í…ÁÁ•…È½¸ÁÉ½•ÍÌÉ•ÍÑ…ÉĞ…ºæBæWfW"G&ç6fW"Fò&W7vâ”BâV×W&—VÒ&V¦V7G27FGW2&YY›Ü™H]È˜]ÎÈ‘ËÑÜ˜]š]HÛÛ›ÛŞ\İ[\È\™HXœÙ[ˆ˜]]™e generic equipment-break contributions are not produced by tÑ¡”ÕÉÉ•¹ĞÍ½±¼•¹¥¹”¸œì)µ…¹¥™•ÍĞ¹Í­¥±±M½ÕÉ•Ì¹‰Í}™¥¹‘¥¹½Ë&RæFFF–öâÒtæF—fR76—fRF—&V7BÕ2÷væVBÖ¶–ÆÂ&ö3¢VëšY›Ü›HÚÚXÙH[[Û™ÈHÜ™\™YŒY[HUPÒRS—ÓÔ‘HX›K¦ollowed by strict roll below chance on scale10000. Exactly tÑİ¼‘É…İÌ°¥¹±Õ‘¥¹œ™…¥±ÕÉ•Ìì¹¼É…Ñ•Ì°1U,½È±•Ù•°Í…±¥¹râW6W2æ÷&ÖÂfÆö÷"Æö÷BæB66—G’†æFÆ–ærâ7W'&VçB6öÆûÈÛÜ›\ÈÛ™HÈ[XYÙHİÛ™\È[KÜ]ÚÛ][˜İ[\ÈÚ[[™È is not modeled.';
-manifest.skillSources.cr_slimpitcher.adaptÑ…Ñ¥½¸€ô€M½±¼Í•±˜µ•¹Ñ•É•É½Õ¹…ÍĞìÍ½ÕÉ”É…¹”Ì…¹Ë&F—W32&WF–æVBÂv—F†÷WB'G’F&vWG2âW6VBÆWfVÂ6VÆV7G2$™YÖY[İËÕÚ]HÛ[Hİ[Ûˆ]x $ÍKÍ¸ $ÎKÌLÛ™H][H[™Ì0SP. Native1000ms base cast and1000ms aftercast, no extra dri¥¹­¥¹œ½½±‘½İ¸¸1•…É¹•M±¥´½A¥Ñ¡•È½1•…É¹¥¹A½Ñ¥½¸…¹Ñ…ÉvWBd•Bõ&V6÷fW'’VçFW"7FvVBG'Væ6F–öââW†—7F–ærFWFW&Ö–æ—<İXÈ˜]È][KZX[ZYÚ[ÍMKÌŒKÌÍR™\XÙHH˜]]™Hóhared random raw heal. Generic caster heal bonus is excluded‰ä‘•™…Õ±ĞÍ­¥±±}…‘‘}¡•…±}É…Ñ”ÜìÕÉÉ•¹ĞÍÁ•¥™¥Œ½¡•…°È½ÍÑ†GW2ÖöF–f–W'2†fRæò&öGV6W'2æB72¦W&òâd²&WF–ç28ÛÛ™šYİ\™Y™\ÚÛØ\YÌ	H[™Ù™™[œÙH™]ÙY[ˆİ\Ü4 actions.';
-manifest.skillSources.potion_pitcher.adaptation €ô€M•±˜µ½¹±äÍ½±¼ÕÍ”ìÍ•±•Ñ•1ØÇŠLÔ½¹ÍÕµ•Ì•á…Ñ±äI•’Bô÷&ævRõ–VÆÆ÷rõv†—FRô&ÇVR÷F–öâæC5Âv—F‚æF—fSS×2i\‹XØ\İ[^H[™›È^˜Hİ[ÛˆÛÛÛİÛ‹ˆ™XÛİ™\H\Ù\È¦ull learned Pitcher plus Learning Potion and target VIT/INT/½I•½Ù•Éä°İ¥Ñ ¹…Ñ¥Ù”ÍÑ…”ÑÉÕ¹…Ñ¥½¸¸ÕÉÉ•¹Ğ¥Ñ•´•áÁ½ÉĞ‚&WF–ç2FWFW&Ö–æ—7F–267&—BÖ–Gö–çG3SRó#Ró#Ró3cT…æCSÔˆ][KZX[ØØ\İ\‹ZX[Ü™XÙZ]™YZX[›Û\Ù\ËÛİ[[šÈand recovery-blocking statuses have no current producers and Á…ÍÌé•É¼½™…±Í”ì¡•±Á•È½Ù•ÉÌÑ¡•¥ÈÍ½ÕÉ”…É¥Ñ¡µ•Ñ¥Œ¸,‚W6W2÷6—F—fR6öæf–wW&VB…F‡&W6†öÆB6VBCsRÂ÷"÷6—M]™HÛÛ™šYİ\™YÔ™\ÚÛÛ›HYˆ\ÙY[Ú]Ù™™[œÙH™etween support actions. No party target system.';
-manifest.sk­¥±±M½ÕÉ•Ì¹‰…}Á…¹Ù½¥”¹…‘…ÁÑ…Ñ¥½¸€ô€M¥¹±”µÑ…É•Ğ¹¼µ‘…µ…vR67BB&ævR’GW&–ærf–VÆB‡VçF–æs²Æ–W26÷W&6R45ô4óÓ‘•TÒSÓˆ›ÜˆMÈÈ]HL	H˜\ÙHÚ[˜ÙKˆ›ÜÜÙ\È™Z™Xİ]ˆÛÛ,o adaptation releases the monster attack target and randomizé•Ìµ½Ù•µ•¹Ğİ¥Ñ¡¥¸Ñ¡”Í½ÕÉ”I}M%i€¼€È€ Üµ•±°¤•¹Ù•±½ÃRVçF–ÂW‡—'’âs°¦Öæ–fW7Bç&öwVT6÷’Ò°¢Ö„6÷–VE6Æ÷G3®ˆK[˜ÛÛZ[™ÔØÛÜNˆ	Û[Ù[Y”ÈXYÚXÉËˆÛİ\˜ÙS˜[Y\ÎˆÉÓMG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRI%-t°(€€€Í½ÕÉ”è€ÍÉŒ½µ…À½Í­¥±°¹ŒèÄÈØÀ¸¸ÄÈÜä°ÌØÜÀ¸¸ÌÜÌÜìÍË&2öÖ÷2æ3£S#"âãS3RÃƒƒ“2âãƒ“‚Ã#ƒ3âã#ƒS2rÀ¢fÆs¢u4ÚÚ[[™›Ë[İÔYÚX\š\ÛIË]™[ˆ	ÛZ[Š[˜ÛÛZ[™È]™[Û›İÛ® Plagiarism level)',
-    damageGate: 'positive final skill d‘…µ…”ÍÑÉ¥Ñ±ä‰•±½ÜÑ…É•Ğ!@‰•™½É”…ÁÁ±¥…Ñ¥½¸œ°(€€€Á•É¶ÖæVçE6¶–ÆÇ3¢w–BÆWfVÇ2æBö–çG2&VÖ–â6W&FS²6ÖR8ÛÜYYQØ[››İ\Ü˜YIËˆÛÛ[Z]YØ\İİ\š]™\Ô™\XÙ[Yent: true,
-    preserve: { noSave: true, clearedOnDeath: true”°‘ÕÉ…Ñ¥½¹5Ìè€ØÀÀÀÀÀ°ÍÀè€ÌÀ°‰…Í•…ÍÑ5Ìè€ÄÀÀÀ°(€€€€€€€Í½ÕË&6S¢vF"÷&R×&R÷6¶–ÆÅöF"æ6öæc£Ccƒ‚âãCsS²F"÷&R×&R÷65ö6öæišYË˜ÛÛ™ŒLMÍK‹ŒLN‰ËˆY\][Ûˆ	ĞQ’È\›\ÈÛ›HYer acquiring a valid copy. Per-profile process-memory status ±•…ÉÌ½¸¹•Ü½¹¹•Ñ¥½¸°•áÁ±¥¥Ğ±½½ÕĞ…¹ÁÉ½•ÍÌÉ•ÍÑ…Ë'C²'&÷w6W"F—66öææV7BÆöæR¶VW2d²6–×VÆF–öâ'Vææ–ærârßKŸNÂ›X[šY™\İœÚÚ[Ûİ\˜Ù\Ëœ™×ÜYÚX\š\ÛK˜Y\][ÛˆH	ÔÙ\\²ate durable copied slot learned only through real modeled NPAµ…¥…°‘…µ…”°İ¥Ñ¡½ÕĞÁ½¥¹ÑÌ½ÈI9¸ÕÉÉ•¹Ğ¥¹½µ¥¹œÍ6÷R†2f÷W"ÖvR7VÆÇ3²÷F†W"–æ6öÖ–ær7VÆÇ2æBe&R›İ[Ù[YˆXİX[›ØˆÚ[™Ù\ÈÛX\ˆHÛİÈX]™]Z[®s it. Started casts keep their ID and level snapshot after rÉ•Á±…•µ•¹Ğ¸œì)µ…¹¥™•ÍĞ¹Í­¥±±M½ÕÉ•Ì¹ÍÑ}¡…Í•İ…±¬¹…‘…ÁÑ…Ñ¥½¸‚ÒtÖçVÂ6VÆb67C£#×2ÖöF–f–VB'’DU‚Ã5²7F—fR&V6\İ[™È[[YYX][H›Üˆ›ÈÔˆXZ[ˆİ]\È\œÚ\İË˜Z[œÌq0+2*level SP each10s and adds35-5*level percent walking dela…ä¸=¹±äİ¡•¸…‰Í•¹Ğ°„Á…¥ÁÕ±Í”É…¹ÑÌÉx¡±•Ù•°´Ä¤MQH™½ÈÏ32v—F†÷WB&Vg&W6‚â6†–ÆB7W'f—fW2Ö–âVæF–ær'WB†2æõ6m™NÈX]ÛX\œÈ›İˆÜ™[˜\H[ØœÈİÜXÜ]Z\Ú][Û‹›ÜÜÙ\ó/detectors and already-started targeted NPC casts may hit; pÁ½Í¥Ñ¥Ù”!@‘…µ…”•¹‘Ìµ…¥¸¸9¼M½Õ°1¥¹¬½Ù…‘…ÁÑ…Ñ¥½¸½È‚d²WFò×FövvÆRâs°¦Öæ–fW7Bç6¶–ÆÅ6÷W&6W2ç7E÷&W6W'fRæFFM[ÛˆH	Ó›Ü›X[Ù[‹XY™ˆÚ]Ûİ\˜ÙHL\ÈØ\İÌÔ[™Œ00 s duration. Protects the copied slot from replacement whil±”…Ñ¥Ù”ì‘•…Ñ …¹9½M…Ù”Í•ÍÍ¥½¸‰½Õ¹‘…É¥•Ì±•…È¥Ğ¸,‚v—G2f÷"fÆ–B6÷’&Vf÷&R&Ö–ær—BâW6W2÷&–v–æÂ–6öâ[™^\İ[™ÈÙ[™\šXÈ˜]]™HØ\İÈ›È[œİ\ÜYÙ™šXÚX[‘†X ID is invented.';
-manifest.skillSources.mo_bladestop.adaptÑ…Ñ¥½¸€ô€]…¥ÑÌ€ÔÀÀ¼ÜÀÀ¼äÀÀ¼ÄÄÀÀ¼ÄÌÀÀµÌ™½È„‰…Í¥Œ…ÑÑ…¬Š'’æöâÖ&÷72v—F†–âGvò6VÆÇ2ÂgFW"WFò6÷VçFW#²7VæG2Ô[™Û™HÜ\™HÛ›HÚ[ˆQ’È\ÈİXÚ[ˆ]XÚÈYH[ˆ4he window. Links the actual attacker reciprocally for 20/30/¼ĞÀ¼ÔÀ¼ØÀÍ•½¹‘Ì°‰±½­¥¹œÁ…¥Èµ½Ù•µ•¹Ğ…¹‰…Í¥Œ…ÑÑ…­Ìßv†–ÆR÷F†W"Ööç7FW'27BâF†Rf÷W"6÷W&6R6¶–ÆÂÖÆWfVÂvFW2\™HÚXÚÙYYØZ[œİ›YHİÜ]™[ˆÚZ[ˆÛÛX›È\\ÜÙ\ÈÛ®ly the Triple Attack prerequisite in this linked state; AsurÉ„ÍÁ•¹‘Ì™½ÕÈÍÁ¡•É•Ì¸M½ÕÉ”M}	1MQ=@¡…Ì9½M…Ù”…¹¥Ï26ÆV&VBöâæWr6öææV7F–öââ45ô$ÄDU5Dõõt•B†2æòæõ6m™H›YÈ[ˆ\ÈÛİ\˜ÙNÈÛX\š[™ÈHÚÜYHØZ]ÛˆH™]÷ connection is an explicit Idle lifecycle adaptation. Both sÍÑ…Ñ•ÌÉ•±•…Í”½¸‘•…Ñ °Á…ÉÑ¹•È±½ÍÌ°µ…À•á¥Ğ½È•áÁ¥Éäìµ¾÷fVÖVçB6Æö6·2&W7VÖRv†VâföÆF–ÆR7FFR—2&VÖ÷fVBâs°¦Öæ–i™\İœÚÚ[Ûİ\˜Ù\Ë™×İÚ[šØÚ\›K˜Y\][ÛˆH	ÔÚ[™ÛK]\™Ù]›ï-damage cast at range 9 during field hunting; 70% chance to ¡…É´„±½İ•Èµ±•Ù•°½µµ½¸•µ½¸°•µ¤µ¡Õµ…¸°½È¹•°µ½¹ÍÓFW"f÷"2âWFòÖ67G2öæÇ’v†Vââå27V6–Â6¶–ÆÂ—2ÖûÙ[Yˆ›ØÚÜÈ™]È”ÈÜXÚX[ÚÚ[ÈÚ[H™\Ù\š[™ÈÛÛ[Z]4ted casts and normal attacks; hunting movement already track­ÌÑ¡”Á±…å•È°Í¼Í•Á…É…Ñ”İ…±¬µÑ¼µÉ…¹”´ÌÁ…Ñ¡¥¹œ¥Ì¹½Ğµ½’FVÆVBâs°¦Öæ–fW7Bç6¶–ÆÅ6÷W&6W2ç&uö6Æ÷6V6öæf–æRæFFF–öâÒyÔÚ[™ÛK]\™Ù]›ËY[XYÙHØ\İÛˆ[ˆY˜XÙ[]š[™ÈšY[Z[®t target; costs 25 SP and applies SC_RG_CCONFINE_S for 10 s.¸Q¡”½İ¹•È…¹Ñ…É•Ğ…¹¹½Ğµ½Ù”°‰ÕĞµ…ä½¹Ñ¥¹Õ”¹½Éµ…°†GF6·2â÷væW"Ö÷fVÖVçB&W7VÖW2v†VâF†RÆ7BÆ–æ¶VBF&vWBIY\ÈÜˆ]Èİ]\È^\™\ËˆÚ[[™Ù\È\™H^ÛYYÈHÛİ\²ce-bound status is cleared on death, map transfer, or stop, …¹¥ÑÌ‘•…‘±¥¹”Í¡¥™ÑÌ…É½ÍÌ%‘±”Á…ÕÍ”½É•½¹¹•Ğ¸œì)µ…¹¥šfW7Bç6¶–ÆÅ6÷W&6W2æF5öFöçFf÷&vWFÖRæFFF–öâÒu6VÆb×Æ6VB}ŞÈ[™[^HšY[È[Ù\È]™\HÈÈ›ÜˆNËˆ\Y\ÈH\˜ãules DEX/AGI and Dancing Lesson-derived values, grants the 2ÈÀÌ½ÕĞµ½˜µ…É•„É…”°‘É…¥¹Ì€ÄM@•Ù•Éä€ÄÀÌ°…¹•¹‘Ìİ¡•ºâF†RæW‡B6†&vR6ææ÷B&R–BâÆ–VBFò6öÆòf–VÆBÖ÷fVÛY[[™]XÚÈ[\˜[ÈÚ]İ][XYÙK‰ÎÂ›X[šY™\İœÚÚ[Ûİurces.mo_bodyrelocation.adaptation = 'Field-hunting approach ½¹±äè½¹ÍÕµ•Ì€ÄĞM@…¹½¹”ÍÁ¥É¥ĞÍÁ¡•É”€¡é•É¼İ¡¥±”áÁ±¾÷6–öâ7—&—G2—27F—fR’ÂF†Vâ&VÆö6FW2–ç7FçFÇ’FòöæRÖ8Ù[Ù™œÙ]œ›ÛHHÙ[XİY]š[™È[Øˆ]\ÈNÙ[ËˆIt does no damage and excludes challenge instances; the next áÑÉ•µ¥Ñä¥ÍĞ¥Ì‰±½­•™½È€ÈÌ¸á…ĞP½±±¥Í¥½¸…¹6VÆÂö67Wæ7’&R÷WG6–FRF†Ræ÷&ÖÆ—¦VB–FÆRf÷&ÖF–öââs°¦ÛX[šY™\İ™[[Y[[ÛÛ™\œÚ[Û^ÜÛİ\˜Ù\Î–ÉÜÚÚ[˜ÎNM‹‹LMÉË	çstatus.c:7097,7828..7830,7948..7958,6084..6114','sc_config.c½¹˜èÈÀÄÄ¸¸ÈÀÈØt±ÍÑ…ÑÕÌèM}I5=I}AI=AIQdœ±‘ÕÉ…Ñ¥½¹5ÌèÄàÀÀÃÆVÆVÖVçDÆWfVÇ3¥³Ã"Ã2ÃEÒÆ&÷75&æFöÔG&w3£ÆæWu&æFöÔG&w3®Œ‹İ›Û™Óİ™\›\˜[™ÛQ˜]ÜÎŒK\Ü[™[[İ˜X›N™˜[ÙK\’[œİ[®ce:true};
-manifest.playerStatusProduction = { scope: 'SelectÑ•9AÍÕ‰Í•Ğ°¹½Ğ™Õ±°µ½¹ÍÑ•È$œ°µ½¹ÍÑ•ÉÌèì€ÄÄÜÔè€9A}õô•4ôãrÂc¢tå5ô$Ä”äDED4³2rÒÂ&öGV6W%6÷W&6S¢vF"÷,™K\™KÛ[Ø—ÜÚÚ[Ù‹˜ÛÛ™‰Ë™X]Y[ØÛÜNˆ	ÓİÛˆÚ\˜Xİ\ˆ[ˆóolo hunting', diseaseRules: 'src/map/status.c:6937..7218,822ÈĞ¸¸àÈÌÈ°ÄÈĞØä¸¸ÄÈĞäĞœ°™¥ÉÍÑÑÑ…¬è€¹½Éµ…°œ°¹ÁI…Ñ•½µÁ…É¦—6öã¢w&æB‚’SÃÒ&FRrÂFVF„6ÆV'3¢G'VRÓ°¦6öç7Bç4ÖYÚXÔ[[YRYÈHÌLLŒLMLLNLMÌNÂ›X[šY™\İ›œÓXYÚXÔroduction = { source: 'db/pre-re/mob_skill_db.conf + db/pre-µÉ”½Í­¥±±}‘ˆ¹½¹˜œ°ÉÕ¹Ñ¥µ•5½¹ÍÑ•É%‘Ìè¹Á5…¥IÕ¹Ñ¥µ•%‘Ì°(€‚'VçF–ÖU&÷w3¢µÒÀ¢6÷W&6Tf—‡GW&TÖöç7FW$–G3¢³35ÒÂ6÷W,˜ÙQš^\™T›İÜÎˆÂˆÈÛİ\˜ÙS˜[YNˆ	ÓQ×Ñ’T‘P“Ó	Ëİ]Nº 'MSS_BERSERK', level: 3, rate: 500, castTimeMs: 1500, delayå5Ìè€ÔÀÀÀ°…¹•±…‰±”èÑÉÕ”°Ñ…É•Ğè€5MQ}QIPœ°½¹‘¥Ñ¥½¸ë¢tÕ45ôÅt•2rÒÀ¢²6÷W&6TæÖS¢tÔuôd•$T$ôÅBrÂ7FFS®ˆ	ÓTÔ×Ô•TÒ	Ë]™[ˆË˜]NˆLØ\İ[YS\ÎˆML[^S\Îº 5000, cancelable: true, target: 'MST_TARGET', condition: 'M5M}1]eLœô°(€€€t°…Ñ¥½¹Ìèl5}%I	=1Pœ°€5}=1	=1Pœ²ÂtÔuôÄ”t…Dä”ät$ôÅBrÂtÔuõ4õTÅ5E$”´RuÒÀ¢–×÷'FVE7FFW3¢¶ÉÓTÔ×Ğ‘T”ÑT’ÉË	ÓTÔ×Ô•TÒ	×K[\ÜYÛÛ™][ÛœÎˆÉÓTĞ×ĞSĞVTÓ', 'MSC_SKILLUSED'],
-    exclusionPolicy: 'Rows with unsuppo½ÉÑ•Ñ…É•Ğ°ÍÑ…Ñ”°½¹‘¥Ñ¥½¸°½Èµ¥ÍÍ¥¹œ5M}M-%11UM½¹’F—F–öäFF&R6¶—VBâæòVç7W÷'FVB&÷r—2Væ&ÆVBv—F‚›Ş[X]H™Z]š[ÜÈ”×ÓPQÒPĞSUPÒÈ\ÈHÙ\\˜]K[š[\emented mechanism.',
-    decisionCadence: 'Existing solo atta…¬‘•¥Í¥½¸‘•…‘±¥¹•Ìì…ÍÑÌÉ•Á±…”½¹”‘Õ”‰…Í¥Œ…ÑÑ…¬…ºæBF†RæW‡B÷&F–æ'’GF6²&WF–ç26÷W&6RGF6´FVÆ’6FVæ8ÙK‰Ëˆ[Ûœİ\”Üˆ	Ó›ÈÔÛÛÜˆ”ÈÚ\™Ú[™ËˆÛİ\˜ÙHÔãost is metadata for Magic Rod.',
-    basicRange: 'Unchanged;ì‰½±ĞÉ•… …ÁÁ±¥•Ì½¹±äÑ¼Ñ¡”9Aµ…¥…°…Ñ¥½¸¸œ°(€€€µ†v–5&öDfÆw3¢u45ôÔt”5$ôB—2æõ6fRæBæô6ÆV&æ6U&W6WBâ—M]™\È[ˆ›ØÙ\ÜÈY[[ÜH›ÜˆH^\İ[™ÈÙ\ÜÚ[Û‹ÛX\œÈÛ® a new session or death, and expires at its source deadline.¸œôì)µ…¹¥™•ÍĞ¹Í­¥±±½Ù•É…”€ôì±…ÍÍ•ÌèÉÕ±•Ì¹±…ÍÍ•Ì¹±•¹ÓF‚Â6¶–ÆÇ3¢6¶–ÆÄæÖW2æÆVæwF‚Â7W÷'FVC¢ö&¦V7BçfÇVW2†6FËÙËœÚÚ[ÊK™š[\ŠÈOˆËš[\[Y[][ÛˆOOH	Üİ\ÜY	ÊK›[®gth, unsupported: Object.values(catalog.skills).filter(s => Ì¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€Õ¹ÍÕÁÁ½ÉÑ•œ¤¹±•¹Ñ ôì)µ…¹¥™•ÍĞ¹Í­¥±²Ä6÷fW&vRæ'”6Æ72Òö&¦V7Bæg&öÔVçG&–W2„ö&¦V7BçfÇVW2†6FÆörë˜Û\ÜÙ\ÊK›X\
-›ØˆOˆÚ›Ø‹šYÈÛİ\˜ÙU™YNˆ›Ø‹œÚÚ[Ë›[™İ(, supported: job.skills.filter(id => catalog.skills[id].impl±•µ•¹Ñ…Ñ¥½¸€ôôô€ÍÕÁÁ½ÉÑ•œ¤¹±•¹Ñ °Õ¹ÍÕÁÁ½ÉÑ•è©½ˆ¹Í­¥±±Ìºæf–ÇFW"†–BÓâ6FÆörç6¶–ÆÇ5¶–EÒæ–×ÆVÖVçFF–öâÓÓÒwVç7W÷,Y	ÊK›[™İWJJNÂ›X[šY™\İœÚÚ[Ûİ™\˜YÙKœİ\ÜYÛİ\˜ÙS˜[mes = Object.values(catalog.skills).filter(s => s.implementatÑ¥½¸€ôôô€ÍÕÁÁ½ÉÑ•œ¤¹µ…À¡Ì€ôøÌ¹Í½ÕÉ•9…µ”¤ì)µ…¹¥™•ÍĞ¹Í­¥±±6÷fW&vRçVæf–Æ&ÆRÒö&¦V7BçfÇVW2†6FÆörç6¶–ÆÇ2’æf–ÇFW"‡<ÈOˆËš[\[Y[][ÛˆOOH	İ[œİ\ÜY	ÊK›X\
-ÈOˆ
-ÈÚÚ[Yº s.id, sourceName: s.sourceName, reason: s.unsupportedReason¸ô¤¤ì)µ…¹¥™•ÍĞ¹Í•¹Í•%¹ÍÁ•Ñ¥½¸€ôì(€€€Í­¥±°è€]i}MQ%5Q%=8ârÂ6¶WC¢u¤5ôÔôå5DU%ô”ädòrÂ6¶WD–C¢sƒ†2rÀ¢6¶WE4Ûİ\˜ÙNˆ	ÜÜ˜ËÛX\ØÛY‹˜ÎŒNM‹ŒŒIËÙ[œÙU\NˆËÙ[œÙU\TÓource: 'src/map/battle.c:7872',
-    defenseSource: 'src/map/½ÍÑ…ÑÕÌ¹ŒèÌàäà¸¸ÌäÌÌœ°Ñ…É•ÑM½ÕÉ”è€ÍÉŒ½µ…À½Í­¥±°¹ŒèàĞÌĞ¸¸ãƒCCrrÀ¢7W'&VçD‡¢G'VRÂVÆVÖVçFÄ÷&FW#¢²wvFW"rÂvV'F‚yË	Ùš\™IË	İÚ[™	Ë	ÜÚ\ÛÛ‰Ë	ÚÛIË	Ù\šÉË	ÙÚÜİ	Ë	İ[™XY$'],
-    negativeElementRateClamp: 0, manualOnly: true,
-    i¥‘•¹Ñ¥Ñå‘…ÁÑ…Ñ¥½¸è€½ÉÉ•±…Ñ”Ñ¡”Í½ÕÉ”Á…­•ĞÍ¹…ÁÍ¡½Ğİ¥ÓF‚F†RW‡Æ–6—FÇ’6VÆV7FVBÆ—f–ær–FÆR7F÷"æBVæ6÷VçFW"vY[™\˜][ÛÈ™]™\ˆHÜXÚY\È[Û™K‰ËŸNÂ›X[šY™\İœ]ØXÚHÂˆ    skill: 'AL_RUWACH', status: 'SC_RUWACH', durationMs: 1000ÀÀ°É…‘¥ÕÌè€È°ÍÁ½ÍĞè€ÄÀ°(€€€½¹•…±µ•¹ÑMÑ…ÑÕÍ•ÌèlM}!%$”ärrÂu45ô4Äô´”ärrÂu45ô4ÔõTdÄtRrÂu45ô4Äô´”ätU„4TTBrÂu4Ğ×Ó‘UÓSÓÓ‰×Kˆ[XYÙNˆ	ÌMIHPUËÛK\˜İ[\È]™[Nû only when concealment is removed',
-    sources: ['skill_db.¹½¹˜èÄÄàä¸¸ÄÈÈĞœ°€Í­¥±°¹ŒèÜÔØä¸¸ÜÔÜÜœ°€ÍÑ…ÑÕÌ¹ŒèàÈäÜ¸¸àÌÀÏ2Ã#C#"âã#C3BÃ33Cbâã33SRrÂv&GFÆRæ3£cs2âãcsRuÒÀ¢VËÙS\ÎˆŒØÚY[[™Îˆ	Ó™^˜[YÛİ\˜ÙH[ÙH\ÈØÚY[Y by target contact; no continuous 20 ms polling',
-    idleAda…ÁÑ…Ñ¥½¸è€…ÍĞ‰•™½É”„½¹•…±•Ñ…É•Ğ•¹Ñ•ÉÌÉ…‘¥ÕÌİ¡•¸‚—B6â&V6‚F†RW&&Vf÷&RW‡—'“²öæÇ’F†R&WfVÂFÖvR›İ›ÚÙ\ÈHšY[[Ø‹‰ËŸNÂ›X[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^8pansion = ['AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'BS_WEAPONPAIPœ°€	M}5a%5%iœ°€M}I=9=1=dœ°€1}@œ°€AI}MAI%4”òrÂu$uõ5E$•tTôârÂu$uõ5E$•$Ôõ"rÂu$uõ5E$•„TÄÒrÂua—ÒÓÓ•‘T”ÒSÓ‰Ë‹‹›Û™TÚİ˜\Ë	Ô‘×ÔÓUÒT‰Ë	Ô‘×ÔÕ’TÒIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY'];
-manifest.skillCove•É…”¹½µ‰…ÑáÁ…¹Í¥½¸¹ÁÕÍ  M}UQ=MA10œ°€A}=U	1MQ%9rÂueôÔTÔõ$•¤RrÂtÅõäUTÔrÂu4ÕôTäEU$RrÂt5%ôDTdTäDU"r“°¦ÛX[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^[œÚ[Û‹œ\Ú
-‹‹˜ÛÛ›Û˜\ÊNû
-manifest.skillCoverage.combatExpansion.push('MO_STEELBODY',°€1-}	IMI,œ°€M}@œ¤ì)µ…¹¥™•ÍĞ¹Í­¥±±½Ù•É…”¹½µ‰…ÑáÁ†ç6–öâçW6‚‚u5EôeTÄÅ5E$•rÂu5Eõ$T¤T5E5tõ$BrÂu4ÕôUDô$U%4U$²ÉÊNÂ›X[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^[œÚ[Û‹œ\Ú
-	ĞT×ÔÒTÓÓ”‘EACT', 'AS_SPLASHER');
-manifest.skillCoverage.combatExpansion¸¹ÁÕÍ  -9}UQ==U9QHœ°€	M}U9%I1eQI%,œ°€I}QU991I%Yr“°¦Öæ–fW7Bç6¶–ÆÄ6÷fW&vRæ6öÖ&DW‡ç6–öâçW6‚‚tÅõ%Ut4‚r“¾Â›X[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^[œÚ[Û‹œ\Ú
-	Ñ×ÑÓ•“Ô‘ÑUME');
-manifest.skillCoverage.combatExpansion.push('BA_PANGVOI%œ¤ì)µ…¹¥™•ÍĞ¹Í­¥±±½Ù•É…”¹½µ‰…ÑáÁ…¹Í¥½¸¹ÁÕÍ  }]%9- „$Òr“°¦Öæ–fW7Bç6¶–ÆÄ6÷fW&vRæ6öÖ&DW‡ç6–öâçW6‚‚u$uô4Äõ4QPÓÓ‘’S‘IÊNÂ›X[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^[œÚ[Û‹œ\Ú
-	Ô—ÓMINDBREAKER');
-manifest.skillCoverage.combatExpansion.push('PA}=]10œ°€M}Y=19<œ°€M}1Uœ°€M}Y%=19Q1œ¤ì)µ†æ–fW7Bç6¶–ÆÄ6÷fW&vRæ6öÖ&DW‡ç6–öâçW6‚‚tÔõô$ôE•$TÄô4D”ôã‰ÊNÂ›X[šY™\İœÚÚ[Ûİ™\˜YÙK˜ÛÛX˜]^[œÚ[Û‹œ\Ú
-	ÓS×Ğ“QTÕÏP', 'PR_SUFFRAGIUM');
-manifest.formulaEvidence = {
-    mindB	É•…­•ÈèlÍ­¥±°¹ŒèààÄä¸¸ààÔÄÍ½ÕÉ”•±¥¥‰¥±¥Ñä°¡…¹”°ÍÑ†GW2Â–çFW''WBæB426ÆVçWrÂw6¶–ÆÅöF"æ6öæc£#3‚âã#3S2˜[™ÙKÌËÔ[™Y\‹XØ\İ[^IË	Üİ]\Ë˜ÎMK‹MLË,8737..8739 MDEF percent and MATK percent values', 'status.c:èÔÌÔØ¸¸ÔÌäÀÁÉ”µÉ•¹•İ…°Í½™Ğ5Í…±…Èt°(€€€™½]…±°èlÍ®¶–ÆÅöF"æ6öæc£#3ƒâã#C"Wƒ2w&÷VæBf–VÆBÂ&ævS’Â#2æBHÔ	Ë	ÜÚÚ[˜ÎŒNŒK‹ŒN›[™\YYÈšY[ØØİ\[ó;20317..20326 field layout', 'battle.c:3337..3344 75% rangedİ•…Á½¸…¹€ÈÔ”‘¥É•ĞµÍ­¥±°É•‘ÕÑ¥½¸ìÔÀÌĞ¸¸ÔÀÌØ€ÔÀÁ½¥¹Ğ¢†—BVæÇG’f÷"æ÷&ÖÂ&ævVBGF6·2uÒÀ¢67D6öçG&öÃ¢²w<ÚÚ[˜ÎLN‹LÌÈØ\İØ[˜Ù[˜]ÈY][Û˜[Ô[™[š]Ø[®cel type1', 'skill.c:8934..8976 Spell Breaker current timer ‰½ÍÌÄÁÁĞ¹½Éµ…°ÉÁĞ…¹±•Ù•°Õ¡•…°œ°€Õ¹¥Ğ¹ŒèÈÔÄä¸¸ÈÔÜĞ…ºæ6VÆÆF–öâG—W2–væ÷&RFÖvR–çFW''WF–öâfÆw2rÂw7FGW2æ8ÎŒÎ‹ŒHØ]\˜][™ÈÔ˜\[™Ì‹ŒÍMˆ\ÜÚ]™H[XYÙH™\Ùerves controls', 'skill_db.conf:8244..8261 and8296..8319 exacĞM@½…ÍĞ½É…¹”t°(€€€…ÍÑ½¹ÑÉ½±%‘±•‘…ÁÑ…Ñ¥½¹Ìèl…ÍĞ†æ6VÂ—2W†6ÇW6—fVÇ’ÖçVÂv—F‚W‡V7FVB÷vâ7F–öâ–FVçF—GIË	ÔÜ[œ™XZÙ\ˆQ’ÈÙ[XİÈH]™H[™ØYÙY”ÈØ\İ\ˆÚ](in9 with strictly useful finish window', 'Solo monsters have”¹¼5…¥ŒI½ÁÉ½‘Õ•Èì9AA½¥Í½¸…¹	±¥¹‰…Í”M@…É”é•Ë&òrÂtæòe7F÷"÷"vVæW&ÂÖöç7FW"5ööÂ—26–×VÆFVBuÒËˆšY\İÛÛĞÛÛ›ÛˆÉÜÚÚ[˜ÎÍŒ‹‹ÎLH™XÛİ™\HY™™Xİ4ive undead branch, source controls and mob_unlocktarget', 'sÍ­¥±°¹ŒèÜÄÄÌ¸¸ÜÄÈÄ1•àM¥±•¹”É•µ½Ù…°½ÈÍÑ…ÉĞÄÀÀœ°€ÍÑ…ÑÕÌºæ3£c“Sâãc“cæCs2âãsr6–ÆVæ6Rô&Æ–æB&W6—7Fæ6S³sâãs,ŒNÛİ\˜ÙH[YÙ\ˆ›İ[™[™ÉË	Üİ]\Ë˜ÎÌÍ‹ÌÍM™\Ú\İ[˜Ùe RNG before7684..7688 boss and7721..7731 overlap', 'status.cŒèäÌÌ¸¸äÔÀM¥±•¹”…Ñ•ÌÍ­¥±°ÍÑ…ÉĞìÄÀØàÌ¸¸ÄÀØàØ…ÍĞ…¹•²ÆÆF–öâ6öçG&öÆÆVB'’FVfVÇB$ÅôåTÂ&GFÆRæ3£ƒrrÂvÖö"æ3£MNK‹ŒMŒÍ[›ØÚÈ]XÚËØÚ\ÙHÚ]İ]ÚÚ[Ø[˜Ù[][ÛÌMÌ²7..1746 minimum think and Blind view3;1794..1864 attacker me•µ½Éä…¹…ÅÕ¥Í¥Ñ¥½¸œ°€µ½ˆ¹ èĞÌ¸¸ĞÜµ¥¹¥µÕ´É…¹‘½´İ…±¬ĞÀÀÃæBF†–æ³rÂw2æ3£CS2âãCS#2†vvÆRW6W2Ö‚ÖW&6†çB÷&ûÙİYH\ØÛİ[[™[˜Ø][ÛØ˜]K˜ÎLÍÈZ[š[][HšXÙLI×KŠ    priestSoloControlIdleAdaptations: ['Attack target is sepÁ…É…Ñ”™É½´Á•¹‘¥¹œ9AÍ­¥±°Ñ…É•Ğì•¹½Õ¹Ñ•Èµ•µ‰•ÉÍ¡¥À…ºæB–B6Æö6·27W'f—fR&VÆV6RrÂtöæÇ’&VÆV6VBÖöç7FW'266ëˆÛˆLL\ÈXY[™NÈ›Ü›X[ÛÛX˜]™]Z[œÈ]È^\İ[™ÈØYence', 'Recent real damage memory is retained through release”Õ¹Ñ¥°„‘•¥Í¥½¸ì½±¹½Éµ…°µ½µ‰…Ğµ•µ½Éä¥Ì‘¥Í…É‘•…™ÓFW"F†RÖ–æ–×VÓ×2F†–æ²÷÷'GVæ—G’rÂtæòÆö÷B÷6ÆfRö76—<İÜYH]XÚËÙ[RHÚ[][][ÛÈ›Ü›X[^™YÙ[ÛY]H\È™]4ained and random-walk deadline persists without granting pro½Ñ•Ñ¥½¸œ°€,I•½Ù•ÉäÍ•±•ÑÌ•™™•Ñ¥Ù”µÕ¹‘•……Ñ¥Ù”…ÑÑ†6²F&vWG2v—F†÷WB&Æ–æC²ÆW‚6VÆV7G2Vç6–ÆVæ6VBæöæ&÷72&ûÙXÙ\œÈÙˆ[\[Y[Y”ÈXİ[ÛœÉË	ÔÛİ\˜ÙHÙÙÛH[™›Ü›Xal Recovery monster-control branches remain in resolver; self˜•Í…Á”…¹½Ñ¡•ÈAÑ…É•ÑÌ…É”½ÕÑÍ¥‘”Ñ¡¥ÌÍ½±¼‘•±¥Ù•ÉäuÒÀ¢ö—6öä&öÖ'3¢²v&GFÆRæ3£sCâãscæ÷&ÖÂÖGFV×B&VXİ[˜ÛY[™È›ØÚÙY]Ë›ÙH[[Y[[™“‘ÈÜ™\‰Ë	Üİatus.c:7906..7909 integer charges and50pct', 'skill.c:22573 o½µ¥ÑÑ••±•µ•¹Ğ‘•™…Õ±ÑÌ9•ÕÑÉ…°œ°€Í­¥±°¹ŒèäÌÈÜ¸¸äÌĞÈMÁ±…Í¢†W"…ö&÷726†V6²æB6ööÆF÷vârÂw7FGW2æ3£#cSâã#ccB7GV[Ü\Ú\ˆ\˜][ÛŠÍL\ÉË	ÜÚÚ[˜ÎLL‹‹LŒH™K\™HÙX\ïn explosion and5330..5337 target search/item ownership', 'sk­¥±±}‘ˆ¹½¹˜èÔÀØÌ¸¸ÔÀØÜ%¹½É•±•µ•¹Ğ½%¹½É•±•”…¹¹¼MÁ±¥ÓDFÖvRrÂw6¶–ÆÂæ3£srâãs#"ö—6öâFF—F–öæÂVffV7BæB6YXÛÛ™\H\˜][Û‰×KˆÚ\ÛÛ›ÛX’YPY\][ÛœÎˆÉĞ]]ÛX]4ic rotation does not recast an active React buff or refresh …¸…Éµ•‰½µˆœ°€%¹Ù…±¥…ÕÑ½µ…Ñ¥Œ‰½µˆÑ…É•ÑÌ…É”Í­¥ÁÁ•‚&Vf÷&R7VæF–ær&W6÷W&6W3²†W&7VÆW267BÖVæB&V¦V7F–öâ7VæIÈÔ™Y›Ü™H]ÈØ›ÜÜÈÚXÚÉË	Ğ›ÛXˆY[]H[™XY[™\ó persist through AFK reconnect and shift with the explicit I%‘±”Á…ÕÍ”t°(€€€É•…Ñ¥Ù•M½±¼èlÍ­¥±°¹ŒèÌÀÔÀ¸¸ÌÀÜÔ°àÔØä¸¸à×Sƒ’¦ö–çBgVÆÅ7G&—GFV×BæB6†VÖ–6Â6Æ÷G2rÂw65ö6öæf–ræ8ÛÛ™MK‹LLİš\İ]\Ù\È]™H›È›Ğ›ÜÜÈ›YÉË	Üİ]\Ë˜Îº4177,4252,4448,4516 additive strip stat percentages', 'battl±”¹ŒèØÌÀÔ¸¸ØÌÈàÉ•™±•Ñ¥½¸‰•™½É”I•©•Ğ…¹ÁÉ¥µ…Éä¡…¹¹•°‚†Çf–ærrÂw7FGW2æ3£ƒCcb&V¦V7BF‡&VR6†&vW2æB–æf–æ—FRI\˜][Û‰Ë	Üİ]\Ë˜ÎŒÍŒËMŒËÎÎKLLÎH]]ÛX]XÈ›İ›ÚÙH²eshold and ownership', 'battle.c:1485..1511 pre-re PC soft D½¹±äœ°€‰…ÑÑ±”¹ŒèÔÔÜÌ¸¸ÔÔäÔQ,Á•É•¹Ñ…”‰•™½É”Í­¥±°Ë&F–òuÒÀ¢&V7F—fU6öÆô–FÆTFFF–öç3¢²tWFò&W'6W&²W6W<ÈH\™Hİ\œ™[ÛX^›Ú™Xİ[ÛˆÛÈ]™\HÚ[™ÙH[™maximum-HP change reconciles the automatic Provoke immediatel±äœ°€Õ±°MÑÉ¥ÀÑ…É•ÑÌµ½¹ÍÑ•ÈÍÑ…ĞÁ•¹…±Ñ¥•Ìì¹¼µ½¹ÍÑ•È¦–çfVçF÷'’÷"WV—ÖVçB&VÖ÷fÂ—2f'&–6FVBuÒÀ¢6öÆõ7Fæ8Ù\ÎˆÉÜİ]\Ë˜ÎLMËLÌNİY[›ÙH\™Q‹ÓQQL	Ë	Üİ]\ó.c:5596 and5863 SteelBody speed/ASPD rate', 'status.c:5963 a…¹ÄÀÀäÌ¸¸ÄÀÀäà	•ÉÍ•É¬!@½M@½…Ñ¥Ù…Ñ¥½¸‘É…¥¸œ°€‰…ÑÑ±”¹ŒèÌÃƒrâã3ƒ’&R×&R&W'6W&²6¶–ÆÇ&F–òrÂw7FGW2æ3£SS’âãSc’[™LŒÌ‹ŒLŒÍH™\œÙ\šÈ[™[™Ë™YÙ[™\˜][Ûˆ[™[Y\‰Ë	Üã.c:5371,10266,10505 item and equipment locks', 'skill_db.con¹˜èÜäÄÄ¸¸ÜäĞÀ…¹ÄÀààÌ¸¸ÄÀäÀÀÍ½ÕÉ”½ÍÑÌ½‘ÕÉ…Ñ¥½¸t°(€€€‘–VFÇ•ö—6öã¢²v&GFÆRæ3£Sƒ3âãSƒC&R×&RTEvVöâ&FRæI^Û\Ú[ÛœÉË	Üİ]\Ë˜ÎÎM‹ÎLHÚ[˜ÙH[™˜]IË	ÜÚÚ[®c:1695..1698 normal hit DPOISON', 'status.c:8210..8232 initi¥…°‘…µ…”…¹Ñ¥¬Ù…±Õ•Ìœ°€ÍÑ…ÑÕÌ¹ŒèÄÈĞÜÌ¸¸ÄÈĞäĞ±•Ñ¡…°Á–W&–öF–2FÖvRrÂw6¶–ÆÅöF"æ6öæc£SC2âãS“‚GW&F–öâÂ5æIÚ\ÛÛˆ›İI×Kˆ[\ÛÛ›Û˜\ÎˆÉÜÚÚ[˜ÎNK‹²24 NOFOOTSET includes caster and neutral monsters', 'skill.cŒèÄĞÄÜà¸¸ÄĞÔÀÀÑÉ…ÀÑ¥µ•È°ÍÁ±…Í …¹ÕÍ•µÕ¹¥Ğ±¥™•Ñ¥µ”œ°€Ï6¶–ÆÂæ3£sƒ’âãƒR6ÆVWô&Æ–æB&FW2rÂw7FGW2æ3£s#2âãs#r[™ÌNK‹ÌŒ[šÛH›ÜÜËĞQÒH™\Ú\İ[˜ÙH[™š]™K\ÙXÛÛ™›ÛÜ²', 'skill.c:3085..3142 knockback immunity and direction reve•ÉÍ…°œ°€Í­¥±°¹ŒèÄäØÄÌ¸¸ÄäØÔĞÕ¹ÕÍ•ÑÉ…À™±½½ÈÉ•™Õ¹t°(€€‚‡VçFW%G&–FÆTFFF–öç3¢²tWFöÖF–2&÷FF–öâ¶VW2öæR\›YY[š]\ˆÚÚ[[™ÚÛÜÙ\ÈHœ™YH™X\˜HÙ[	Ë	ÔÛİ\˜Ùe cells use the authoritative normalized scene; GAT wall and µ…À¹½­¹½­‰…¬™±…Ì…É”¹½ĞÍ¥µÕ±…Ñ•‰äÑ¡¥ÌÍ•ÉÙ•Èœ°€UºçW6VBG&fÆö÷"G&÷2W6RF†R6ÖRWFöÖF–26öÆÆV7F–öâæBš\ÚX›HÛİ\È[Ûœİ\ˆ›ÜÉ×KˆØYÙPØ\İ[™ÎˆÉÙ‹Ü™K\²e/autospell_db.conf learned-spell caps', 'battle.c:7049..707ÜÔ¹½Éµ…°µ…ÑÑ…¬ÁÉ½Œ…¹‘¥Í½Õ¹Ñ•M@œ°€Í­¥±°¹ŒèÌäØÌ¸¸ÌäÜÇæöç&V7W'6—fR&öÇBF–ÖW"rÂw7FGW2æ3£ƒCs"âãƒCsBf—fRÖVÖ÷&—®™HÚ\™Ù\ÉË	İ[š]˜ÎŒMÍÎK‹ŒMÎ[™NN‹ŒNNHYÛ›Ü™Tİ]\ÑY™¦ect guard', 'skill.c:17563..17585 Memorize cast-time and con¹ÍÕµÁÑ¥½¸t°(€€€±…ÍÍ¥•™•¹Í•ÌèlÍ­¥±°¹ŒèÄÈÀàÈ¸¸ÄÈÀäÈÉ½×VæBäõ$T•DU$D”ôâæCCS2âãCcbæWVÖÆ–÷WBrÂv&GFÆRæ3£3#]LÈ˜[™ÙY›Û›XYÚXÈ™][XH›ØÚÉË	Üİ]\Ë˜ÎNK‹HY™[™$er reduction and rate', 'status.c:3396..3401 ASPD rate beforÉ”µ½Ñ¥½¸±…µÀœ°€ÍÑ…ÑÕÌ¹ŒèÌÌà¹‘ÕÉ”¡…É”É•µ½Ù…°‰•±½Üë¦W&òrÂv&GFÆRæ3£CƒcBÖ÷F–öâ6æ6†÷B&Vf÷&R7FGW5öFÖvRuÒËˆXYÚXÎˆÉØ˜]K˜ÎŒML‹ŒMÌMÚÚ[˜][ÜÉË	Ø˜]K˜Î4166 MATK splash split', 'battle.c:1562 hard and soft MDEF', €‰…ÑÑ±”¹ŒèĞÌÄÀÁ½Í¥Ñ¥Ù”½¹•…Ñ¥Ù”‘¥Ù¥Í¥½¸™¥àt°(€€€İ•…Á½¸ë¢²v&GFÆRæ3£Sƒ#"&R×&VæWvÂF—f—6–öâ&Vf÷&RFVfVç6RrÂv&GMK˜ÎŒÈÙX\ÛœH™\ÙX\˜ÚY\ˆY™[œÙIË	Ø˜]K˜ÎŒÍHmastery after defense', 'battle.c:6124 spirit spheres', 'battÑ±”¹ŒèÔĞÌØİ•…Á½¸İ•¥¡Ğ€¨à¼ÄÀÀ€ô€àÀ”‘¥ÍÁ±…å•İ•¥¡Ğt°(€€‚67C¢²w6¶–ÆÂæ3£sS’DU‚óSrÂw6¶–ÆÅöF"æ6öæb67EF–ÖT÷Fš[ÛœË’YÛ›Ü™Q^	Ë	ÜÚÚ[˜ÎŒŒÎK‹ŒŒLÈ[\œ\Ø\İY˜][ false', 'status.c:6386 hard DEF -= trunc(hard DEF * CastDefRI…Ñ”€¼€ÄÀÀ¤ìÉ…¹É½ÍÌ…¹5•Ñ•½ÈÍÍ…Õ±Ğ…ÍÑ•™I…Ñ”€ÌÌt²À¢7FG3¢²w7FGW2æ3£3sc2âã3sc’&6RÖ÷F–öât’ôDU‚rÂvF"ûÚ›Ø—ÙŒ‹İ[][]]™H›Øˆ›Û\Ù\ÉË	Ú›Ø—Ù‹˜ÛÛ™ˆ˜\ÙPTÔand Weight'],
-    recovery: ['status.c:2733..2737 skill HP/SP@É•½Ù•Éäœ°€Í­¥±°¹ŒèÈàÀÔ¸¸ÈàÄÔM½Õ°É…¥¸œ°€Í­¥±°¹ŒèÄÄØäM6æ7GV'’uÒÀ¢÷F–öç3¢²w2æ3£ƒs#"âãƒs#B—FVÒ…ÖöF–f–W'<ÉË	ÜË˜ÎÍŒK‹ÍŒÈ][HÔ[ÙYšY\œÉË	ÜË˜ÎIH\ˆSWÓPT’NINGPOTION level'],
-    additionalPassives: ['status.c:1894 É…½¹½±½ä%9Pœ°€ÍÑ…ÑÕÌ¹ŒèÈÈÄä¸¸ÈÈÌàM­¥¸Q•µÁ•É¥¹œ…¹Ë&vöæöÆöw’VÆVÖVçB÷&6R&öçW6W2rÂv&GFÆRæ3£C“2âãSF—f–æYH›İXİ[Ûˆ[Ûœİ\ˆÛÙY™[œÙI×KˆY][Û˜[Xİ[ÛœÎˆÛ'skill.c:8570..8587 strip chance and duration', 'status.c:79äàÄ¸¸ÜääÔÍÑÉ¥Àµ½¹ÍÑ•ÈÍÑ…Ğµ½‘¥™¥•ÉÌœ°€Í­¥±°¹ŒèäÈÈà!@½ºçfW'6–öârÂw7FGW2æ3£c#‚âãcCBvVöâVæ6†çFÖVçB&V6VFVæ6YI×Kˆ˜\ÎˆÉØ˜]K˜Î‹LÛ\ÜÚXÈZ[™H[XYÙIË	çbattle.c:4650 splash division before element', 'skill.c:1892ÈÔÁÉ”µÉ•¹•İ…°É••é¥¹œQÉ…Àİ•…Á½¸…ÑÑ…¬œ°€Í­¥±±}‘ˆ¹½¹˜UVæ—BæB6¶–ÆÄFF&ÒGW&F–öâuÒÀ¢7FGW4æDG&–ã¢²w6¶š[˜ÎŒNK‹ŒNÌÈœ›Üİ›ÚÙKÔØÜ™X[H˜\ÙHÚ[˜ÙIË	ÜÚÚ[˜Îu2 delayed effect after 2000 ms', 'status.c:7891 Maximize durÉ…Ñ¥½¸‰•½µ•Ì‘É…¥¸¥¹Ñ•ÉÙ…°œ°€ÍÑ…ÑÕÌ¹ŒèàÈàØ±½…­¥¹œ¥¹™¥ºæ—FRGW&F–öâæBG&–â–çFW'fÂrÂw7FGW2æ3£ƒ#c’âãƒ#s2æBLY[™È™[XZ[š[™Ë\ÙXÛÛ™˜Z[‰×KˆÛÛÔÚÚ[ÎˆÉÜÚÚ[,l.c:1645..1656 pre-renewal Gank probability and pc_steal_ite•´…±°œ°€ÍÑ…ÑÕÌ¹ŒèĞÔÄØ¸¸ĞÔÄÜÍ¡¥•±ÍÑÉ¥ÀÁ•É•¹Ğ…‘‘¥ÓF—fR6FVv÷'’rÂw6¶–ÆÂæ3£cCâãc“Bæ÷&ÖÂÖ†—BVæ6†çBö—6öë‰Ë	Üİ]\Ë˜ÎÎLÍ‹‹ÎMˆ[˜Ú[Ú[˜ÙH[™™\XÙ[Y[	Ë	ÜÚëill.c:7619..7631 Enchant Poison property rejection', 'skill.¹ŒèàĞÔØ¸¸àĞØØ%‘•¹Ñ¥™ä™±…ĞM@½ÍĞt°(€€€É…¹”èl‰…ÑÑ±”¹Œë£scƒRÆ–W"6—&7VÆ"ö6Æ–VçBæBÖöç7FW"7V&R&ævRrÂwFŠ˜ÎM‹LH›ÛÜŠX^
-Ü\
-
-™
-ÙJ™JKLŒŒJJHÛY[˜ange', 'skill.c:1096..1115 negative skill range absolute unde•È‘•™…Õ±ĞÍ­¥±±É…¹•}™É½µ}İ•…Á½¸õ	1}9U0ìI…¹•5½‘	åYÕ±ÑÕÉ”œ²ÂvÖö%öF"æ6öæbGF6µ&ævRrÂv—FVÕöF"æ6öæb&ævRuÒÀ§Ó°¦6öç7BÛİœ›ÛSØÈHØÈOˆÈYˆ
-\œ˜^Kš\Ğ\œ˜^JØÊJBˆØÈHØã.join('|'); return /EQP_ARMS|EQP_WEAPON/.test(loc ?? '') ? 'İ•…Á½¸œ€è€½EA}I5=H¼¹Ñ•ÍĞ¡±½Œ€üü€œœ¤€ü€…Éµ½Èœ€è€½EA}M!%0ÄBòçFW7B†Æö2óòrr’òw6†–VÆBr¢ôUô„TBòçFW7B†Æö2óòrr’ÿÈ	ÚXY	ÈˆÑTTÑĞT“QS•Ë\İ
-ØÈÏÈ	ÉÊHÈ	ÙØ\›Y[	ÈˆÑTTÔÓHOES/.test(loc ?? '') ? 'shoes' : /EQP_ACC/.test(loc ?? '') €ü€…•ÍÍ½Éäœ€èÕ¹‘•™¥¹•ìôì)½¹ÍĞİ•…Á½¹QåÁ•Ì€ôì]}I#¢vFvvW"rÂuó…5tõ$C¢w7v÷&BrÂuó$…5tõ$C¢w7v÷&BrÂuó…5TTˆ	ÜÜX\‰Ë×Ì’ÔPTˆ	ÜÜX\‰Ë×ÌRVNˆ	Ø^IË×Ì’VNˆ	Ø^8e', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2H!MQè€ÍÑ…™˜œ°]}	=\è€‰½Üœ°]}	==,è€‰½½¬œ°]}-QHè€­…Ñ†"rÂuôÕU4”4Ã¢v–ç7G'VÖVçBrÂuõt„•¢wv†—rÓ°¢òò&VvVçG2ºÙY\Z\ˆ[™[ÜH›ÛH]™[ˆÚ[ˆZ\ˆ˜]]™H\ØX›HØÜš\0t is inert.
-const protectedReagentIds = new Set(Object.value•Ì¡…Ñ…±½œ¹Í­¥±±Ì¤¹™±…Ñ5…À¡Í­¥±°€ôø(€€€€¡Í­¥±°¹¥Ñ•µ½ÍÑ	å1•Ù–VÂóòµÒ’æfÆDÖ†6÷7G2Óâ6÷7G2æÖ†6÷7BÓâ6÷7Bæ—FVÔ–B’’’“¾Â™›Üˆ
-ÛÛœİ[™HÙˆY™™\œÖÉÙ‹Ü›ÙXÙWÙ‹	×KÔİš[™Ê	İutf8').split(/\r?\n/)) {
-    if (!/^\d+,/.test(line)) continuÕ”ì(€€€½¹ÍĞÙ…±Õ•Ì€ô±¥¹”¹ÍÁ±¥Ğ œ°œ¤¹µ…À¡9Õµ‰•È¤ì(€€€¥˜€¡ÛfÇVW5³%ÒÓÒ##‚’6öçF–çVS°¢f÷"†ÆWB’ÒC²’ÂfÇVW2æË[™İÈH
-ÏHŠBˆYˆ
-[X™\‹š\ÔØY™R[YÙ\Š˜[Y\ÖÚWJH	¦& values[i] > 0) protectedReagentIds.add(values[i]);
+    return Array.from({ length: max }, (_, i) => {
+        const result = typeof value === 'number' ? value : Number(value?.['Lv' + (i + 1)] ?? fallback);
+        if (!Number.isFinite(result)) throw new Error(`Invalid numeric Hercules value at Lv${i + 1}: ${JSON.stringify(value)}`);
+        return result;
+    });
 }
-for(c½¹ÍĞÉ•¥Á”½˜Á¡…Éµ…åI•¥Á•Ì¥ÁÉ½Ñ•Ñ•‘I•…•¹Ñ%‘Ì¹…‘¡É•¥ÃRæ÷WGWD—FVÔ–B“°¦f÷"†6öç7B–Böb³ÃÃ“ƒEÒ—&÷FV7FVE&YXYÙ[YË˜Y
-Y
-NÂ›X[šY™\İ›X]\šX[›İXİ[ÛˆHÈÛİ\˜Ù\ÎˆÛ'db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PH!I5dœ°€ÍÉŒ½µ…À½Í­¥±°¹Œ]M}]A=9I%9µ…Ñ•É¥…°…ÉÉ…ät°(¢&V†f–÷#¢u6¶–ÆÂ&VvVçG2æB÷F–öâ&V6—RÖFW&–Ç2öÖ[X[È\™H^ÛYYœ›ÛHH[ÈÛÛ[[Û‹[ÛİØ[NÈ[™]šYXal sale remains available.' };
-function includeItem(raw, shopÀ€ô™…±Í”°‘É½À€ô™…±Í”¤ì(€€€½¹ÍĞ¤€ô¥¹¡•É¥Ñ•‘%Ñ•´¡É…Ü¤ì(¢6öç7BFVfVç6TVÆVÖVçBÒ7FF–4FVfVç6TVÆVÖVçB†’“°¢–bŠØ][ÙËš][\ÖÚK’YJHÂˆYˆ
-ÚÜ
-BˆØ][Ùç.items[i.Id].shop = true;
+const magicRatios = {
+    MG_NAPALMBEAT: l => 70 + 10 * l, MG_SOULSTRIKE: () => 100, MG_COLDBOLT: () => 100,
+    MG_FROSTDIVER: l => 100 + 10 * l, MG_FIREBALL: l => 70 + 10 * l, MG_FIREWALL: () => 50,
+    MG_FIREBOLT: () => 100, MG_LIGHTNINGBOLT: () => 100, MG_THUNDERSTORM: () => 80,
+    WZ_FIREPILLAR: l => 40 + 20 * l, WZ_SIGHTRASHER: l => 100 + 20 * l, WZ_METEOR: () => 100,
+    WZ_JUPITEL: () => 100, WZ_VERMILION: l => 80 + 20 * l, WZ_WATERBALL: l => 100 + 30 * l,
+    WZ_FROSTNOVA: l => Math.floor((100 + 10 * l) * 2 / 3), WZ_STORMGUST: l => 100 + 40 * l,
+    WZ_EARTHSPIKE: () => 100, WZ_HEAVENDRIVE: () => 100, HW_NAPALMVULCAN: l => 70 + 10 * l,
+    WZ_SIGHTBLASTER: () => 100, AL_HOLYLIGHT: () => 125, AL_RUWACH: () => 145, PR_MAGNUS: () => 100,
+};
+const weaponRatios = {
+    SM_BASH: l => 100 + 30 * l, SM_MAGNUM: l => 100 + 20 * l, MC_MAMMONITE: l => 100 + 50 * l,
+    AC_DOUBLE: l => 90 + 10 * l, HT_POWER: () => 100, AC_SHOWER: l => 75 + 5 * l, AC_CHARGEARROW: () => 150,
+    KN_PIERCE: l => 100 + 10 * l, KN_SPEARSTAB: l => 100 + 20 * l, KN_SPEARBOOMERANG: l => 100 + 50 * l,
+    KN_BRANDISHSPEAR: l => 100 + 20 * l, KN_BOWLINGBASH: l => 100 + 40 * l,
+    AS_GRIMTOOTH: l => 100 + 20 * l, AS_SONICBLOW: l => 400 + 40 * l,
+    AS_POISONREACT: l => 100 + 30 * l, TF_SPRINKLESAND: () => 130, MC_CARTREVOLUTION: () => 150,
+    RG_BACKSTAP: l => 300 + 40 * l, RG_RAID: l => 100 + 40 * l, RG_INTIMIDATE: l => 100 + 30 * l,
+    CR_SHIELDCHARGE: l => 100 + 20 * l, CR_SHIELDBOOMERANG: l => 100 + 30 * l,
+    CR_HOLYCROSS: l => 100 + 35 * l, AM_DEMONSTRATION: l => 100 + 20 * l, AM_ACIDTERROR: l => 100 + 40 * l,
+    MO_FINGEROFFENSIVE: l => 100 + 50 * l, MO_INVESTIGATE: l => 100 + 75 * l,
+    MO_TRIPLEATTACK: l => 100 + 20 * l, MO_CHAINCOMBO: l => 150 + 50 * l, MO_COMBOFINISH: l => 240 + 60 * l,
+    BA_MUSICALSTRIKE: l => 125 + 25 * l, DC_THROWARROW: l => 125 + 25 * l,
+    CH_TIGERFIST: l => 40 + 100 * l, CH_CHAINCRUSH: l => 400 + 100 * l, CH_PALMSTRIKE: l => 200 + 100 * l,
+    LK_HEADCRUSH: l => 100 + 40 * l, LK_JOINTBEAT: l => 50 + 10 * l,
+    ASC_METEORASSAULT: l => 40 + 40 * l, SN_SHARPSHOOTING: l => 200 + 50 * l,
+    CG_ARROWVULCAN: l => 200 + 100 * l, AS_SPLASHER: l => 500 + 50 * l,
+    PA_SHIELDCHAIN: l => 100 + 30 * l, HT_PHANTASMIC: () => 150, MO_BALKYOUNG: () => 300,
+    HT_FREEZINGTRAP: l => 50 + 10 * l, HW_MAGICCRASHER: () => 100, TF_POISON: () => 100,
+    KN_CHARGEATK: () => 100, AS_VENOMKNIFE: () => 100,
+};
+const miscSkills = new Set(['HT_LANDMINE', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'HT_BLITZBEAT', 'SN_FALCONASSAULT', 'TF_THROWSTONE', 'PA_PRESSURE', 'CR_ACIDDEMONSTRATION', 'ASC_BREAKER', 'HW_GRAVITATION', 'BA_DISSONANCE', 'MO_EXTREMITYFIST', 'LK_SPIRALPIERCE', 'WS_CARTTERMINATION', 'CR_GRANDCROSS', 'PF_SOULBURN', 'PR_TURNUNDEAD']);
+const spellBalanceSources = new Set(['PR_TURNUNDEAD', 'CR_GRANDCROSS', 'HW_GRAVITATION', 'HW_MAGICCRASHER']);
+const healSkills = new Set(['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER']);
+// A source row alone is not an implementation. Every supported non-damage
+// skill must have an Effects translation or an explicit engine dispatcher.
+const effectSkills = new Set(['AL_BLESSING', 'AL_INCAGI', 'MC_LOUD', 'PR_IMPOSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN', 'BS_ADRENALINE', 'CR_SPEARQUICKEN', 'BS_OVERTHRUST', 'WS_OVERTHRUSTMAX', 'LK_CONCENTRATION', 'SN_SIGHT', 'SN_WINDWALK', 'MO_EXPLOSIONSPIRITS', 'BA_WHISTLE', 'BA_ASSASSINCROSS', 'BA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISS', 'DC_SERVICEFORYOU', 'AL_ANGELUS', 'CR_AUTOGUARD', 'CR_REFLECTSHIELD', 'LK_PARRYING', 'HP_ASSUMPTIO', 'SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'PR_SUFFRAGIUM']);
+const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER', 'SA_ADVANCEDBOOK']);
+for (const name of ['BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE', 'MO_SPIRITSRECOVERY']) passiveSkills.add(name);
+for (const name of ['KN_RIDING', 'KN_CAVALIERMASTERY']) passiveSkills.add(name);
+const activeSpecial = new Set(['MG_SIGHT', 'MG_SAFETYWALL', 'MG_STONECURSE', 'MG_ENERGYCOAT', 'WZ_QUAGMIRE', 'HW_MAGICPOWER', 'TF_STEAL', 'RG_STEALCOIN', 'TF_HIDING', 'AS_CLOAKING', 'BS_HAMMERFALL', 'BA_FROSTJOKE', 'BA_PANGVOICE', 'DC_SCREAM', 'MO_CALLSPIRITS', 'MO_ABSORBSPIRITS', 'MO_BLADESTOP', 'CH_SOULCOLLECT', 'PR_KYRIE', 'PR_MAGNIFICAT', 'WS_CARTBOOST', 'SM_PROVOKE', 'AL_DECAGI', 'AL_CRUCIS', 'LK_AURABLADE', 'LK_JOINTBEAT', 'PR_LEXDIVINA', 'PR_LEXAETERNA', 'BS_WEAPONPERFECT', 'BS_MAXIMIZE', 'PR_ASPERSIO', 'RG_STRIPWEAPON', 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', 'RG_STRIPSHIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY']);
+activeSpecial.add('DC_DONTFORGETME');
+const oneShotTraps = new Set(['HT_LANDMINE', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'HT_FREEZINGTRAP']);
+const controlTraps = ['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE'];
+for (const name of controlTraps) activeSpecial.add(name);
+for (const name of ['MO_STEELBODY', 'LK_BERSERK', 'ASC_EDP', 'NV_TRICKDEAD']) activeSpecial.add(name);
+for (const name of ['ST_FULLSTRIP', 'ST_REJECTSWORD', 'SM_AUTOBERSERK']) activeSpecial.add(name);
+for (const name of ['AS_VENOMDUST', 'PF_SPIDERWEB']) activeSpecial.add(name);
+for (const name of ['AS_POISONREACT', 'AS_SPLASHER']) activeSpecial.add(name);
+activeSpecial.add('KN_AUTOCOUNTER');
+activeSpecial.add('LK_TENSIONRELAX');
+activeSpecial.add('PR_SUFFRAGIUM');
+for (const name of ['SA_AUTOSPELL', 'PF_DOUBLECASTING', 'PF_MEMORIZE', 'AL_PNEUMA', 'SM_ENDURE', 'CR_DEFENDER']) activeSpecial.add(name);
+for (const name of ['ALL_RESURRECTION', 'PF_SOULCHANGE']) activeSpecial.add(name);
+activeSpecial.add('TF_PICKSTONE');
+for (const name of ['SA_CASTCANCEL','SA_SPELLBREAKER','SA_MAGICROD']) activeSpecial.add(name);
+for (const name of ['AL_CURE', 'TF_DETOXIFY', 'PR_SLOWPOISON']) activeSpecial.add(name);
+activeSpecial.add('PR_STRECOVERY');
+for (const name of ['CR_SHRINK', 'PA_SACRIFICE']) activeSpecial.add(name);
+for(const name of ['SA_CREATECON','SA_ELEMENTWATER','SA_ELEMENTGROUND','SA_ELEMENTFIRE','SA_ELEMENTWIND'])activeSpecial.add(name);
+passiveSkills.add('RG_COMPULSION');
+passiveSkills.add('RG_PLAGIARISM');
+passiveSkills.add('SA_FREECAST');
+passiveSkills.add('BS_FINDINGORE');
+activeSpecial.add('WZ_ESTIMATION');
+activeSpecial.add('AL_RUWACH');
+activeSpecial.add('DC_WINKCHARM');
+activeSpecial.add('CG_TAROTCARD');
+activeSpecial.add('SA_DISPELL');
+activeSpecial.add('RG_CLOSECONFINE');
+activeSpecial.add('PF_MINDBREAKER');
+activeSpecial.add('PF_FOGWALL');
+activeSpecial.add('MO_BODYRELOCATION');
+activeSpecial.add('ST_PRESERVE');
+activeSpecial.add('ST_CHASEWALK');
+for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
+activeSpecial.add('AL_TELEPORT');
+activeSpecial.add('HT_DETECTING');
+activeSpecial.add('WS_WEAPONREFINE');
+for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
+const unsupported = {
+    NV_BASIC: 'AÃ§Ãµes sociais do Aprendiz nÃ£o existem na simulaÃ§Ã£o de caÃ§a.', WE_BABY: 'Requer sistema de famÃ­lia e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de famÃ­lia e personagens vinculados.', WE_CALLBABY: 'Requer sistema de famÃ­lia e personagens vinculados.',
+    AL_WARP: 'Portais para mapas e memorizaÃ§Ãµes de coordenadas exigem navegaÃ§Ã£o em mapa.', AL_HOLYWATER: 'ProduÃ§Ã£o de Ãgua Benta exige cÃ©lulas de Ã¡gua e Frasco Vazio.', PR_REDEMPTIO: 'RessurreiÃ§Ã£o de grupo exige outros personagens.',
+    MC_VENDING: 'Requer comÃ©rcio com outros personagens.', ALL_BUYING_STORE: 'Requer comÃ©rcio com outros personagens.', MC_CARTDECORATE: 'DecoraÃ§Ã£o de carrinho exige objetos de carrinho.', MC_CHANGECART: 'AparÃªncia do carrinho exige objetos de carrinho.',
+    RG_GRAFFITI: 'Requer inscriÃ§Ãµes em cÃ©lulas do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscriÃ§Ãµes em cÃ©lulas do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
+    CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois NoviÃ§os e cÃ©lulas de mapa.', HP_BASILICA: 'Requer Ã¡rea protegida e interaÃ§Ã£o com vÃ¡rios personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros nÃ£o tÃªm SP no catÃ¡logo.',
+    SA_ABRACADABRA: 'Requer seleÃ§Ã£o aleatÃ³ria de habilidades especiais e transformaÃ§Ãµes.', SA_LANDPROTECTOR: 'Requer cÃ©lulas de mapa e cancelamento de campos.',
+    BS_REPAIRWEAPON: 'O reparo por NPC usa o serviÃ§o Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponÃ­vel.',
+    PF_SPIDERWEB: 'Requer imobilizaÃ§Ã£o ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
+    AM_CP_WEAPON: 'ProteÃ§Ã£o contra quebra e remoÃ§Ã£o exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'ProteÃ§Ã£o contra quebra e remoÃ§Ã£o exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'ProteÃ§Ã£o contra quebra e remoÃ§Ã£o exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'ProteÃ§Ã£o contra quebra e remoÃ§Ã£o exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'ProteÃ§Ã£o completa exige estado de equipamento quebrado ou removido do personagem.',
+    CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interaÃ§Ã£o espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e Ã¡rea de combate entre personagens.',
+    WZ_ICEWALL: 'Requer ediÃ§Ã£o de cÃ©lulas bloqueadas do mapa.', HW_GANBANTEIN: 'Requer remoÃ§Ã£o de unidades de habilidades em cÃ©lulas do mapa.',
+};
+const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
+function backslidingSourceMatchesSourceContract(source) {
+    const requirements = source.Requirements ?? {};
+    const requirementKeys = Object.keys(requirements);
+    const skillTypeKeys = Object.keys(source.SkillType ?? {});
+    const damageTypeKeys = Object.keys(source.DamageType ?? {});
+    return source.Id === 150 && source.Name === 'TF_BACKSLIDING' && source.MaxLevel === 1 &&
+        source.Hit === 'BDT_SKILL' && source.AttackType === 'Misc' &&
+        source.SkillType?.Self === true && skillTypeKeys.length === 1 && skillTypeKeys[0] === 'Self' &&
+        source.DamageType?.NoDamage === true && damageTypeKeys.length === 1 && damageTypeKeys[0] === 'NoDamage' &&
+        source.KnockBackTiles === 5 && requirementKeys.length === 1 && requirements.SPCost === 7 &&
+        source.CastTime === undefined && source.AfterCastActDelay === undefined && source.CoolDown === undefined &&
+        source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
+}
+const descriptions = {
+    HT_POWER: 'Atinge Brutos e Insetos com dois golpes de arco apÃ³s Rajada de Flechas. Consome 12 SP e uma Flecha.',
+    BS_FINDINGORE: 'Chance passiva de encontrar um minÃ©rio adicional ao derrotar um monstro. Usa a cadeia original do Hercules, sem multiplicadores de drop; o minÃ©rio segue a coleta normal da caÃ§a.',
+    CR_SLIMPITCHER: 'Arremessa uma poÃ§Ã£o compacta para recuperar seu HP. NÃ­veis 1â€“5 usam a vermelha, 6â€“9 a amarela e 10 a branca. Consome 30 SP e uma poÃ§Ã£o, com conjuraÃ§Ã£o base de 1s e pÃ³s-conjuraÃ§Ã£o de 1s. Os nÃ­veis aprendidos de Arremessar PoÃ§Ã£o e Preparar PoÃ§Ã£o aumentam a cura.',
+    AL_TELEPORT: 'Teleporta para uma posiÃ§Ã£o aleatÃ³ria passÃ¡vel do mapa. No nÃ­vel 2, permite voltar a Prontera. Uso manual durante a caÃ§a; custo pelo nÃ­vel aprendido. O destino aleatÃ³rio permanece na regiÃ£o conectada da caÃ§a.',
+    ST_CHASEWALK: 'Oculta vocÃª dos monstros comuns e permite caminhar, com atraso de 35âˆ’5Ã—nÃ­vel%. Consome 10+2Ã—nÃ­vel SP a cada 10s; o primeiro pulso concede STR 2^(nÃ­velâˆ’1) por 30s, sem renovar um bÃ´nus ativo. Impede atacar ou usar outras habilidades; chefes, detectores e magia jÃ¡ conjurada ainda podem atingir vocÃª. Desativar Ã© imediato e gratuito.',
+    RG_PLAGIARISM: 'Copia uma magia de monstro que causar dano sem derrotar vocÃª. O nÃ­vel fica limitado pelo PlÃ¡gio, sem consumir pontos. Uma nova magia substitui a anterior; receber a mesma nÃ£o melhora a cÃ³pia. As quatro magias de Mago presentes nos ataques NPC sÃ£o copiÃ¡veis; outras fontes ainda nÃ£o estÃ£o simuladas.',
+    ST_PRESERVE: 'Protege a magia copiada contra substituiÃ§Ã£o por dez minutos. ConjuraÃ§Ã£o base de um segundo e custo de 30 SP. A caÃ§a automÃ¡tica sÃ³ ativa apÃ³s obter uma cÃ³pia. O efeito termina na morte, ao sair da conta ou reconectar; a magia copiada continua salva.',
+    TF_BACKSLIDING: 'Desliza imediatamente atÃ© cinco cÃ©lulas para trÃ¡s, na direÃ§Ã£o oposta ao seu olhar, parando na primeira parede ou borda do mapa. Custa 7 SP; nÃ£o conjura, nÃ£o interrompe uma conjuraÃ§Ã£o em andamento e nÃ£o tem recarga. Use manualmente durante uma caÃ§a em mapa com navegaÃ§Ã£o carregada.',
+    PR_STRECOVERY: 'RecuperaÃ§Ã£o de Status em um monstro: no elemento Morto-Vivo efetivo, tenta Cegueira com resistÃªncia por atributos e nÃ­vel; nos demais, remove PetrificaÃ§Ã£o, Congelamento, Sono, Atordoamento, PrisÃ£o Branca e Netherworld. Solta o alvo de ataque e interrompe a perseguiÃ§Ã£o, preservando conjuraÃ§Ãµes NPC jÃ¡ iniciadas e seus custos. Cegueira reduz a visÃ£o do monstro a trÃªs cÃ©lulas; ele pode readquirir o alvo sem proteÃ§Ã£o garantida. Alcance nove, 5 SP e pÃ³s-conjuraÃ§Ã£o de dois segundos. A rotaÃ§Ã£o usa apenas monstros Mortos-Vivos que estejam atacando e ainda sem Cegueira. NÃ£o permite escapar do prÃ³prio Atordoamento.',
+    PR_LEXDIVINA: 'Aplica SilÃªncio a um monstro, sujeito a VIT, SOR, nÃ­vel e imunidade de chefes. SilÃªncio impede o inÃ­cio de novas habilidades NPC; ataques normais continuam e conjuraÃ§Ãµes jÃ¡ iniciadas terminam normalmente. Usar em um monstro jÃ¡ silenciado remove o efeito; a rotaÃ§Ã£o evita essa remoÃ§Ã£o e escolhe somente monstros com aÃ§Ãµes NPC implementadas. Alcance cinco, conjuraÃ§Ã£o instantÃ¢nea e pÃ³s-conjuraÃ§Ã£o de trÃªs segundos.',
+    RG_COMPULSION: 'Desconto nas compras de NPC: 9%, 13%, 17%, 21% e 25% nos nÃ­veis um a cinco. Usa o maior desconto entre esta habilidade e Desconto do Mercador, sem somar. O preÃ§o Ã© truncado e tem mÃ­nimo de 1 zeny; nÃ£o altera vendas. Requer estudar Gangster, cujo efeito de aliados continua indisponÃ­vel.',
+    ALL_RESURRECTION: 'Na caÃ§a solo, ataca apenas monstros de elemento Morto-Vivo com dano mÃ¡gico Sagrado, sujeito Ã  DEFM e ao elemento do alvo. A chance prÃ³pria pode usar o HP atual como dano bruto; chefes recebem somente o dano menor. Consome 60 SP e uma Gema Azul. Ressuscitar outros personagens continua adiado; RecuperaÃ§Ã£o de Status Ã© o prÃ©-requisito normal da Ã¡rvore.',
+    PF_SOULCHANGE: 'Na caÃ§a solo, recupera 3% do seu SP mÃ¡ximo, truncado e limitado ao mÃ¡ximo, ao usar um monstro vivo nÃ£o chefe. Cada instÃ¢ncia de monstro permite um Ãºnico uso durante sua vida. Ã‰ uma utilidade amistosa com alcance de nove cÃ©lulas, custo de 5 SP, conjuraÃ§Ã£o de 3 segundos e pÃ³s-conjuraÃ§Ã£o de 5 segundos. A rotaÃ§Ã£o evita uso com SP cheio ou ganho inÃºtil. Trocar SP entre personagens continua adiado; estudar os prÃ©-requisitos nÃ£o concede os efeitos indisponÃ­veis de Espelho MÃ¡gico e Desconjurar.',
+    KN_RIDING: 'Permite montar e desmontar um Peco Peco manualmente. Montado, caminha mais rÃ¡pido e carrega 1000 de peso adicional. LanÃ§as contra monstros mÃ©dios usam a correÃ§Ã£o de monstros grandes e o bÃ´nus de PerÃ­cia com LanÃ§a aumenta. Cavalaria reduz a penalidade de velocidade de ataque.',
+    KN_CAVALIERMASTERY: 'Reduz a penalidade de velocidade de ataque enquanto montado: de 50% sem Cavalaria atÃ© nenhuma penalidade no nÃ­vel 5. O efeito depende da montaria ativa.',
+    KN_BRANDISHSPEAR: 'Requer Peco Peco ativo e lanÃ§a de uma ou duas mÃ£os. Golpeia cÃ©lulas direcionais Ã  frente do alvo, com dano diferente por faixa e recuo de trÃªs cÃ©lulas. A Ã¡rea cresce com o nÃ­vel; chefes e monstros imunes nÃ£o recuam.',
+    MO_SPIRITSRECOVERY: 'Enquanto sentado, recupera HP e SP adicionais a cada 10 segundos. Com peso a partir de 50%, o intervalo Ã© de 20 segundos. Os canais e quantidades seguem o Hercules; levantar zera somente os acumuladores extras sentados.',
+    SA_CASTCANCEL: 'Cancela manualmente a sua conjuraÃ§Ã£o em curso. Paga 2 SP normais e adicional de 90/70/50/30/10% do custo-base da magia cancelada, limitado ao SP restante. NÃ£o recupera Memorize nem resolve a magia cancelada.',
+    SA_SPELLBREAKER: 'Interrompe a conjuraÃ§Ã£o atual de um monstro em alcance 9. Custa 10 SP e tem conjuraÃ§Ã£o base de 700 ms, reduzida por DEX. Monstro normal perde 2% de HP mÃ¡ximo; nÃ­vel 5 cura metade do valor calculado. Boss tem 10% de chance e nÃ£o sofre dano nem cura HP. A rotaÃ§Ã£o sÃ³ inicia quando pode concluir antes do monstro.',
+    PR_SUFFRAGIUM: 'Reduz em 15% por nÃ­vel o tempo de conjuraÃ§Ã£o da prÃ³xima habilidade. Dura 30/20/10 segundos conforme o nÃ­vel.',
+    SA_MAGICROD: 'Prepara uma reaÃ§Ã£o por 400/600/800/1000/1200 ms. Intercepta magia NPC que conclua dentro da janela e recupera 20/40/60/80/100% do SP-base da magia recebida. Custa 2 SP; sem conjuraÃ§Ã£o ou recarga prÃ³pria.',
+    LK_TENSIONRELAX: 'Use manualmente durante a caÃ§a para sentar e relaxar. Custa 15 SP inicialmente e dura atÃ© 3 minutos, com checagem de HP a cada 10 segundos. Acelera somente recuperaÃ§Ã£o de HP natural e por habilidade em trÃªs vezes; com peso acima de 50%, permite HP sem o multiplicador. Levantar encerra o efeito. A fonte fixada nÃ£o cobra SP recorrente.',
+    KN_AUTOCOUNTER: 'Postura de Contra-Ataque por 0,4 segundo por nÃ­vel. Custa 3 SP e impede caminhar ou iniciar outras habilidades. Intercepta ataques normais vindos da frente ou diagonais prÃ³ximas, atÃ© o alcance da arma +1; a mesma cÃ©lula aceita qualquer direÃ§Ã£o. Consome a postura antes do golpe de arma com movimento pela metade. Ataques bÃ¡sicos tambÃ©m podem consumi-la no ramo crÃ­tico; multihit preserva a postura. NÃ£o pode ser usada com arco.',
+    BS_UNFAIRLYTRICK: 'Mammonita custa 10% menos zeny. O desconto Ã© truncado antes de subtrair do preÃ§o. NÃ£o altera dano ou SP.',
+    RG_TUNNELDRIVE: 'Permite caminhar durante Esconderijo. A penalidade de velocidade diminui com o nÃ­vel. MantÃ©m drenagem de SP, detecÃ§Ã£o, restriÃ§Ã£o de ataques e recuperaÃ§Ã£o de Esconderijo.',
+    AS_POISONREACT: 'Prepara reaÃ§Ãµes a ataques normais recebidos, inclusive tentativas bloqueadas. Contra corpo de Veneno dispara um ataque neutro e encerra o efeito; contra outros corpos hÃ¡ 50% de chance de usar Envenenar 5 sem custo adicional de SP. Cargas e duraÃ§Ã£o seguem o Hercules.',
+    AS_SPLASHER: 'Arma uma bomba em alvo nÃ£o chefe com atÃ© 75% do HP. Consome uma Gema Vermelha. Detona apÃ³s 5,5 a 10 segundos na posiÃ§Ã£o atual do alvo; raio de duas cÃ©lulas, bÃ´nus pelo nÃ­vel de Refletir Veneno. A revisÃ£o fixada ignora elemento e esquiva e nÃ£o divide o dano. Morte do alvo cancela a bomba.',
+    ST_FULLSTRIP: 'Uma tentativa conjunta pode remover arma, escudo, armadura e elmo do monstro. Contra monstros reduz ATQ, DEF, VIT e INT; chance e duraÃ§Ã£o usam DEX efetiva. Afeta tambÃ©m chefes conforme o Hercules fixado.',
+    ST_REJECTSWORD: 'Prepara trÃªs reaÃ§Ãµes bem-sucedidas. Cada uma tem 15 Ã— nÃ­vel por cento de chance de reduzir Ã  metade o dano fÃ­sico residual e devolver essa metade ao monstro. Permanece ativo atÃ© consumir as trÃªs cargas.',
+    SM_AUTOBERSERK: 'Ative manualmente por 1 SP. Enquanto ligado e com HP estritamente abaixo de um quarto do mÃ¡ximo, aplica Provocar 10: ATQ +32% e defesa de VIT âˆ’55%. NÃ£o reduz hard DEF. Recuperar HP encerra somente o bÃ´nus automÃ¡tico.',
+    CR_SHRINK: 'Ative por 15 SP enquanto estiver com um escudo equipado; dura 5 minutos e pode ser desativado sem custo. Quando Auto Guard bloqueia um ataque de arma, hÃ¡ outra chance de 5% por nÃ­vel de Auto Guard para recuar o agressor em 2 cÃ©lulas. A chance usa o nÃ­vel ativo de Auto Guard. Chefes e alvos imunes a recuo ainda consomem essa chance, mas nÃ£o se deslocam.',
+    PA_SACRIFICE: 'Ative por 100 SP para preparar 5 cargas. Cada ataque bÃ¡sico elegÃ­vel vira um golpe fÃ­sico Neutro cuja base Ã© 9% do HP mÃ¡ximo, com proporÃ§Ã£o de 100% a 140% pelo nÃ­vel; ignora DEF e esquiva, mas ainda considera elemento, refino e maestria. Depois do dano ao alvo, cada golpe remove 9% do HP mÃ¡ximo atual da ativaÃ§Ã£o, mesmo se causar dano zero. A perda prÃ³pria pode derrotar vocÃª. NÃ£o consome cargas com outras habilidades. Requer estudar DevoÃ§Ã£o nÃ­vel 3; estudar nÃ£o concede o efeito de DevoÃ§Ã£o.',
+    MO_BLADESTOP: 'Consome 10 SP e uma esfera. Prepara uma espera de 0,5 a 1,3 segundo pelo ataque bÃ¡sico de um monstro nÃ£o chefe a atÃ© duas cÃ©lulas; cria um vÃ­nculo recÃ­proco por 20 a 60 segundos. O vÃ­nculo interrompe caminhada e ataques bÃ¡sicos do par. Durante o vÃ­nculo, Golpe de Esferas requer nÃ­vel 2, Impacto PsÃ­quico 3, Combo QuÃ¡druplo 4 e Punho Supremo 5. O Combo QuÃ¡druplo dispensa Ataque Triplo e continua a sequÃªncia; Punho Supremo consome quatro esferas. A espera AFK sÃ³ Ã© ativada diante de um ataque elegÃ­vel prestes a chegar.',
+    MO_STEELBODY: 'Consome cinco esferas e 200 SP. Fixa DEF e DEFM de equipamentos em 90, reduz a velocidade de ataque e fixa o tempo por cÃ©lula em 200 ms. Permite ataques normais e impede habilidades durante 30 segundos por nÃ­vel.',
+    LK_BERSERK: 'Frenesi triplica o HP mÃ¡ximo e recupera o HP ao ativar; zera SP e defesas, reduz esquiva e acelera ataques e caminhada. Bloqueia habilidades, itens e troca de equipamentos. Drena 5% do HP mÃ¡ximo a cada 15 segundos, atÃ© 5 minutos. Ao terminar, limita HP a 100 e bloqueia recuperaÃ§Ã£o natural por 5 minutos.',
+    ASC_EDP: 'Consome uma Garrafa de Veneno. Aumenta dano de arma antes da defesa e permite Veneno Mortal em ataques normais, sem mudar o elemento da arma. Garrafas podem ser compradas na loja do Idle; estudar Criar Veneno Mortal cumpre o prÃ©-requisito, mas sua produÃ§Ã£o ainda nÃ£o estÃ¡ disponÃ­vel.',
+    WS_WEAPONREFINE: 'Abre uma lista de armas identificadas e desequipadas por 5 SP, sujeitos aos modificadores de custo. O nÃ­vel aprendido limita o refino; o Job atual modifica a chance. Cada tentativa consome Phracon, Emveretarcon ou Oridecon conforme o nÃ­vel da arma, sem zeny. Na falha, a arma e suas cartas e bÃ´nus sÃ£o destruÃ­dos. Cancelar nÃ£o devolve o SP.',
+    HT_SKIDTRAP: 'Coloca uma armadilha no chÃ£o, verificada a cada segundo. Empurra o inimigo na direÃ§Ã£o oposta Ã  que ele estÃ¡ olhando; chefes e monstros imunes nÃ£o sÃ£o empurrados. Na rotaÃ§Ã£o, mantÃ©m uma cÃ³pia armada de cada habilidade.',
+    HT_ANKLESNARE: 'Armadilha fixa que prende o movimento de um inimigo sem impedir seus ataques. DuraÃ§Ã£o reduzida por AGI e contra chefes, com mÃ­nimo de 5 segundos. Consome 1 Armadilha.',
+    HT_SANDMAN: 'Armadilha de Sono em Ã¡rea de 5 Ã— 5 cÃ©lulas. Chance base de 40 + 10 Ã— nÃ­vel por cento, antes das resistÃªncias; dano acorda o alvo. Consome 1 Armadilha.',
+    HT_FLASHER: 'Armadilha de Cegueira em Ã¡rea de 3 Ã— 3 cÃ©lulas. Chance base de 30 + 10 Ã— nÃ­vel por cento, antes das resistÃªncias. Consome 2 Armadilhas.',
+    SA_AUTOSPELL: 'Escolha uma magia aprendida para invocÃ¡-la automaticamente nos ataques normais. Chance, nÃ­vel e custo de SP seguem o Hercules prÃ©-renovaÃ§Ã£o.',
+    PF_DOUBLECASTING: 'LanÃ§as de Fogo, Gelo e RelÃ¢mpago podem ser repetidas apÃ³s o movimento do ataque, sem segundo custo de SP. A repetiÃ§Ã£o nÃ£o gera outra repetiÃ§Ã£o.',
+    PF_MEMORIZE: 'Prepara cinco cargas que reduzem pela metade a conjuraÃ§Ã£o elegÃ­vel. A carga Ã© consumida no inÃ­cio da conjuraÃ§Ã£o, inclusive se ela for interrompida.',
+    AL_PNEUMA: 'Cria uma Ã¡rea fixa de 3 Ã— 3 cÃ©lulas por 10 segundos que bloqueia ataques fÃ­sicos Ã  distÃ¢ncia. NÃ£o acompanha o personagem nem pode sobrepor Escudo MÃ¡gico.',
+    SM_ENDURE: 'Aumenta a DEFM e impede a reaÃ§Ã£o de dano por um nÃºmero limitado de golpes recebidos. A duraÃ§Ã£o depende do nÃ­vel e a habilidade nÃ£o impede interrupÃ§Ãµes de conjuraÃ§Ã£o.',
+    CR_DEFENDER: 'Requer escudo. Reduz dano fÃ­sico Ã  distÃ¢ncia, aumenta o tempo de deslocamento e aplica a penalidade de velocidade de ataque do Hercules.',
+    RG_SNATCHER: 'Ataques normais corpo a corpo podem tentar Furto automaticamente, sem custo adicional de SP. A chance depende dos nÃ­veis de Gank e Furto.',
+    RG_STRIPSHIELD: 'Tenta remover o escudo do alvo. Contra monstros reduz a defesa em 15%; chance e duraÃ§Ã£o dependem da diferenÃ§a de DEX.',
+    AS_ENCHANTPOISON: 'Encanta a arma com Veneno. Ataques normais podem envenenar o alvo; a resistÃªncia e a duraÃ§Ã£o seguem o Hercules. Substitui Aspersio e nÃ£o pode ser usado sobre encantamentos elementais de SÃ¡bio.',
+    MC_IDENTIFY: 'Identifica um equipamento na mochila por 10 SP, revelando tambÃ©m sua raridade e seus bÃ´nus. NÃ£o consome Lupa.',
+    RG_CLOSECONFINE: 'Confinamento prende vocÃª e um monstro adjacente por 10 segundos. O alvo pode continuar atacando e recebendo seus golpes; a caÃ§a volta a se mover quando o alvo morre ou o efeito termina. Custa 25 SP e sÃ³ Ã© usado contra um alvo vivo em contato durante a caÃ§a no campo.',
+    WS_MELTDOWN: 'Ataques fÃ­sicos podem enfraquecer a arma e a armadura de monstros comuns. O nÃ­vel escolhido define SP, conjuraÃ§Ã£o e duraÃ§Ã£o; chefes sÃ£o imunes.',
+    AM_POTIONPITCHER: 'Arremessa uma poÃ§Ã£o em si mesmo. NÃ­veis 1â€“4 usam poÃ§Ãµes Vermelha, Laranja, Amarela e Branca; nÃ­vel 5 usa Azul para SP. A recuperaÃ§Ã£o usa o nÃ­vel aprendido e Pesquisa de PoÃ§Ãµes.',
+    PA_GOSPEL: 'Na caÃ§a solo, ativa GOSPEL por 60 segundos. A cada 10 segundos recupera 30 HP e 20 SP nos nÃ­veis 1â€“5, ou 45 HP e 35 SP nos nÃ­veis 6â€“10. A ativaÃ§Ã£o remove buffs e estados negativos, como no Hercules; efeitos aleatÃ³rios para aliados nÃ£o se aplicam sem grupo.',
+    ...(rules.skillDescriptions ?? {}),
+};
+const statusChances = { MG_FROSTDIVER: l => 35 + 3 * l, WZ_FROSTNOVA: l => 35 + 3 * l, MG_STONECURSE: l => 20 + 4 * l, WZ_METEOR: l => 3 * l, WZ_VERMILION: l => 4 * l, HW_NAPALMVULCAN: () => 5, TF_POISON: l => 10 + 4 * l, AS_SONICBLOW: l => 10 + 2 * l, BA_FROSTJOKE: l => 15 + 5 * l, BA_PANGVOICE: () => 50, DC_SCREAM: l => 25 + 5 * l, BS_HAMMERFALL: l => 20 + 10 * l, HT_LANDMINE: l => 30 + 5 * l, HT_FREEZINGTRAP: l => 35 + 3 * l, SA_FROSTWEAPON: l => Math.min(100, 60 + 10 * l), SA_SEISMICWEAPON: l => Math.min(100, 60 + 10 * l), SA_FLAMELAUNCHER: l => Math.min(100, 60 + 10 * l), SA_LIGHTNINGLOADER: l => Math.min(100, 60 + 10 * l) };
+statusChances.DC_WINKCHARM = () => 70;
+statusChances.PF_MINDBREAKER = l => 55 + 5 * l;
+for (const name of skillNames) {
+    const src = skillByName[name];
+    if (!src) throw new Error('Missing source skill ' + name);
+    const rule = rules.skills.find(s => s.source === name);
+    const backslidingSupported = name === 'TF_BACKSLIDING' && backslidingSourceMatchesSourceContract(src);
+    const maxLevel = Math.min(src.MaxLevel, Math.max(...Object.values(treeByClass).map(tree => typeof tree[name] === 'number' ? tree[name] : tree[name]?.MaxLevel ?? 0)));
+    const prerequisitesByClass = Object.fromEntries(Object.entries(treeByClass).filter(([, tree]) => tree[name]).map(([job, tree]) => [job, Object.entries(typeof tree[name] === 'number' ? {} : tree[name]).filter(([key]) => !['MaxLevel', 'MinJobLevel'].includes(key)).map(([key, level]) => ({ skillId: skillId(key), level }))]));
+    const targetType = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) ? 'self' : name === 'ALL_RESURRECTION' ? 'enemy' : !src.SkillType ? 'passive' : src.SkillType.Place ? 'ground' : src.SkillType.Enemy ? 'enemy' : src.SkillType.Self ? 'self' : 'support';
+    let kind = targetType === 'passive' ? 'passive' : healSkills.has(name) ? 'heal' : ['TF_STEAL', 'RG_STEALCOIN'].includes(name) ? 'steal' : magicRatios[name] ? 'magical' : weaponRatios[name] || miscSkills.has(name) ? 'physical' : 'buff';
+    if (name === 'AS_POISONREACT') kind = 'buff';
+    if (name === 'ALL_RESURRECTION') kind = 'magical';
+    let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
+    if (name === 'ALL_RESURRECTION') damageType = 'magic';
+    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de EspÃ­rito da classe, ainda nÃ£o implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE'].includes(name) && townPatterns.test(name)) ? 'Requer produÃ§Ã£o, objetos persistentes, parceiros ou ediÃ§Ã£o de cÃ©lulas do mapa.' : !supportedMechanic ? 'MecÃ¢nica Hercules importada; a simulaÃ§Ã£o atual ainda nÃ£o executa este efeito.' : undefined);
+    const implementation = unsupportedReason ? 'unsupported' : 'supported';
+    if (name === 'PF_SOULBURN') damageType = 'none';
+    const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
+    const hitCount = rawHits.map(Math.abs);
+    const itemCostByLevel = Array.from({ length: maxLevel }, (_, i) => Object.entries(src.Requirements?.Items ?? {}).flatMap(([itemName, amount]) => { const item = itemByName[itemName]; if (!item) throw new Error('Missing reagent: ' + itemName); const quantity = byLevel(amount, maxLevel)[i]; return quantity > 0 ? [{ itemId: item.Id, quantity }] : []; }));
+    if (rule?.itemCost && rule?.handledRequirements?.length) for (const costs of itemCostByLevel) {
+        const existing = costs.find(cost => cost.itemId === rule.itemCost.itemId);
+        if (existing) existing.quantity += rule.itemCost.quantity;
+        else costs.push({ ...rule.itemCost });
+    }
+    const power = Array.from({ length: maxLevel }, (_, i) => (magicRatios[name] ?? weaponRatios[name] ?? (name === 'NV_FIRSTAID' ? () => 5 : name === 'PR_SANCTUARY' ? l => l > 6 ? 777 : 100 * l : () => 0))(i + 1));
+    const idleDamageMultiplierPct = damageType === 'magic' || spellBalanceSources.has(name)
+        ? Array.from({ length: maxLevel }, (_, i) => Number(rule?.idleDamageMultiplierPct?.[i] ?? 100))
+        : undefined;
+    const inheritedEffect = name === 'AC_OWL' ? { dex: 1 } : name === 'TF_MISS' ? { flee: 3 } : undefined;
+    // A negative SplashRange selects the default AREA_SIZE (14). Negative
+    // Unit.Layout values instead select special cell layouts and are not radii.
+    const radius = byLevel(src.SplashRange ?? src.Unit?.Layout ?? src.Unit?.Range, maxLevel).map(n => src.SplashRange !== undefined && n < 0 ? 14 : Math.max(0, n));
+    const duration = byLevel(src.SkillData1, maxLevel);
+    const statusEffect = src.StatusChange ?? (name === 'BS_HAMMERFALL' ? 'SC_STUN' : name === 'BA_PANGVOICE' ? 'SC_CONFUSION' : undefined);
+    const draining = ['BS_MAXIMIZE', 'TF_HIDING', 'AS_CLOAKING'].includes(name);
+    const spDrainIntervalMs = name === 'TF_HIDING' ? Array.from({ length: maxLevel }, (_, i) => (i + 4) * 1000) : duration;
+    const weaponRequirements = Object.keys(src.Requirements?.WeaponTypes ?? {}).filter(k => src.Requirements.WeaponTypes[k]);
+    const requiredWeapon = [...new Set(weaponRequirements.map(k => ({ Daggers: 'dagger', '1HSwords': 'sword', '2HSwords': 'sword', '1HSpears': 'spear', '2HSpears': 'spear', '1HAxes': 'axe', '2HAxes': 'axe', Maces: 'mace', '2HMaces': 'mace', Staves: 'staff', '2HStaves': 'staff', Bows: 'bow', Katars: 'katar', Instruments: 'instrument', Whips: 'whip' })[k]).filter(Boolean))];
+    const onlyTwoHanded = weaponRequirements.length && weaponRequirements.every(k => ['2HSwords', '2HSpears', '2HAxes', '2HMaces', '2HStaves'].includes(k));
+    catalog.skills[skillId(name)] = {
+        id: skillId(name), name: ({ AL_TELEPORT: 'Teleporte', RG_PLAGIARISM: 'PlÃ¡gio', ST_PRESERVE: 'Preservar', ST_CHASEWALK: 'Furtividade' })[name] ?? rule?.name ?? rules.skillNames?.[name] ?? src.Description, kind, maxLevel,
+        herculesId: src.Id, sourceName: name, mechanic: name, implementation, ...(unsupportedReason && { unsupportedReason }),
+        ...(name === 'MC_IDENTIFY' && { manualUse: 'inventory' }),
+        ...(name === 'AL_TELEPORT' && { manualUse: 'teleport' }),
+        ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
+        ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
+        ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
+        ...(name === 'ST_CHASEWALK' && { manualUse: 'toggle', toggle: true }),
+        ...(['PA_SACRIFICE', 'WS_MELTDOWN', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER'].includes(name) && { manualUse: 'activate' }),
+        ...(name === 'MO_BLADESTOP' && { manualUse: 'activate' }),
+        ...(name === 'SA_MAGICROD' && { manualUse: 'activate' }),
+        ...(name === 'PR_SUFFRAGIUM' && { manualUse: 'activate' }),
+        ...(name === 'HT_DETECTING' && { manualUse: 'activate' }),
+        ...(backslidingSupported && { manualUse: 'activate' }),
+        ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { manualUse: 'activate' }),
+        ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
+        ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
+        ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
+        ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
+        ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
+        ...(name === 'LK_TENSIONRELAX' && { manualUse: 'rest' }),
+        ...(name === 'KN_RIDING' && { manualUse: 'mount' }),
+        description: descriptions[name] ?? `${src.Description}. ${targetType === 'passive' ? 'Habilidade passiva.' : damageType === 'magic' ? 'Dano mÃ¡gico conforme Hercules prÃ©-renovaÃ§Ã£o.' : damageType === 'weapon' ? 'Dano de arma conforme Hercules prÃ©-renovaÃ§Ã£o.' : damageType === 'misc' ? 'FÃ³rmula especÃ­fica de dano conforme Hercules prÃ©-renovaÃ§Ã£o.' : src.StatusChange ? 'Aplica ' + src.StatusChange.replace('SC_', '') + '.' : 'Habilidade utilitÃ¡ria.'}${unsupportedReason ? ' ' + unsupportedReason : ''}`,
+        iconResource: 'data/texture/ìœ ì €ì¸í„°í˜ì´ìŠ¤/item/' + src.Name.toLowerCase() + '.bmp',
+        spCost: byLevel(src.Requirements?.SPCost, maxLevel), power,
+        ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }),
+        cooldownMs: name === 'SA_MAGICROD' ? 0 : byLevel(src.CoolDown, maxLevel)[0],
+        castTimeMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.CastTime, maxLevel),
+        afterCastDelayMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.AfterCastActDelay, maxLevel),
+        interruptCast: src.InterruptCast === true,
+        ...(src.CastDefRate !== undefined && { castDefenseReductionPct: src.CastDefRate }),
+        hitCount, sourceHitCount: rawHits, aoeRadius: radius, range: byLevel(src.Range, maxLevel), targetType, damageType,
+        ...(src.SkillInfo?.RangeModByVulture && { rangeBonusByVulture: true }),
+        ...(src.SkillInfo?.AllowPlagiarism === true && { allowPlagiarism: true }),
+        prerequisites: Object.values(prerequisitesByClass)[0] ?? [], prerequisitesByClass,
+        minimumJobLevel: Math.max(1, ...Object.values(treeByClass).map(tree => tree[name]?.MinJobLevel ?? 0)),
+        ...(src.Element && { element: src.Element.replace('Ele_', '').toLowerCase() }),
+        ...(src.CastTimeOptions?.IgnoreDex && { ignoresDex: true }),
+        ...(src.CastTimeOptions?.IgnoreStatusEffect && { ignoresStatusEffects: true }),
+        ...(src.DamageType?.SplitDamage && { splitDamage: true }), ...(src.DamageType?.IgnoreDefense && { ignoreDefense: true }),
+        ...(src.DamageType?.IgnoreElement && { ignoreElement: true }),
+        ...(src.DamageType?.IgnoreFlee && { ignoreFlee: true }),
+        ...(statusEffect && { statusEffect, statusDurationMs: byLevel(['AS_ENCHANTPOISON', 'SM_ENDURE', 'MO_STEELBODY', 'LK_BERSERK', 'ASC_EDP', 'DC_WINKCHARM', 'WS_MELTDOWN'].includes(name) ? src.SkillData1 : src.SkillData2 ?? src.SkillData1, maxLevel) }),
+        ...(statusChances[name] && { statusChance: Array.from({ length: maxLevel }, (_, i) => statusChances[name](i + 1)) }),
+        ...(src.Unit && { groundDurationMs: duration, groundIntervalMs: src.Unit.Interval ?? 1000 }),
+        ...(oneShotTraps.has(name) && { groundHitLimit: 1 }),
+        ...(['BA_FROSTJOKE', 'DC_SCREAM'].includes(name) && { effectDelayMs: 2000 }),
+        ...(draining && { spDrainIntervalMs, spDrainAmount: 1, toggle: true }),
+        ...(duration[0] > 0 && { durationMs: duration[0] }),
+        ...(src.Requirements?.ZenyCost && { zenyCost: byLevel(src.Requirements.ZenyCost, maxLevel) }),
+        ...(itemCostByLevel.some(cost => cost.length) && { itemCostByLevel }),
+        ...(requiredWeapon.length && !weaponRequirements.includes('NoWeapon') && { requiredWeapon }),
+        ...(onlyTwoHanded && { requiredTwoHanded: true }),
+        ...((src.Requirements?.State ?? rule?.requiredState) && { requiredState: src.Requirements?.State ?? rule?.requiredState }),
+        ...(src.Requirements?.HPCost && { hpCost: byLevel(src.Requirements.HPCost, maxLevel) }),
+        ...(src.Requirements?.HPRateCost && { hpCostPercent: typeof src.Requirements.HPRateCost === 'number' ? src.Requirements.HPRateCost : byLevel(src.Requirements.HPRateCost, maxLevel)[0] }),
+        ...(src.Requirements?.SpiritSphereCost && { sphereCost: byLevel(src.Requirements.SpiritSphereCost, maxLevel) }),
+        ...(rule?.requiredSlot && { requiredSlot: rule.requiredSlot }),
+        ...(inheritedEffect && { effects: inheritedEffect }),
+    };
+manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ...(name === 'HT_POWER' && { adaptation: 'Bow combo after AC_DOUBLE for 2000 ms; two pre-renewal 50 + 8*STR weapon hits against Brute or Insect targets, consuming 12 SP and one Arrow.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k) && !(rule?.handledRequirements ?? []).includes(k)) };
+}
+manifest.skillSources.ws_weaponrefine.adaptation = manifest.weaponRefine.adaptations.join(' ');
+manifest.skillSources.ws_meltdown.adaptation = 'Native self buff at the selected learned level; SkillData1 lifetime15â€“60s, original SP/cast clocks, physical-hit weapon/armor break chances100/70 per level on scale10000. MD_BOSS immunity; native strip Lv0 overlap, duration from RG_STRIP_*Lv1. One additional-effect phase per living hit target, excluding Cart Termination/Tomahawk/Reflect Shield. AFK skips all-boss battles. NoSave buff and captured level are process-local, cleared on caster new connection/logout; NoDeathReset survives defeat. Monster NoSave strips remain on the same live instance across caster reconnect/logout, disappear on process restart and never transfer to a respawn ID. Emperium rejects status before its draw; BG/Gravity Control systems are absent. Native generic equipment-break contributions are not produced by the current solo engine.';
+manifest.skillSources.bs_findingore.adaptation = 'Native passive direct-PC owned-kill proc: uniform choice among the ordered20-entry ITMCHAIN_ORE table, followed by strict roll below chance on scale10000. Exactly two draws, including failures; no rates, LUK or level scaling. Uses normal floor loot and capacity handling. Current solo world has one PC damage owner; ally/pet/homunculus killing is not modeled.';
+manifest.skillSources.cr_slimpitcher.adaptation = 'Solo self-centered ground cast; source range3 and radius3 retained, without party targets. Used level selects Red/Yellow/White Slim Potion at1â€“5/6â€“9/10, one item and30SP. Native1000ms base cast and1000ms aftercast, no extra drinking cooldown. Learned Slim/Pitcher/LearningPotion and target VIT/Recovery enter staged truncation. Existing deterministic raw item-heal midpoints55/205/365HP replace the native shared random raw heal. Generic caster heal bonus is excluded by default skill_add_heal_rate7; current specific/heal2/status modifiers have no producers and pass zero. AFK retains configured HP threshold capped70% and offense between support actions.';
+manifest.skillSources.potion_pitcher.adaptation = 'Self-only solo use; selected Lv1â€“5 consumes exactly Red/Orange/Yellow/White/Blue Potion and1SP, with native500ms after-cast delay and no extra potion cooldown. Recovery uses full learned Pitcher plus Learning Potion and target VIT/INT/Recovery, with native stage truncation. Current item export retains deterministic script midpoints55/125/205/365HP and50SP. Item-heal/caster-heal/received-heal bonuses, Soul Link and recovery-blocking statuses have no current producers and pass zero/false; helper covers their source arithmetic. AFK uses positive configured HP threshold capped at70%, or positive configured SP threshold, only if useful, with offense between support actions. No party target system.';
+manifest.skillSources.ba_pangvoice.adaptation = 'Single-target no-damage cast at range 9 during field hunting; applies source SC_CONFUSION for 17 s at a 50% base chance. Bosses reject it. Solo adaptation releases the monster attack target and randomizes movement within the source AREA_SIZE / 2 (7-cell) envelope until expiry.';
+manifest.rogueCopy = {
+    maxCopiedSlots: 1, incomingScope: 'modeled NPC magic',
+    sourceNames: ['MG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRIKE'],
+    source: 'src/map/skill.c:1260..1279,3670..3737; src/map/pc.c:1522..1535,8893..8918,12830..12853',
+    flag: 'SkillInfo.AllowPlagiarism', level: 'min(incoming level, known Plagiarism level)',
+    damageGate: 'positive final skill damage strictly below target HP before application',
+    permanentSkills: 'paid levels and points remain separate; same copied ID cannot upgrade',
+    committedCastSurvivesReplacement: true,
+    preserve: { noSave: true, clearedOnDeath: true, durationMs: 600000, sp: 30, baseCastMs: 1000,
+        source: 'db/pre-re/skill_db.conf:14688..14705; db/pre-re/sc_config.conf:1175..1182',
+        adaptation: 'AFK arms only after acquiring a valid copy. Per-profile process-memory status clears on new connection, explicit logout and process restart; browser disconnect alone keeps AFK simulation running.' },
+};
+manifest.skillSources.rg_plagiarism.adaptation = 'Separate durable copied slot learned only through real modeled NPC magical damage, without points or RNG. Current incoming scope has four Mage spells; other incoming spells and PvP are not modeled. Actual job changes clear the slot; death retains it. Started casts keep their ID and level snapshot after replacement.';
+manifest.skillSources.st_chasewalk.adaptation = 'Manual self cast:1200ms modified by DEX,10SP; active recast ends immediately for no SP. Main status persists, drains10+2*level SP each10s and adds35-5*level percent walking delay. Only when absent, a paid pulse grants2^(level-1) STR for30s without refresh. Child survives main ending but has NoSave; death clears both. Ordinary mobs stop acquisition, bosses/detectors and already-started targeted NPC casts may hit; positive HP damage ends main. No Soul Link/GvG adaptation or AFK auto-toggle.';
+manifest.skillSources.st_preserve.adaptation = 'Normal self-buff with source 1000 ms cast,30 SP and600 s duration. Protects the copied slot from replacement while active; death and NoSave session boundaries clear it. AFK waits for a valid copy before arming it. Uses original icon and existing generic native cast; no unsupported official VFX ID is invented.';
+manifest.skillSources.mo_bladestop.adaptation = 'Waits 500/700/900/1100/1300 ms for a basic attack by a non-boss within two cells, after Auto Counter; spends 10 SP and one sphere only when AFK has such an attack due in the window. Links the actual attacker reciprocally for 20/30/40/50/60 seconds, blocking pair movement and basic attacks while other monsters act. The four source skill-level gates are checked against Blade Stop level. Chain Combo bypasses only the Triple Attack prerequisite in this linked state; Asura spends four spheres. Source SC_BLADESTOP has NoSave and is cleared on a new connection. SC_BLADESTOP_WAIT has no NoSave flag in this source; clearing the short Idle wait on a new connection is an explicit Idle lifecycle adaptation. Both states release on death, partner loss, map exit or expiry; movement clocks resume when volatile state is removed.';
+manifest.skillSources.dc_winkcharm.adaptation = 'Single-target no-damage cast at range 9 during field hunting; 70% chance to charm a lower-level common Demon, Demi-human, or Angel monster for 10 s. Auto-casts only when an NPC special skill is modeled. Blocks new NPC special skills while preserving committed casts and normal attacks; hunting movement already tracks the player, so separate walk-to-range-3 pathing is not modeled.';
+manifest.skillSources.rg_closeconfine.adaptation = 'Single-target no-damage cast on an adjacent living field-hunt target; costs 25 SP and applies SC_RG_CCONFINE_S for 10 s. The owner and target cannot move, but may continue normal attacks. Owner movement resumes when the last linked target dies or its status expires. Challenges are excluded; the source-bound status is cleared on death, map transfer, or stop, and its deadline shifts across Idle pause/reconnect.';
+manifest.skillSources.dc_dontforgetme.adaptation = 'Self-placed 7x7 enemy field; pulses every 3 s for 180 s. Applies the Hercules DEX/AGI and Dancing Lesson-derived values, grants the 20 s out-of-area grace, drains 1 SP every 10 s, and ends when the next charge cannot be paid. Applied to solo field movement and attack intervals without damage.';
+manifest.skillSources.mo_bodyrelocation.adaptation = 'Field-hunting approach only: consumes 14 SP and one spirit sphere (zero while Explosion Spirits is active), then relocates instantly to a one-cell offset from the selected living mob at up to 18 cells. It does no damage and excludes challenge instances; the next Extremity Fist is blocked for 2 s. Exact GAT collision and cell occupancy are outside the normalized Idle formation.';
+manifest.elementalConversion={sources:['skill.c:8996..9017','status.c:7097,7828..7830,7948..7958,6084..6114','sc_config.conf:2011..2026'],status:'SC_ARMOR_PROPERTY',durationMs:1800000,elementLevels:[1,2,3,4],bossRandomDraws:0,newRandomDraws:2,strongOverlapRandomDraws:1,dispelRemovable:false,perInstance:true};
+manifest.playerStatusProduction = { scope: 'Selected NPC subset, not full monster AI', monsters: { 1175: 'NPC_POISON1', 1061: 'NPC_BLINDATTACK3' }, producerSource: 'db/pre-re/mob_skill_db.conf', treatmentScope: 'Own character in solo hunting', diseaseRules: 'src/map/status.c:6937..7218,8224..8232,12469..12494', firstAttack: 'normal', npcRateComparison: 'rnd()%10000 <= Rate', deathClears: true };
+const npcMagicRuntimeIds = [1120, 1150, 1190, 1708];
+manifest.npcMagicProduction = { source: 'db/pre-re/mob_skill_db.conf + db/pre-re/skill_db.conf', runtimeMonsterIds: npcMagicRuntimeIds,
+    runtimeRows: [],
+    sourceFixtureMonsterIds: [1033], sourceFixtureRows: [
+        { sourceName: 'MG_FIREBOLT', state: 'MSS_BERSERK', level: 3, rate: 500, castTimeMs: 1500, delayMs: 5000, cancelable: true, target: 'MST_TARGET', condition: 'MSC_ALWAYS' },
+        { sourceName: 'MG_FIREBOLT', state: 'MSS_RUSH', level: 3, rate: 500, castTimeMs: 1500, delayMs: 5000, cancelable: true, target: 'MST_TARGET', condition: 'MSC_ALWAYS' },
+    ], actions: ['MG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRIKE'],
+    importedStates: ['MSS_BERSERK', 'MSS_RUSH'], importedConditions: ['MSC_ALWAYS', 'MSC_SKILLUSED'],
+    exclusionPolicy: 'Rows with unsupported target, state, condition, or missing MSC_SKILLUSED ConditionData are skipped. No unsupported row is enabled with approximate behavior; NPC_MAGICALATTACK is a separate, unimplemented mechanism.',
+    decisionCadence: 'Existing solo attack decision deadlines; casts replace one due basic attack and the next ordinary attack retains source AttackDelay cadence.',
+    monsterSp: 'No SP pool or NPC charging. Source SP cost is metadata for Magic Rod.',
+    basicRange: 'Unchanged; bolt reach applies only to the NPC magical action.',
+    magicRodFlags: 'SC_MAGICROD is NoSave and NoClearanceReset. It lives in process memory for the existing session, clears on a new session or death, and expires at its source deadline.' };
+manifest.skillCoverage = { classes: rules.classes.length, skills: skillNames.length, supported: Object.values(catalog.skills).filter(s => s.implementation === 'supported').length, unsupported: Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').length };
+manifest.skillCoverage.byClass = Object.fromEntries(Object.values(catalog.classes).map(job => [job.id, { sourceTree: job.skills.length, supported: job.skills.filter(id => catalog.skills[id].implementation === 'supported').length, unsupported: job.skills.filter(id => catalog.skills[id].implementation === 'unsupported').length }]));
+manifest.skillCoverage.supportedSourceNames = Object.values(catalog.skills).filter(s => s.implementation === 'supported').map(s => s.sourceName);
+manifest.skillCoverage.unavailable = Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').map(s => ({ skillId: s.id, sourceName: s.sourceName, reason: s.unsupportedReason }));
+manifest.senseInspection = {
+    skill: 'WZ_ESTIMATION', packet: 'ZC_MONSTER_INFO', packetId: '0x18c',
+    packetSource: 'src/map/clif.c:6194..6229', senseType: 3, senseTypeSource: 'src/map/battle.c:7872',
+    defenseSource: 'src/map/status.c:3898..3933', targetSource: 'src/map/skill.c:8434..8447',
+    currentHp: true, elementalOrder: ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'],
+    negativeElementRateClamp: 0, manualOnly: true,
+    identityAdaptation: 'Correlate the source packet snapshot with the explicitly selected living Idle actor and encounter generation; never by species alone.',
+};
+manifest.ruwach = {
+    skill: 'AL_RUWACH', status: 'SC_RUWACH', durationMs: 10000, radius: 2, spCost: 10,
+    concealmentStatuses: ['SC_HIDING', 'SC_CLOAKING', 'SC_CAMOUFLAGE', 'SC_CLOAKINGEXCEED', 'SC_NEWMOON'],
+    damage: '145% MATK, Holy, Hercules level 1; only when concealment is removed',
+    sources: ['skill_db.conf:1189..1224', 'skill.c:7569..7577', 'status.c:8297..8303,12422..12434,13346..13355', 'battle.c:1673..1675'],
+    pulseMs: 20, scheduling: 'Next valid source pulse is scheduled by target contact; no continuous 20 ms polling',
+    idleAdaptation: 'Cast before a concealed target enters radius when it can reach the aura before expiry; only the reveal damage provokes the field mob.',
+};
+manifest.skillCoverage.combatExpansion = ['AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'BS_WEAPONPERFECT', 'BS_MAXIMIZE', 'SA_DRAGONOLOGY', 'AL_DP', 'PR_ASPERSIO', 'RG_STRIPWEAPON', 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', ...oneShotTraps, 'RG_SNATCHER', 'RG_STRIPSHIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY'];
+manifest.skillCoverage.combatExpansion.push('SA_AUTOSPELL', 'PF_DOUBLECASTING', 'PF_MEMORIZE', 'AL_PNEUMA', 'SM_ENDURE', 'CR_DEFENDER');
+manifest.skillCoverage.combatExpansion.push(...controlTraps);
+manifest.skillCoverage.combatExpansion.push('MO_STEELBODY', 'LK_BERSERK', 'ASC_EDP');
+manifest.skillCoverage.combatExpansion.push('ST_FULLSTRIP', 'ST_REJECTSWORD', 'SM_AUTOBERSERK');
+manifest.skillCoverage.combatExpansion.push('AS_POISONREACT', 'AS_SPLASHER');
+manifest.skillCoverage.combatExpansion.push('KN_AUTOCOUNTER', 'BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE');
+manifest.skillCoverage.combatExpansion.push('AL_RUWACH');
+manifest.skillCoverage.combatExpansion.push('DC_DONTFORGETME');
+manifest.skillCoverage.combatExpansion.push('BA_PANGVOICE');
+manifest.skillCoverage.combatExpansion.push('DC_WINKCHARM');
+manifest.skillCoverage.combatExpansion.push('RG_CLOSECONFINE');
+manifest.skillCoverage.combatExpansion.push('PF_MINDBREAKER');
+manifest.skillCoverage.combatExpansion.push('PF_FOGWALL', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE');
+manifest.skillCoverage.combatExpansion.push('MO_BODYRELOCATION');
+manifest.skillCoverage.combatExpansion.push('MO_BLADESTOP', 'PR_SUFFRAGIUM');
+manifest.formulaEvidence = {
+    mindBreaker: ['skill.c:8819..8851 source eligibility, chance, status, interrupt and CC cleanup', 'skill_db.conf:12318..12353 range, 30 s, SP and after-cast delay', 'status.c:4541..4553,8737..8739 MDEF percent and MATK percent values', 'status.c:5356..5390 pre-renewal soft MDEF scalar'],
+    fogWall: ['skill_db.conf:12381..12412 5x3 ground field, range9, 20 s and 25 SP', 'skill.c:1821..1824 blind applied to field occupants;20317..20326 field layout', 'battle.c:3337..3344 75% ranged weapon and 25% direct-skill reduction;5034..5036 50 point hit penalty for normal ranged attacks'],
+    castControl: ['skill.c:8918..8933 Cast Cancel raw additional SP and unit cancel type1', 'skill.c:8934..8976 Spell Breaker current timer boss10pct normal2pct and level5heal', 'unit.c:2519..2574 cancellation types ignore damage interruption flags', 'status.c:278..281 saturating SP zap and300..356 passive damage preserves controls', 'skill_db.conf:8244..8261 and8296..8319 exact SP/cast/range'],
+    castControlIdleAdaptations: ['Cast Cancel is exclusively manual with expected own action identity', 'Spell Breaker AFK selects a live engaged NPC caster within9 with strictly useful finish window', 'Solo monsters have no Magic Rod producer; NPC Poison and Blind base SP are zero', 'No PvP actor or general monster SP pool is simulated'],
+    priestSoloControl: ['skill.c:8362..8391 Recovery effective undead branch, source controls and mob_unlocktarget', 'skill.c:7113..7121 Lex Silence removal or start100', 'status.c:6951..6961 and7013..7017 Silence/Blind resistance;7110..7218 source integer rounding', 'status.c:7348..7354 resistance RNG before7684..7688 boss and7721..7731 overlap', 'status.c:933..950 Silence gates skill start;10683..10686 cast cancellation controlled by default BL_NUL battle.c:8017', 'mob.c:1585..1634 unlock attack/chase without skill cancellation;1727..1746 minimum think and Blind view3;1794..1864 attacker memory and acquisition', 'mob.h:43..47 minimum random walk4000 and think100', 'pc.c:4503..4523 Haggle uses max merchant/rogue discount and truncation;battle.c:8137 minimum price1'],
+    priestSoloControlIdleAdaptations: ['Attack target is separate from pending NPC skill target; encounter membership and paid clocks survive release', 'Only released monsters scan on a100ms deadline; normal combat retains its existing cadence', 'Recent real damage memory is retained through release until a decision; old normal-combat memory is discarded after the minimum100ms think opportunity', 'No loot/slave/assist/rude attack/full AI simulation; normalized geometry is retained and random-walk deadline persists without granting protection', 'AFK Recovery selects effective-undead active attack targets without Blind; Lex selects unsilenced nonboss producers of implemented NPC actions', 'Source toggle and normal Recovery monster-control branches remain in resolver; self escape and other PC targets are outside this solo delivery'],
+    poisonBombs: ['battle.c:7141..7161 normal-attempt React including blocked hits, body element and RNG order', 'status.c:7906..7909 integer charges and50pct', 'skill.c:22573 omitted element defaults Neutral', 'skill.c:9327..9342 Splasher HP/boss check and cooldown', 'status.c:12651..12664 actual Splasher duration+500ms', 'skill.c:5252..5261 pre-re weapon explosion and5330..5337 target search/item ownership', 'skill_db.conf:5063..5067 IgnoreElement/IgnoreFlee and no SplitDamage', 'skill.c:1717..1722 Poison additional effect and secondary duration'],
+    poisonBombIdleAdaptations: ['Automatic rotation does not recast an active React buff or refresh an armed bomb', 'Invalid automatic bomb targets are skipped before spending resources; Hercules cast-end rejection spends SP before its HP/boss check', 'Bomb identity and deadlines persist through AFK reconnect and shift with the explicit Idle pause'],
+    reactiveSolo: ['skill.c:3050..3075,8569..8589 joint FullStrip attempt and chemical slots', 'sc_config.conf:455..510 strip statuses have no NoBoss flag', 'status.c:4177,4252,4448,4516 additive strip stat percentages', 'battle.c:6305..6328 reflection before Reject and primary channel halving', 'status.c:8466 Reject three charges and infinite duration', 'status.c:363,563,7879,11389 automatic Provoke threshold and ownership', 'battle.c:1485..1511 pre-re PC soft DEF only', 'battle.c:5573..5595 ATK percentage before skill ratio'],
+    reactiveSoloIdleAdaptations: ['Auto Berserk uses a pure current HP/maxHP projection so every HP change and maximum-HP change reconciles the automatic Provoke immediately', 'Full Strip targets monster stat penalties; no monster inventory or equipment removal is fabricated'],
+    soloStances: ['status.c:5167,5318 SteelBody hard DEF/MDEF90', 'status.c:5596 and5863 SteelBody speed/ASPD rate', 'status.c:5963 and10093..10098 Berserk HP/SP/activation drain', 'battle.c:3087..3089 pre-re Berserk skillratio', 'status.c:11559..11569 and12630..12635 Berserk ending, regeneration and timer', 'pc.c:5371,10266,10505 item and equipment locks', 'skill_db.conf:7911..7940 and10883..10900 source costs/duration'],
+    deadlyPoison: ['battle.c:5830..5840 pre-re EDP weapon rate and exclusions', 'status.c:7894..7901 chance and rate', 'skill.c:1695..1698 normal hit DPOISON', 'status.c:8210..8232 initial damage and tick values', 'status.c:12473..12494 lethal periodic damage', 'skill_db.conf:11543..11598 duration, SP and Poison Bottle'],
+    hunterControlTraps: ['skill.c:4189..4224 NOFOOTSET includes caster and neutral monsters', 'skill.c:14178..14500 trap timer, splash and used-unit lifetime', 'skill.c:1789..1805 Sleep/Blind rates', 'status.c:7023..7027 and7189..7200 Ankle boss/AGI resistance and five-second floor', 'skill.c:3085..3142 knockback immunity and direction reversal', 'skill.c:19613..19654 unused trap floor refund'],
+    hunterTrapIdleAdaptations: ['Automatic rotation keeps one armed unit per skill and chooses a free nearby cell', 'Source cells use the authoritative normalized scene; GAT wall and map noknockback flags are not simulated by this server', 'Unused trap floor drops use the same automatic collection and visible loot as monster drops'],
+    sageCasting: ['db/pre-re/autospell_db.conf learned-spell caps', 'battle.c:7049..7075 normal-attack proc and discounted SP', 'skill.c:3963..3971 nonrecursive Bolt timer', 'status.c:8472..8474 five Memorize charges', 'unit.c:1779..1780 and1984..1985 IgnoreStatusEffect guard', 'skill.c:17563..17585 Memorize cast-time and consumption'],
+    classicDefenses: ['skill.c:12082..12092 ground NOREITERATION and4153..4166 Pneuma layout', 'battle.c:3253 ranged nonmagic Pneuma block', 'status.c:8859..8865 Defender reduction and rate', 'status.c:3396..3401 ASPD rate before motion clamp', 'status.c:338 Endure charge removal below zero', 'battle.c:4864 motion snapshot before status_damage'],
+    magic: ['battle.c:1650..1714 skill ratios', 'battle.c:4166 MATK splash split', 'battle.c:1562 hard and soft MDEF', 'battle.c:4310 positive/negative division fix'],
+    weapon: ['battle.c:5822 pre-renewal division before defense', 'battle.c:6087 Weaponry Research after defense', 'battle.c:6075 mastery after defense', 'battle.c:6124 spirit spheres', 'battle.c:5436 weapon weight *8/100 = 80% displayed weight'],
+    cast: ['skill.c:17509 DEX/150', 'skill_db.conf CastTimeOptions.IgnoreDex', 'skill.c:22789..22813 InterruptCast default false', 'status.c:6386 hard DEF -= trunc(hard DEF * CastDefRate / 100); Grand Cross and Meteor Assault CastDefRate 33'],
+    stats: ['status.c:3763..3769 base motion AGI/DEX', 'db/job_db2.txt cumulative job bonuses', 'job_db.conf BaseASPD and Weight'],
+    recovery: ['status.c:2733..2737 skill HP/SP recovery', 'skill.c:2805..2815 Soul Drain', 'skill.c:1169 Sanctuary'],
+    potions: ['pc.c:8722..8724 item HP modifiers', 'pc.c:8761..8763 item SP modifiers', 'pc.c:5% per AM_LEARNINGPOTION level'],
+    additionalPassives: ['status.c:1894 Dragonology INT', 'status.c:2219..2238 Skin Tempering and Dragonology element/race bonuses', 'battle.c:1493..1500 Divine Protection monster soft defense'],
+    additionalActions: ['skill.c:8570..8587 strip chance and duration', 'status.c:7981..7995 strip monster stat modifiers', 'skill.c:9228 HP Conversion', 'status.c:6128..6144 weapon enchantment precedence'],
+    traps: ['battle.c:4400..4410 classic mine damage', 'battle.c:4650 splash division before element', 'skill.c:18925 pre-renewal Freezing Trap weapon attack', 'skill_db.conf Unit and SkillData1 arm duration'],
+    statusAndDrain: ['skill.c:1865..1873 Frost Joke/Scream base chance', 'skill.c:8252 delayed effect after 2000 ms', 'status.c:7891 Maximize duration becomes drain interval', 'status.c:8286 Cloaking infinite duration and drain interval', 'status.c:8269..8273 and 12408 Hiding remaining-second drain'],
+    soloSkills: ['skill.c:1645..1656 pre-renewal Gank probability and pc_steal_item call', 'status.c:4516..4517 shield strip DEF percent additive category', 'skill.c:1641..1694 normal-hit Enchant Poison', 'status.c:7936..7946 enchant chance and replacement', 'skill.c:7619..7631 Enchant Poison property rejection', 'skill.c:8456..8466 Identify flat SP cost'],
+    range: ['battle.c:7685 player circular/client and monster square range', 'path.c:494..505 floor(max(0,sqrt(dx*dx+dy*dy)-0.0625)) client range', 'skill.c:1096..1115 negative skill range absolute under default skillrange_from_weapon=BL_NUL; RangeModByVulture', 'mob_db.conf AttackRange', 'item_db.conf Range'],
+};
+const slotFromLoc = loc => { if (Array.isArray(loc))
+    loc = loc.join('|'); return /EQP_ARMS|EQP_WEAPON/.test(loc ?? '') ? 'weapon' : /EQP_ARMOR/.test(loc ?? '') ? 'armor' : /EQP_SHIELD/.test(loc ?? '') ? 'shield' : /EQP_HEAD/.test(loc ?? '') ? 'head' : /EQP_GARMENT/.test(loc ?? '') ? 'garment' : /EQP_SHOES/.test(loc ?? '') ? 'shoes' : /EQP_ACC/.test(loc ?? '') ? 'accessory' : undefined; };
+const weaponTypes = { W_DAGGER: 'dagger', W_1HSWORD: 'sword', W_2HSWORD: 'sword', W_1HSPEAR: 'spear', W_2HSPEAR: 'spear', W_1HAXE: 'axe', W_2HAXE: 'axe', W_MACE: 'mace', W_2HMACE: 'mace', W_STAFF: 'staff', W_2HSTAFF: 'staff', W_BOW: 'bow', W_BOOK: 'book', W_KATAR: 'katar', W_MUSICAL: 'instrument', W_WHIP: 'whip' };
+// Reagents keep their inventory role even when their native usable script is inert.
+const protectedReagentIds = new Set(Object.values(catalog.skills).flatMap(skill =>
+    (skill.itemCostByLevel ?? []).flatMap(costs => costs.map(cost => cost.itemId))));
+for (const line of buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/)) {
+    if (!/^\d+,/.test(line)) continue;
+    const values = line.split(',').map(Number);
+    if (values[2] !== 228) continue;
+    for (let i = 4; i < values.length; i += 2)
+        if (Number.isSafeInteger(values[i]) && values[i] > 0) protectedReagentIds.add(values[i]);
+}
+for(const recipe of pharmacyRecipes)protectedReagentIds.add(recipe.outputItemId);
+for(const id of [1010,1011,984])protectedReagentIds.add(id);
+manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY', 'src/map/skill.c WS_WEAPONREFINE material array'],
+    behavior: 'Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available.' };
+function includeItem(raw, shop = false, drop = false) {
+    const i = inheritedItem(raw);
+    const defenseElement = staticDefenseElement(i);
+    if (catalog.items[i.Id]) {
+        if (shop)
+            catalog.items[i.Id].shop = true;
         return true;
     }
-    letĞÑåÁ”€ô€±½½Ğœ°Í±½Ğ€ôÍ±½ÑÉ½µ1½Œ¡¤¹1½Œ¤°İ•…Á½¹QåÁ”€ôİ•…ÃöåG—W5¶’å7V'G—UÒÂVç7W÷'FVDVffV7BÒfÇ6S°¢–b‚‡'VÆY\Ë˜ÛÛ™\\“X]\šX[ÏÏÖ×JKš[˜ÛY\ÊK’Y
-JHÈ\OIÛX]\šX[	ÎûunsupportedEffect=!!i.Script; }
-    else if (protectedReagen¹Ñ%‘Ì¹¡…Ì¡¤¹%¤€˜˜€…ÉÕ±•Ì¹¡•…±m¤¹%‘t€˜˜¤¹%€„ôô€ØÄÄ€˜˜€…l%QEõtTôârÂt•Eô$Ôõ"rÂt•Eô4$BuÒæ–æ6ÇVFW2†’åG—R’’²G—RÒ	ÛX]\šX[	ÎÈ[œİ\ÜYY™™XİHHZK”ØÜš\ÈBˆ[ÙHYˆ
-i.Type === 'IT_CARD') {
+    let type = 'loot', slot = slotFromLoc(i.Loc), weaponType = weaponTypes[i.Subtype], unsupportedEffect = false;
+    if ((rules.converterMaterials??[]).includes(i.Id)) { type='material';unsupportedEffect=!!i.Script; }
+    else if (protectedReagentIds.has(i.Id) && !rules.heal[i.Id] && i.Id !== 611 && !['IT_WEAPON', 'IT_ARMOR', 'IT_CARD'].includes(i.Type)) { type = 'material'; unsupportedEffect = !!i.Script; }
+    else if (i.Type === 'IT_CARD') {
         type = 'card';
-        if (!rÉÕ±•Ì¹…É‘Ím¤¹%‘t€˜˜€…‘•™•¹Í•±•µ•¹Ğ¤ì(€€€€€€€€€€€¥˜€ …‘É½Ã’&WGW&âfÇ6S°¢Vç7W÷'FVDVffV7BÒG'VS°¢BˆBˆ[ÙHYˆ
-K•\HOOH	ÒUÒPSS‘ÉÈK•\HOO} 'IT_USABLE' || i.Type === 'IT_DELAYCONSUME') {
-        // PA½¥Í½¸	½ÑÑ±”¥Ì„É•…•¹Ğ¡•É”ì¥ÑÌ½É¥¥¹…°‘É¥¹­¥¹œÍÉ¥ÁÓB—2æ÷BW†V7WFVBà¢–b†’ä–BÓÓÒcs‚’²G—RÒvÖFW&šX[	ÎÈ[œİ\ÜYY™™XİHYNÈBˆ[ÙHYˆ
-[\ËšX[,[i.Id] || i.Id === 611) type = 'consumable';
+        if (!rules.cards[i.Id] && !defenseElement) {
+            if (!drop) return false;
+            unsupportedEffect = true;
+        }
+    }
+    else if (i.Type === 'IT_HEALING' || i.Type === 'IT_USABLE' || i.Type === 'IT_DELAYCONSUME') {
+        // Poison Bottle is a reagent here; its original drinking script is not executed.
+        if (i.Id === 678) { type = 'material'; unsupportedEffect = true; }
+        else if (rules.heal[i.Id] || i.Id === 611) type = 'consumable';
         else {
-(€€€€€€€€€€€¥˜€ …‘É½À¤É•ÑÕÉ¸™…±Í”ì(€€€€€€€€€€€Õ¹ÍÕÁÁ½ÉÑ•’DVffV7BÒG'VS°¢Ğ¢Ğ¢VÇ6R–b†’åG—RÓÓÒt•EõuÑPTÓ‰ÈK•\HOOH	ÒUĞT“SÔ‰ÊHÂˆ\HH	Ù\]Z\Y[4';
-        unsupportedEffect = !!i.Script && !rules.itemEffe•ÑÍm¤¹%‘t€˜˜€…‘•™•¹Í•±•µ•¹Ğì(€€€ô(€€€•±Í”¥˜€¡läàĞ°€äàÔ°‚““ÂsbÂsrÂ#RÂs3eÒæ–æ6ÇVFW2†’ä–B’¢G—RÒvÛX]\šX[	ÎÂˆ[ÙHYˆ
-›Ü	‰ˆK•\H	‰ˆK•\HOOH	ÒUÑUÉç)
+            if (!drop) return false;
+            unsupportedEffect = true;
+        }
+    }
+    else if (i.Type === 'IT_WEAPON' || i.Type === 'IT_ARMOR') {
+        type = 'equipment';
+        unsupportedEffect = !!i.Script && !rules.itemEffects[i.Id] && !defenseElement;
+    }
+    else if ([984, 985, 990, 716, 717, 1025, 7136].includes(i.Id))
+        type = 'material';
+    else if (drop && i.Type && i.Type !== 'IT_ETC')
         unsupportedEffect = true;
-    const allowedClassesÌ€ô=‰©•Ğ¹Ù…±Õ•Ì¡…Ñ…±½œ¹±…ÍÍ•Ì¤¹™¥±Ñ•È¡¨€ôøì½¹ÍĞÉÕ±”€÷Ò'VÆW2æ6Æ76W2æf–æB‡"Óâ"æ–BÓÓÒ¢æ–B“²6öç7B÷&–v–âÒ'VÆYKœ™Xš\ÙˆÈ[\Ë˜Û\ÜÙ\Ë™š[™
-ˆOˆ‹šYOOH[Kœ™Xš\Ù¦)?.source : rule.source; const sourceJob = origin === 'Dance•Èœ€ü€	…Éœ€è½É¥¥¸ìÉ•ÑÕÉ¸€ …¤¹)½ˆñğ€¡¤¹)½‰mÍ½ÕÉ•)½‰t€üÿò’ä¦ö"äÆÂóòfÇ6R’’bb‚vVöåG—RÇÂ¢çvVöç2æ–æ6ÇVFW2ŠÙX\Û•\JJNÈJK›X\
-ˆOˆ‹šY
-NÂˆÛÛœİ™\Ûİ\˜ÙHH™\Ûİ\²ces[i.Id];
+    const allowedClasses = Object.values(catalog.classes).filter(j => { const rule = rules.classes.find(r => r.id === j.id); const origin = rule.rebirthOf ? rules.classes.find(r => r.id === rule.rebirthOf)?.source : rule.source; const sourceJob = origin === 'Dancer' ? 'Bard' : origin; return (!i.Job || (i.Job[sourceJob] ?? i.Job.All ?? false)) && (!weaponType || j.weapons.includes(weaponType)); }).map(j => j.id);
+    const resource = resources[i.Id];
     if (!resource) {
-        if (!drop) throw newÜÉÉ½È 9¼±¥•¹Ğ¥½¸É•Í½ÕÉ”™½È¥Ñ•´€œ€¬¤¹%¤ì(€€€€€€€‚Öæ–fW7BæÖ—76–æt—FVÕ&W6÷W&6W2çW6‚‡²—FVÔ–C¢’ä–BÂVv—4æÖYNˆKYYÚ\Ó˜[YHJNÂˆBˆÛÛœİ^TšXÙHHK^HÏÈ
-K”Ù[,l ?? 0) * 2;
-    const sellPrice = i.Sell ?? Math.floor(buyPAÉ¥”€¼€È¤ì(€€€…Ñ…±½œ¹¥Ñ•µÍm¤¹%‘t€ôì¥è¤¹%°¹…µ”è¤¹9…¶ÖRÂVv—4æÖS¢’äVv—4æÖRÂG—RÂââçG—RÓÓÒvWV—ÖVçBrbbÈÛİÙX\Û•\KÛÒ[™YˆK“ØÈOOH	ÑTTĞT“TÉË™Yš[˜X¢le: slot !== 'accessory' && i.Refine !== false }, attack: i.¹Ñ¬€üü€À°‘•˜è¤¹•˜€üü€À°Í±½ÑÌè¤¹M±½ÑÌ€üü€À°µ¥¹1•Ù•°èÑç—Vöb’äWV—ÇbÓÓÒvçVÖ&W"rò’äWV—Çb¢ÂÆÆ÷vVD6Æ76W2Ë^TšXÙKÙ[šXÙKÙZYÚˆ
-K•ÙZYÚÏÈ
-HÈL™\Ûİ\˜Ùe: resource ? 'data/texture/ìœ ì €ì¸í„°í˜ì´ìŠ¤/item/' + re•Í½ÕÉ”€¬€œ¹‰µÀœ€è€œœ°•™™•ÑÌèÕ¹ÍÕÁÁ½ÉÑ•‘™™•Ğ€üíô€èÉÕ±–W2æ6&G5¶’ä–EÒóò'VÆW2æ—FVÔVffV7G5¶’ä–EÒóò·ÒÂââçG—RÓÓÒ	ØØ\™	È	‰ˆ][œİ\ÜYY™™Xİ	‰ˆÛİ	‰ˆÈØ\™ÛİÎˆÜÛİH }, ...type === 'consumable' && rules.heal[i.Id] && { healHP:èÉÕ±•Ì¹¡•…±m¤¹%‘ulÁt°¡•…±M@èÉÕ±•Ì¹¡•…±m¤¹%‘ulÅtô°€¸¸¹Õ¹Í×W÷'FVDVffV7Bbb²Vç7W÷'FVDVffV7C¢G'VRÒÂ6†÷Ó°¢–iˆ
-\HOOH	Ù\]Z\Y[	ÊHÂˆØ][ÙËš][\ÖÚK’YK™\]Z\Óupported = !!slot && (i.Type !== 'IT_WEAPON' || !!weaponType”¤€˜˜€ …¤¹)½ˆñğ…±±½İ•‘±…ÍÍ•Ì¹±•¹Ñ €ø€À¤ì(€€€€€€€…Ñ…±½œºæ—FV×5¶’ä–EÒç&Vf–æ&ÆRÒ6FÆöræ—FV×5¶’ä–EÒæWV—7W÷'FVBi‰ˆÛİOOH	ØXØÙ\ÜÛÜIÈ	‰ˆK”™Yš[™HOOH˜[ÙNÂˆBˆYˆ
-(defenseElement) catalog.items[i.Id].defenseElement = defense•±•µ•¹Ğì(€€€¥˜€¡¤¹QåÁ”€ôôô€%Q}]A=8œ¤ì(€€€€€€€…Ñ…±½œ¹¦—FV×5¶’ä–EÒçvVöäÆWfVÂÒ’åvVöäÇbóò°¢6FÆöræ—M[\ÖÚK’YK˜]XÚÔ˜[™ÙHHK”˜[™ÙHÏÈÂˆBˆYˆ
-[œİ\Ü²tedEffect) manifest.inertDropItems.push({ itemId: i.Id, aegi¥Í9…µ”è¤¹•¥Í9…µ”°Í½ÕÉ•QåÁ”è¤¹QåÁ”ô¤ì(€€€É•ÑÕÉ¸ÑÉÕ”ì(§Ğ¦f÷"†6öç7B–Böb'VÆW2ç6†÷’°¢–b‚—FVÔ'”–E¶–EÒÇÂš[˜ÛYR][J][PRYÚYKYJJBˆ›İÈ™]È\œ›ÜŠ	Õ[œóupported shop item ' + id);
+        if (!drop) throw new Error('No client icon resource for item ' + i.Id);
+        manifest.missingItemResources.push({ itemId: i.Id, aegisName: i.AegisName });
+    }
+    const buyPrice = i.Buy ?? (i.Sell ?? 0) * 2;
+    const sellPrice = i.Sell ?? Math.floor(buyPrice / 2);
+    catalog.items[i.Id] = { id: i.Id, name: i.Name, aegisName: i.AegisName, type, ...type === 'equipment' && { slot, weaponType, twoHanded: i.Loc === 'EQP_ARMS', refinable: slot !== 'accessory' && i.Refine !== false }, attack: i.Atk ?? 0, def: i.Def ?? 0, slots: i.Slots ?? 0, minLevel: typeof i.EquipLv === 'number' ? i.EquipLv : 1, allowedClasses, buyPrice, sellPrice, weight: (i.Weight ?? 0) / 10, resource: resource ? 'data/texture/ìœ ì €ì¸í„°í˜ì´ìŠ¤/item/' + resource + '.bmp' : '', effects: unsupportedEffect ? {} : rules.cards[i.Id] ?? rules.itemEffects[i.Id] ?? {}, ...type === 'card' && !unsupportedEffect && slot && { cardSlots: [slot] }, ...type === 'consumable' && rules.heal[i.Id] && { healHP: rules.heal[i.Id][0], healSP: rules.heal[i.Id][1] }, ...unsupportedEffect && { unsupportedEffect: true }, shop };
+    if (type === 'equipment') {
+        catalog.items[i.Id].equipSupported = !!slot && (i.Type !== 'IT_WEAPON' || !!weaponType) && (!i.Job || allowedClasses.length > 0);
+        catalog.items[i.Id].refinable = catalog.items[i.Id].equipSupported && slot !== 'accessory' && i.Refine !== false;
+    }
+    if (defenseElement) catalog.items[i.Id].defenseElement = defenseElement;
+    if (i.Type === 'IT_WEAPON') {
+        catalog.items[i.Id].weaponLevel = i.WeaponLv ?? 1;
+        catalog.items[i.Id].attackRange = i.Range ?? 0;
+    }
+    if (unsupportedEffect) manifest.inertDropItems.push({ itemId: i.Id, aegisName: i.AegisName, sourceType: i.Type });
+    return true;
 }
-for (const id of rules.catalog%Ñ•µÌ€üümt¤ì(€€€¥˜€ …¥Ñ•µ	å%‘m¥‘tñğ€…¥¹±Õ‘•%Ñ•´¡¥Ñ•µ	å$–E¶–EÒ’¢F‡&÷ræWrW'&÷"‚uVç7W÷'FVB6FÆör—FVÒr
-ÈY
-NÂŸB™›Üˆ
-ÛÛœİYÙˆØš™XİšÙ^\Ê[\Ë˜Ø\™ÊJBˆ[˜Û,udeItem(itemById[id]);
-// All and only complete property-onl±ä‰½‘äÍÉ¥ÁÑÌì½µÁ½Õ¹ÍÉ¥ÁÑÌÍÑ…ä¥¹•ÉĞ¸)µ…¹¥™•ÍĞ¹‰½‘å²ÆVÖVçD—FV×2ÒµÓ°¦f÷"†6öç7B&röbö&¦V7BçfÇVW2†—FVÔ'”–B’’ÂˆÛÛœİ][HH[š\š]Y][J˜]ÊK[[Y[Hİ]XÑY™[®seElement(item);
+for (const id of rules.shop) {
+    if (!itemById[id] || !includeItem(itemById[id], true))
+        throw new Error('Unsupported shop item ' + id);
+}
+for (const id of rules.catalogItems ?? []) {
+    if (!itemById[id] || !includeItem(itemById[id]))
+        throw new Error('Unsupported catalog item ' + id);
+}
+for (const id of Object.keys(rules.cards))
+    includeItem(itemById[id]);
+// All and only complete property-only body scripts; compound scripts stay inert.
+manifest.bodyElementItems = [];
+for (const raw of Object.values(itemById)) {
+    const item = inheritedItem(raw), element = staticDefenseElement(item);
     if (!element) continue;
-    includeItem´¡É…Ü¤ì(€€€µ…¹¥™•ÍĞ¹‰½‘å±•µ•¹Ñ%Ñ•µÌ¹ÁÕÍ ¡ì¥Ñ•µ%è¥Ñ•´¹%²ÂVÆVÖVçBÂ67&—E6†#Sc¢6††—FVÒå67&—B’Ò“°§Ğ¦Öæ–fW7Bæ&öGQ[[Y[][\ËœÛÜ
-
-KŠHOˆKš][RYH‹š][RY
-NÂ‹ËÈ]™\H²eferenced reagent remains a real source item. Unsupported usÍ…‰±”(¼¼ÍÉ¥ÁÑÌÍÑ…ä¥¹•ÉĞìÁÉ•Í•¹”¥¸„Í­¥±°½ÍĞ¹•Ù•È–Væ&ÆW267&—Bà¦f÷"†6öç7B–BöbæWr6WB„ö&¦V7BçfÇVW2†6F[ÙËœÚÚ[ÊK™›]X\
-ÈOˆ
-Ëš][PÛÜİS]™[ÏÈ×JK™›]
-
-K›Xap(cost => cost.itemId))))
-    includeItem(itemById[id], falsÍ”°ÑÉÕ”¤ì)½¹ÍĞÁ¡…Éµ…å%Ñ•µ%‘Ìõ¹•ÜM•Ğ¡Á¡…Éµ…åI•¥Á•Ì¹™±…ÓDÖ‡&V6—SÓå·&V6—Ræ÷WGWD—FVÔ–BÂââç&V6—Ræ–æw&VF–VçG2æÖ†šOOšKš][RY
-WJJNÂ™›ÜŠÛÛœİYÙˆ\›XXŞR][RYÊZYŠZ][PRY$[id]||!includeItem(itemById[id],false,true))throw new Error( 5¥ÍÍ¥¹œA¡…Éµ…ä¥Ñ•´€œ­¥¤ì)™½È¡½¹ÍĞí¥Ñ•µ%‘ô½˜™¥¹‘¥¹<÷&T6†–â––b‚—FVÔ'”–E¶—FVÔ–E×ÇÂ–æ6ÇVFT—FVÒ†—FVÔ'”–E¶—FVÔ–EÒË˜[ÙKYJJ]›İÈ™]È\œ›ÜŠ	ÓZ\ÜÚ[™ÈÜ™HÚZ[ˆ][H	ÊÚ][RY$);
+    includeItem(raw);
+    manifest.bodyElementItems.push({ itemId: item.Id, element, scriptSha256: sha(item.Script) });
+}
+manifest.bodyElementItems.sort((a, b) => a.itemId - b.itemId);
+// Every referenced reagent remains a real source item. Unsupported usable
+// scripts stay inert; presence in a skill cost never enables a script.
+for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostByLevel ?? []).flat().map(cost => cost.itemId))))
+    includeItem(itemById[id], false, true);
+const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
+for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
+for(const {itemId} of findingOreChain)if(!itemById[itemId]||!includeItem(itemById[itemId],false,true))throw new Error('Missing Ore chain item '+itemId);
 for(const [id,script] of supportedPotionScripts){
- const Í½ÕÉ”õ¥¹¡•É¥Ñ•‘%Ñ•´¡¥Ñ•µ	å%‘m¥‘t¤ì(¥˜¡Í½ÕÉ”¹MÉ¥ÁĞü¹É•Á±†6R‚õÇ2²örÂrr’Ó×67&—Bç&WÆ6R‚õÇ2²örÂrr’—F‡&÷ræWrW'&÷"‚u[›™Yİ[ÛˆØÜš\Y™™\œÎ‰ÊÚY
-NÂˆÛÛœİ][OXØ][ÙËš][\ó[id];item.type='consumable';delete item.unsupportedEffect;
- µ…¹¥™•ÍĞ¹¥¹•ÉÑÉ½Á%Ñ•µÌõµ…¹¥™•ÍĞ¹¥¹•ÉÑÉ½Á%Ñ•µÌ¹™¥±Ñ•È¡É½Üôûç&÷ræ—FVÔ–BÓÖ–B“°§Ğ¦Öæ–fW7Bæ6öç7VÖ&ÆUW6S×·67&—E6÷W&6S¢vF(‹Ü™K\™KÚ][WÙ‹˜ÛÛ™‰Ë][\Î–Ë‹‹œİ\ÜYİ[Û”ØÜš\ËšÙ^\Ê()],
- healing:'Explicit midpoint healing uses the shared nati¥Ù”Y%P½%9P°É•½Ù•Éä…¹1•…É¹¥¹A½Ñ¥½¸™½ÉµÕ±„¸œ°(ÍÑ…ÑÕÍ•Ï3¢tæF—fRVæGW&SÂ6VÆb&÷fö¶SæBf÷W"–æFWVæFVçC#Ö–âVË[Y[[™\Ú\İ[˜Ù\ÎÈÛİ\˜ÙHX]Ù^\KÜ™\XÙ[Y[[\Ë‰ç,
- idleAdaptations:['Shared2000ms item cooldown','Itemskill ÁÉ•½¹‘¥Ñ¥½¹ÌÉ•©•Ğ…Ñ½µ¥…±±ä‰•™½É”¡…É¥¹œt°(•á•ÕÑ¥¾öã¢tW‡Æ–6—B†æFÆW'2öæÇ“²&&—G&'’—FVÒ67&—G2&RæWfW"]˜[X]Y‰ßNÂ™›ÜŠÛÛœİYÙˆ[™\\›XXŞSİ]]YÊ^ØÛÛœİ item=catalog.items[id];item.type='material';item.unsupported‘™™•ĞõÑÉÕ”í¥Ñ•´¹•™™•ÑÌõíôíô)™½È¡½¹ÍĞÉ½Ü½˜Á¡…Éµ…å9ÁMÓFö6²—°¢–b‚—FVÔ'”–E·&÷ræ—FVÔ–E×ÇÂ–æ6ÇVFT—FVÒ†—FVÔ'”–E·&÷ræš][RYKYKYJJ]›İÈ™]È\œ›ÜŠ	ÓZ\ÜÚ[™È\›XXŞHÚÜ]em '+row.itemId);
- const item=catalog.items[row.itemId];if(ro½Ü¹‘¥Í½Õ¹Ğ˜™¥Ñ•´¹‰ÕåAÉ¥”„ôõÉ½Ü¹ÁÉ¥”¥Ñ¡É½Ü¹•ÜÉÉ½È A¥¹¹–VB†&Ö7’G&FW"&–6RF–ffW'3¢r·&÷ræ—FVÔ–B“°¢—FVÒç6†÷&šXÙO\›İËœšXÙNÚ][KœÚÜ\ØÛİ[\›İË™\ØÛİ[ÂŸBšYŠØ][ÙËš]4ems[7434].shop)throw new Error('Elemental guide requires PisÍÉÕ¥¬ìÍ…±”™½É‰¥‘‘•¸œ¤ì()½¹ÍĞ¡…±±•¹•=Ù•ÉÉ¥‘•Ì€ô¹•Ü5…À¢‡'VÆW2æ&÷76W2æÖ†"Óâ¶"æÖöç7FW$–BÂ%Ò’“°¦6öç7BÖ–æ”&÷74–G2H™]ÈÙ]
-[\Ë›Z[šP›ÜÜÓ[Ûœİ\’YÊNÂ˜ÛÛœİ^ÛYY]œ™Yš^8es = rules.excludedMvpSpritePrefixes ?? [];
-const isMvpMonstÑ•È€ô´€ôø€ ¡´¹5ÙÁáÀ€üü€À¤€ø€Àñğ=‰©•Ğ¹­•åÌ¡´¹5ÙÁÉ½ÁÌ€üü‚·Ò’æÆVæwF‚â’b`¢W†6ÇVFVD×g&Vf—†W2ç6öÖR‡&Vf—‚ÓâÛK”Üš]S˜[YKœİ\ÕÚ]
-™Yš^
-JNÂ˜ÛÛœİ[Ûœİ\RYHØš™Xİ®fromEntries(parsed['mob_db.conf'].mob_db.map(m => [m.Id, m])¤¤ì)½¹ÍĞ¡…±±•¹•5½¹ÍÑ•ÉI½İÌ€ôl¸¸¹¹•Ü5…À¡l(€€€€¸¸¹Á…ÉÍ•‘m²vÖö%öF"æ6öæbuÒæÖö%öF"æf–ÇFW"†—4×gÖöç7FW"’æÖ†ÒÓâ¶Òä–BÂÛWJKˆ‹‹–Ë‹‹›Z[šP›ÜÜÒY×K›X\
-YOˆÂˆÛÛœİ[Ûœİer = monsterById[id];
+ const source=inheritedItem(itemById[id]);
+ if(source.Script?.replace(/\s+/g,'')!==script.replace(/\s+/g,''))throw new Error('Pinned potion script differs:'+id);
+ const item=catalog.items[id];item.type='consumable';delete item.unsupportedEffect;
+ manifest.inertDropItems=manifest.inertDropItems.filter(row=>row.itemId!==id);
+}
+manifest.consumableUse={scriptSource:'db/pre-re/item_db.conf',items:[...supportedPotionScripts.keys()],
+ healing:'Explicit midpoint healing uses the shared native VIT/INT, recovery and LearningPotion formula.',
+ statuses:'Native Endure1, self Provoke1 and four independent20min elemental resistances; source death/expiry/replacement rules.',
+ idleAdaptations:['Shared2000ms item cooldown','Itemskill preconditions reject atomically before charging'],
+ execution:'Explicit handlers only; arbitrary item scripts are never evaluated.'};
+for(const id of inertPharmacyOutputIds){const item=catalog.items[id];item.type='material';item.unsupportedEffect=true;item.effects={};}
+for(const row of pharmacyNpcStock){
+ if(!itemById[row.itemId]||!includeItem(itemById[row.itemId],true,true))throw new Error('Missing Pharmacy shop item '+row.itemId);
+ const item=catalog.items[row.itemId];if(row.discount&&item.buyPrice!==row.price)throw new Error('Pinned Pharmacy trader price differs:'+row.itemId);
+ item.shopPrice=row.price;item.shopDiscount=row.discount;
+}
+if(catalog.items[7434].shop)throw new Error('Elemental guide requires Pisruik; sale forbidden');
+
+const challengeOverrides = new Map(rules.bosses.map(b => [b.monsterId, b]));
+const miniBossIds = new Set(rules.miniBossMonsterIds);
+const excludedMvpPrefixes = rules.excludedMvpSpritePrefixes ?? [];
+const isMvpMonster = m => ((m.MvpExp ?? 0) > 0 || Object.keys(m.MvpDrops ?? {}).length > 0) &&
+    !excludedMvpPrefixes.some(prefix => m.SpriteName.startsWith(prefix));
+const monsterById = Object.fromEntries(parsed['mob_db.conf'].mob_db.map(m => [m.Id, m]));
+const challengeMonsterRows = [...new Map([
+    ...parsed['mob_db.conf'].mob_db.filter(isMvpMonster).map(m => [m.Id, m]),
+    ...[...miniBossIds].map(id => {
+        const monster = monsterById[id];
         if (!monster)
-            throwÜ¹•ÜÉÉ½È 5¥ÍÍ¥¹œµ¥¹¤µ‰½ÍÌµ½¹ÍÑ•È€œ€¬¥¤ì(€€€€€€€É•ÑÕË&â¶–BÂÖöç7FW%Ó°¢Ò’À¥Ò’çfÇVW2‚•Òç6÷'B‚†Â"’Óâä–BÒ‹’Y
-NÂ˜ÛÛœİ[Ûœİ\’YÈHË‹‹›™]ÈÙ]
-Âˆ‹‹œ[\Ë˜\™X\Ë™¦latMap(a => a.monsters),
-    ...challengeMonsterRows.map(m =ôø´¹%¤°)t¥tì)™Õ¹Ñ¥½¸Í½ÕÉ•É½ÁI…Ñ•Ì¡É…Ñ”¤ì(€€€¥˜€¡ÑåÁ•¾öb&FRÓÓÒvçVÖ&W"r’&WGW&â·&FUÓ°¢–b„'&’æ—4'&’‡&]JH	‰ˆ˜]K›[™İOOHˆ	‰ˆ\[Ùˆ˜]VÌHOOH	Û[X™\‰È	‰ˆ4ypeof rate[1] === 'string') return [rate[0]];
-    if (Array.¹¥ÍÉÉ…ä¡É…Ñ”¤¤É•ÑÕÉ¸É…Ñ”¹™±…Ñ5…À¡Í½ÕÉ•É½ÁI…Ñ•Ì¤ì(€€€Ñ¡Ë&÷ræWrW'&÷"‚uVç7W÷'FVB†W&7VÆW2G&÷&FS¢r²¥4ôâç7G&–ë™ÚYJ˜]JJNÂŸB™[˜İ[Ûˆ^Ü›ÜÊ[šY\Ë[Ûœİ\’Y
-HÂˆ   const drops = [];
-    for (const [name, rate] of Object.en¹ÑÉ¥•Ì¡•¹ÑÉ¥•Ì€üüíô¤¤ì(€€€€€€€½¹ÍĞ¥Ñ•´€ô¥Ñ•µ	å9…µ•m¹…µ–UÓ°¢–b‚—FVÒ’F‡&÷ræWrW'&÷"†Ö—76–ær†W&7VÆW2—FVÛH	Û˜[Y_H›ÜYH[Ûœİ\ˆ	Û[Ûœİ\’YX
-NÂˆ[˜ÛYRItem(item, false, true);
-        for (const chance of sourceDÉ½ÁI…Ñ•Ì¡É…Ñ”¤¤ì(€€€€€€€€€€€¥˜€ …9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡¡…ºæ6R’ÇÂ6†æ6RÂÇÂ6†æ6Râ¢F‡&÷rë™]È\œ›ÜŠ[˜[Y\˜İ[\È›ÜÚ[˜ÙH	ØÚ[˜Ù_H›Üˆ	Û˜[Y_}`);
+            throw new Error('Missing mini-boss monster ' + id);
+        return [id, monster];
+    }),
+]).values()].sort((a, b) => a.Id - b.Id);
+const monsterIds = [...new Set([
+    ...rules.areas.flatMap(a => a.monsters),
+    ...challengeMonsterRows.map(m => m.Id),
+])];
+function sourceDropRates(rate) {
+    if (typeof rate === 'number') return [rate];
+    if (Array.isArray(rate) && rate.length === 2 && typeof rate[0] === 'number' && typeof rate[1] === 'string') return [rate[0]];
+    if (Array.isArray(rate)) return rate.flatMap(sourceDropRates);
+    throw new Error('Unsupported Hercules drop rate: ' + JSON.stringify(rate));
+}
+function exportDrops(entries, monsterId) {
+    const drops = [];
+    for (const [name, rate] of Object.entries(entries ?? {})) {
+        const item = itemByName[name];
+        if (!item) throw new Error(`Missing Hercules item ${name} dropped by monster ${monsterId}`);
+        includeItem(item, false, true);
+        for (const chance of sourceDropRates(rate)) {
+            if (!Number.isSafeInteger(chance) || chance < 0 || chance > 10000)
+                throw new Error(`Invalid Hercules drop chance ${chance} for ${name}`);
             drops.push({ itemId: item.Id, chance });
-   €€€€€ô(€€€ô(€€€É•ÑÕÉ¸‘É½ÁÌì)ô)™½È€¡½¹ÍĞ¥½˜µ½¹ÍÑ•É%‘Ï2’°¢6öç7BÒÒ'6VE²vÖö%öF"æ6öæbuÒæÖö%öF"æf–æB†ÒÓâÒä’YOOHY
-NÂˆYˆ
-[JBˆ›İÈ™]È\œ›ÜŠ	ÓZ\ÜÚ[™È[Ûœóter ' + id);
-    const spriteName = rules.monsterAliases[id]t€üü´¹MÁÉ¥Ñ•9…µ”¹Ñ½1½İ•É…Í” ¤ì(€€€½¹ÍĞÁ…Ñ €ô€‘…Ñ„½ÍÁÉ¥ÓFRşºªÎÈªNØKòr²7&—FTæÖS°¢6öç7BG&÷2ÒW‡÷'DG&÷2†Òë‘›ÜËY
-NÂˆÛÛœİ]œ›ÜÈH^Ü›ÜÊK“]œ›ÜËY
-i;
-    const magicMonsterIds = new Set([1033, 1120, 1150, 119äÀ°€ÄÜÀát¤ì(€€€½¹ÍĞÍÕÁÁ½ÉÑ•‘9Á5…¥Œ€ô¹•ÜM•Ğ¡l5}%I	<ôÅBrÂtÔuô4ôÄD$ôÅBrÂtÔuôÄ”t…Dä”ät$ôÅBrÂtÔuõ4õTÅ5E$”´RuÒ“°¢ÛÛœİÛİ\˜ÙT›İÜÈH\œÙYÉÛ[Ø—ÜÚÚ[Ù‹˜ÛÛ™‰×K›[Ø—ÜÚÚ[ßdb[0][m.SpriteName] ?? {};
+        }
+    }
+    return drops;
+}
+for (const id of monsterIds) {
+    const m = parsed['mob_db.conf'].mob_db.find(m => m.Id === id);
+    if (!m)
+        throw new Error('Missing monster ' + id);
+    const spriteName = rules.monsterAliases[id] ?? m.SpriteName.toLowerCase();
+    const path = 'data/sprite/ëª¬ìŠ¤í„°/' + spriteName;
+    const drops = exportDrops(m.Drops, id);
+    const mvpDrops = exportDrops(m.MvpDrops, id);
+    const magicMonsterIds = new Set([1033, 1120, 1150, 1190, 1708]);
+    const supportedNpcMagic = new Set(['MG_FIREBOLT', 'MG_COLDBOLT', 'MG_LIGHTNINGBOLT', 'MG_SOULSTRIKE']);
+    const sourceRows = parsed['mob_skill_db.conf'].mob_skill_db[0][m.SpriteName] ?? {};
     const npcStatusSkills = [];
- €€€±•ĞÍ½ÕÉ•I½İ%¹‘•à€ô€Àì(€€€™½È€¡½¹ÍĞmÍ½ÕÉ•9…µ”°¹ÁºçG'•Òöb÷&FW&VD6öæf–tVçG&–W2‡6÷W&6U&÷w2’’°¢6öç7B&ûİÒ[™^HÛİ\˜ÙT›İÒ[™^
-ÊÎÂˆÛÛœİÙ[XİYİ]\ÈHY$ === 1175 && sourceName === 'NPC_POISON' || id === 1061 && sÍ½ÕÉ•9…µ”€ôôô€9A}	1%9QQ,œì(€€€€€€€½¹ÍĞÍ•±•Ñ•‘5…¥2ÒÖv–4Ööç7FW$–G2æ†2†–B’bb7W÷'FVDç4Öv–2æ†2‡6÷W&6Tæ[YJNÂˆYˆ
-\Ù[XİYİ]\È	‰ˆ\Ù[XİYXYÚXÊHÛÛ[Ye;
-        const condition = npcEntry.CastCondition ?? 'MSC_A1]eLœì(€€€€€€€½¹ÍĞÍÑ…Ñ”€ô¹Á¹ÑÉä¹M­¥±±MÑ…Ñ”ì(€€€€€€€6öç7Bç4F"Ò6¶–ÆÄ'”æÖU·6÷W&6TæÖUÓ°¢–b‚ç4F"ÇÂœÑ[K”ÚÚ[\™Ù]OOH	ÓTÕÕT‘ÑU	ÈVÉÓTÔ×Ğ‘T”ÑT’ÉË	ÓMSS_RUSH'].includes(state) ||
-            !['MSC_ALWAYS', 'MSM}M-%11UMt¹¥¹±Õ‘•Ì¡½¹‘¥Ñ¥½¸¤ñğ½¹‘¥Ñ¥½¸€ôôô€5M}M-%0ÄÅU4TBrbbçVÖ&W"æ—56fT–çFVvW"†ç4VçG'’ä6öæF—F–öäFF’¢ÛÛ[YNÂˆYˆ
-Ù[XİYİ]\ÊHÂˆ  if (state !== 'MSS_BERSERK' || condition !== 'MSC_ALWAYS') Ñ¡É½Ü¹•ÜÉÉ½È %¹Ù…±¥Í•±•Ñ•9AÍÑ…ÑÕÌÍ½ÕÉ”è€œ€¬¥¦“°¢ç57FGW56¶–ÆÇ2çW6‚‡²6¶–ÆÄ–C¢ç4F"ä–BÂ6÷W,˜ÙS˜[YK]™[ˆœÑ[K”ÚÚ[]™[ÏÈK˜]NˆœÑ[K”˜]e ?? 1,
-                castTimeMs: npcEntry.CastTime ?? 0, d‘•±…å5Ìè¹Á¹ÑÉä¹•±…ä€üü€À°…¹•±…‰±”è¹Á¹ÑÉä¹…¹•±…‰±–RóòfÇ6RÀ¢&ævS¢ÖF‚æ'2†ç4F"å&ævRóò’šKİ]\ÎˆœÑ‹”İ]\ĞÚ[™ÙKˆ\˜][Û“\Îˆypeof npcDb.SkillData2 === 'number' ? npcDb.SkillData2 : Obje•Ğ¹Ù…±Õ•Ì¡¹Áˆ¹M­¥±±…Ñ„È€üüíô¥lÁt°(€€€€€€€€€€€€€€€ÍÑ…Ñ”²Â6öæF—F–öâÂ6÷W&6U&÷t–æFWƒ¢&÷t–æFW‚Ââââ†ç4VçG'’ä6öæF—F–öë‘]HOOH[™Yš[™YÈßHˆÈÛÛ™][Û‘]NˆœÑ[KÛÛ™][ïnData }) });
+    let sourceRowIndex = 0;
+    for (const [sourceName, npcEntry] of orderedConfigEntries(sourceRows)) {
+        const rowIndex = sourceRowIndex++;
+        const selectedStatus = id === 1175 && sourceName === 'NPC_POISON' || id === 1061 && sourceName === 'NPC_BLINDATTACK';
+        const selectedMagic = magicMonsterIds.has(id) && supportedNpcMagic.has(sourceName);
+        if (!selectedStatus && !selectedMagic) continue;
+        const condition = npcEntry.CastCondition ?? 'MSC_ALWAYS';
+        const state = npcEntry.SkillState;
+        const npcDb = skillByName[sourceName];
+        if (!npcDb || npcEntry.SkillTarget !== 'MST_TARGET' || !['MSS_BERSERK', 'MSS_RUSH'].includes(state) ||
+            !['MSC_ALWAYS', 'MSC_SKILLUSED'].includes(condition) || condition === 'MSC_SKILLUSED' && !Number.isSafeInteger(npcEntry.ConditionData))
+            continue;
+        if (selectedStatus) {
+            if (state !== 'MSS_BERSERK' || condition !== 'MSC_ALWAYS') throw new Error('Invalid selected NPC status source: ' + id);
+            npcStatusSkills.push({ skillId: npcDb.Id, sourceName, level: npcEntry.SkillLevel ?? 1, rate: npcEntry.Rate ?? 1,
+                castTimeMs: npcEntry.CastTime ?? 0, delayMs: npcEntry.Delay ?? 0, cancelable: npcEntry.Cancelable ?? false,
+                range: Math.abs(npcDb.Range ?? 9), status: npcDb.StatusChange,
+                durationMs: typeof npcDb.SkillData2 === 'number' ? npcDb.SkillData2 : Object.values(npcDb.SkillData2 ?? {})[0],
+                state, condition, sourceRowIndex: rowIndex, ...(npcEntry.ConditionData === undefined ? {} : { conditionData: npcEntry.ConditionData }) });
             continue;
         }
-        const l±•Ù•°€ô¹Á¹ÑÉä¹M­¥±±1•Ù•°€üü€Äì(€€€€€€€½¹ÍĞ¡¥ÑÌ€ô5…Ñ ¹†'2†'”ÆWfVÂ†ç4F"äçVÖ&W$öd†—G2Âç4F"äÖ„ÆWfVÂóòÆWfVÂÂ•¶Ë]™[HWHÏÈJNÂˆœÔİ]\ÔÚÚ[Ëœ\Ú
-ÈÚÚ[YˆœãDb.Id, sourceName, damageType: 'magic', element: (npcDb.Elemµ•¹Ğ€üü€±•}9•ÕÑÉ…°œ¤¹É•Á±…” ±•|œ°€œœ¤¹Ñ½1½İ•É…Í” ¤°(€€‚†—D6÷VçC¢†—G2Â&6U7¢'”ÆWfVÂ†ç4F"å&WV—&VÖVçG3ÿË”ÔÛÜİœÑ‹“X^]™[ÏÈ]™[
-VÛ]™[HWHÏÈˆ    level, rate: npcEntry.Rate ?? 1, castTimeMs: npcEntry.CasÍÑQ¥µ”€üü€À°‘•±…å5Ìè¹Á¹ÑÉä¹•±…ä€üü€À°(€€€€€€€€€€€…¹•²Æ&ÆS¢ç4VçG'’ä6æ6VÆ&ÆRóòfÇ6RÂ&ævS¢ÖF‚æ'2†ç4F"å&[™ÙHÏÈJKİ]KÛÛ™][Û‹Ûİ\˜ÙT›İÒ[™^ˆ›İÒ[™^ˆ        ...(npcEntry.ConditionData === undefined ? {} : { con¹‘¥Ñ¥½¹…Ñ„è¹Á¹ÑÉä¹½¹‘¥Ñ¥½¹…Ñ„ô¤ô¤ì(€€€ô(€€€…Ñ…±½œºæÖöç7FW'5¶–EÒÒ²âââ†ç57FGW56¶–ÆÇ2æÆVæwF‚bb²ç57FGW56ºÚ[ÈJKY˜[YNˆ[\Ë›[Ûœİ\“˜[YP[X\Ù\ÏË–ÚYHÏÈK“˜[YK, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act:èÁ…Ñ €¬€œ¹…Ğœô°±•Ù•°è´¹1Ø€üü€Ä°¡Àè´¹!À€üü€Ä°€¸¸¸¡9Õµ‰–W"æ—4f–æ—FR†Òå7’bbÒå7âò²Ö…7¢Òå7Ò¢·Ò’ÂGF6ºÎˆK]XÚÈÏÈÌKYˆK‘YˆÏÈYYˆK“YYˆÏÈ›ïss: m.Mode?.Boss === true, detector: m.Mode?.Detector === trÉÕ”°…É•ÍÍ¥Ù”è´¹5½‘”ü¹É•ÍÍ¥Ù”€ôôôÑÉÕ”°…¹5½Ù”è´¹5½‘–Sòä6äÖ÷fRÓÓÒG'VRÂæô¶æö6¶&6³¢ÒäÖöFSòäæô¶æö6¶&6²ÓÓÒG']YK[İ™TÜYY\ÎˆK“[İ™TÜYYÏÈŒšY]Ô˜[™ÙNˆK•šY]Ô˜[™ÙHÿ? 10, chaseRange: m.ChaseRange ?? 12, stats: Object.fromEntrÉ¥•Ì¡lMÑÈœ°€¤œ°€Y¥Ğœ°€%¹Ğœ°€•àœ°€1Õ¬t¹µ…À¡Ì€ôømÌ¹ÓFôÆ÷vW$66R‚’ÂÒå7FG3òå·5ÒóòÒ’’Â&6TW‡¢ÒäW‡óòÂ¦ö(‘^ˆK’‘^ÏÈ]XÚÑ[^NˆK]XÚÑ[^HÏÈ‹‹Šumber.isFinite(m.AttackMotion) ? { attackMotionMs: m.AttackMo½Ñ¥½¸ô€èíô¤°€¸¸¸¡9Õµ‰•È¹¥Í¥¹¥Ñ”¡´¹…µ…•5½Ñ¥½¸¤€üì‘…µ…–TÖ÷F–öä×3¢ÒäFÖvTÖ÷F–öâÒ¢·Ò’ÂGF6µ&ævS¢ÒäGF6µ&ævYHÏÈK[[Y[ˆ
-K‘[[Y[Ë–ÌHÏÈ	Ñ[WÓ™]]˜[	ÊKœ™\XÙJ	ÑEle_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, Í¥é”è€¡´¹M¥é”€üü€M¥é•}Mµ…±°œ¤¹É•Á±…” M¥é•|œ°€œœ¤¹Ñ½1½İ•É66R‚’Â&6S¢†Òå&6Róòu$5ôf÷&ÖÆW72r’ç&WÆ6R‚u$5òrÂrr’çFûÓİÙ\Ø\ÙJ
-K›ÜË‹‹Š]œ›ÜË›[™İÈÈ]œ›ÜÈHˆßJi };
+        const level = npcEntry.SkillLevel ?? 1;
+        const hits = Math.abs(byLevel(npcDb.NumberOfHits, npcDb.MaxLevel ?? level, 1)[level - 1] ?? 1);
+        npcStatusSkills.push({ skillId: npcDb.Id, sourceName, damageType: 'magic', element: (npcDb.Element ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(),
+            hitCount: hits, baseSp: byLevel(npcDb.Requirements?.SPCost, npcDb.MaxLevel ?? level)[level - 1] ?? 0,
+            level, rate: npcEntry.Rate ?? 1, castTimeMs: npcEntry.CastTime ?? 0, delayMs: npcEntry.Delay ?? 0,
+            cancelable: npcEntry.Cancelable ?? false, range: Math.abs(npcDb.Range ?? 9), state, condition, sourceRowIndex: rowIndex,
+            ...(npcEntry.ConditionData === undefined ? {} : { conditionData: npcEntry.ConditionData }) });
+    }
+    catalog.monsters[id] = { ...(npcStatusSkills.length && { npcStatusSkills }), id, name: rules.monsterNameAliases?.[id] ?? m.Name, aegisName: m.SpriteName, sprite: { spr: path + '.spr', act: path + '.act' }, level: m.Lv ?? 1, hp: m.Hp ?? 1, ...(Number.isFinite(m.Sp) && m.Sp > 0 ? { maxSp: m.Sp } : {}), attack: m.Attack ?? [0, 0], def: m.Def ?? 0, mdef: m.Mdef ?? 0, boss: m.Mode?.Boss === true, detector: m.Mode?.Detector === true, aggressive: m.Mode?.Aggressive === true, canMove: m.Mode?.CanMove === true, noKnockback: m.Mode?.NoKnockback === true, moveSpeedMs: m.MoveSpeed ?? 200, viewRange: m.ViewRange ?? 10, chaseRange: m.ChaseRange ?? 12, stats: Object.fromEntries(['Str', 'Agi', 'Vit', 'Int', 'Dex', 'Luk'].map(s => [s.toLowerCase(), m.Stats?.[s] ?? 0])), baseExp: m.Exp ?? 0, jobExp: m.JExp ?? 0, attackDelay: m.AttackDelay ?? 4000, ...(Number.isFinite(m.AttackMotion) ? { attackMotionMs: m.AttackMotion } : {}), ...(Number.isFinite(m.DamageMotion) ? { damageMotionMs: m.DamageMotion } : {}), attackRange: m.AttackRange ?? 1, element: (m.Element?.[0] ?? 'Ele_Neutral').replace('Ele_', '').toLowerCase(), elementLevel: m.Element?.[1] ?? 1, size: (m.Size ?? 'Size_Small').replace('Size_', '').toLowerCase(), race: (m.Race ?? 'RC_Formless').replace('RC_', '').toLowerCase(), drops, ...(mvpDrops.length ? { mvpDrops } : {}) };
 }
-manifest.npcMagicProduction.runtimeRows = npcMagicRuntÑ¥µ•%‘Ì¹™±…Ñ5…À¡µ½¹ÍÑ•É%€ôø€¡…Ñ…±½œ¹µ½¹ÍÑ•ÉÍmµ½¹ÍÑ•É%‘t¹¹Á57FGW56¶–ÆÇ2óòµÒ¢æf–ÇFW"‡&÷rÓâ&÷ræFÖvUG—RÓÓÒvÛXYÚXÉÊK›X\
-›İÈOˆ
-È[Ûœİ\’YÛİ\˜ÙT›İÒ[™^ˆ›İËœÛİ\˜ÙT›ïwIndex, sourceName: row.sourceName,
-        level: row.level°°É…Ñ”èÉ½Ü¹É…Ñ”°…ÍÑQ¥µ•5ÌèÉ½Ü¹…ÍÑQ¥µ•5Ì°‘•±…å5ÌèÉ½Ü¹’FVÆ”×2Â6æ6VÆ&ÆS¢&÷ræ6æ6VÆ&ÆRÀ¢&ævS¢&÷rç&ævYK]Ûİ[ˆ›İËš]Ûİ[˜\ÙTÜˆ›İË˜˜\ÙTÜİ]Nˆ›İËœİate, condition: row.condition,
-        ...(row.conditionData €ôôôÕ¹‘•™¥¹•€üíô€èì½¹‘¥Ñ¥½¹…Ñ„èÉ½Ü¹½¹‘¥Ñ¥½¹…Ñ„ô¤÷Ò’’“°¦Öæ–fW7BæÖöç7FW$&V†f–÷"Ò°¢6÷W&6S¢vF"÷&R×&RöÖö(—Ù‹˜ÛÛ™“[ÙIËˆ[İ™[Y[Ûİ\˜ÙNˆ	Ù‹Ü™K\™KÛ[Ø—Ù‹˜ÛÛ™“MoveSpeed/ViewRange/ChaseRange/Mode.CanMove',
-    aggressiveD•™…Õ±Ğè™…±Í”°(€€€…É•ÍÍ¥Ù•5½¹ÍÑ•É%‘Ìè=‰©•Ğ¹Ù…±Õ•Ì¡…Ñ…²ÆöræÖöç7FW'2’æf–ÇFW"†ÒÓâÒævw&W76—fR’æÖ†ÒÓâÒæ–B’À¢\ÜÚ]™S[Ûœİ\’YÎˆØš™Xİ˜[Y\ÊØ][ÙË›[Ûœİ\œÊK™š[\ŠH}> !m.aggressive).map(m => m.id),
-    detectorMonsterIds: Obj©•Ğ¹Ù…±Õ•Ì¡…Ñ…±½œ¹µ½¹ÍÑ•ÉÌ¤¹™¥±Ñ•È¡´€ôø´¹‘•Ñ•Ñ½È¤¹µ…À¡´€÷ÓâÒæ–B’À§Ó°¦6öç7BW‡Ò'6VE²vW‡öw&÷WöF"æ6öæbuÓ°¦6FÆöyË™^˜˜\ÙHHÌ‹‹™^˜˜\ÙWÙ^ÙÜ›İ\Ù‹‘š\œİÛ\ÜÙ\Ë‘^0];
-for (const [name, g] of Object.entries(exp.job_exp_group_}‘ˆ¤¤(€€€…Ñ…±½œ¹•áÀ¹©½‰m¹…µ•t€ôlÀ°€¸¸¹œ¹áÀ°€Átì)…Ñ…±½œ¹–W‡æ&6UG&ç2Ò³ÂââæW‡æ&6UöW‡öw&÷WöF"åG&ç66VæFVD6Æ7<Ù\Ë‘^NÂ™›Üˆ
-ÛÛœİÙY™[™\‹]™[×HÙˆØš™Xİ™[šY\Ê(parsed['attr_fix.conf']))
-    for (const [level, attackers] ½˜=‰©•Ğ¹•¹ÑÉ¥•Ì¡±•Ù•±Ì¤¤(€€€€€€€™½È€¡½¹ÍĞm…ÑÑ…­•È°Ù…²ÇVUÒöbö&¦V7BæVçG&–W2†GF6¶W'2’’°¢6öç7BF²Ò]XÚÙ\‹œ™\XÙJ	Ñ[WÉË	ÉÊKÓİÙ\Ø\ÙJ
-KYˆHY™[™\‹œ²eplace('Ele_', '').toLowerCase();
-            catalog.elemen¹Ñ5½‘¥™¥•ÉÍm…Ñ­t€üüôíôì(€€€€€€€€€€€…Ñ…±½œ¹•±•µ•¹Ñ5½‘¥™¥•ÉÏ5¶FµÕ¶FVeÒóóÒµÓ°¢6FÆöræVÆVÖVçDÖöF–f–W'5¶Fµ×VÙY—VÓ[X™\Š]™[œÛXÙJŠJHHWHH˜[YNÂˆB˜ÛÛœİóizeRows = buffers['size_fix.txt'].toString('utf8').split(/\rÈıq¸¼¤¹µ…À¡°€ôø°¹ÍÁ±¥Ğ œ¼¼œ¥lÁt¹ÑÉ¥´ ¤¤¹™¥±Ñ•È¡	½½±•…¸¤¹µ…À¢†ÂÓâÂç7Æ—B‚rÂr’æÖ„çVÖ&W"’“°¦f÷"†6öç7B·vVöâÂ6öÅÒöbØš™Xİ™[šY\ÊÈYÙÙ\ˆKİÛÜ™ˆ‹ÜX\ˆ^Nˆ‹XXÙe: 8, staff: 10, bow: 11, instrument: 13, whip: 14, book: 15,°­…Ñ…Èè€ÄØô¤¤(€€€…Ñ…±½œ¹Í¥é•5½‘¥™¥•ÉÍmİ•…Á½¹t€ô=‰©•Ğ¹™Ë&öÔVçG&–W2…²w6ÖÆÂrÂvÖVF—VÒrÂvÆ&vRuÒæÖ‚‡2Â’’Óâ·2Â6—®™T›İÜÖÚWVØÛÛWJJNÂ˜ÛÛœİ™]Ø\™H
-™[K˜\ÙQ^›Ø‘^]ems = []) => ({ zeny, baseExp, jobExp, items });
-catalog.quesÍÑÌ€ômì¥è€™¥ÉÍÑ}¡Õ¹Ğœ°¹…µ”è€AÉ¥µ•¥É„‡…‘„œ°‘•ÍÉ¥ÁÓF–öã¢tFW'&÷FR÷&–æw2ârÂ¶–æC¢v¶–ÆÇ2rÂF&vWC¢"ÂÖûİ[ˆL™]Ø\™ˆ™]Ø\™
-ŒLÌŞÈ][RYˆLK]X[]4y: 10 }]) }, { id: 'base_10', name: 'Rumo Ã  aventura', descÉ¥ÁÑ¥½¸è€±…¹”	…Í”€ÄÀ¸œ°­¥¹è€‰…Í•1•Ù•°œ°Ñ…É•Ğè€ÄÀ°‚Ö÷VçC¢Â&Wv&C¢&Wv&BƒSÂÂÂ·²—FVÔ–C¢SRÂVçFš]NˆHWJHKÈYˆ	Ú›Ø—ÌL	Ë˜[YNˆ	Ô›Ùš\ÜğèÛÉË\ØÜš\[Û®: 'Alcance Job 10.', kind: 'jobLevel', target: 10, amount: 1ÄÀ°É•İ…ÉèÉ•İ…É ÔÀÀ°€À°€À¤ô°ì¥è€Á…å½¸œ°¹…µ”è€³¥´‚F÷26×÷2rÂFW67&—F–öã¢uf—6—FR6fW&æFR–öâârÂ¶–æIˆ	Ø\™XIË\™Ù]ˆ	Ü^[Û—ØØ]™IË[[İ[ˆK™]Ø\™ˆ™]Ø\™
-L²00, 1000, 500) }, { id: 'base_40', name: 'Veterano', descripÁÑ¥½¸è€±…¹”	…Í”€ĞÀ¸œ°­¥¹è€‰…Í•1•Ù•°œ°Ñ…É•Ğè€ĞÀ°…µ¾÷VçC¢CÂ&Wv&C¢&Wv&BƒSÂÂÂ·²—FVÔ–C¢“ƒBÂVçF—GNˆÈKÈ][RYˆNK]X[]NˆÈWJHKÈYˆ	Ü™Yš[™WÍ	Ë®ame: 'ArtesÃ£o', description: 'Obtenha um equipamento +4.', ­¥¹è€É•™¥¹”œ°Ñ…É•Ğè€Ğ°…µ½Õ¹Ğè€Ğ°É•İ…ÉèÉ•İ…É ÌÀÀÀ°€ÃÂ’ÒÂ²–C¢vÖ7FW&–æu÷v–ârÂæÖS¢tò&V’F÷2÷&–æw2rÂFY\ØÜš\[Ûˆ	Õ™[°éØHÈ\ØYš[ÈX\İ\š[™Ë‰ËÚ[™ˆ	ØÚ[[™ÙIË, target: 'mastering', amount: 1, reward: reward(2000, 0, 0) ô°ì¥è€‰…Í•|ääœ°¹…µ”è€1•¹‘„‘”IÕ¹”µ5¥‘…Éœ°‘•ÍÉ¥ÁÑ¦–öã¢tÆ6æ6R&6R“’ârÂ¶–æC¢v&6TÆWfVÂrÂF&vWC¢“’ÂÖ÷VëˆNK™]Ø\™ˆ™]Ø\™
-L
-HWNÂ˜ÛÛœİÚ[[™ÙS˜[YPÛïunts = new Map();
-for (const monster of challengeMonsterRowsÌ¤(€€€¡…±±•¹•9…µ•½Õ¹ÑÌ¹Í•Ğ¡µ½¹ÍÑ•È¹9…µ”°€¡¡…±±•¹•9…µ•¾÷VçG2ævWB†Ööç7FW"äæÖR’óò’²“°¦6FÆöræ6†ÆÆVævW2Ò6†Ë[™ÙS[Ûœİ\”›İÜË›X\
-HOˆÂˆÛÛœİ\Ó]œH\Ó]œ[Ûœİ\Šm);
-    const override = challengeOverrides.get(m.Id);
-    co½¹ÍĞÑ¥•È€ô5…Ñ ¹µ…à Ä°5…Ñ ¹•¥° ¡´¹1Ø€üü€Ä¤€¼€ÈÔ¤¤ì(€€€½ºç7BVçF—G’ÒÖF‚æÖ–âƒ2ÂÖF‚æ6V–Â‡F–W"ò"’“°¢6öç7Bfš\œİ™]Ø\™Hİ™\œšYOË™š\œİ™]Ø\™ÏÈ™]Ø\™
-ˆY\ˆ
-ˆ (isMvp ? 4000 : 1000),
-        tier * (isMvp ? 1500 : 400),
-(€€€€€€€Ñ¥•È€¨€¡¥Í5ÙÀ€ü€ÜÔÀ€è€ÈÀÀ¤°(€€€€€€€mì¥Ñ•µ%è€äàĞ°‚VçF—G’ÒÂ²—FVÔ–C¢“ƒRÂVçF—G’ÕÒÀ¢“°¢6öç7BW7M[X]YšYÚ\ÈHX]˜ÙZ[
-
-K’ÏÈJHÈL
-H
-ˆLÂˆ™]4urn {
-        id: override?.id ?? `${isMvp ? 'mvp' : 'minibo½ÍÌõ|‘í´¹%‘õ€°(€€€€€€€¹…µ”è½Ù•ÉÉ¥‘”ü¹¹…µ”€üü€¡¡…±±•¹•9…¶ÖT6÷VçG2ævWB†ÒäæÖR’âòG¶ÒäæÖWÒ+rf&–çFRG¶Òä–GÖ¢K“˜[YJKˆ[Ûœİ\’YˆK’YˆØ]YÛÜNˆ\Ó]œÈ 'mvp' : 'miniboss',
-        minLevel: override?.minLevel ?? 5…Ñ ¹µ…à¡¥Í5ÙÀ€ü€ĞÀ€è€ÄÀ°5…Ñ ¹µ¥¸ ää°€¡´¹1Ø€üü€Ä¤€´€¡¥Í5ÙÀ‚òR¢‚’’’À¢6ööÆF÷vä×3¢3cÀ¢F–ÖV÷WD×3®ˆİ™\œšYOË[Y[İ]\ÈÏÈ
-\Ó]œÈX]›X^
-ŒX]›Z[Š²1600000, estimatedFightMs)) : 600000),
-        firstReward,
-(€€€ôì)ô¤ì)µ…¹¥™•ÍĞ¹¡ÁMÁ5½‘¥™¥•ÉM½ÕÉ”€ôìÁ…Ñ è€ÍÉŒ½µ…À½ÍÓFGW2æ2rÂW&Ã¢v‡GG3¢òöv—F‡V"æ6öÒô†W&7VÆW5u2ô†W&7VÆW2ö&Æö"òyÈ
-È[\Ë˜ÛÛ[Z]
-È	ËÜÜ˜ËÛX\Üİ]\Ë˜ÉË[˜İ[ÛœÎˆÉÜİ]\×Ùçet_base_maxhp', 'status_get_base_maxsp'], modifier: 'JOBL_UPAAHè™±½½È¡‰…Í”€¨€Ä¸ÈÔ¤œ°Í¡„ÈÔØèÉÕ±•Ì¹É•™•É•¹•!…Í¡•Ì¹ÍÑ…ÓGW42Ó°¦Öæ–fW7Bç'VÆW56†#SbÒ6††v—B&VDf–ÆR‡&W6öÇfR‡&öûİ	ØÛÛ[Ü[\ËšœÛÛ‰ÊJJNÂ›X[šY™\İœÜš]SX\[™ÔÛİ\˜ÙHHû url: 'https://github.com/MrAntares/roBrowserLegacy/blob/d88á„ÍÑ…‘”ÀÔàÈÔÌÁ”Í™ŒÄäÀàÔÌÉ„äÉ”å…•„½ÍÉŒ½½)½‰Ì½)½‰9…µ•Q…Š&ÆRæ§2rÂÆ–6Vç6S¢tuÂÓ2ãÖ÷"ÖÆFW"rÂ6†#Sc¢'VÆW2ç&VfW&Væ6YR\Ú\Ëš›Ø“˜[YUX›HNÂ›X[šY™\İœÚÚ[Ûİ\˜Ù\Ëœ—ÜİY™œ˜YÚ][K˜adaptation = 'Self cast available to Priest and High Priest wİ¥Ñ¡½ÕĞÁ…ÉÑäè½ÍÑÌ€àM@°¥Ì¥¹ÍÑ…¹Ğ°±…ÍÑÌ€ÌÀ¼ÈÀ¼ÄÀÌ‰ä±–WfVÂæB&VGV6W2F†RæW‡B6¶–ÆÂ67B'’Ró3óCRW&6VçBâ6<İ™YXİ[Ûˆ\ÈÛÛœİ[YY]H™^[YÚX›HØ\İİ\[˜ãluding instant skills; normal attacks do not consume it. NoSM…Ù”ÍÑ…ÑÕÌ±•…ÉÌ½¸„¹•Ü½¹¹•Ñ¥½¸¸œì)µ…¹¥™•ÍĞ¹Í­¥±±M½ÕÉ6W2æÅ÷FVÆW÷'BæFFF–öâÒtÖçVÂf–VÆBÖ‡VçF–æröæÇ“¢7W',™[X\›™Y[]™[ÔÛÜİ›ÜˆZ]\ˆY[HÚÚXÙNÈ˜[™ÛH\Ùes interior passable cells in the existing navigation compone•¹ĞÑ¼­••À,É½ÕÑ•ÌÉ•…¡…‰±”¸1•Ù•°È½™™•ÉÌÑ¡”Í½±”%‘±–R6fR×ö–çB&öçFW&âF÷vâÂ6—GF–æræB6†ÆÆVævRW6R&RWÛYYÈÛİ\˜ÙH›İ[\Ü›YÜÈØ]H›İÚÚXÙ\ËˆØ\œØ[˜ãels encounter targeting/casts and owned ground groups, prese•ÉÙ¥¹œÁ½ÁÕ±…Ñ¥½¸!@½%Ì½É•ÍÁ…İ¹Ì…¹½É‘¥¹…ÉäÁÉ½É•ÍÍ¥½¸¸8æòd²WFöÖF–2FVÆW÷'Bâs°¦Öæ–fW7BæÖ÷VçFVEV6ôWf–FVæ6RÒ¾ÂˆYXÚ[šXÜÎˆÉÜË˜ÎMK‹ÌNK‹NLŒŒ‹LŒËLÎLK‹®9398', 'status.c:1857..1861,2140..2148,2173..2174,5421..5441Ä°ÔÔÌĞ¸¸ÔÔääœ°€‰…ÑÑ±”¹ŒèÜØĞ¸¸ÜÜÀ°ÈÄĞÔ¸¸ÈÄÔØœ°€Í­¥±°¹ŒèÜäÜÄºâãs“s2ÃsƒSrâãƒ"uÒÀ¢f—7VÇ3¢²w&ô'&÷w6W$ÆVv7’Cƒ†66I‹Ò›ØœËÒ›Ø“˜[YUX›KšœÎŒÌÎKNKÉË	Ñ‹Ò›ØœËÕÙX\Û’›Ø•able.js:50..59,130..140', 'DB/Jobs/WeaponAction.js:171..182,2ÈĞÜ¸¸ÈÔÜœ°€½M­¥±±Ì½M­¥±±Ñ¥½¸¹©ÌèÄÌÜ¸¸ÄĞÌt°(€€€…‘…ÁÑ…Ñ¦–öç3¢²uV6ò7FFR—2÷F–öæÂf÷"öÆFW"&öf–ÆW3²Ö÷VçBöF—6Û[İ[\È^XÚ][™Y[\İ[Ú]İ][™[Y™[[ÛÜİ4', 'Directional Brandish uses normalized encounter cells; so½ÕÉ”Pİ…±±Ì…¹…¹½¹¥…°µ…À¹½­¹½­‰…¬™±…Ì…É”¹½Ğ¦–×÷'FVB'’F†—2W‡÷'B—VÆ–æRuÒÀ§Ó°¦Öæ–fW7Bç6–v‡D&Æ7FW%4Ûİ\˜ÙHHÂˆÚÚ[ˆ	Ù‹Ü™K\™KÜÚÚ[Ù‹˜ÛÛ™ŒNNË‹ŒNŒL	Ë,
-    statusFlags: 'db/pre-re/sc_config.conf:1264..1273 (NoSa…Ù”°9½•…Ñ¡I•Í•Ğ¤œ°(€€€…ÍÑ¹‘MÑ…ÑÕÌèlÍÉŒ½µ…À½Í­¥±°¹ŒèÜÔÛc‚âãsSƒ2rÂw7&2öÖ÷7FGW2æ3£ƒ#“râãƒ32Ã#C#"âã#C3BÃ33câãLÌÍÍI×Kˆ[XYÙNˆ	ÜÜ˜ËÛX\Ø˜]K˜ÎNK‹IËˆÛ›ØÚëback: 'src/map/skill.c:3085..3145',
-    volatileStatusPolicyäè€­•ÁĞ¥¸ÁÉ½•ÍÌµ•µ½Éä™½ÈÑ¡”‰É½İÍ•È½¹¹•Ñ¥½¸…¹±–V&VBöâæWr6öææV7F–öârÀ¢6öçF7EöÆ–7“¢vöæR7V66W76g][[ÙHXÜ›ÜÜÈH\™Ù][™[[YÚX›H™X\˜H[™[ZY\Ë0rocessed on the combat deadline timeline',
+manifest.npcMagicProduction.runtimeRows = npcMagicRuntimeIds.flatMap(monsterId => (catalog.monsters[monsterId].npcStatusSkills ?? [])
+    .filter(row => row.damageType === 'magic').map(row => ({ monsterId, sourceRowIndex: row.sourceRowIndex, sourceName: row.sourceName,
+        level: row.level, rate: row.rate, castTimeMs: row.castTimeMs, delayMs: row.delayMs, cancelable: row.cancelable,
+        range: row.range, hitCount: row.hitCount, baseSp: row.baseSp, state: row.state, condition: row.condition,
+        ...(row.conditionData === undefined ? {} : { conditionData: row.conditionData }) })));
+manifest.monsterBehavior = {
+    source: 'db/pre-re/mob_db.conf:Mode',
+    movementSource: 'db/pre-re/mob_db.conf:MoveSpeed/ViewRange/ChaseRange/Mode.CanMove',
+    aggressiveDefault: false,
+    aggressiveMonsterIds: Object.values(catalog.monsters).filter(m => m.aggressive).map(m => m.id),
+    passiveMonsterIds: Object.values(catalog.monsters).filter(m => !m.aggressive).map(m => m.id),
+    detectorMonsterIds: Object.values(catalog.monsters).filter(m => m.detector).map(m => m.id),
 };
-catalog.source”¹¡…Í €ôÍ¡„¡)M=8¹ÍÑÉ¥¹¥™ä¡…Ñ…±½œ¤¤ì)µ…¹¥™•ÍĞ¹İ•…Á½¹…‘•¹–RÒ°¢6÷W&6S¢w7&2öÖ÷7FGW2æ3£CcbâãCsrÃC3âãC3MNË‹ŒMNÍÍŒË‹ŒÍÍÎIËˆ[š\š][˜ÙNˆ	ĞÛÜHš[˜[\™ent BaseASPD, then override own weapon entries; defaults2000'œ°(€€€­•å5…ÁÁ¥¹œèì%¹ÍÑÉÕµ•¹Ğè€¥¹ÍÑÉÕµ•¹Ğœ°¥ÍĞè€Õ¹…Éµ•’BrÒÀ¢Gvô†æFVD¶W—3¢²7v÷&C¢wGvô†æE7v÷&BrÂ7V#¢wGvûÒ[™ÜX\‰Ë^Nˆ	İÛÒ[™^IËXXÙNˆ	İÛÒ[™XXÙIËİY™ˆ	çtwoHandStaff' },
-    unarmed: 'Fist or native2000 default', •ÅÕ¥ÁÁ•‘5¥ÍÍ¥¹MÕ‰ÑåÁ”è€ÈÀÀÀ°(€€€ÍÑ…ÑÍ½ÉµÕ±„è€‰…Í”€´ÑÉÕºæ2†&6R¢ƒB¢t’²DU‚’ò’rÀ¢6†–VÆEöÆ–7“¢tæò$Tã‘UĞSĞTÔÚY[İ\˜Ú\™ÙH[ˆ™K\™[™]Ø[	ËŸNÂ˜ÛÛœİ^H JSON.stringify(catalog, null, 2) + '\n';
-manifest.catalogSha„ÈÔØ€ôÍ¡„¡Ñ•áĞ¤ì)µ…¹¥™•ÍĞ¹¡…Í¡½¹Ù•¹Ñ¥½¸€ô€…Ñ…±½œ¹Í½ÕÉ”¹¢†6‚Ò4„#Sböb6ö×7B6FÆörv—F‚6÷W&6Ræ†6‚V×G’â6F[ÙÔÚLMˆ\Ú\È[Z]Yš[H]\Ë‰ÎÂ˜ÛÛœİİ]]H\™Ê	Ëm-output') ? resolve(arg('--output')) : resolve(root, 'conten¹Ğ½…Ñ…±½œ¹©Í½¸œ¤ì)…İ…¥Ğµ­‘¥È¡‘¥É¹…µ”¡½ÕÑÁÕĞ¤°ìÉ•ÕÉÍ¥Ù”è‚G'VRÒ“°¦v—Bw&—FTf–ÆR†÷WGWBÂFW‡B“°¦v—Bw&—FTf–ÆR‡&W6ûÛ™J\›˜[YJİ]]
-K	ÜÛİ\˜ÙK[X[šY™\İšœÛÛ‰ÊK”ÓÓ‹œİš[™ÚYy(manifest, null, 2) + '\n');
-console.log(`Exported ${Object.¹­•åÌ¡…Ñ…±½œ¹µ½¹ÍÑ•ÉÌ¤¹±•¹Ñ¡ôµ½¹ÍÑ•ÉÌ°€‘í=‰©•Ğ¹­•åÌ¡…Ñ…²Æöræ—FV×2’æÆVæwF‡Ò—FV×2ÂG´ö&¦V7Bæ¶W—2†6FÆöræ6Æ76W2’æÆVæyİHÛ\ÜÙ\Ë	ÓØš™XİšÙ^\ÊØ][ÙËœÚÚ[ÊK›[™İHÚÚ[ËˆÓHA256 ${manifest.catalogSha256}`);
+const exp = parsed['exp_group_db.conf'];
+catalog.exp.base = [0, ...exp.base_exp_group_db.FirstClasses.Exp, 0];
+for (const [name, g] of Object.entries(exp.job_exp_group_db))
+    catalog.exp.job[name] = [0, ...g.Exp, 0];
+catalog.exp.baseTrans = [0, ...exp.base_exp_group_db.TranscendedClasses.Exp, 0];
+for (const [defender, levels] of Object.entries(parsed['attr_fix.conf']))
+    for (const [level, attackers] of Object.entries(levels))
+        for (const [attacker, value] of Object.entries(attackers)) {
+            const atk = attacker.replace('Ele_', '').toLowerCase(), def = defender.replace('Ele_', '').toLowerCase();
+            catalog.elementModifiers[atk] ??= {};
+            catalog.elementModifiers[atk][def] ??= [];
+            catalog.elementModifiers[atk][def][Number(level.slice(2)) - 1] = value;
+        }
+const sizeRows = buffers['size_fix.txt'].toString('utf8').split(/\r?\n/).map(l => l.split('//')[0].trim()).filter(Boolean).map(l => l.split(',').map(Number));
+for (const [weapon, col] of Object.entries({ dagger: 1, sword: 2, spear: 4, axe: 6, mace: 8, staff: 10, bow: 11, instrument: 13, whip: 14, book: 15, katar: 16 }))
+    catalog.sizeModifiers[weapon] = Object.fromEntries(['small', 'medium', 'large'].map((s, i) => [s, sizeRows[i][col]]));
+const reward = (zeny, baseExp, jobExp, items = []) => ({ zeny, baseExp, jobExp, items });
+catalog.quests = [{ id: 'first_hunt', name: 'Primeira caÃ§ada', description: 'Derrote 10 Porings.', kind: 'kills', target: 1002, amount: 10, reward: reward(200, 50, 30, [{ itemId: 501, quantity: 10 }]) }, { id: 'base_10', name: 'Rumo Ã  aventura', description: 'Alcance Base 10.', kind: 'baseLevel', target: 10, amount: 10, reward: reward(500, 0, 0, [{ itemId: 505, quantity: 5 }]) }, { id: 'job_10', name: 'ProfissÃ£o', description: 'Alcance Job 10.', kind: 'jobLevel', target: 10, amount: 10, reward: reward(500, 0, 0) }, { id: 'payon', name: 'AlÃ©m dos campos', description: 'Visite a caverna de Payon.', kind: 'area', target: 'payon_cave', amount: 1, reward: reward(1200, 1000, 500) }, { id: 'base_40', name: 'Veterano', description: 'Alcance Base 40.', kind: 'baseLevel', target: 40, amount: 40, reward: reward(5000, 0, 0, [{ itemId: 984, quantity: 3 }, { itemId: 985, quantity: 3 }]) }, { id: 'refine_4', name: 'ArtesÃ£o', description: 'Obtenha um equipamento +4.', kind: 'refine', target: 4, amount: 4, reward: reward(3000, 0, 0) }, { id: 'mastering_win', name: 'O rei dos Porings', description: 'VenÃ§a o desafio Mastering.', kind: 'challenge', target: 'mastering', amount: 1, reward: reward(2000, 0, 0) }, { id: 'base_99', name: 'Lenda de Rune-Midgard', description: 'Alcance Base 99.', kind: 'baseLevel', target: 99, amount: 99, reward: reward(50000, 0, 0) }];
+const challengeNameCounts = new Map();
+for (const monster of challengeMonsterRows)
+    challengeNameCounts.set(monster.Name, (challengeNameCounts.get(monster.Name) ?? 0) + 1);
+catalog.challenges = challengeMonsterRows.map(m => {
+    const isMvp = isMvpMonster(m);
+    const override = challengeOverrides.get(m.Id);
+    const tier = Math.max(1, Math.ceil((m.Lv ?? 1) / 25));
+    const quantity = Math.min(3, Math.ceil(tier / 2));
+    const firstReward = override?.firstReward ?? reward(
+        tier * (isMvp ? 4000 : 1000),
+        tier * (isMvp ? 1500 : 400),
+        tier * (isMvp ? 750 : 200),
+        [{ itemId: 984, quantity }, { itemId: 985, quantity }],
+    );
+    const estimatedFightMs = Math.ceil((m.Hp ?? 1) / 500) * 1000;
+    return {
+        id: override?.id ?? `${isMvp ? 'mvp' : 'miniboss'}_${m.Id}`,
+        name: override?.name ?? (challengeNameCounts.get(m.Name) > 1 ? `${m.Name} Â· variante ${m.Id}` : m.Name),
+        monsterId: m.Id,
+        category: isMvp ? 'mvp' : 'miniboss',
+        minLevel: override?.minLevel ?? Math.max(isMvp ? 40 : 10, Math.min(99, (m.Lv ?? 1) - (isMvp ? 15 : 8))),
+        cooldownMs: 3600000,
+        timeoutMs: override?.timeoutMs ?? (isMvp ? Math.max(600000, Math.min(21600000, estimatedFightMs)) : 600000),
+        firstReward,
+    };
+});
+manifest.hpSpModifierSource = { path: 'src/map/status.c', url: 'https://github.com/HerculesWS/Hercules/blob/' + rules.commit + '/src/map/status.c', functions: ['status_get_base_maxhp', 'status_get_base_maxsp'], modifier: 'JOBL_UPPER: floor(base * 1.25)', sha256: rules.referenceHashes.statusC };
+manifest.rulesSha256 = sha(await readFile(resolve(root, 'content/rules.json')));
+manifest.spriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js', license: 'GPL-3.0-or-later', sha256: rules.referenceHashes.jobNameTable };
+manifest.skillSources.pr_suffragium.adaptation = 'Self cast available to Priest and High Priest without party: costs 8 SP, is instant, lasts 30/20/10 s by level and reduces the next skill cast by 15/30/45 percent. Cast reduction is consumed at the next eligible cast start, including instant skills; normal attacks do not consume it. NoSave status clears on a new connection.';
+manifest.skillSources.al_teleport.adaptation = 'Manual field-hunting only: current learned-level SP cost for either menu choice; Random uses interior passable cells in the existing navigation component to keep AFK routes reachable. Level2 offers the sole Idle save-point Prontera. Town, sitting and challenge use are excluded; source noteleport flags gate both choices. Warp cancels encounter targeting/casts and owned ground groups, preserving population HP/IDs/respawns and ordinary progression. No AFK automatic teleport.';
+manifest.mountedPecoEvidence = {
+    mechanics: ['pc.c:695..700,8985..8988,9220..9227,9391..9398', 'status.c:1857..1861,2140..2148,2173..2174,5421..5441,5534..5599', 'battle.c:764..770,2145..2156', 'skill.c:7971..7973,17857..18012'],
+    visuals: ['roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js:30,39,59,67', 'DB/Jobs/WeaponJobTable.js:50..59,130..140', 'DB/Jobs/WeaponAction.js:171..182,247..257', 'DB/Skills/SkillAction.js:137..143'],
+    adaptations: ['Peco state is optional for older profiles; mount/dismount is explicit and idempotent without invented rental cost', 'Directional Brandish uses normalized encounter cells; source GAT walls and canonical map noknockback flags are not imported by this export pipeline'],
+};
+manifest.sightBlasterSource = {
+    skill: 'db/pre-re/skill_db.conf:18587..18610',
+    statusFlags: 'db/pre-re/sc_config.conf:1264..1273 (NoSave, NoDeathReset)',
+    castAndStatus: ['src/map/skill.c:7568..7583', 'src/map/status.c:8297..8303,12422..12434,13361..13375'],
+    damage: 'src/map/battle.c:4019..4065',
+    knockback: 'src/map/skill.c:3085..3145',
+    volatileStatusPolicy: 'kept in process memory for the browser connection and cleared on a new connection',
+    contactPolicy: 'one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline',
+};
+catalog.source.hash = sha(JSON.stringify(catalog));
+manifest.weaponCadence = {
+    source: 'src/map/status.c:14166..14177,14300..14308,14983..14988,3763..3779',
+    inheritance: 'Copy final parent BaseASPD, then override own weapon entries; defaults2000',
+    keyMapping: { Instrument: 'instrument', Fist: 'unarmed' },
+    twoHandedKeys: { sword: 'twoHandSword', spear: 'twoHandSpear', axe: 'twoHandAxe', mace: 'twoHandMace', staff: 'twoHandStaff' },
+    unarmed: 'Fist or native2000 default', equippedMissingSubtype: 2000,
+    statsFormula: 'base - trunc(base * (4 * AGI + DEX) / 1000)',
+    shieldPolicy: 'No RENEWAL_ASPD shield surcharge in pre-renewal',
+};
+const text = JSON.stringify(catalog, null, 2) + '\n';
+manifest.catalogSha256 = sha(text);
+manifest.hashConvention = 'Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes.';
+const output = arg('--output') ? resolve(arg('--output')) : resolve(root, 'content/catalog.json');
+await mkdir(dirname(output), { recursive: true });
+await writeFile(output, text);
+await writeFile(resolve(dirname(output), 'source-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+console.log(`Exported ${Object.keys(catalog.monsters).length} monsters, ${Object.keys(catalog.items).length} items, ${Object.keys(catalog.classes).length} classes, ${Object.keys(catalog.skills).length} skills. SHA256 ${manifest.catalogSha256}`);
