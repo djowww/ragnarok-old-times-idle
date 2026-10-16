@@ -27,6 +27,6 @@ describe('audited monster SP and Shockwave catalog delta', () => {
 
     const changedManifest = structuredClone(rawManifest);
     changedManifest.skillCoverage.supported++;
-    expect(beforeMonsterSpManifest(changedManifest).skillCoverage.supported).toBe(269);
+    expect(beforeMonsterSpManifest(changedManifest).skillCoverage.supported).toBe(270);
   });
 });

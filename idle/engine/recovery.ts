@@ -70,6 +70,40 @@ export function tickTensionRelax(s: GameState, c: Catalog, at: number) {
   }
 }
 
+/** PA_GOSPEL self-target branch: periodic fixed HP/SP charges for the caster. */
+function tickBattleChant(s: GameState, c: Catalog, at: number): void {
+  const active = Object.entries(s.buffs).find(([id, buff]) =>
+    buff.expiresAt > at && c.skills[id]?.sourceName === "PA_GOSPEL",
+  );
+  const runtime = s.combatEffects;
+  if (!active || !runtime) {
+    if (runtime) delete runtime.battleChant;
+    return;
+  }
+  const [id, buff] = active;
+  const start = buff.startsAt ?? buff.expiresAt - 60_000;
+  const level = runtime.buffLevels?.[id] ?? s.learnedSkills[id] ?? 1;
+  const timer = runtime.battleChant ??= {
+    nextTickAt: start + 10_000,
+    remainingTicks: Math.max(0, Math.floor((buff.expiresAt - start) / 10_000) - 1),
+    level,
+  };
+  const stats = derivedStats(s, c);
+  while (
+    timer.remainingTicks > 0 &&
+    timer.nextTickAt <= at &&
+    timer.nextTickAt < buff.expiresAt
+  ) {
+    const hp = timer.level > 5 ? 45 : 30;
+    const sp = timer.level > 5 ? 35 : 20;
+    s.hp = Math.min(stats.maxHp, s.hp + hp);
+    s.sp = Math.min(stats.maxSp, s.sp + sp);
+    timer.nextTickAt += 10_000;
+    timer.remainingTicks -= 1;
+  }
+  if (timer.remainingTicks <= 0) delete runtime.battleChant;
+}
+
 /** Hercules pre-renewal status.c:status_calc_regen_pc / status_natural_heal. */
 export function recoverResources(
   s: GameState,
@@ -87,6 +121,7 @@ export function recoverResources(
   // The idle engine owns its accelerated town and death recovery separately.
   const sitting = isFieldSitting(s);
   if (s.status !== "hunting" && s.status !== "challenge" && !sitting) return;
+  tickBattleChant(s, c, at);
   if (classicBuffActive(s, c, 'LK_BERSERK', at) || playerRecoveryBlocked(s, c, at)) return;
   // The post-Frenzy status masks RGN_HP/RGN_SP, not skill RGN_SHP/RGN_SSP.
   const naturalBlocked = soloRecoveryBlocked(s, c, at);

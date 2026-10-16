@@ -732,6 +732,8 @@ export interface GameState {
     /** Frenzy drain is captured at activation and survives reconnects. */
     berserk?: { nextTickAt: number; drainHp: number; remainingTicks: number };
     tensionRelax?: { nextTickAt: number; remainingTicks: number };
+    /** PA_GOSPEL self-status resource pulses while hunting. */
+    battleChant?: { nextTickAt: number; remainingTicks: number; level: number };
     regenBlockedUntil?: number;
     buffDrainAt?: Record<string, number>;
     buffLevels?: Record<string, number>;

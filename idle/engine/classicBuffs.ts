@@ -6,7 +6,7 @@ import type { Catalog, GameState, Monster, Skill } from "../shared/types.js";
 import { bladeStopSkillAllowed, bladeStopTarget } from './bladeStop.js';
 
 const lifecycleSources = new Set(["TF_HIDING", "AS_CLOAKING", "BS_MAXIMIZE"]);
-const toggleSources = new Set([...lifecycleSources, "CR_DEFENDER", "SM_AUTOBERSERK", "CR_SHRINK", "NV_TRICKDEAD"]);
+const toggleSources = new Set([...lifecycleSources, "CR_DEFENDER", "SM_AUTOBERSERK", "CR_SHRINK", "NV_TRICKDEAD", "PA_GOSPEL"]);
 const hiddenActions = new Set([
   "TF_HIDING",
   "AS_GRIMTOOTH",
@@ -90,6 +90,7 @@ export function cancelClassicBuff(
     if (canonical === "ST_REJECTSWORD") delete effects.rejectSword;
     if (canonical === "AS_POISONREACT") delete effects.poisonReact;
     if (canonical === "LK_TENSIONRELAX") delete effects.tensionRelax;
+    if (canonical === "PA_GOSPEL") delete effects.battleChant;
     if (canonical === "SA_AUTOSPELL") delete effects.autospell;
     if (canonical === "PF_MEMORIZE") effects.memorizeCharges = 0;
     if (canonical === "SM_ENDURE") delete effects.endure;
@@ -182,8 +183,9 @@ export function applyClassicBuff(
   at: number,
 ): boolean {
   const source = sourceName(skill);
+  const battleChant = source === "PA_GOSPEL";
   if (
-    !lifecycleSources.has(source) ||
+    (!lifecycleSources.has(source) && !battleChant) ||
     skill.implementation === "unsupported" ||
     !Number.isSafeInteger(level) ||
     level < 1 ||
@@ -193,8 +195,33 @@ export function applyClassicBuff(
   )
     return false;
   cancelClassicBuff(s, c, source);
+  if (battleChant) {
+    // PA_GOSPEL's self status clears the caster's active buffs and ailments.
+    for (const id of Object.keys(s.buffs))
+      cancelClassicBuff(s, c, buffSource(c, id));
+    s.playerStatuses = {};
+  }
   const effects = runtime(s);
   (effects.buffLevels ??= {})[skill.id] = level;
+  if (battleChant) {
+    const duration = Math.max(
+      0,
+      value(skill.statusDurationMs, level, skill.durationMs ?? 60_000),
+    );
+    const interval = 10_000;
+    s.buffs[skill.id] = {
+      startsAt: at,
+      expiresAt: at + duration,
+      effects: { ...skill.effects },
+    };
+    effects.battleChant = {
+      nextTickAt: at + interval,
+      // status.c initializes val2 to duration/interval, decrements before heal.
+      remainingTicks: Math.max(0, Math.floor(duration / interval) - 1),
+      level,
+    };
+    return true;
+  }
   (effects.buffDrainAt ??= {})[skill.id] =
     at + (source === "TF_HIDING" ? 1000 : drainInterval(skill, level));
   s.buffs[skill.id] = {

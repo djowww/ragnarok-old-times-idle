@@ -24,7 +24,7 @@ describe('TF_BACKSLIDING source promotion', () => {
     for (const job of eligible) expect(classSkills(catalog, job)).toContain(skill.id);
     for (const job of Object.keys(catalog.classes).filter(job => !eligible.includes(job)))
       expect(classSkills(catalog, job), job).not.toContain(skill.id);
-    expect(manifest.skillCoverage).toMatchObject({ skills: 348, supported: 268, unsupported: 80 });
+    expect(manifest.skillCoverage).toMatchObject({ skills: 348, supported: 269, unsupported: 79 });
   });
 
   it('keeps the movement action out of automatic rotation', () => {

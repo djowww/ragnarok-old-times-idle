@@ -54,7 +54,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "eb8dd97e6258005543b15b7cd696dbdbc845a99d13b9bc763f3d67eb16333903"
+    "hash": "e3c9363a23a9756da4d2ae02f32570782d562d8fb98393d174a3f3cf1f46bd19"
   },
   "rates": {
     "baseExp": 4,
@@ -91355,9 +91355,8 @@
       "herculesId": 369,
       "sourceName": "PA_GOSPEL",
       "mechanic": "PA_GOSPEL",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
-      "description": "Battle Chant. Aplica GOSPEL. Requer efeitos aleatórios de grupo.",
+      "implementation": "supported",
+      "description": "Na caça solo, ativa GOSPEL por 60 segundos. A cada 10 segundos recupera 30 HP e 20 SP nos níveis 1–5, ou 45 HP e 35 SP nos níveis 6–10. A ativação remove buffs e estados negativos, como no Hercules; efeitos aleatórios para aliados não se aplicam sem grupo.",
       "iconResource": "data/texture/유저인터페이스/item/pa_gospel.bmp",
       "spCost": [
         80,

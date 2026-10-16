@@ -5454,8 +5454,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -14902,8 +14901,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 268,
-    "unsupported": 80,
+    "supported": 269,
+    "unsupported": 79,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -14992,8 +14991,8 @@
       },
       "paladin": {
         "sourceTree": 35,
-        "supported": 31,
-        "unsupported": 4
+        "supported": 32,
+        "unsupported": 3
       },
       "wizard": {
         "sourceTree": 30,
@@ -15202,6 +15201,7 @@
       "CR_SHRINK",
       "PA_PRESSURE",
       "PA_SACRIFICE",
+      "PA_GOSPEL",
       "PA_SHIELDCHAIN",
       "WZ_FIREPILLAR",
       "WZ_SIGHTRASHER",
@@ -15431,11 +15431,6 @@
         "skillId": "cr_providence",
         "sourceName": "CR_PROVIDENCE",
         "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "pa_gospel",
-        "sourceName": "PA_GOSPEL",
-        "reason": "Requer efeitos aleatórios de grupo."
       },
       {
         "skillId": "ice_wall",
@@ -16470,6 +16465,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
+  "catalogSha256": "7aacc491ca706094805bf171a743120e234cea57a1fb19b58cec6efe71c127ad",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
