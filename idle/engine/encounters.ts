@@ -62,6 +62,7 @@ import {
 import {
   classicCastTime,
   classicMagicDamage,
+  classicUndeadTargetEligible,
   classicPhysicalDamage,
   classicSkillEffects,
   classicHeal,
@@ -1307,6 +1308,8 @@ function chooseSkill(
     if (breaker && !breakerTarget) continue;
     const treatment = treatmentSources.has(skill.sourceName ?? '');
     const targetMonster = c.monsters[target.monsterId];
+    if (skill.sourceName === 'PR_TURNUNDEAD' &&
+      !classicUndeadTargetEligible(combatStatus(c, target, at).monster)) continue;
     const hasMagicThreat = targetMonster.npcStatusSkills?.some(row => row.damageType === 'magic' && row.range > 3) ?? false;
     const fogWall = skill.sourceName === 'PF_FOGWALL' &&
       !fogWallDefending(s, c, at) && ((targetMonster.attackRange ?? 1) > 3 || hasMagicThreat) &&

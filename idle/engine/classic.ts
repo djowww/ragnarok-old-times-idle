@@ -94,7 +94,9 @@ const idleBalancedDamage = (damage: number, skill: Skill | undefined, level: num
 const randomExclusive = (min: number, max: number, rng: () => number) => min + (max > min ? Math.floor(rng() * (max - min)) : 0);
 const sourceAliases: Record<string, string> = { SM_RECOVERY: 'hp_recovery', MG_SRECOVERY: 'sp_recovery', TF_DOUBLE: 'double_attack', TF_MISS: 'improve_dodge', AC_OWL: 'owl_eye', HT_BEASTBANE: 'beast_bane', MO_TRIPLEATTACK: 'triple_attack', HW_SOULDRAIN: 'soul_drain' };
 const learned = (s: ClassicDamageStats, source: string) => s.skillLevelsBySource?.[source] ?? s.learnedSkills?.[source] ?? s.learnedSkills?.[sourceAliases[source] ?? source.toLowerCase()] ?? 0;
-const undead = (monster: Monster) => monster.element.toLowerCase() === 'undead';
+export const classicUndeadTargetEligible = (monster: Monster) =>
+  monster.element.toLowerCase() === 'undead';
+const undead = classicUndeadTargetEligible;
 
 /** skill.c:17509; battle_config.castrate_dex_scale defaults to 150. */
 export function classicCastTime(baseMs: number, dex: number): number {
