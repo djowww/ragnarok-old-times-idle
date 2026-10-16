@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { beforeBattleChantCatalog, beforeBattleChantManifest } from './battle-chant-historical.js';
 
 const BEFORE_CATALOG_SHA256 = 'f05e0a2f37dba20df233e6d43009713ccec505d1cec956c13105f3523dd7fff1';
 const AFTER_CATALOG_SHA256 = 'cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20';
@@ -10,7 +11,7 @@ const AFTER_SHOCKWAVE_DESCRIPTION = 'Shockwave Trap. Habilidade utilitária.';
 
 /** Reverses only the reviewed monster-SP field and Shockwave catalog promotion. */
 export function beforeMonsterSpCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeBattleChantCatalog(input) as Record<string, any>;
   const mimic = result.monsters?.['1191'];
   // The pinned selected mob_db export has only Mimic (1191) with nonzero SP.
   if (mimic?.maxSp === 182) delete mimic.maxSp;
@@ -33,7 +34,7 @@ export function beforeMonsterSpCatalog<T>(input: T): T {
 
 /** Reverses only the exact current Shockwave support-coverage delta. */
 export function beforeMonsterSpManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeBattleChantManifest(input) as Record<string, any>;
   const coverage = result.skillCoverage;
   if (!coverage || coverage.supported !== 268 || coverage.unsupported !== 80) return result as T;
 

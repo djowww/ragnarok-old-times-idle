@@ -383,7 +383,7 @@ const unsupported = {
     AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
     MC_VENDING: 'Requer comércio com outros personagens.', ALL_BUYING_STORE: 'Requer comércio com outros personagens.', MC_CARTDECORATE: 'Decoração de carrinho exige objetos de carrinho.', MC_CHANGECART: 'Aparência do carrinho exige objetos de carrinho.',
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
-    CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', PA_GOSPEL: 'Requer efeitos aleatórios de grupo.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
+    CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
     SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.',
     BS_REPAIRWEAPON: 'O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.',
     PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
@@ -458,6 +458,7 @@ const descriptions = {
     RG_CLOSECONFINE: 'Confinamento prende você e um monstro adjacente por 10 segundos. O alvo pode continuar atacando e recebendo seus golpes; a caça volta a se mover quando o alvo morre ou o efeito termina. Custa 25 SP e só é usado contra um alvo vivo em contato durante a caça no campo.',
     WS_MELTDOWN: 'Ataques físicos podem enfraquecer a arma e a armadura de monstros comuns. O nível escolhido define SP, conjuração e duração; chefes são imunes.',
     AM_POTIONPITCHER: 'Arremessa uma poção em si mesmo. Níveis 1–4 usam poções Vermelha, Laranja, Amarela e Branca; nível 5 usa Azul para SP. A recuperação usa o nível aprendido e Pesquisa de Poções.',
+    PA_GOSPEL: 'Na caça solo, ativa GOSPEL por 60 segundos. A cada 10 segundos recupera 30 HP e 20 SP nos níveis 1–5, ou 45 HP e 35 SP nos níveis 6–10. A ativação remove buffs e estados negativos, como no Hercules; efeitos aleatórios para aliados não se aplicam sem grupo.',
     ...(rules.skillDescriptions ?? {}),
 };
 const statusChances = { MG_FROSTDIVER: l => 35 + 3 * l, WZ_FROSTNOVA: l => 35 + 3 * l, MG_STONECURSE: l => 20 + 4 * l, WZ_METEOR: l => 3 * l, WZ_VERMILION: l => 4 * l, HW_NAPALMVULCAN: () => 5, TF_POISON: l => 10 + 4 * l, AS_SONICBLOW: l => 10 + 2 * l, BA_FROSTJOKE: l => 15 + 5 * l, BA_PANGVOICE: () => 50, DC_SCREAM: l => 25 + 5 * l, BS_HAMMERFALL: l => 20 + 10 * l, HT_LANDMINE: l => 30 + 5 * l, HT_FREEZINGTRAP: l => 35 + 3 * l, SA_FROSTWEAPON: l => Math.min(100, 60 + 10 * l), SA_SEISMICWEAPON: l => Math.min(100, 60 + 10 * l), SA_FLAMELAUNCHER: l => Math.min(100, 60 + 10 * l), SA_LIGHTNINGLOADER: l => Math.min(100, 60 + 10 * l) };
@@ -476,7 +477,7 @@ for (const name of skillNames) {
     if (name === 'ALL_RESURRECTION') kind = 'magical';
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
-    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY'].includes(name);
+    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
     const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';

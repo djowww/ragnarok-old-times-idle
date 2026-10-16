@@ -1,0 +1,310 @@
+{
+  "beforeCatalogSha256": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
+  "beforeManifestSha256": "792a698a0a4f14e7d59c981fe760e0f2e05f42a74ba1b326b81827065de2ac54",
+  "catalogSkill": {
+    "before": {
+      "id": "pa_gospel",
+      "name": "Battle Chant",
+      "kind": "buff",
+      "maxLevel": 10,
+      "herculesId": 369,
+      "sourceName": "PA_GOSPEL",
+      "mechanic": "PA_GOSPEL",
+      "implementation": "unsupported",
+      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
+      "description": "Battle Chant. Aplica GOSPEL. Requer efeitos aleatórios de grupo.",
+      "iconResource": "data/texture/유저인터페이스/item/pa_gospel.bmp",
+      "spCost": [
+        80,
+        80,
+        80,
+        80,
+        80,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "range": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "targetType": "self",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "cr_trust",
+          "level": 8
+        },
+        {
+          "skillId": "al_dp",
+          "level": 3
+        },
+        {
+          "skillId": "al_demonbane",
+          "level": 5
+        }
+      ],
+      "prerequisitesByClass": {
+        "paladin": [
+          {
+            "skillId": "cr_trust",
+            "level": 8
+          },
+          {
+            "skillId": "al_dp",
+            "level": 3
+          },
+          {
+            "skillId": "al_demonbane",
+            "level": 5
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "ignoreFlee": true,
+      "statusEffect": "SC_GOSPEL",
+      "statusDurationMs": [
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000
+      ],
+      "groundDurationMs": [
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000,
+        60000
+      ],
+      "groundIntervalMs": 10000,
+      "durationMs": 60000
+    },
+    "afterHash": "08681f83a59b53dfb1e0b67bac613a7e76090cefd525f12aa0047898898c0864"
+  },
+  "catalogSource": {
+    "before": {
+      "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+      "files": [
+        "db/pre-re/mob_skill_db.conf",
+        "db/pre-re/mob_db.conf",
+        "db/pre-re/item_db.conf",
+        "db/pre-re/job_db.conf",
+        "db/pre-re/exp_group_db.conf",
+        "db/pre-re/skill_db.conf",
+        "db/pre-re/skill_tree.conf",
+        "db/pre-re/attr_fix.conf",
+        "db/pre-re/size_fix.txt",
+        "db/pre-re/autospell_db.conf",
+        "db/pre-re/unit_parameters_db.conf",
+        "npc/merchants/refine.txt",
+        "npc/mapflag/noteleport.txt",
+        "npc/pre-re/mobs/fields/geffen.txt",
+        "npc/pre-re/mobs/fields/payon.txt",
+        "npc/pre-re/mobs/fields/prontera.txt",
+        "npc/pre-re/mobs/dungeons/prt_sew.txt",
+        "npc/pre-re/mobs/dungeons/pay_dun.txt",
+        "npc/pre-re/mobs/dungeons/iz_dun.txt",
+        "npc/pre-re/mobs/dungeons/orcsdun.txt",
+        "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+        "npc/pre-re/mobs/dungeons/gef_dun.txt",
+        "npc/pre-re/mobs/dungeons/glastheim.txt",
+        "db/job_db2.txt",
+        "db/pre-re/sc_config.conf",
+        "src/map/battle.c",
+        "src/map/status.c",
+        "src/map/skill.c",
+        "src/map/pc.c",
+        "src/map/pc.h",
+        "src/map/unit.c",
+        "src/map/mob.c",
+        "src/map/mob.h",
+        "db/produce_db.txt",
+        "npc/merchants/shops.txt",
+        "npc/merchants/alchemist.txt",
+        "npc/pre-re/merchants/shops.txt",
+        "src/map/clif.c",
+        "db/pre-re/refine_db.conf",
+        "src/map/refine.c",
+        "src/map/clif.h",
+        "db/pre-re/item_chain.conf",
+        "src/map/itemdb.c",
+        "src/map/script.c",
+        "conf/map/battle/drops.conf",
+        "npc/merchants/renters.txt",
+        "src/map/map.h",
+        "conf/map/battle/player.conf",
+        "conf/map/battle/skill.conf",
+        "conf/map/battle/battle.conf"
+      ],
+      "hash": "eb8dd97e6258005543b15b7cd696dbdbc845a99d13b9bc763f3d67eb16333903"
+    },
+    "afterHash": "7a49d20ebb27af11e49db4fd968a275dc4190b9184f5e3ce59e8171705e55223"
+  },
+  "manifestCoverage": {
+    "afterHash": "7170296a05744ad8415eb7b171975738ef731b535b90cc39ff185acf0fcfc5ab",
+    "supported": 268,
+    "unsupported": 80,
+    "paladin": {
+      "sourceTree": 35,
+      "supported": 31,
+      "unsupported": 4
+    },
+    "unavailableIndex": 11,
+    "unavailableEntry": {
+      "skillId": "pa_gospel",
+      "sourceName": "PA_GOSPEL",
+      "reason": "Requer efeitos aleatórios de grupo."
+    }
+  },
+  "manifestSkill": {
+    "before": {
+      "id": 369,
+      "name": "PA_GOSPEL",
+      "sourceMaxLevel": 10,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 80,
+          "Lv2": 80,
+          "Lv3": 80,
+          "Lv4": 80,
+          "Lv5": 80,
+          "Lv6": 100,
+          "Lv7": 100,
+          "Lv8": 100,
+          "Lv9": 100,
+          "Lv10": 100
+        }
+      },
+      "sourceDamageType": {
+        "NoDamage": true,
+        "IgnoreFlee": true
+      },
+      "sourceUnit": {
+        "Id": 179,
+        "Layout": -1,
+        "Interval": 10000,
+        "Target": "All",
+        "Flag": {
+          "UF_NOOVERLAP": true
+        }
+      },
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceSplashRange": 0,
+      "implementation": "unsupported",
+      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
+      "ratioSource": "src/map/skill.c and src/map/status.c",
+      "unsupportedRequirements": []
+    },
+    "afterHash": "c6e48f8c8044b74efb2a28f91ebeb24a4931656bed3a393f733f39bba0d9f921"
+  },
+  "manifestCatalogSha256": {
+    "before": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
+    "after": "7aacc491ca706094805bf171a743120e234cea57a1fb19b58cec6efe71c127ad"
+  }
+}

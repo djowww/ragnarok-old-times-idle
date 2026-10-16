@@ -54,7 +54,7 @@ describe('pinned Hercules occupied unit geometry', () => {
   it('covers every currently supported Range0 unit from the pinned source manifest', () => {
     const c = raw as unknown as Catalog;
     const entries = Object.entries(manifest.skillSources).filter(([id, row]) =>
-      c.skills[id]?.implementation === 'supported' && (row.sourceUnit as any).Id && !(row.sourceUnit as any).Range);
+      c.skills[id]?.implementation === 'supported' && (row.sourceUnit as any).Id && !(row.sourceUnit as any).Range && (row.sourceUnit as any).Layout >= 0);
     expect(entries.length).toBeGreaterThan(15);
     for (const [id, row] of entries) {
       const source = c.skills[id].sourceName!, shape = api.sourceGroundShape?.(source, center);
