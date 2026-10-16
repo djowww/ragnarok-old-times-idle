@@ -1,331 +1,996 @@
-import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefi¥¹”±É•½¹¥±•]•…Á½¹I•™¥¹•ô™É½´€œ¸½İ•…Á½¹I•™¥¹”¹©Ìœì)¥µÁ½ÉĞï·W6TFWFV7F–æwÒg&öÒrâöfÆ6öäFWFV7Bæ§2s°¦–×÷'B¶6äWV—fÆ8ÛÛ‹\Ñ˜[ÛÛ‘\]Z\Y™XÛÛ˜Ú[Q˜[ÛÛ‹SÓÓ—Ô‘S•SÖ‘S–_Hœ›Ûm './falcon.js';
-import type { Catalog, GameCommand, GameStatÑ”°%Ñ•´ô™É½´€ˆ¸¸½Í¡…É•½ÑåÁ•Ì¹©Ìˆì)¥µÁ½ÉĞì½¹™¥ÕÉ…‰±•M®¶–ÆÅW6TÆWfVÂÂ6¶–ÆÅW6TÆWfVÂÒg&öÒrââ÷6†&VB÷6¶–ÆÅW6TÆWfVÇ2ëšœÉÎÂš[\ÜÈÛÛĞ[Ú[^PØ[”İ\İ\ÛÛĞ[Ú[^PØ\İHœ²om './soloAlchemy.js';
-import { effectiveSkillLevel } from 'œ¸¸½Í¡…É•½½Á¥•‘M­¥±±Ì¹©Ìœì)¥µÁ½ÉĞì±•…É½Á¥•‘MÁ•±°ô™É½¶Òrâ÷Æv–&—6Òæ§2s°¦–×÷'B°¢FD—FVÒÀ¢6öç7VÖRÀ¢WfVçBÀ¢ˆØ[YQ\œ›Ü‹ˆ\Ô›İXİYˆİÛ™Yˆ˜[™ÛKˆ™\]Z\™T[e,
+import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
+import {useDetecting} from './falconDetect.js';
+import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
+import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
+import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
+import { soloAlchemyCanStart, startSoloAlchemyCast } from './soloAlchemy.js';
+import { effectiveSkillLevel } from '../shared/copiedSkills.js';
+import { clearCopiedSpell } from './plagiarism.js';
+import {
+  addItem,
+  consume,
+  event,
+  GameError,
+  isProtected,
+  owned,
+  random,
+  requireRule,
   spend,
 } from "./state.js";
 import {
-  availableClasses,°(€±…µÁI•Í½ÕÉ•Ì°(€±…ÍÍM­¥±±Ì°(€¡•…±Õ±°°(€5a}	M}MQBÀ¢7FDæÖW2À¢7FEö–çD6÷7BÀ§Òg&öÒ"â÷7FG2æ§2#°¦–×÷'MÈÜ˜[™]Ø\™\]T]Y\İÈHœ›ÛH‹‹Ü›ÙÜ™\ÜÚ[Û‹šœÈÂš[\ïrt { beginBattle } from "./combat.js";
-import type { SimulatÑ¥½¹½¹Ñ•áĞô™É½´€œ¸½™¥•±‘9…Ù¥…Ñ¥½¸¹©Ìœì)¥µÁ½ÉĞì•¹½Õ¹Ñ•Ë$FVÆ’Âfö7W4ÖF6†W2Òg&öÒ"ââ÷6†&VBö‡VçBæ§2#°¦–×÷'B²ÖW,˜Ú[šXÙK][T\˜Ú\ÙTšXÙHHœ›ÛH‹‹‹ÜÚ\™YÜšXÙ\ËšœÈÂŠimport { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusTexáĞ°É…É¥Ñå9…µ•Ìô™É½´€ˆ¸¸½Í¡…É•½±½½Ğ¹©Ìˆì)¥µÁ½ÉĞì‰…ÑÑ±•!–W&ôBÂ7F÷†W&ôÖ÷fVÖVçBÒg&öÒ"ââ÷6†&VBö&GFÆU7F–Âæ§2#°¢š[\ÜÈÛ\ÜÚXĞY™Xİ]™KÙÙÛPÛ\ÜÚXĞY™‹ÛX\Û\ÜÚXÑÇrounds, classicGroundSceneKey } from "./classicBuffs.js";
-imµÁ½ÉĞì±•…ÉM…•¥•±°Í…•¥•±‘M½ÕÉ”ô™É½´€œ¸½Í…•¥•±‘Ìºæ§2s°¦–×÷'B²6vTf–VÆD6å7F'BÂ7F'E6vTf–VÆD67BÒg&öÒyË‹ÜØYÙQšY[Ø\İ[™ËšœÉÎÂš[\ÜÈ]]ÛX]XÔÜ[ÚÚXÙ\ÈHœ›ïm "./sageCasting.js";
-import { inventoryLoad } from './statsÌ¹©Ìœì)¥µÁ½ÉĞìÁ…åM­¥±±I•Í½ÕÉ•Ìô™É½´€œ¸½Í­¥±±I•Í½ÕÉ•Ì¹©Ï2s°¦–×÷'B²Ç”&6·6Æ–F–ærÒg&öÒrâö&6·6Æ–F–æræ§2s°¦–×ûÜÈ\ÑšY[Ú][™ËÚ][‘šY[[™šY[™\İİ\[œÚ[Û”’elax } from './recovery.js';
-import { consumeItem, discardAl±½•Ù•É…U¹‘•ÉÕÑ½	•ÉÍ•É¬ô™É½´€ˆ¸½½¹ÍÕµ…‰±•Ì¹©Ìˆì)¥µÁ½ÉĞì7&gE†&Ö7’Òg&öÒ"â÷†&Ö7”7&gBæ§2#°¦–×÷'B²7&gD6öçm™\\ˆHœ›ÛH‹‹ØÛÛ™\\Ü˜YšœÈÂš[\ÜÈØ[˜Ù[XİÜØ\İ4, useCastCancel } from './castControl.js';
-import { canPecoM5½Õ¹Ğô™É½´€œ¸½µ½Õ¹Ñ•‘A•¼¹©Ìœì)¥µÁ½ÉĞì…ÁÁ±åÕ…É‘¥…¹MÑ…ÑÕÏ2Â6ÆV%6†–VÆDFWVæFVçE7FGW6W2ÂwV&F–å6†–VÆDWV—VBÂwV,™X[”ÚÚ[[YÚX›HHœ›ÛH	Ë‹ÙİX\™X[”ØXÜšYšXÙKšœÉÎÂš[\ÜÈ applyTrickDead, clearTrickDead, trickDeadActive } from './trÉ¥­•…¹©Ìœì)¥µÁ½ÉĞìµ…­•M•¹Í•%¹ÍÁ•Ñ¥½¸°Í•¹Í•¹½Õ¹Ñ•É%‘–VçF—G’Â6Vç6TÖçVÅF&vWBÒg&öÒrâ÷6Vç6T–ç7V7F–öâæ§2s°¦–×ûÜÈÛX\ÛÜÙPÛÛ™š[™HHœ›ÛH	Ë‹Ü™ĞÛÜÙPÛÛ™š[™KšœÉÎÂš[\Ü { bladeStopRules, clearBladeStop, startBladeStopWait } from €œ¸½‰±…‘•MÑ½À¹©Ìœì)¥µÁ½ÉĞìµ…¥I½‘]¥¹‘½Üô™É½´€œ¸½µ½¹ÍÑ•É4Öv–2æ§2s°¦–×÷'B²7F—fUÆ–W%7FGW2Òg&öÒrâ÷Æ–W%7FGW<Ù\ËšœÉÎÂš[\ÜÈÛÛXİ[™[™ÓÛİHœ›ÛH	Ë‹ÛÛİXÚİ\šœÉç;
-import { canReceiveItem, overweightForCombat } from './ite•µ…Á…¥Ñä¹©Ìœì)¥µÁ½ÉĞìÉ•ÑÕÉ¹½É…ÉÉäô™É½´€œ¸½…ÉÉåI•ÑÕÉºâæ§2s°¦–×÷'B²—4WV—ÖVçD'&ö¶VâÒg&öÒrâöWV—ÖVçD6öæF—F–ûÛ‹šœÉÎÂš[\ÜÈØYÙQ[˜Ú[Ø[”İ\İ\ØYÙQ[˜Ú[Ø\İH from './sageEnchantments.js';
-import { chasewalkCanStart, stÑ…ÉÑ¡…Í•İ…±­…ÍĞô™É½´€œ¸½¡…Í•İ…±¬¹©Ìœì)¥µÁ½ÉĞì…ÁÁ±åQ•±–W÷'BÒg&öÒrâ÷FVÆW÷'Bæ§2s°¦–×÷'B²6æ6VÅ6vTVæ6†çD67BHœ›ÛH	Ë‹ÜØYÙQ[˜Ú[Y[ËšœÉÎÂš[\ÜÈ™\ÛÛ™TİY™œ˜YÚ][PØast, suffragiumCanStart, startSuffragiumCast } from './suffra…¥Õ´¹©Ìœì)™Õ¹Ñ¥½¸Ñ½İ¸¡Ìè…µ•MÑ…Ñ”¤ì(€É•ÅÕ¥É•IÕ±” (€€€Ï2ç7FGW2ÓÓÒ'F÷vâ"À¢%Dõtåõ$UT•$TB"À¢%föÇFR:6–FIH\˜H\İHpéğèÛËˆ‹ˆ
-NÂŸB™[˜İ[Ûˆ\]Z\[İÙY
-ÎˆØ[YTİ4ate, c: Catalog, i: Item) {
-  return (
-    i.type === "equipÁµ•¹Ğˆ€˜˜(€€€¤¹•ÅÕ¥ÁMÕÁÁ½ÉÑ•€„ôô™…±Í”€˜˜(€€€¤¹Í±½Ğ€˜˜(€€‚2æ&6TÆWfVÂãÒ’æÖ–äÆWfVÂb`¢‚’æÆÆ÷vVD6Æ76W2æÆVæwF‚K˜[İÙYÛ\ÜÙ\Ëš[˜ÛY\ÊËš›ØŠJH	‰‚ˆ
-ZKÙX\Û•\H<| c.classes[s.job].weapons.includes(i.weaponType))
+  availableClasses,
+  clampResources,
+  classSkills,
+  healFull,
+  MAX_BASE_STAT,
+  statNames,
+  statPointCost,
+} from "./stats.js";
+import { grantReward, updateQuests } from "./progression.js";
+import { beginBattle } from "./combat.js";
+import type { SimulationContext } from './fieldNavigation.js';
+import { encounterDelay, focusMatches } from "../shared/hunt.js";
+import { merchantPrice, itemPurchasePrice } from "../shared/prices.js";
+import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
+import { battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
+import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
+import { clearSageField, sageFieldSource } from './sageFields.js';
+import { sageFieldCanStart, startSageFieldCast } from './sageFieldCasting.js';
+import { automaticSpellChoices } from "./sageCasting.js";
+import { inventoryLoad } from './stats.js';
+import { paySkillResources } from './skillResources.js';
+import { applyBacksliding } from './backsliding.js';
+import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
+import { consumeItem, discardAloeveraUnderAutoBerserk } from "./consumables.js";
+import { craftPharmacy } from "./pharmacyCraft.js";
+import { craftConverter } from "./converterCraft.js";
+import { cancelActorCast, useCastCancel } from './castControl.js';
+import { canPecoMount } from './mountedPeco.js';
+import { applyGuardianStatus, clearShieldDependentStatuses, guardianShieldEquipped, guardianSkillEligible } from './guardianSacrifice.js';
+import { applyTrickDead, clearTrickDead, trickDeadActive } from './trickDead.js';
+import { makeSenseInspection, senseEncounterIdentity, senseManualTarget } from './senseInspection.js';
+import { clearCloseConfine } from './rgCloseConfine.js';
+import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
+import { magicRodWindow } from './monsterMagic.js';
+import { activePlayerStatus } from './playerStatuses.js';
+import { collectPendingLoot } from './lootPickup.js';
+import { canReceiveItem, overweightForCombat } from './itemCapacity.js';
+import { returnForCarry } from './carryReturn.js';
+import { isEquipmentBroken } from './equipmentCondition.js';
+import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
+import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
+import { applyTeleport } from './teleport.js';
+import { cancelSageEnchantCast } from './sageEnchantments.js';
+import { resolveSuffragiumCast, suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
+function town(s: GameState) {
+  requireRule(
+    s.status === "town",
+    "TOWN_REQUIRED",
+    "Volte Ã  cidade para esta aÃ§Ã£o.",
   );
 }
-exáÁ½ÉĞ™Õ¹Ñ¥½¸É•µ½Ù•%¹•±¥¥‰±”¡Ìè…µ•MÑ…Ñ”°Œè…Ñ…±½œ¤ì(‚f÷"†6öç7B·6Æ÷BÂV–EÒöbö&¦V7BæVçG&–W2‡2æWV—ÖVçB’’°¢ÛÛœİHHËš[™[ÜK™š[™
-
-JHOˆKZYOOHZY
-NÂˆYˆ
-(!e || e.broken || !isItemIdentified(e) || !equipAllowed(s, cŒ°Œ¹¥Ñ•µÍm”¹¥Ñ•µ%‘t¤¤(€€€€€‘•±•Ñ”Ì¹•ÅÕ¥Áµ•¹ÑmÍ±½Ğ…Ì­•å½šbG—Vöb2æWV—ÖVçEÓ°¢Ğ§Ğ¦W‡÷'BgVæ7F–öâW†V7WFT6öÖÖæB€¢ˆÎˆØ[YTİ]KˆÎˆØ][ÙËˆÛÛ[X[™ˆØ[YPÛÛ[X[™ˆ›İÎº number,
+function equipAllowed(s: GameState, c: Catalog, i: Item) {
+  return (
+    i.type === "equipment" &&
+    i.equipSupported !== false &&
+    i.slot &&
+    s.baseLevel >= i.minLevel &&
+    (!i.allowedClasses.length || i.allowedClasses.includes(s.job)) &&
+    (!i.weaponType || c.classes[s.job].weapons.includes(i.weaponType))
+  );
+}
+export function removeIneligible(s: GameState, c: Catalog) {
+  for (const [slot, uid] of Object.entries(s.equipment)) {
+    const e = s.inventory.find((e) => e.uid === uid);
+    if (!e || e.broken || !isItemIdentified(e) || !equipAllowed(s, c, c.items[e.itemId]))
+      delete s.equipment[slot as keyof typeof s.equipment];
+  }
+}
+export function executeCommand(
+  s: GameState,
+  c: Catalog,
+  command: GameCommand,
+  now: number,
   context?: SimulationContext,
 ) {
-  const previousÍM•¹”€ô±…ÍÍ¥É½Õ¹‘M•¹•-•ä¡Ì¤ì(€½¹ÍĞÑÉ¥­•…€ôÑÉ¥­FVD7F—fR‡2Â2Âæ÷r“°¢–b‡G&–6´FVB’°¢6öç7B6æ6VÇ5ûÜİ\™HHÛÛ[X[™\HOOH	Ü™\İ	ÈÛÛ[X[™\HOOH	Üİ\unt';
-    const usesItem = command.type === 'identify' || comµµ…¹¹ÑåÁ”€ôôô€½¹ÍÕµ•%Ñ•´œì(€€€½¹ÍĞÕÍ•Í=Ñ¡•ÉM­¥±°€ô½µ¶ÖæBçG—RÓÓÒwW6U6¶–ÆÂrÇÂ6öÖÖæBçG—RÓÓÒv6æ6VÄ'VfbrÇÀ¢ˆÛÛ[X[™\HOOH	İÙÙÛPY™‰È	‰ˆËœÚÚ[ÖØÛÛ[X[™œÚÚ[,lId]?.sourceName !== 'NV_TRICKDEAD';
-    requireRule(!cancel±ÍA½ÍÑÕÉ”€˜˜€…ÕÍ•Í%Ñ•´€˜˜€…ÕÍ•Í=Ñ¡•ÉM­¥±°°€QI%-}}Q%=8åô$Äô4´TBrÀ¢uG&–6²FVB–×VFRÖ÷f–ÖVçFòÂ—FVç2R÷WG&\ÈXš[YY\Ë‰ÊNÂˆBˆYˆ
-Û\ÜÚXĞY™Xİ]™JËË	ÔÕĞÒTÓEWALK', now)) {
-    const ownToggle = command.type === 'useSM­¥±°œ€˜˜Œ¹Í­¥±±Ím½µµ…¹¹Í­¥±±%‘tü¹Í½ÕÉ•9…µ”€ôôô€MQ}!MUtÄ²s°¢6öç7B÷F†W%6¶–ÆÂÒ6öÖÖæBçG—RÓÓÒwW6U6¶–ÆÂrÇÏÛÛ[X[™\HOOH	İÙÙÛPY™‰ÈÛÛ[X[™\HOOH	ØØ[˜Ù[uff' || command.type === 'identify' && command.method === 'sk­¥±°œì(€€€É•ÅÕ¥É•IÕ±” …½Ñ¡•ÉM­¥±°ñğ½İ¹Q½±”°€!M]1-}5D”ôåô$Äô4´TBrÂtFW6F—fRgW'F—f–FFRçFW2FRW6"÷WG&2ŠXš[YY\Ë‰ÊNÂˆBˆİÚ]Ú
-ÛÛ[X[™\JHÂˆØ\ÙH	İÙX\ïnRefine': answerWeaponRefine(s,c,command.menuId,command.uid,±¹½Ü¤í‰É•…¬ì(€€€…Í”€…¹•±]•…Á½¹I•™¥¹”œè…¹•±]•…Á½¹I•™¥ºæR‡2Æ2Æ6öÖÖæBæÖVçT–BÆæ÷r“¶'&V³°¢66Rv6öç7VÖT—FVÒs¢°¢ÛÛœİ[YR][JËËÛÛ[X[™ZY›İÊNÂˆœ™XZÎÂˆBˆ   case 'teleport': {
-      applyTeleport(s, c, command.desti¥¹…Ñ¥½¸°¹½Ü°½¹Ñ•áĞ¤ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€½±±•ÑAVæF–ætÆö÷Bs¢°¢F÷vâ‡2“°¢6öÆÆV7EVæF–ætÆö÷B‡2Â2Ë›İÊNÂˆœ™XZÎÂˆBˆØ\ÙH	Ü™[˜[ÛÛ‰ÎˆÂˆİ÷n(s);
-      requireRule(s.hp > 0, 'RECOVERING', 'Recupere se•Ô!@…¹Ñ•Ì‘”…±Õ…ÈÕ´™…±¼¸œ¤ì(€€€€€É•ÅÕ¥É•IÕ±”¡…¹Å×V—fÆ6öâ‡2Æ2’ÂtdÄ4ôåõTäd”Ä$ÄRrÂt&VæFfÆ6ö&–6öÖûÈØpéØYÜˆİH]\˜YÜˆH[]K‰ÊNÂˆ™\]Z\™T[JZ\Ñ˜[ãonEquipped(s,c), 'FALCON_ALREADY_EQUIPPED', 'VocÃª jÃ¡ estÃ¡„…½µÁ…¹¡…‘¼Á½ÈÕ´™…±¼¸œ¤ì(€€€€€ÍÁ•¹¡Ì±1=9}I9Q1}õ¤Tå’“°¢2æfÆ6öäWV—VBÒG'VS°¢WfVçB‡2Ææ÷rÂvfËÛÛ‰Ë	Ñ˜[ğèÛÈ\]Z\YË‰ÊNÂˆœ™XZÎÂˆBˆØ\ÙH	Ù\ÛmissFalcon': {
-      if(s.falconEquipped === true)event(s,nowÜ°™…±½¸œ°…±¼‘¥ÍÁ•¹Í…‘¼¸œ¤ì(€€€€€Ì¹™…±½¹ÅÕ¥ÁÁ•€ôšfÇ6S°¢'&V³°¢Ğ¢66Rw6WDÖ÷VçBs¢°¢&WV—,™T[J\[ÙˆÛÛ[X[™›[İ[YOOH	Ø›ÛÛX[‰Ë	ÒS•SQÓSÕS•	Ë, 'Escolha montar ou desmontar.');
-      requireRule(!command¹µ½Õ¹Ñ•ñğ…¹A•½5½Õ¹Ğ¡Ì°Œ¤°€5=U9Q}U9Y%1	1œ°(€€€€€€‚t&VæFÖöçF&–VÒVÖ6Æ76RVRöFRÖöçF"V6òV6òâyÊNÂˆYˆ
-
-Ë›[İ[YOOHYJHOOHÛÛ[X[™›[İ[Y
-HÂˆ      s.mounted = command.mounted;
+  const previousScene = classicGroundSceneKey(s);
+  const trickDead = trickDeadActive(s, c, now);
+  if (trickDead) {
+    const cancelsPosture = command.type === 'rest' || command.type === 'startHunt';
+    const usesItem = command.type === 'identify' || command.type === 'consumeItem';
+    const usesOtherSkill = command.type === 'useSkill' || command.type === 'cancelBuff' ||
+      command.type === 'toggleBuff' && c.skills[command.skillId]?.sourceName !== 'NV_TRICKDEAD';
+    requireRule(!cancelsPosture && !usesItem && !usesOtherSkill, 'TRICK_DEAD_ACTION_BLOCKED',
+      'Trick Dead impede movimento, itens e outras habilidades.');
+  }
+  if (classicBuffActive(s, c, 'ST_CHASEWALK', now)) {
+    const ownToggle = command.type === 'useSkill' && c.skills[command.skillId]?.sourceName === 'ST_CHASEWALK';
+    const otherSkill = command.type === 'useSkill' || command.type === 'toggleBuff' || command.type === 'cancelBuff' || command.type === 'identify' && command.method === 'skill';
+    requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
+  }
+  switch (command.type) {
+    case 'weaponRefine': answerWeaponRefine(s,c,command.menuId,command.uid,now);break;
+    case 'cancelWeaponRefine': cancelWeaponRefine(s,c,command.menuId,now);break;
+    case 'consumeItem': {
+      consumeItem(s,c,command.uid,now);
+      break;
+    }
+    case 'teleport': {
+      applyTeleport(s, c, command.destination, now, context);
+      break;
+    }
+    case 'collectPendingLoot': {
+      town(s);
+      collectPendingLoot(s, c, now);
+      break;
+    }
+    case 'rentFalcon': {
+      town(s);
+      requireRule(s.hp > 0, 'RECOVERING', 'Recupere seu HP antes de alugar um falcÃ£o.');
+      requireRule(canEquipFalcon(s,c), 'FALCON_UNAVAILABLE', 'Aprenda Falcoaria como CaÃ§ador ou Atirador de Elite.');
+      requireRule(!isFalconEquipped(s,c), 'FALCON_ALREADY_EQUIPPED', 'VocÃª jÃ¡ estÃ¡ acompanhado por um falcÃ£o.');
+      spend(s,FALCON_RENTAL_ZENY);
+      s.falconEquipped = true;
+      event(s,now,'falcon','FalcÃ£o equipado.');
+      break;
+    }
+    case 'dismissFalcon': {
+      if(s.falconEquipped === true)event(s,now,'falcon','FalcÃ£o dispensado.');
+      s.falconEquipped = false;
+      break;
+    }
+    case 'setMount': {
+      requireRule(typeof command.mounted === 'boolean', 'INVALID_MOUNT', 'Escolha montar ou desmontar.');
+      requireRule(!command.mounted || canPecoMount(s, c), 'MOUNT_UNAVAILABLE',
+        'Aprenda Montaria em uma classe que pode montar Peco Peco.');
+      if ((s.mounted === true) === command.mounted) {
+        s.mounted = command.mounted;
         break;
       }
-   €€€Ì¹µ½Õ¹Ñ•€ô½µµ…¹¹µ½Õ¹Ñ•ì(€€€€€•Ù•¹Ğ¡Ì°¹½Ü°€µ½Õ¹Ğœ²Â6öÖÖæBæÖ÷VçFVBòtÖöçF÷RæòV6òV6òâr¢tFW6ÖöçF÷RFòYXÛÈXÛË‰ÊNÂˆœ™XZÎÂˆBˆØ\ÙH	İ\ÙTÚÚ[	ÎˆÂˆ if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'œ¥í½Á•¹]•…Á½¹I•™¥¹”¡Ì±Œ±¹½Ü¤í‰É•…¬íô(€€€€€½¹ÍĞÍ­¥±°€ôŒ¹Í®¶–ÆÇ5¶6öÖÖæBç6¶–ÆÄ–EÒÂÆWfVÂÒ6¶–ÆÅW6TÆWfVÂ‡2Â2Â6öÖÖæBç<ÚÚ[Y
-NÂˆYˆ
-ÚÚ[ËœÛİ\˜ÙS˜[YHOOH	ÒÑUPÕS‘ÉÊHÂˆ        requireRule(useDetecting(s,c,skill,level,now),'SKILL_}U9Y%1	1œ°(€€€€€€€€€€ÁÉ•¹‘„•Ñ•Ñ…È°•ÅÕ¥Á”Í•Ô™…±6òÂFVæ†‚5RW7FV¦Æ—g&R&W6"†&–Æ–FFRâr“°¢œ™XZÎÂˆBˆYˆ
-ÛÛ™šYİ\˜X›TÚÚ[\ÙS]™[
-ÚÚ[,)) {
-        requireRule(soloAlchemyCanStart(s, c, skill, le•Ù•°°¹½Ü¤°€M-%11}U9Y%1	1œ°(€€€€€€€€€€ÁÉ•¹‘„„¡…‰¥±¥’FFRÂFVæ†5Rü:|:6ò6÷'&WFÂRW7FV¦Æ—g&R&W<:Û[K‰ÊNÂˆ™\]Z\™T[Jİ\ÛÛĞ[Ú[^PØ\İ
-ËËÚÚ[, level, now), 'SKILL_UNAVAILABLE',
-          'NÃ£o foi possÃµÙ•°¥¹¥¥…È„¡…‰¥±¥‘…‘”¸œ¤ì(€€€€€€€‰É•…¬ì(€€€€€ô(€€€€€¦–b‡6¶–ÆÃòç6÷W&6TæÖRÓÓÒu5Eô4„4UtÄ²r’°¢&WV—&U'][JÚ\Ù]Ø[ĞØ[”İ\
-ËËÚÚ[]™[›İÊK	ĞÒTÑUĞS×ÕSAVAILABLE', 'Tenha 10 SP, esteja vivo e livre para conjurar ÕÉÑ¥Ù¥‘…‘”¸œ¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡ÍÑ…ÉÑ¡…Í•İ…±­…ÍĞ¡Ì°Œ²Â6¶–ÆÂÂÆWfVÂÂæ÷r’Ât4„4UtÄµõTäd”Ä$ÄRrÂtì:6òfö’÷7<ğë]™[[šXÚX\ˆ\]šYYK‰ÊNÂˆœ™XZÎÂˆBˆif (skill?.sourceName === 'TF_BACKSLIDING') {
-        applyBa…­Í±¥‘¥¹œ¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü°½¹Ñ•áĞ¤ì(€€€€€€€‰É•…¬ì(¢Ğ¢&WV—&U'VÆR‚÷fW'vV–v‡Df÷$6öÖ&B‡2Â2’ÂutT”t‚ÓSRU	Ë	ÓX™\™H\ÛÈ˜H[ØÚ[H[\ÈH\Ø\ˆXš[YY\Ë®');
-      if (skill?.sourceName === 'PR_SUFFRAGIUM') {
-     €€€É•ÅÕ¥É•IÕ±”¡ÍÕ™™É…¥Õµ…¹MÑ…ÉĞ¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü¤°‚u5Tde$t•TÕõTäd”Ä$ÄRrÀ¢t&VæF7Vfg&v—VÒÂFVëšHÔH\İZ˜Hš]›ÈH]œ™H\˜HÛÛš\˜\‹‰ÊNÂˆ™\]Z\²eRule(startSuffragiumCast(s, c, skill, level, now), 'SUFFRAG%U5}U9Y%1	1œ°(€€€€€€€€€€;¼™½¤Á½ÍÏµÙ•°¥¹¥¥…ÈMÕ™šg&v—VÒVÒ6’ÖW6Öòâr“°¢–b‡2ç7W÷'D67Bbb2ç7W÷,Ø\İ™[™Ğ]H›İÊH™\ÛÛ™TİY™œ˜YÚ][PØ\İ
-ËË›İÊNÂˆ    break;
+      s.mounted = command.mounted;
+      event(s, now, 'mount', command.mounted ? 'Montou no Peco Peco.' : 'Desmontou do Peco Peco.');
+      break;
+    }
+    case 'useSkill': {
+      if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
+      const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
+      if (skill?.sourceName === 'HT_DETECTING') {
+        requireRule(useDetecting(s,c,skill,level,now),'SKILL_UNAVAILABLE',
+          'Aprenda Detectar, equipe seu falcÃ£o, tenha 8 SP e esteja livre para usar a habilidade.');
+        break;
       }
-      if (sageFieldSource(skill?.sourceNamµ”¤¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡Í…•¥•±‘…¹MÑ…ÉĞ¡Ì°Œ°Í­¥±°°±•ÛfVÂÂæ÷r’Âu4tUôd”TÄEõTäd”Ä$ÄRrÂuFVæ†57Vf–6–VçFRRY\İZ˜H]œ™H\˜HÛÛš\˜\ˆÈØ[\Ë‰ÊNÂˆ™\]Z\™T[Jİ4artSageFieldCast(s, c, skill, level, now, context), 'SAGE_FI%1}U9Y%1	1œ°€;¼™½¤Á½ÍÏµÙ•°¥¹¥¥…È¼…µÁ¼•±•µ•ºçFÂâr“°¢'&V³°¢Ğ¢–b‡6¶–ÆÃòç6÷W&6TæÖRi‰ˆÉÔĞWÑ“SQSUSÒT‰Ë	ÔĞWÑ”“ÔÕÑPTÓ‰Ë	ÔĞWÓQÒ’S‘ÓĞQT’', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
-       €É•ÅÕ¥É•IÕ±”¡Í…•¹¡…¹Ñ…¹MÑ…ÉĞ¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü¤°€u4tUôTä4„åEõTäd”Ä$ÄRrÀ¢tWV—RVÖ&Ö–çF7MK[šHÔHÈ™XYÙ[HÛÜœ™]ÎÈ[XH›ÜšYYYH[˜ÛÛ\atÃ­vel impede o encantamento.');
-        requireRule(startSa…•¹¡…¹Ñ…ÍĞ¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü¤°€M}9!9Q}U9Y$”Ä$ÄRrÀ¢tì:6òfö’÷7<:×fVÂ–æ–6–"6öæ§W&:|:6ûÈÈ[˜Ø[[Y[Ë‰ÊNÂˆœ™XZÎÂˆBˆYˆ
-ÚÚ[ÿ.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activÙ…Ñ”œ¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡Í­¥±°¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€ÍÕÁÁ½Ë'FVBrbbÆWfVÂâbb6Æ756¶–ÆÇ2†2Â2æ¦ö"’æ–æ6ÇVFW2‡6¶–ÆÂæ–I
-Kˆ	ÔÒÒSÕSURSP“IË	Ñ\İHXš[YYHX[X[°Ã£o estÃ¡ disponÃ­vel.');
-        requireRule((s.status === '¡Õ¹Ñ¥¹œœñğÌ¹ÍÑ…ÑÕÌ€ôôô€¡…±±•¹”œ¤€˜˜€„…Ì¹‰…ÑÑ±”€˜˜€…Ì¹‰†GFÆRæ67BÀ¢td”TÄEõ$UT•$TBrÂuW6R&FFÌ:&Ö–ë˜H\˜[HHØpéØH›ÈØ[\Ë‰ÊNÂˆ™\]Z\™T[JXXİ]™T,ayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
-  €€€€€€€€€M¥³©¹¥¼¥µÁ•‘”…Ñ¥Ù…ÈA…É…‘„‘„3‰µ¥¹„¸œ¤ì(€€€€‚&WV—&U'VÆR‚2æ6öÖ&DVffV7G3òæ&ÆFU7F÷v—Bbb2æ6öÖ&DQY™™XİÏË˜›YTİÜ[šËˆ	ÔÒÒSÔÕUT×Ğ“ĞÒÑQ	Ë	Õ›ïcÃª jÃ¡ estÃ¡ em uma postura de Parada da LÃ¢mina.');
-      €€‰±…‘•MÑ½ÁIÕ±•Ì¡±•Ù•°¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡Á…åM­¥±±I•Í½ÕÉ6W2‡2Â2Â6¶–ÆÂÂÆWfVÂÂæ÷r’Âu5õ$UT•$TBrÀ¢uFVæ†HLÔH[XH\Ù™\˜H\Ü\š]X[\˜H\Ø\ˆ\˜YHH0è›Z[˜K‰ç);
+      if (configurableSkillUseLevel(skill)) {
+        requireRule(soloAlchemyCanStart(s, c, skill, level, now), 'SKILL_UNAVAILABLE',
+          'Aprenda a habilidade, tenha SP e a poÃ§Ã£o correta, e esteja livre para usÃ¡-la.');
+        requireRule(startSoloAlchemyCast(s, c, skill, level, now), 'SKILL_UNAVAILABLE',
+          'NÃ£o foi possÃ­vel iniciar a habilidade.');
+        break;
+      }
+      if (skill?.sourceName === 'ST_CHASEWALK') {
+        requireRule(chasewalkCanStart(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'Tenha 10 SP, esteja vivo e livre para conjurar Furtividade.');
+        requireRule(startChasewalkCast(s, c, skill, level, now), 'CHASEWALK_UNAVAILABLE', 'NÃ£o foi possÃ­vel iniciar Furtividade.');
+        break;
+      }
+      if (skill?.sourceName === 'TF_BACKSLIDING') {
+        applyBacksliding(s, c, skill, level, now, context);
+        break;
+      }
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de usar habilidades.');
+      if (skill?.sourceName === 'PR_SUFFRAGIUM') {
+        requireRule(suffragiumCanStart(s, c, skill, level, now), 'SUFFRAGIUM_UNAVAILABLE',
+          'Aprenda Suffragium, tenha SP e esteja vivo e livre para conjurar.');
+        requireRule(startSuffragiumCast(s, c, skill, level, now), 'SUFFRAGIUM_UNAVAILABLE',
+          'NÃ£o foi possÃ­vel iniciar Suffragium em si mesmo.');
+        if (s.supportCast && s.supportCast.endsAt <= now) resolveSuffragiumCast(s, c, now);
+        break;
+      }
+      if (sageFieldSource(skill?.sourceName)) {
+        requireRule(sageFieldCanStart(s, c, skill, level, now), 'SAGE_FIELD_UNAVAILABLE', 'Tenha SP suficiente e esteja livre para conjurar o campo.');
+        requireRule(startSageFieldCast(s, c, skill, level, now, context), 'SAGE_FIELD_UNAVAILABLE', 'NÃ£o foi possÃ­vel iniciar o campo elemental.');
+        break;
+      }
+      if (skill?.sourceName && ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(skill.sourceName)) {
+        requireRule(sageEnchantCanStart(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
+          'Equipe uma arma intacta, tenha 40 SP e o reagente correto; uma propriedade incompatÃ­vel impede o encantamento.');
+        requireRule(startSageEnchantCast(s, c, skill, level, now), 'SAGE_ENCHANT_UNAVAILABLE',
+          'NÃ£o foi possÃ­vel iniciar a conjuraÃ§Ã£o do encantamento.');
+        break;
+      }
+      if (skill?.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
+          'SKILL_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        requireRule((s.status === 'hunting' || s.status === 'challenge') && !!s.battle && !s.battle.cast,
+          'FIELD_REQUIRED', 'Use Parada da LÃ¢mina durante a caÃ§a no campo.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'SilÃªncio impede ativar Parada da LÃ¢mina.');
+        requireRule(!s.combatEffects?.bladeStopWait && !s.combatEffects?.bladeStopLink,
+          'SKILL_STATUS_BLOCKED', 'VocÃª jÃ¡ estÃ¡ em uma postura de Parada da LÃ¢mina.');
+        bladeStopRules(level);
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED',
+          'Tenha 10 SP e uma esfera espiritual para usar Parada da LÃ¢mina.');
         startBladeStopWait(s, level, now);
-        random´¡Ì¤ì€¼¼ÍÑ…ÑÕÍ}ÍÑ…ÉĞÌ€ÄÀÀ”…ÁÁ±¥…Ñ¥½¸½¹ÍÕµ•ÌÑ¡”Í½ÕÉ”‚7FGW2&öÆÂà¢WfVçB‡2Âæ÷rÂw6¶–ÆÂrÂ6¶–ÆÂææÖRÂVæFYYš[™Y	Ü^Y\‰ËÈÚÚ[YˆÚÚ[šYÚÚ[]™[ˆ]™[ˆ        statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id,°Ñ…É•ÑÑ½É%èÌ¹¥°(€€€€€€€€€…Ñ½ÉÑ¥½¸è€¹½¹”œ°…Ñ¥½¹4Ö÷F–öä×3¢Â67D×3¢Ò“°¢WfVçB‡2Âæ÷rÂw7FGW2×7F,	ËÚÚ[›˜[YK[™Yš[™Y	Ü^Y\‰ËÈÚÚ[YˆÚÚ[šYÚëillLevel: level,
-          statusName: 'SC_BLADESTOP_WAIT', Í½ÕÉ•Ñ½É%èÌ¹¥°Ñ…É•ÑÑ½É%èÌ¹¥ô¤ì(€€€€€€€‰É•…¬ì(¢Ğ¢–b‡6¶–ÆÃòç6÷W&6TæÖRÓÓÒu4ôÔt”5$ôBrbb6¶š[›X[X[\ÙHOOH	ØXİ]˜]IÊHÂˆ™\]Z\™T[JÚÚ[š[\0lementation === 'supported' && level > 0 && level <= skill.mµ…á1•Ù•°€˜˜(€€€€€€€€€±…ÍÍM­¥±±Ì¡Œ°Ì¹©½ˆ¤¹¥¹±Õ‘•Ì¡Í­¥±°¹¥’B’Âu4´”ÄÅõTäd”Ä$ÄRrÂtW7F†&–Æ–FFRÖçVÂì:6òW7L:I\ÜÛ°ë]™[‰ÊNÂˆ™\]Z\™T[JÉÚ[[™ÉË	ØÚ[[™ÙI×K®includes(s.status) && !!s.battle && !s.battle.cast && s.hp >ø€À°(€€€€€€€€€€%1}IEU%Iœ°€UÍ”5…¥ŒI½‘ÕÉ…¹Ñ”Õµ„²ÇWFæò6×òâr“°¢&WV—&U'VÆR‚7F—fUÆ–W%7FGW2‡2Â	ÔĞ×ÔÒSSÑIË›İÊK	ÔÒÒSÔÕUT×Ğ“ĞÒÑQ	Ëˆ	ÔÚ[0êªncio impede ativar Magic Rod.');
-        requireRule(!['MO_SMQ1	=dœ°€1-}	IMI,œ°€Q}!%%9œ°€M}1=-%9œ°€-9}UQDô4õTåDU"rÂtåeõE$”4´DTBuĞ¢ç6öÖR‡6÷W&6RÓâ6Æ76–8ĞY™Xİ]™JËËÛİ\˜ÙK›İÊJK	ÔÒÒSÔÕUT×Ğ“ĞÒÑQ	Ë	ÔÙ]u estado atual impede usar Magic Rod.');
-        requireRule(¡Á…åM­¥±±I•Í½ÕÉ•Ì¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü¤°€MA}IEU%Iœ°€uFVæ†"5&W6"Öv–2&öBâr“°¢6öç7BGW&F–öâÒÚÚ[œİ]\Ñ\˜][Û“\ÏË–Û]™[HWHÏÈXYÚXÔ›ÙÚ[™İÊ]™[
-i;
-        s.buffs[skill.id] = { expiresAt: now + duration, e•™™•ÑÌèíôôì(€€€€€€€€¡Ì¹½µ‰…Ñ™™•ÑÌ€üüôíô¤¹‰Õ™™1•Ù•±Ì€üÿóÒ·Ó°¢2æ6öÖ&DVffV7G2æ'VfdÆWfVÇ5·6¶–ÆÂæ–EÒÒÆWfVÃ°¢ˆ˜[™ÛJÊNÈËÈİ]\×Üİ\	ÜÈİX\˜[YYÛİ\˜ÙH›Û®
-        event(s, now, 'skill', skill.name, undefined, 'playå•Èœ°ìÍ­¥±±%èÍ­¥±°¹¥°Í­¥±±1•Ù•°è±•Ù•°°(€€€€€€€€€ÍÑ…Ñ×W4æÖS¢u45ôÔt”5$ôBrÂ6÷W&6T7F÷$–C¢2æ–BÂF&vWD7F÷$–C¢2ëšYXİÜXİ[Ûˆ	Û›Û™IËXİ[Û“[İ[Û“\ÎˆJNÂˆ]™[4(s, now, 'status-start', skill.name, undefined, 'player', { Í­¥±±%èÍ­¥±°¹¥°Í­¥±±1•Ù•°è±•Ù•°°(€€€€€€€€€ÍÑ…ÑÕÍ9…µ”è‚u45ôÔt”5$ôBrÂ6÷W&6T7F÷$–C¢2æ–BÂF&vWD7F÷$–C¢2æ–BÒ“°¢ˆœ™XZÎÂˆBˆYˆ
-ÚÚ[ËœÛİ\˜ÙS˜[YHOOH	ÕÖ—ÑESTIMATION') {
-        requireRule(skill.id === 'sense' && sk­¥±°¹µ…¹Õ…±UÍ”€ôôô€¥¹ÍÁ•Ğœ€˜˜(€€€€€€€€€Í­¥±°¹¥µÁ±•µ•¹Ñ…Ñ¥¾öâÓÓÒw7W÷'FVBrbb6¶–ÆÂæÖ„ÆWfVÂÓÓÒbbÆWfVÂÓÓÒb`¢ˆÛ\ÜÔÚÚ[ÊËËš›ØŠKš[˜ÛY\ÊÚÚ[šY
-K	ÔÒÒSÕUNAVAILABLE',
-        'Esta habilidade manual nÃ£o estÃ¡ dispÁ½»µÙ•°¸œ¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡ÑåÁ•½˜½µµ…¹¹•áÁ•Ñ•‘¹•µç”–BÓÓÒw7G&–ærrb`¢6öÖÖæBæW‡V7FVDVæV×”–BÓÓÒ2æ(˜]OË\™Ù]Y	ÔÑS”ÑWÕT‘ÑUÒS•SQ	Ëˆ	ÔÙ[XÚ[Û™H o mesmo inimigo vivo antes de usar Sentido Sobrenatural.');
-(€€€€€€€½¹ÍĞÑ…É•Ğ€ôÍ•¹Í•5…¹Õ…±Q…É•Ğ¡Ì°Œ°¹½Ü¤ì(€€€€€€‚&WV—&U'VÆR‡F&vWCòæ–BÓÓÒ6öÖÖæBæW‡V7FVDVæV×”–BÂu4Tå4U÷ÕT‘ÑUÒS•SQ	Ëˆ	ÓÈ[š[ZYÛÈÙ[XÚ[Û˜YÈ°èÛÈ\İ0èa disponÃ­vel para inspeÃ§Ã£o.');
-        requireRule(paySkil±±I•Í½ÕÉ•Ì¡Ì°Œ°Í­¥±°°€Ä°¹½Ü¤°€MA}IEU%Iœ°(€€€€€€€€€€QFVæ†57Vf–6–VçFR&W6"6VçF–Fò6ö'&VæGW&Ââr“°¢ËœÙ[œÙR[œÜXİ[ÛˆHXZÙTÙ[œÙR[œÜXİ[ÛŠË\™Ù]›İËÙenseEncounterIdentity(s));
-        event(s, now, 'skill', ski¥±°¹¹…µ”°Õ¹‘•™¥¹•°€Á±…å•Èœ°ìÍ­¥±±%èÍ­¥±°¹¥°Í­¥±±1•Ù–VÃ¢À¢6÷W&6T7F÷$–C¢2æ–BÂF&vWD7F÷$–C¢F&vWBæšYXİÜXİ[Ûˆ	Û›Û™IÈJNÂˆœ™XZÎÂˆBˆYˆ
-(skill?.sourceName === 'PA_SACRIFICE' && skill.manualUse === €…Ñ¥Ù…Ñ”œ¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡Í­¥±°¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€w7W÷'FVBrbbÆWfVÂâb`¢6Æ756¶–ÆÇ2†2Â2æ¦ö"’æš[˜ÛY\ÊÚÚ[šY
-H	‰ˆİX\™X[”ÚÚ[[YÚX›JËËÚÚ[
-Kˆ      'SKILL_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡„‘¥ÍÁ½»µÙ•°¸œ¤ì(€€€€€€€É•ÅÕ¥É•IÕ±” ……Ñ¥Ù•A±…å•ÉMÑ…ÑÕÌ¡Ì°‚u45õ4”ÄTä4RrÂæ÷r’Âu4´”ÄÅõ5DEU5ô$Äô4´TBrÀ¢u6–Ì:ª›˜Ú[È[\YH]]˜\ˆØXÜšY°ëXÚ[Ë‰ÊNÂˆ™\]Z\™T[J\Ë˜˜attle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'KN_AUTOCOUNTEHœ°€Q}!%%9œ°€M}1=-%9t(€€€€€€€€€€¹Í½µ”¡Í½ÕÉ”€ôø²Æ76–4'Vfd7F—fR‡2Â2Â6÷W&6RÂæ÷r’’À¢u4´”ÄÅõ5DEU5ô “ĞÒÑQ	Ë	ÔÙ]H\İYÈ]X[[\YH]]˜\ˆØXÜšY°ëXÚ[Ë‰ÊNÂˆ      requireRule(s.hp > 0 && paySkillResources(s, c, skill, ±•Ù•°°¹½Ü¤°(€€€€€€€€€€MA}IEU%Iœ°€Q•¹¡„!@”M@ÍÕ™¥¥–VçFW2&F—f"67&–l:Ö6–òâr“°¢Ç”wV&F–å7FGW<ÊËÚÚ[]™[›İÊNÂˆ˜[™ÛJÊNÈËÈİ]\×Üİ\	Üó 100% application still draws RNG.
-        event(s, now, 'sk­¥±°œ°Í­¥±°¹¹…µ”°Õ¹‘•™¥¹•°€Á±…å•Èœ°ìÍ­¥±±%èÍ­¥±°¹¥°‚6¶–ÆÄÆWfVÃ¢ÆWfVÂÀ¢6÷W&6T7F÷$–C¢2æ–BÂF&vWD7FûÜ’YˆËšYXİÜXİ[Ûˆ	Û›Û™IÈJNÂˆœ™XZÎÂˆBˆ     if (skill?.sourceName === 'SA_CASTCANCEL' && skill.manua…±UÍ”€ôôô€…ÍÑ…¹•°œ¤ì(€€€€€€€ÕÍ•…ÍÑ…¹•°¡Ì±Œ±Í­¥±°±±•ÛfVÂÆæ÷rÆ6öÖÖæBæW‡V7FVD67D7F–öä–B“°¢'&V³°¢ßBˆ™\]Z\™T[JÚÚ[ËœÛİ\˜ÙS˜[YHOOH	Ó×ÕS”ÒSÓ”‘SV	È	¦& skill.manualUse === 'rest' &&
-        skill.implementation¸€ôôô€ÍÕÁÁ½ÉÑ•œ€˜˜±•Ù•°€ø€À€˜˜±…ÍÍM­¥±±Ì¡Œ°Ì¹©½ˆ¤¹¥¹±×VFW2‡6¶–ÆÂæ–B’À¢u4´”ÄÅõTäd”Ä$ÄRrÂtW7F†&–Æ–FFYHX[X[°èÛÈ\İ0èH\ÜÛ°ë]™[‰ÊNÂˆ™\]Z\™T[JËœİ]us === 'hunting' || isFieldSitting(s), 'FIELD_REQUIRED', 'Use”•ÍÑ„¡…‰¥±¥‘…‘”‘ÕÉ…¹Ñ”„‡„½Ô¼‘•Í…¹Í¼¹„ƒ…É•„¸œ¤ì(¢&WV—&U'VÆR‚2æ&GFÆSòæ67Bbb²tÔõõ5DTTÄ$ôE’rÂtÄµô ‘T”ÑT’ÉË	Õ—ÒQS‘ÉË	ĞT×ĞÓĞRÒS‘ÉË	ÒÓ—ĞUUĞÓÕS•T‰Ë	Ô‘×ĞÃHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD']
-        .some(¡Í½ÕÉ”€ôø±…ÍÍ¥	Õ™™Ñ¥Ù”¡Ì°Œ°Í½ÕÉ”°¹½Ü¤¤°€M-%11}MQQEU5ô$Äô4´TBrÂu6WRW7FFòGVÂ–×VFRW6"W7F†&–Æ–FFRâyÊNÂˆÛÛœİØYH[™[ÜSØY
-ËÊNÂˆ™\]Z\™T[e(load.weight * 10 < load.maxWeight * 9, 'SKILL_WEIGHT_BLOCKEœ°€±¥Ù¥”¼Á•Í¼Á…É„™¥…È…‰…¥á¼‘”€äÀ”…¹Ñ•Ì‘”ÕÍ…È„‚†&–Æ–FFRâr“°¢&WV—&U'VÆR‡2æ‡âbb•6¶–ÆÅ&W6÷W&8Ù\ÊËËÚÚ[X]›Z[ŠÚÚ[›X^]™[]™[
-K›İÊK	ÔÔÔ’EQUIRED', 'Recupere seu HP e tenha SP suficiente para usar a„¡…‰¥±¥‘…‘”¸œ¤ì(€€€€€ÍÑ…ÉÑQ•¹Í¥½¹I•±…à¡Ì°Í­¥±°°¹½Ü¤ì(€€€‚WfVçB‡2Âæ÷rÂw6¶–ÆÂrÂ6¶–ÆÂææÖRÂVæFVf–æVBÂwÆ–W"rÂ²ÚÚ[YˆÚÚ[šYÚÚ[]™[ˆKˆÛİ\˜ÙPXİÜ’YˆËšid, targetActorId: s.id, actorAction: 'none' });
-      break;ì(€€€ô(€€€…Í”€Ñ½±•	Õ™˜œèì(€€€€€½¹ÍĞÍ­¥±°€ôŒ¹Í­¥±±Ï5¶6öÖÖæBç6¶–ÆÄ–EÓ°¢–b‡6¶–ÆÃòç6÷W&6TæÖRÓÓÒtåeõE$”4²ÑPQ	ÊHÂˆÛÛœİ]™[HË›X\›™YÚÚ[ÖÜÚÚ[šYHÏÈ 0;
-        requireRule(skill.manualUse === 'toggle' && skill°¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€ÍÕÁÁ½ÉÑ•œ€˜˜(€€€€€€€€€±•Ù•°€ø€À€˜˜²Æ756¶–ÆÇ2†2Â2æ¦ö"’æ–æ6ÇVFW2‡6¶–ÆÂæ–B’b`¢²væ÷f–6YIË	ÚYÚÛ›İšXÙI×Kš[˜ÛY\ÊËš›ØŠK	Ğ•Q‘—ÕSURSP“IËˆ    'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
-      €€¥˜€¡Ñ½±•±…ÍÍ¥	Õ™˜¡Ì°Œ°Í­¥±°°±•Ù•°°¹½Ü¤¤ì(€€€€€€€‚–b‡2æ&GFÆR’°¢2æ&GFÆRçÆ–W$æW‡DGF6´BÒ›İÎÂˆË˜˜]Kœ^Y\“™^ÚÚ[]H›İÎÂˆ    s.battle.playerActionReadyAt = now;
+        random(s); // status_start's 100% application consumes the source status roll.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id, targetActorId: s.id,
+          actorAction: 'none', actionMotionMs: 0, castMs: 0 });
+        event(s, now, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_BLADESTOP_WAIT', sourceActorId: s.id, targetActorId: s.id });
+        break;
+      }
+      if (skill?.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 && level <= skill.maxLevel &&
+          classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        requireRule(['hunting', 'challenge'].includes(s.status) && !!s.battle && !s.battle.cast && s.hp > 0,
+          'FIELD_REQUIRED', 'Use Magic Rod durante uma luta no campo.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'SilÃªncio impede ativar Magic Rod.');
+        requireRule(!['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
+          .some(source => classicBuffActive(s, c, source, now)), 'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar Magic Rod.');
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED', 'Tenha 2 SP para usar Magic Rod.');
+        const duration = skill.statusDurationMs?.[level - 1] ?? magicRodWindow(level);
+        s.buffs[skill.id] = { expiresAt: now + duration, effects: {} };
+        (s.combatEffects ??= {}).buffLevels ??= {};
+        s.combatEffects.buffLevels[skill.id] = level;
+        random(s); // status_start's guaranteed source roll.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id, actorAction: 'none', actionMotionMs: 0 });
+        event(s, now, 'status-start', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          statusName: 'SC_MAGICROD', sourceActorId: s.id, targetActorId: s.id });
+        break;
+      }
+      if (skill?.sourceName === 'WZ_ESTIMATION') {
+        requireRule(skill.id === 'sense' && skill.manualUse === 'inspect' &&
+          skill.implementation === 'supported' && skill.maxLevel === 1 && level === 1 &&
+          classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE',
+        'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        requireRule(typeof command.expectedEnemyId === 'string' &&
+          command.expectedEnemyId === s.battle?.targetId, 'SENSE_TARGET_INVALID',
+        'Selecione o mesmo inimigo vivo antes de usar Sentido Sobrenatural.');
+        const target = senseManualTarget(s, c, now);
+        requireRule(target?.id === command.expectedEnemyId, 'SENSE_TARGET_INVALID',
+          'O inimigo selecionado nÃ£o estÃ¡ disponÃ­vel para inspeÃ§Ã£o.');
+        requireRule(paySkillResources(s, c, skill, 1, now), 'SP_REQUIRED',
+          'Tenha SP suficiente para usar Sentido Sobrenatural.');
+        s.senseInspection = makeSenseInspection(c, target, now, senseEncounterIdentity(s));
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+          sourceActorId: s.id, targetActorId: target.id, actorAction: 'none' });
+        break;
+      }
+      if (skill?.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate') {
+        requireRule(skill.implementation === 'supported' && level > 0 &&
+          classSkills(c, s.job).includes(skill.id) && guardianSkillEligible(s, c, skill),
+        'SKILL_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED',
+          'SilÃªncio impede ativar SacrifÃ­cio.');
+        requireRule(!s.battle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'KN_AUTOCOUNTER', 'TF_HIDING', 'AS_CLOAKING']
+          .some(source => classicBuffActive(s, c, source, now)),
+        'SKILL_STATUS_BLOCKED', 'Seu estado atual impede ativar SacrifÃ­cio.');
+        requireRule(s.hp > 0 && paySkillResources(s, c, skill, level, now),
+          'SP_REQUIRED', 'Tenha HP e SP suficientes para ativar SacrifÃ­cio.');
+        applyGuardianStatus(s, skill, level, now);
+        random(s); // status_start's 100% application still draws RNG.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
+      }
+      if (skill?.sourceName === 'SA_CASTCANCEL' && skill.manualUse === 'castCancel') {
+        useCastCancel(s,c,skill,level,now,command.expectedCastActionId);
+        break;
+      }
+      requireRule(skill?.sourceName === 'LK_TENSIONRELAX' && skill.manualUse === 'rest' &&
+        skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
+        'SKILL_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+      requireRule(s.status === 'hunting' || isFieldSitting(s), 'FIELD_REQUIRED', 'Use esta habilidade durante a caÃ§a ou o descanso na Ã¡rea.');
+      requireRule(!s.battle?.cast && !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'RG_CHASEWALK', 'ST_INVISIBILITY', 'NV_TRICKDEAD']
+        .some(source => classicBuffActive(s, c, source, now)), 'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar esta habilidade.');
+      const load = inventoryLoad(s, c);
+      requireRule(load.weight * 10 < load.maxWeight * 9, 'SKILL_WEIGHT_BLOCKED', 'Alivie o peso para ficar abaixo de 90% antes de usar a habilidade.');
+      requireRule(s.hp > 0 && paySkillResources(s, c, skill, Math.min(skill.maxLevel, level), now), 'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para usar a habilidade.');
+      startTensionRelax(s, skill, now);
+      event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+        sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+      break;
+    }
+    case 'toggleBuff': {
+      const skill = c.skills[command.skillId];
+      if (skill?.sourceName === 'NV_TRICKDEAD') {
+        const level = s.learnedSkills[skill.id] ?? 0;
+        requireRule(skill.manualUse === 'toggle' && skill.implementation === 'supported' &&
+          level > 0 && classSkills(c, s.job).includes(skill.id) &&
+          ['novice', 'high_novice'].includes(s.job), 'BUFF_UNAVAILABLE',
+        'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        if (toggleClassicBuff(s, c, skill, level, now)) {
+          if (s.battle) {
+            s.battle.playerNextAttackAt = now;
+            s.battle.playerNextSkillAt = now;
+            s.battle.playerActionReadyAt = now;
           }
-         €¥˜€¡Ì¹™¥•±‘!•É¼ü¹…É•…%€ôôôÌ¹…É•…%€˜˜Ì¹ÍÑ…ÑÕÌ€ôôô€¡Õ¹Ñ¦–ærr’°¢2æf–VÆD†W&òç†6RÒ2æ&GFÆRòvf–v‡F–æryÈˆ	ÜÙYZÚ[™ÉÎÂˆBˆ]™[
-Ë›İË	ÜÜİ\™KYended', skill.name, undefined, 'player', { skillId: skill.id,°ÍÑ…ÑÕÍ9…µ”è€9Y}QI%-œ°(€€€€€€€€€€€Í½ÕÉ•Ñ½É%èÌ¹¥’BÂF&vWD7F÷$–C¢2æ–BÂ7F÷$7F–öã¢væöæRrÒ“°¢WfY[
-Ë›İË	ÜÚÚ[	ËÚÚ[›˜[YK[™Yš[™Y	Ü^Y\‰ËÈÚÚ[,Id: skill.id, skillLevel: level,
-            sourceActorId: Ì¹¥°Ñ…É•ÑÑ½É%èÌ¹¥°…Ñ½ÉÑ¥½¸è€¹½¹”œô¤ì(€€€€€€€€‚'&V³°¢Ğ¢&WV—&U'VÆR‚÷fW'vV–v‡Df÷$6öÖ&B‡<ËÊK	ÕÑRQÒÓSRU	Ë	ÓX™\™H\ÛÈ˜H[ØÚ[H[\ÈH]]˜ar habilidades.');
-        const inField = !!s.areaId && (s.sÍÑ…ÑÕÌ€ôôô€¡Õ¹Ñ¥¹œœñğ¥Í¥•±‘M¥ÑÑ¥¹œ¡Ì¤¤ñğ(€€€€€€€€€Ì¹ÍÑ†GW2ÓÓÒv6†ÆÆVævRrbb2æ&GFÆS°¢&WV—&U'VÆR†–äf–Y[	‰ˆËšˆ	Ñ’QSÔ‘TURT‘Q	Ëˆ	Õ\ÙH\İHXš[Yade manual na Ã¡rea, enquanto estiver vivo.');
-        requirÉ•IÕ±”¡Í­¥±°¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€ÍÕÁÁ½ÉÑ•œ€˜˜±•Ù•°€ø€À€˜˜(‚6Æ756¶–ÆÇ2†2Â2æ¦ö"’æ–æ6ÇVFW2‡6¶–ÆÂæ–B’Ât%TdeõTäURSP“IËˆ	Ñ\İHXš[YYHX[X[°èÛÈ\İ0èH\ÜÛ®Ã­vel.');
-        requireRule(paySkillResources(s, c, skill,°±•Ù•°°¹½Ü¤°€MA}IEU%Iœ°(€€€€€€€€€€Q•¹¡„M@ÍÕ™¥¥•¹Ñ”‚&F—f"G&–6²FVBâr“°¢6öç7B67BÒ2æ&GFÆSòæ6\İÂˆYˆ
-Ø\İ
-HØ[˜Ù[XİÜØ\İ
-ËËÈÚ[™ˆ	Ü^Y\‰ç, actorId: s.id }, now, 'manual');
-        if (s.fieldHero?.¹…É•…%€ôôôÌ¹…É•…%¤ì(€€€€€€€€€½¹ÍĞÁ½Í¥Ñ¥½¸€ô‰…ÑÑ±•!•É¾ôB‡2Âæ÷r“°¢7F÷†W&ôÖ÷fVÖVçB‡2æf–VÆD†W&òÂ÷6—F–öë‹›İÊNÈË™šY[\›Ëœ\ÙHH	İØZ][™ÉÎÂˆ[]HË™šieldHero.moveBlockedUntil;
+          if (s.fieldHero?.areaId === s.areaId && s.status === 'hunting') {
+            s.fieldHero.phase = s.battle ? 'fighting' : 'seeking';
+          }
+          event(s, now, 'posture-ended', skill.name, undefined, 'player', { skillId: skill.id, statusName: 'NV_TRICKDEAD',
+            sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+          event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+            sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+          break;
         }
-        // The schedulerÈÍ­¥ÁÌ½İ¸½™™•¹Í”İ¡¥±”Ñ¡¥ÌÍÑ…ÑÕÌ¥Ì…Ñ¥Ù”¸-••À(€€€€€€‚òòf–æ—FRFVFÆ–æW26òæõ6fR&VÖ÷fÂ6â&W7VÖRF†—26ÖR[˜Ûİ[\‹‚ˆ\UšXÚÑXY
-ËËÚÚ[]™[›İÊNÂŠ        random(s); // The source status application draws on¹”•Ù•¸…Ğ¹½Éµ…±¥é•€ÄÀÀ”¸(€€€€€€€•Ù•¹Ğ¡Ì°¹½Ü°€Á½ÍÑÕÉ”œ²Â6¶–ÆÂææÖRÂVæFVf–æVBÂwÆ–W"rÂ²6¶–ÆÄ–C¢6¶–ÆÂæ–BÀ¢İ]\Ó˜[YNˆ	Ó•—Õ’PÒÑPQ	ËÛİ\˜ÙPXİÜ’YˆËšY\™Ù]4ActorId: s.id, actorAction: 'none' });
-        event(s, now,°€Í­¥±°œ°Í­¥±°¹¹…µ”°Õ¹‘•™¥¹•°€Á±…å•Èœ°ìÍ­¥±±%èÍ­¥±°ºæ–BÂ6¶–ÆÄÆWfVÃ¢ÆWfVÂÀ¢6÷W&6T7F÷$–C¢2æ–BÂF&vWMXİÜ’YˆËšYXİÜXİ[Ûˆ	Û›Û™IÈJNÂˆœ™XZÎÂˆ }
+        requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de ativar habilidades.');
+        const inField = !!s.areaId && (s.status === 'hunting' || isFieldSitting(s)) ||
+          s.status === 'challenge' && !!s.battle;
+        requireRule(inField && s.hp > 0, 'FIELD_REQUIRED',
+        'Use esta habilidade manual na Ã¡rea, enquanto estiver vivo.');
+        requireRule(skill.implementation === 'supported' && level > 0 &&
+          classSkills(c, s.job).includes(skill.id), 'BUFF_UNAVAILABLE',
+        'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED',
+          'Tenha SP suficiente para ativar Trick Dead.');
+        const cast = s.battle?.cast;
+        if (cast) cancelActorCast(s, c, { kind: 'player', actorId: s.id }, now, 'manual');
+        if (s.fieldHero?.areaId === s.areaId) {
+          const position = battleHeroAt(s, now);
+          stopHeroMovement(s.fieldHero, position, now); s.fieldHero.phase = 'waiting';
+          delete s.fieldHero.moveBlockedUntil;
+        }
+        // The scheduler skips own offense while this status is active. Keep
+        // finite deadlines so NoSave removal can resume this same encounter.
+        applyTrickDead(s, c, skill, level, now);
+        random(s); // The source status application draws once even at normalized 100%.
+        event(s, now, 'posture', skill.name, undefined, 'player', { skillId: skill.id,
+          statusName: 'NV_TRICKDEAD', sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: level,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
+      }
       const shrink = skill?.sourceName === 'CR_SHRINK';
-  €€€€É•ÅÕ¥É•IÕ±” ¡Í¡É¥¹¬ñğÍ­¥±°ü¹Í½ÕÉ•9…µ”€ôôô€M5}UQ=	I%4U$²rbb6¶–ÆÂæÖçVÅW6RÓÓÒwFövvÆRr’b`¢6¶–ÆÂæ–×Ë[Y[][ÛˆOOH	Üİ\ÜY	È	‰ˆİX\™X[”ÚÚ[[YÚX›JËËÚëill) &&
-        (s.learnedSkills[skill.id] ?? 0) > 0, 'BUFF_}U9Y%1	1œ°€ÍÑ„¡…‰¥±¥‘…‘”µ…¹Õ…°»¼•ÍÓ„‘¥ÍÁ½»µÙ•²Ââr“°¢&WV—&U'VÆR‡6‡&–æ²ÇÂ²tÔõõ5DTTÄ$ôE’rÂtÄµô$U%4QT’ÉË	Õ—ÒQS‘ÉË	ÒÓ—ĞUUĞÓÕS•T‰×KœÛÛYJÛİ\˜ÙHOˆÛ\ÜÚXĞuffActive(s, c, source, now)),
-        'SKILL_STATUS_BLOCKED'œ°€M•Ô•ÍÑ…‘¼…ÑÕ…°¥µÁ•‘”ÕÍ…È•ÍÑ„¡…‰¥±¥‘…‘”¸œ¤ì(€€€€€¥šb‡FövvÆT6Æ76–4'Vfb‡2Â2Â6¶–ÆÂÂ2æÆV&æVE6¶–ÆÇ5·6¶–ÆÂæ–EÒÂ›İÊJHœ™XZÎÂˆ™\]Z\™T[J[İ™\ÙZYÚ›ÜÛÛX˜]
-ËÊK	çWEIGHT_LIMIT', 'Libere peso na mochila antes de ativar habil±¥‘…‘•Ì¸œ¤ì(€€€€€¥˜€¡Í¡É¥¹¬¤ì(€€€€€€€É•ÅÕ¥É•IÕ±”¡Õ…É‘¥…¹M6†–VÆDWV—VB‡2Â2’Âu4„”TÄEõ$UT•$TBrÂtWV—RVÒW67VFò\˜H]]˜\ˆÚš[šË‰ÊNÂˆ™\]Z\™T[JËšˆ	‰ˆ^TÚÚ[,lResources(s, c, skill, s.learnedSkills[skill.id], now),
-   €€€€€€€€MA}IEU%Iœ°€I•ÕÁ•É”Í•Ô!@”Ñ•¹¡„M@ÍÕ™¥¥•¹Ñ–R&F—f"†&–Æ–FFRâr“°¢Ç”wV&F–å7FGW2‡2ËÚÚ[Ë›X\›™YÚÚ[ÖÜÚÚ[šYK›İÊNÂˆ˜[™ÛJÊNÈ // status_start's 100% application still draws RNG.
-        •Ù•¹Ğ¡Ì°¹½Ü°€Í­¥±°œ°Í­¥±°¹¹…µ”°Õ¹‘•™¥¹•°€Á±…å•Èœ°ìÍ®¶–ÆÄ–C¢6¶–ÆÂæ–BÂ6¶–ÆÄÆWfVÃ¢À¢6÷W&6T7F÷$–C¢2æšY\™Ù]XİÜ’YˆËšYXİÜXİ[Ûˆ	Û›Û™IÈJNÂˆœ™Xak;
+      requireRule((shrink || skill?.sourceName === 'SM_AUTOBERSERK' && skill.manualUse === 'toggle') &&
+        skill.implementation === 'supported' && guardianSkillEligible(s, c, skill) &&
+        (s.learnedSkills[skill.id] ?? 0) > 0, 'BUFF_UNAVAILABLE', 'Esta habilidade manual nÃ£o estÃ¡ disponÃ­vel.');
+      requireRule(shrink || !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'KN_AUTOCOUNTER'].some(source => classicBuffActive(s, c, source, now)),
+        'SKILL_STATUS_BLOCKED', 'Seu estado atual impede usar esta habilidade.');
+      if (toggleClassicBuff(s, c, skill, s.learnedSkills[skill.id], now)) break;
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de ativar habilidades.');
+      if (shrink) {
+        requireRule(guardianShieldEquipped(s, c), 'SHIELD_REQUIRED', 'Equipe um escudo para ativar Shrink.');
+        requireRule(s.hp > 0 && paySkillResources(s, c, skill, s.learnedSkills[skill.id], now),
+          'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para ativar a habilidade.');
+        applyGuardianStatus(s, skill, s.learnedSkills[skill.id], now);
+        random(s); // status_start's 100% application still draws RNG.
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+          sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+        break;
       }
       const cost = skill.spCost[0] ?? 1;
-      re•ÅÕ¥É•IÕ±”¡Ì¹¡À€ø€À€˜˜Ì¹ÍÀ€øô½ÍĞ°€MA}IEU%Iœ°€I•ÕÁ•É–R6WR…RFVæ†57Vf–6–VçFR&F—f"†&–Æ–FFRâr“°¢ËœÜOHÛÜİÂˆË˜Y™œÖÜÚÚ[šYHHÈ^\™\Ğ]ˆumber.MAX_SAFE_INTEGER, effects: {} };
-      (s.combatEffectsÌ€üüôíô¤¹‰Õ™™1•Ù•±Ì€üüôíôì(€€€€€Ì¹½µ‰…Ñ™™•ÑÌ¹‰Õ™™1•Ù•±Ï2·6¶–ÆÂæ–EÒÒ°¢WfVçB‡2Âæ÷rÂw6¶–ÆÂrÂ6¶–ÆÂææÖRÂVë™Yš[™Y	Ü^Y\‰ËÈÚÚ[YˆÚÚ[šYÚÚ[]™[ˆKˆ    sourceActorId: s.id, targetActorId: s.id, actorAction: 'n¹½¹”œô¤ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰…¹•±	Õ™˜ˆèì(€€€€€6öç7B6¶–ÆÂÒ2ç6¶–ÆÇ5¶6öÖÖæBç6¶–ÆÄ–EÓ°¢&WV—&U'VÆR‡6ºÚ[	‰ˆÚÚ[š[\[Y[][ÛˆOOH[œİ\ÜYˆ	‰‚ˆÛassSkills(c, s.job).includes(skill.id) && (s.learnedSkills[sk­¥±°¹¥‘t€üü€À¤€ø€À°(€€€€€€€€‰	U}U9Y%1	1ˆ°€‰ÍÑ„¡…‰¥±¥’FFRì:6òW7L:F—7öì:×fVÂ&FW6F—f"â"“°¢&WV—&U$[JÙÙÛPÛ\ÜÚXĞY™ŠËËÚÚ[Ë›X\›™YÚÚ[ÖÜÚÚ[šY], now),
-        "BUFF_NOT_CANCELABLE", "Esta habilidade nÃ£o¼Á½ÍÍÕ¤Õ´•™•¥Ñ¼…Ñ¥Ù¼ÅÕ”Á½ÍÍ„Í•È‘•Í…Ñ¥Ù…‘¼¸ˆ¤ì(€€€€€Š'&V³°¢Ğ¢66R'6WDWF÷7VÆÂ#¢°¢6öç7BG&VRÒæY]ÈÙ]
-Û\ÜÔÚÚ[ÊËËš›ØŠJNÂˆ™\]Z\™T[JˆØšªect.values(c.skills).some(skill => skill.sourceName === "SA_}UQ=MA10ˆ€˜˜(€€€€€€€€€ÑÉ•”¹¡…Ì¡Í­¥±°¹¥¤€˜˜€¡Ì¹±•…É¹•‘M­¥²ÆÇ5·6¶–ÆÂæ–EÒóò’âbb6¶–ÆÂæ–×ÆVÖVçFF–öâÓÒ'Vç7W÷,YŠKˆUUÔÔSÕSURSP“H‹ˆ\™[™H\óejo Arcano para escolher sua magia automÃ¡tica.",
+      requireRule(s.hp > 0 && s.sp >= cost, 'SP_REQUIRED', 'Recupere seu HP e tenha SP suficiente para ativar a habilidade.');
+      s.sp -= cost;
+      s.buffs[skill.id] = { expiresAt: Number.MAX_SAFE_INTEGER, effects: {} };
+      (s.combatEffects ??= {}).buffLevels ??= {};
+      s.combatEffects.buffLevels![skill.id] = 1;
+      event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+        sourceActorId: s.id, targetActorId: s.id, actorAction: 'none' });
+      break;
+    }
+    case "cancelBuff": {
+      const skill = c.skills[command.skillId];
+      requireRule(skill && skill.implementation !== "unsupported" &&
+        classSkills(c, s.job).includes(skill.id) && (s.learnedSkills[skill.id] ?? 0) > 0,
+        "BUFF_UNAVAILABLE", "Esta habilidade nÃ£o estÃ¡ disponÃ­vel para desativar.");
+      requireRule(toggleClassicBuff(s, c, skill, s.learnedSkills[skill.id], now),
+        "BUFF_NOT_CANCELABLE", "Esta habilidade nÃ£o possui um efeito ativo que possa ser desativado.");
+      break;
+    }
+    case "setAutospell": {
+      const tree = new Set(classSkills(c, s.job));
+      requireRule(
+        Object.values(c.skills).some(skill => skill.sourceName === "SA_AUTOSPELL" &&
+          tree.has(skill.id) && (s.learnedSkills[skill.id] ?? 0) > 0 && skill.implementation !== "unsupported"),
+        "AUTOSPELL_UNAVAILABLE",
+        "Aprenda Desejo Arcano para escolher sua magia automÃ¡tica.",
       );
- €€€€€É•ÅÕ¥É•IÕ±” (€€€€€€€½µµ…¹¹Í­¥±±%€ôôô¹Õ±°ñğ…ÕÑ½µ†F–57VÆÄ6†ö–6W2‡2Â2’ç6öÖR†6†ö–6RÓâ6†ö–6Rç6¶–ÆÄ–BÓÓÒ6öÖÛX[™œÚÚ[Y
-Kˆ’S•SQĞUUÔÔS‹ˆ‘\ØÛÛH uma magia aprendida e disponÃ­vel para Desejo Arcano.",
-    €€€¤ì(€€€€€¥˜€¡½µµ…¹¹Í­¥±±%€ôôô¹Õ±°¤‘•±•Ñ”Ì¹…ÕÑ½ÍÁ•±±M6¶–ÆÄ–C°¢VÇ6R2æWF÷7VÆÅ6¶–ÆÄ–BÒ6öÖÖæBç6¶–ÆÄ–C°¢œ™XZÎÂˆBˆØ\ÙHœİ\[ˆÂˆÛÛœİ\™XHHã.areas.find((a) => a.id === command.areaId);
-      requireRuÕ±” (€€€€€€€…É•„€˜˜…É•„¹µ¥¹1•Ù•°€ğôÌ¹‰…Í•1•Ù•°°(€€€€€€€€‰$TôÄô4´TB"À¢,8&V–æF—7öì:×fVÂ&6WRì:×fVÂâ"Ëˆ
-NÂˆ™\]Z\™T[JˆËœİ]\ÈOOHœ™\İ[™Èˆ || s.restMode === "field",
+      requireRule(
+        command.skillId === null || automaticSpellChoices(s, c).some(choice => choice.skillId === command.skillId),
+        "INVALID_AUTOSPELL",
+        "Escolha uma magia aprendida e disponÃ­vel para Desejo Arcano.",
+      );
+      if (command.skillId === null) delete s.autospellSkillId;
+      else s.autospellSkillId = command.skillId;
+      break;
+    }
+    case "startHunt": {
+      const area = c.areas.find((a) => a.id === command.areaId);
+      requireRule(
+        area && area.minLevel <= s.baseLevel,
+        "AREA_LOCKED",
+        "Ãrea indisponÃ­vel para seu nÃ­vel.",
+      );
+      requireRule(
+        s.status !== "resting" || s.restMode === "field",
         "RECOVERING",
-        "AgÕ…É‘”¼™¥´‘„É•ÕÁ•É‡Ÿ¼¸ˆ°(€€€€€€¤ì(€€€€€É•ÅÕ¥É•IÕ±” (¢2ç7FGW2ÓÒ&6†ÆÆVævR"À¢$4„ÄÄTätUô5D•dR(‹ˆ‘[˜Ù\œ™HÈ\ØYš[È[\ÈHØpéØ\‹ˆ‹ˆ
-NÂˆ    requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP na c¥‘…‘”¸ˆ¤ì(€€€€€É•ÅÕ¥É•IÕ±” …½Ù•Éİ•¥¡Ñ½É½µ‰…Ğ¡Ì°Œ¤°€]$”t…EôÄ”Ô•BrÂtÆ–&W&RW6òæÖö6†–ÆçFW2FR–æ–6–"VÖ60éØK‰ÊNÂˆYˆ
-Ëœİ]\ÈOOHš[[™Èˆ	‰ˆË˜\™XRYOOH\™Xa.id) {
+        "Aguarde o fim da recuperaÃ§Ã£o.",
+      );
+      requireRule(
+        s.status !== "challenge",
+        "CHALLENGE_ACTIVE",
+        "Encerre o desafio antes de caÃ§ar.",
+      );
+      requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP na cidade.");
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de iniciar uma caÃ§a.');
+      if (s.status === "hunting" && s.areaId === area.id) {
         s.pendingAreaId = null;
         break;
-      ô(€€€€€¥˜€¡Ì¹ÍÑ…ÑÕÌ€ôôô€‰¡Õ¹Ñ¥¹œˆ€˜˜Ì¹‰…ÑÑ±”ü¹Ñ…É•Ñ%¤ì(¢2çVæF–æt&V–BÒ&Væ–C°¢WfVçB‡2Âæ÷rÂ&‡][‹°ìŞ[XH0è\™XNˆ	Ø\™XK›˜[Y_K˜
-NÂˆœ™XZÎÂˆ }
+      }
+      if (s.status === "hunting" && s.battle?.targetId) {
+        s.pendingAreaId = area.id;
+        event(s, now, "hunt", `PrÃ³xima Ã¡rea: ${area.name}.`);
+        break;
+      }
       const alreadyHunting = s.status === "hunting";
-     €…¹•±M…•¹¡…¹Ñ…ÍĞ¡Ì°Œ°¹½Ü°€½¹©ÕÉ‡Ÿ¼•¹•ÉÉ…‘„Á–VÆ×VFì:vFRF—f–FFRâr“°¢6ÆV$&ÆFU7F÷‡2Âæ÷r“°¢Yˆ
-\ÑšY[Ú][™ÊÊJH[™šY[™\İ
-ËÊNÂˆÛX\ÃloseConfine(s, now);
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      clearBladeStop(s, now);
+      if (isFieldSitting(s)) endFieldRest(s, c);
+      clearCloseConfine(s, now);
       s.battle = null;
-      s.status =ô€‰¡Õ¹Ñ¥¹œˆì(€€€€€Ì¹…É•…%€ô…É•„¹¥ì(€€€€€Ì¹Á•¹‘¥¹É•…%‚ÒçVÆÃ°¢2ææW‡DVæ6÷VçFW$BÒÇ&VG”‡VçF–æp¢òÓX]›X^
-Ë›™^[˜Ûİ[\]›İÈ
-È[˜Ûİ[\‘[^JË\™XKšY 1000))
+      s.status = "hunting";
+      s.areaId = area.id;
+      s.pendingAreaId = null;
+      s.nextEncounterAt = alreadyHunting
+        ? Math.max(s.nextEncounterAt, now + encounterDelay(s, area.id, 1000))
         : now + encounterDelay(s, area.id, 1000);
-   €€€Ì¹É•ÍÑU¹Ñ¥°€ô€Àì(€€€€€‘•±•Ñ”Ì¹É•ÍÑ5½‘”ì(€€€€€¥˜€ …Ì¹Ù¦—6—FVD&V2æ–æ6ÇVFW2†&Væ–B’’2çf—6—FVD&V2çW6‚†&Væ–B“°¢ˆ]™[
-Ë›İËš[‹ØpéØ[™È[H	Ø\™XK›˜[Y_K˜
-NÂˆ     break;
+      s.restUntil = 0;
+      delete s.restMode;
+      if (!s.visitedAreas.includes(area.id)) s.visitedAreas.push(area.id);
+      event(s, now, "hunt", `CaÃ§ando em ${area.name}.`);
+      break;
     }
     case "setHuntFocus": {
-      const area„€ôŒ¹…É•…Ì¹™¥¹ ¡„¤€ôø„¹¥€ôôô½µµ…¹¹…É•…%¤ì(€€€€€É•ÅÕ¦—&U'VÆR€¢&Vbbfö7W4ÖF6†W2†2Â&VÂ6öÖÖæBæfö7W2šKˆ’S•SQÒS•Ñ“ĞÕTÈ‹ˆ[›È[™\ÜÛ°ë]™[ nesta Ã¡rea.",
+      const area = c.areas.find((a) => a.id === command.areaId);
+      requireRule(
+        area && focusMatches(c, area, command.focus),
+        "INVALID_HUNT_FOCUS",
+        "Alvo indisponÃ­vel nesta Ã¡rea.",
       );
-      (s.huntFocus ??= {})[area.id] €ô½µµ…¹¹™½ÕÌì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰ÍÑ½Àˆèì(€€€€‚6æ6VÅ6vTVæ6†çD67B‡2Â2Âæ÷rÂt6öæ§W&:|:6òVæ6W'&FY[H]Y[°éØHH]]šYYK‰ÊNÂˆÛX\›YTİÜ
-Ë›İÊNÂˆ      clearTrickDead(s, c, now); // Leaving the field is a so½ÕÉ”İ…ÉÀ‰½Õ¹‘…Éä¸(€€€€€±•…É±½Í•½¹™¥¹”¡Ì°¹½Ü¤ì(€€€€€¦–b†—4f–VÆE6—GF–ær‡2’’VæDf–VÆE&W7B‡2Â2“°¢2æWFõ&W7VÖYHH˜[ÙNÂˆËœ[™[™Ğ\™XRYH[ÂˆYˆ
-Ë™šY[\²o?.areaId === s.areaId) {
-        const position = battleHerÉ½Ğ¡Ì°¹½Ü¤ì(€€€€€€€ÍÑ½Á!•É½5½Ù•µ•¹Ğ¡Ì¹™¥•±‘!•É¼°Á½Í¥Ñ¥½¸²Âæ÷r“²2æf–VÆD†W&òç†6RÒwv—F–ærs°¢FVÆWFR2æf–VÆI\›Ë\™Ù]YÂˆ[]HË™šY[\›Ë›[İ™P›ØÚÙY[[ÂŠ      }
-      if (s.status === "resting" && s.restMode !== "‰™¥•±ˆ¤‰É•…¬ì(€€€€€¥˜€¡Ì¹ÍÑ…ÑÕÌ€ôôô€‰É•ÍÑ¥¹œˆ€˜˜Ì¹É•ÍÑ5½’FRÓÓÒ&f–VÆB"’°¢2ç7FGW2Ò'F÷vâ#°¢2æ&V–IH[ÂˆË˜˜]HH[ÂˆËœ™\İ[[HÂˆ        delete s.restMode;
+      (s.huntFocus ??= {})[area.id] = command.focus;
+      break;
+    }
+    case "stop": {
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      clearBladeStop(s, now);
+      clearTrickDead(s, c, now); // Leaving the field is a source warp boundary.
+      clearCloseConfine(s, now);
+      if (isFieldSitting(s)) endFieldRest(s, c);
+      s.autoResume = false;
+      s.pendingAreaId = null;
+      if (s.fieldHero?.areaId === s.areaId) {
+        const position = battleHeroAt(s, now);
+        stopHeroMovement(s.fieldHero, position, now); s.fieldHero.phase = 'waiting';
+        delete s.fieldHero.targetId;
+        delete s.fieldHero.moveBlockedUntil;
+      }
+      if (s.status === "resting" && s.restMode !== "field") break;
+      if (s.status === "resting" && s.restMode === "field") {
+        s.status = "town";
+        s.areaId = null;
+        s.battle = null;
+        s.restUntil = 0;
+        delete s.restMode;
         break;
       }
-      if (sÌ¹ÍÑ…ÑÕÌ€ôôô€‰¡Õ¹Ñ¥¹œˆ€˜˜Ì¹‰…ÑÑ±”¤ì(€€€€€€€Ì¹ÍÑ…ÑÕÌ€ô€‰É•Ï7F–ær#°¢2ç&W7DÖöFRÒ'&V6÷fW'’#°¢2æ&GFÆRÒë[ÂˆËœ™\İ[[H›İÈ
-ÈLÂˆ]™[
-Ë›İ÷, "retreat", "Retirada do combate. Recuperando na cidade.");ì(€€€€€€€‰É•…¬ì(€€€€€ô(€€€€€Ì¹ÍÑ…ÑÕÌ€ô€‰Ñ½İ¸ˆì(€€€€€Ì¹‰…ÓGFÆRÒçVÆÃ°¢2ç&W7EVçF–ÂÒ°¢FVÆWFR2ç&W7DÖöFS°¢ˆœ™XZÎÂˆBˆØ\ÙHœ™\İˆÂˆ™\]Z\™T[Jˆ      s.status !== "challenge",
+      if (s.status === "hunting" && s.battle) {
+        s.status = "resting";
+        s.restMode = "recovery";
+        s.battle = null;
+        s.restUntil = now + 10000;
+        event(s, now, "retreat", "Retirada do combate. Recuperando na cidade.");
+        break;
+      }
+      s.status = "town";
+      s.battle = null;
+      s.restUntil = 0;
+      delete s.restMode;
+      break;
+    }
+    case "rest": {
+      requireRule(
+        s.status !== "challenge",
         "CHALLENGE_ACTIVE",
- €€€€€€€€‰;¼ƒ¤Á½ÍÏµÙ•°‘•Í…¹Í…È‘ÕÉ…¹Ñ”¼‘•Í…™¥¼¸ˆ°(€€‚“°¢6æ6VÅ6vTVæ6†çD67B‡2Â2Âæ÷rÂt6öæ§W&:|:6òY[˜Ù\œ˜YH[H]Y[°éØHH]]šYYK‰ÊNÂˆÛÛœİšY[™\ót = s.areaId !== null && s.status !== "town" &&
-        (s.sÍÑ…ÑÕÌ€„ôô€‰É•ÍÑ¥¹œˆñğÌ¹É•ÍÑ5½‘”€ôôô€‰™¥•±ˆ¤ì(€€€€€¥˜€¡Ìºç7FGW2ÓÓÒ'F÷vâ"’2æ&V–BÒçVÆÃ°¢–b†f–VÆE&W7B’°¢Ú][‘šY[
-Ë›İÊNÂˆ]™[
-Ë›İË	Ü™\İ	Ë	ÔÙentou para descansar na Ã¡rea.');
+        "NÃ£o Ã© possÃ­vel descansar durante o desafio.",
+      );
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      const fieldRest = s.areaId !== null && s.status !== "town" &&
+        (s.status !== "resting" || s.restMode === "field");
+      if (s.status === "town") s.areaId = null;
+      if (fieldRest) {
+        sitInField(s, now);
+        event(s, now, 'rest', 'Sentou para descansar na Ã¡rea.');
         break;
       }
-    €€Ì¹ÍÑ…ÑÕÌ€ô€‰É•ÍÑ¥¹œˆì(€€€€€Ì¹É•ÍÑ5½‘”€ô€‰É•½Ù•Éäˆì(€€€€‚2æ&GFÆRÒçVÆÃ°¢2çVæF–æt&V–BÒçVÆÃ°¢2ç&W7M[[H›İÈ
-ÈÌÂˆË›™^[˜Ûİ[\]HËœ™\İ[[ÂŠ      event(s, now, "rest", "Sentou para descansar por 30 se•Õ¹‘½Ì¸ˆ¤ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰Í•Ñ•¹‘•Èˆè(€€€€€É–WV—&U'VÆR€¢6öÖÖæBævVæFW"ÓÓÒ&ÖÆR"ÇÂ6öÖÖæBævVæI\ˆOOH™™[X[H‹ˆ’S•SQÑÑS‘Tˆ‹ˆ]˜]\ˆinvÃ¡lido.",
+      s.status = "resting";
+      s.restMode = "recovery";
+      s.battle = null;
+      s.pendingAreaId = null;
+      s.restUntil = now + 30000;
+      s.nextEncounterAt = s.restUntil;
+      event(s, now, "rest", "Sentou para descansar por 30 segundos.");
+      break;
+    }
+    case "setGender":
+      requireRule(
+        command.gender === "male" || command.gender === "female",
+        "INVALID_GENDER",
+        "Avatar invÃ¡lido.",
       );
       requireRule(
-        c.classes[s.¹©½‰t¹Ñ¥•È€ôôô€À€˜˜€…Ì¹‰É…¹ €˜˜€…Ì¹É•‰½É¸°(€€€€€€€€‰9I}0Äô4´TB"À¢$W66öÆ†òfF"çFW2FWföÇ\:|:6òFR6Æ\ÜÙKˆ‹ˆ
-NÂˆË™Ù[™\ˆHÛÛ[X[™™Ù[™\Âˆœ™XZë;
+        c.classes[s.job].tier === 0 && !s.branch && !s.reborn,
+        "GENDER_LOCKED",
+        "Escolha o avatar antes da evoluÃ§Ã£o de classe.",
+      );
+      s.gender = command.gender;
+      break;
     case "changeAppearance":
       town(s);
-      requireRIÕ±” (€€€€€€€9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡½µµ…¹¹¡…¥ÉMÑå±”¤€˜˜½µ¶ÖæBæ†—%7G–ÆRãÒbb6öÖÖæBæ†—%7G–ÆRÃÒ#rb`¢ã[X™\‹š\ÔØY™R[YÙ\ŠÛÛ[X[™šZ\ÛÛÜŠH	‰ˆÛÛ[X[™šZ\ÛÛÜˆ >= 0 && command.hairColor <= 8 &&
-          Number.isSafeIntÑ••È¡½µµ…¹¹±½Ñ¡•Í½±½È¤€˜˜½µµ…¹¹±½Ñ¡•Í½±½È€øô€À€˜˜6öÖÖæBæ6Æ÷F†W46öÆ÷"ÃÒBÀ¢$”ådÄ”EôT$ä4R"À¢‘\ØÛÛH[H[XYÈİH[XHÛÜˆ\ÜÛ°ë]™Z\È›È\İ[\İ4a.",
+      requireRule(
+        Number.isSafeInteger(command.hairStyle) && command.hairStyle >= 0 && command.hairStyle <= 27 &&
+          Number.isSafeInteger(command.hairColor) && command.hairColor >= 0 && command.hairColor <= 8 &&
+          Number.isSafeInteger(command.clothesColor) && command.clothesColor >= 0 && command.clothesColor <= 4,
+        "INVALID_APPEARANCE",
+        "Escolha um penteado ou uma cor disponÃ­veis no estilista.",
       );
       s.appearance = {
-        hairStyle: commµ…¹¹¡…¥ÉMÑå±”°(€€€€€€€¡…¥É½±½Èè½µµ…¹¹¡…¥É½±½È°(€€€€€€‚6Æ÷F†W46öÆ÷#¢6öÖÖæBæ6Æ÷F†W46öÆ÷"À¢Ó°¢WfVçB‡2Ë›İË˜\X\˜[˜ÙH‹H\\°ê›˜ÚXH›ÚH]X[^˜YH›È\İ[\İ4a de Prontera.");
+        hairStyle: command.hairStyle,
+        hairColor: command.hairColor,
+        clothesColor: command.clothesColor,
+      };
+      event(s, now, "appearance", "A aparÃªncia foi atualizada no estilista de Prontera.");
       break;
     case "allocate": {
-      É•ÅÕ¥É•IÕ±” (€€€€€€€ÍÑ…Ñ9…µ•Ì¹¥¹±Õ‘•Ì¡½µµ…¹¹ÍÑ…Ğ¤€˜˜(€€‚çVÖ&W"æ—56fT–çFVvW"†6öÖÖæBæÖ÷VçB’b`¢6öÛ[X[™˜[[İ[ˆ	‰‚ˆËœİ]ÖØÛÛ[X[™œİ]H
-ÈÛÛ[X[™$.amount <= MAX_BASE_STAT,
-        "INVALID_ALLOCATION",
-    €€€€€‰¥ÍÑÉ¥‰Õ§Ÿ¼‘”…ÑÉ¥‰ÕÑ¼¥¹Û…±¥‘„€¡·…á¥µ¼€ää¤¸ˆ°(€‚“°¢6öç7B6÷7BÒ7FEö–çD6÷7B‡2ç7FG5¶6öÖÖæBç7FMKÛÛ[X[™˜[[İ[
-NÂˆ™\]Z\™T[JˆËœİ]Ú[È >= cost,
-        "INSUFFICIENT_POINTS",
-        "Pontos de a…ÑÉ¥‰ÕÑ¼¥¹ÍÕ™¥¥•¹Ñ•Ì¸ˆ°(€€€€€€¤ì(€€€€€Ì¹ÍÑ…ÑA½¥¹ÑÌ€´ô½ÍÓC°¢2ç7FG5¶6öÖÖæBç7FEÒ³Ò6öÖÖæBæÖ÷VçC°¢'&VºÎÂˆBˆØ\ÙH›X\›”ÚÚ[ˆÂˆÛÛœİÚÚ[HËœÚÚ[,s[command.skillId];
       requireRule(
-        skill && clasÍÍM­¥±±Ì¡Œ°Ì¹©½ˆ¤¹¥¹±Õ‘•Ì¡Í­¥±°¹¥¤°(€€€€€€€€‰M-%11}U9Y%0Ä$ÄR"À¢$†&–Æ–FFR–æF—7öì:×fVÂ&7V6Æ76Râ"À¢ˆ
-NÂˆ™\]Z\™T[JˆËš›Ø“]™[H
-ÚÚ[›Z[®imumJobLevel ?? 0),
+        statNames.includes(command.stat) &&
+          Number.isSafeInteger(command.amount) &&
+          command.amount > 0 &&
+          s.stats[command.stat] + command.amount <= MAX_BASE_STAT,
+        "INVALID_ALLOCATION",
+        "DistribuiÃ§Ã£o de atributo invÃ¡lida (mÃ¡ximo 99).",
+      );
+      const cost = statPointCost(s.stats[command.stat], command.amount);
+      requireRule(
+        s.statPoints >= cost,
+        "INSUFFICIENT_POINTS",
+        "Pontos de atributo insuficientes.",
+      );
+      s.statPoints -= cost;
+      s.stats[command.stat] += command.amount;
+      break;
+    }
+    case "learnSkill": {
+      const skill = c.skills[command.skillId];
+      requireRule(
+        skill && classSkills(c, s.job).includes(skill.id),
+        "SKILL_UNAVAILABLE",
+        "Habilidade indisponÃ­vel para sua classe.",
+      );
+      requireRule(
+        s.jobLevel >= (skill.minimumJobLevel ?? 0),
         "SKILL_REQUIREMENTS",
-        "N;µÙ•°‘”±…ÍÍ”¥¹ÍÕ™¥¥•¹Ñ”¸ˆ°(€€€€€€¤ì(€€€€€½¹ÍĞÉ•ÅÕ¥É–VÖVçG2Ğ¢6¶–ÆÂç&W&WV—6—FW4'”6Æ73òå·2æ¦ö%Òóò6¶–ÆËœ™\™\]Z\Ú]\ÈÏÈ×NÂˆ™\]Z\™T[Jˆ™\]Z\™[Y[4s.every((p) => (s.learnedSkills[p.skillId] ?? 0) >= p.level)¤°(€€€€€€€€‰M-%11}IEU%I59QLˆ°(€€€€€€€€‰ÁÉ•¹‘„…Ì¡…‰¥±¥‘†FW2çFW&–÷&W2F:'f÷&R&–ÖV—&òâ"À¢“°¢&WV—&YT[JˆËœÚÚ[Ú[Èˆˆ’S”ÕQ‘’PÒQS•ÔÒS•S",
+        "NÃ­vel de classe insuficiente.",
+      );
+      const requirements =
+        skill.prerequisitesByClass?.[s.job] ?? skill.prerequisites ?? [];
+      requireRule(
+        requirements.every((p) => (s.learnedSkills[p.skillId] ?? 0) >= p.level),
+        "SKILL_REQUIREMENTS",
+        "Aprenda as habilidades anteriores da Ã¡rvore primeiro.",
+      );
+      requireRule(
+        s.skillPoints > 0,
+        "INSUFFICIENT_POINTS",
         "Pontos de habilidade insuficientes.",
       );
-(€€€€€½¹ÍĞ±•Ù•°€ôÌ¹±•…É¹•‘M­¥±±ÍmÍ­¥±°¹¥‘t€üü€Àì(€€€€€É–WV—&U'VÆR€¢ÆWfVÂÂ6¶–ÆÂæÖ„ÆWfVÂÀ¢%4´”ÄÅôÔVQ‹ˆ’Xš[YYH°èH\İ0èH›È°ë]™[pè^[[Ëˆ‹ˆ    );
+      const level = s.learnedSkills[skill.id] ?? 0;
+      requireRule(
+        level < skill.maxLevel,
+        "SKILL_MAXED",
+        "Habilidade jÃ¡ estÃ¡ no nÃ­vel mÃ¡ximo.",
+      );
       s.learnedSkills[skill.id] = level + 1;
-      s.sÍ­¥±±A½¥¹ÑÌ´´ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€Í•ÑM­¥±±UÍ•1•Ù•°s¢°¢6öç7B6¶–ÆÂÒ2ç6¶–ÆÇ5¶6öÖÖæBç6¶–ÆÄ–EÒÂÆV&æVBßHË›X\›™YÚÚ[ÖØÛÛ[X[™œÚÚ[YHÏÈÂˆ™\]Z\™T[JÛïnfigurableSkillUseLevel(skill) && skill.implementation === 'ÍÕÁÁ½ÉÑ•œ€˜˜(€€€€€€€±…ÍÍM­¥±±Ì¡Œ°Ì¹©½ˆ¤¹¥¹±Õ‘•Ì¡Í­¥±°¹¦–B’bbçVÖ&W"æ—56fT–çFVvW"†ÆV&æVB’bbÆV&æVBâÀ¢	ÔÒÒSÕSURSP“IË	Ğ\™[™H[XHXš[YYH\ÜÛ°ë]™[ÛÛm seleÃ§Ã£o de nÃ­vel.');
-      requireRule(command.level ===ô¹Õ±°ñğ9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡½µµ…¹¹±•Ù•°¤€˜˜½µµ…¹¹±•Ù–VÂãÒb`¢6öÖÖæBæÆWfVÂÃÒÖF‚æÖ–â†ÆV&æVBÂ6¶–ÆÂæÛX^]™[
-K	ÒS•SQÔÒÒSÓU‘S	Ë	Ñ\ØÛÛH[H°ë]™[\™[™Y$o.');
+      s.skillPoints--;
+      break;
+    }
+    case 'setSkillUseLevel': {
+      const skill = c.skills[command.skillId], learned = s.learnedSkills[command.skillId] ?? 0;
+      requireRule(configurableSkillUseLevel(skill) && skill.implementation === 'supported' &&
+        classSkills(c, s.job).includes(skill.id) && Number.isSafeInteger(learned) && learned > 0,
+        'SKILL_UNAVAILABLE', 'Aprenda uma habilidade disponÃ­vel com seleÃ§Ã£o de nÃ­vel.');
+      requireRule(command.level === null || Number.isSafeInteger(command.level) && command.level >= 1 &&
+        command.level <= Math.min(learned, skill.maxLevel), 'INVALID_SKILL_LEVEL', 'Escolha um nÃ­vel aprendido.');
       if (command.level === null) {
-        if (s.skil±±UÍ•1•Ù•±Ì¤ì‘•±•Ñ”Ì¹Í­¥±±UÍ•1•Ù•±ÍmÍ­¥±°¹¥‘tì¥˜€ …=‰©•ÓBæ¶W—2‡2ç6¶–ÆÅW6TÆWfVÇ2’æÆVæwF‚’FVÆWFR2ç6¶–ÆÅW6TÆWfVÇ3²Ğ¢H[ÙH
-ËœÚÚ[\ÙS]™[ÈÏÏHßJVÜÚÚ[šYHHÛÛ[X[™›evel;
+        if (s.skillUseLevels) { delete s.skillUseLevels[skill.id]; if (!Object.keys(s.skillUseLevels).length) delete s.skillUseLevels; }
+      } else (s.skillUseLevels ??= {})[skill.id] = command.level;
       break;
     }
     case "setRotation": {
-      requÕ¥É•IÕ±” (€€€€€€€ÉÉ…ä¹¥ÍÉÉ…ä¡½µµ…¹¹Í­¥±±%‘Ì¤€˜˜(€€€€€€€‚6öÖÖæBç6¶–ÆÄ–G2æÆVæwF‚ÃÒ’b`¢æWr6WB†6öÖÖæBëœÚÚ[YÊKœÚ^™HOOHÛÛ[X[™œÚÚ[YË›[™İˆ’S•SQ_ROTATION",
+      requireRule(
+        Array.isArray(command.skillIds) &&
+          command.skillIds.length <= 9 &&
+          new Set(command.skillIds).size === command.skillIds.length,
+        "INVALID_ROTATION",
         "Use atÃ© nove habilidades distintas.",
-(€€€€€€¤ì(€€€€€™½È€¡½¹ÍĞ¥½˜½µµ…¹¹Í­¥±±%‘Ì¤(€€€€€€€É–WV—&U'VÆR€¢VffV7F—fU6¶–ÆÄÆWfVÂ‡2Â2Â–B’b`¢ËœÚÚ[ÖÚYH	‰‚ˆËœÚÚ[ÖÚYKšÚ[™OOHœ\ósive" &&
-            (!c.skills[id].manualUse || configurabl±•M­¥±±UÍ•1•Ù•°¡Œ¹Í­¥±±Ím¥‘t¤ñğ(€€€€€€€€€€€€€Œ¹Í­¥±±Ím¥‘t¹Ï6÷W&6TæÖRÓÓÒt5%õ4…$”ä²rbb2ç6¶–ÆÇ5¶–EÒæÖçVÅW6RÓÓÒwFöyÙÛIÈˆËœÚÚ[ÖÚYKœÛİ\˜ÙS˜[YHOOH	ÔWÔĞPÔ’Q’PÃE' && c.skills[id].manualUse === 'activate' ||
-            cŒ¹Í­¥±±Ím¥‘t¹Í½ÕÉ•9…µ”€ôôô€5=}	1MQ=@œ€˜˜Œ¹Í­¥±±Ím¥‘t¹µ†çVÅW6RÓÓÒv7F—fFRrÇÀ¢2ç6¶–ÆÇ5¶–EÒç6÷W&6TæÛYHOOH	ÒÑUPÕS‘ÉÈ	‰ˆËœÚÚ[ÖÚYK›X[X[\ÙHOOH	ØXİ]˜]e' ||
-            c.skills[id].sourceName === 'SA_MAGICROD' &˜˜Œ¹Í­¥±±Ím¥‘t¹µ…¹Õ…±UÍ”€ôôô€…Ñ¥Ù…Ñ”œñğ(€€€€€€€€€€€lM}ôdÄÔTÄTä4„U"rÂu4ôe$õ5EtTôârÂu4ôÄ”t…Dä”ätÄôDU"rÂu4÷ÔÑRTÓRPÕÑPTÓ‰Ë	ÕÔ×ÓQSÕÓ‰Ë	ĞSWÔÕSÓ”UÒT‰×Kš[˜ÛY\Ê(c.skills[id].sourceName ?? '')) &&
-            c.skills[id].¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€„ôô€‰Õ¹ÍÕÁÁ½ÉÑ•ˆ°(€€€€€€€€€€‰%9Y1%}I=QQ%<ôâ"À¢$&÷F:|:6òW†–vR†&–Æ–FFW2F—f2F—7öì:Û]™Z\ÈH\™[™Y\Ëˆ‹ˆ
-NÂˆËœ›İ][ÛˆHË‹‹˜ÛÛ[Xand.skillIds];
+      );
+      for (const id of command.skillIds)
+        requireRule(
+          effectiveSkillLevel(s, c, id) &&
+            c.skills[id] &&
+            c.skills[id].kind !== "passive" &&
+            (!c.skills[id].manualUse || configurableSkillUseLevel(c.skills[id]) ||
+              c.skills[id].sourceName === 'CR_SHRINK' && c.skills[id].manualUse === 'toggle' ||
+            c.skills[id].sourceName === 'PA_SACRIFICE' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'HT_DETECTING' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate' ||
+            ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(c.skills[id].sourceName ?? '')) &&
+            c.skills[id].implementation !== "unsupported",
+          "INVALID_ROTATION",
+          "A rotaÃ§Ã£o exige habilidades ativas disponÃ­veis e aprendidas.",
+        );
+      s.rotation = [...command.skillIds];
       break;
     }
-    case "craftPharmacy": {ì(€€€€€É…™ÑA¡…Éµ…ä¡Ì±Œ±½µµ…¹¹¥Ñ•µ%±½µµ…¹¹ÅÕ…¹Ñ¥Ñä±¹½ßr“°¢'&V³°¢Ğ¢66R&7&gD6öçfW'FW"#¢°¢7&YÛÛ™\\ŠËËÛÛ[X[™š][RYÛÛ[X[™œ]X[]K›İÊNÂˆ break;
+    case "craftPharmacy": {
+      craftPharmacy(s,c,command.itemId,command.quantity,now);
+      break;
+    }
+    case "craftConverter": {
+      craftConverter(s,c,command.itemId,command.quantity,now);
+      break;
     }
     case "buy": {
       town(s);
-      const itÑ•´€ôŒ¹¥Ñ•µÍm½µµ…¹¹¥Ñ•µ%‘tì(€€€€€É•ÅÕ¥É•IÕ±” (€€€€€€€¥Ñ–VÓòç6†÷bb†—FVÒç6†÷&–6Róò—FVÒæ'W•&–6R’âÀ¢$ã“ÕÑ“Ô—ÔĞSH‹ˆ’][H[™\ÜÛ°ë]™[˜HÚ˜Kˆ‹ˆ
-i;
+      const item = c.items[command.itemId];
       requireRule(
-        Number.isSafeInteger(command.quÕ…¹Ñ¥Ñä¤€˜˜(€€€€€€€€€½µµ…¹¹ÅÕ…¹Ñ¥Ñä€ø€À€˜˜(€€€€€€€€€½µµ†æBçVçF—G’ÃÒÀ¢$”ådÄ”EõTåD•E’"À¢%]X[YYH[°è[YKˆ‹ˆ
-NÂˆ™\]Z\™T[JØ[”™XÙZ]™RItem(s, c, item.id, command.quantity), 'WEIGHT_LIMIT', 'A comµÁÉ„•á•‘”„…Á…¥‘…‘”‘„µ½¡¥±„¸œ¤ì(€€€€€ÍÁ•¹¡Ì°¥Ñ•µA×W&6†6U&–6R‡2Â2Â—FVÒ’¢6öÖÖæBçVçF—G’“°¢FD—FVÒ‡<ËË][KšYÛÛ[X[™œ]X[]JNÂˆœ™XZÎÂˆBˆØ\Ùe "sell": {
+        item?.shop && (item.shopPrice ?? item.buyPrice) > 0,
+        "NOT_FOR_SALE",
+        "Item indisponÃ­vel na loja.",
+      );
+      requireRule(
+        Number.isSafeInteger(command.quantity) &&
+          command.quantity > 0 &&
+          command.quantity <= 1000,
+        "INVALID_QUANTITY",
+        "Quantidade invÃ¡lida.",
+      );
+      requireRule(canReceiveItem(s, c, item.id, command.quantity), 'WEIGHT_LIMIT', 'A compra excede a capacidade da mochila.');
+      spend(s, itemPurchasePrice(s, c, item) * command.quantity);
+      addItem(s, c, item.id, command.quantity);
+      break;
+    }
+    case "sell": {
       town(s);
-      const e = owned(s, command.uÕ¥¤ì(€€€€€É•ÅÕ¥É•IÕ±” (€€€€€€€€…¥ÍAÉ½Ñ•Ñ•¡Ì°”¤°(€€€€€€€‚%$õDT5DTEô•DTÒ"À¢$—FVÒWV—FòÂff÷&—FòÂ&Vf–æFûÈİHÛÛHØ\\È\İ0èH›İYÚYËˆ‹ˆ
-NÂˆÛÛœİ]X[4ity = command.quantity;
+      const e = owned(s, command.uid);
       requireRule(
-        Number.isÍM…™•%¹Ñ••È¡ÅÕ…¹Ñ¥Ñä¤€˜˜(€€€€€€€€€ÅÕ…¹Ñ¥Ñä€ø€À€˜˜(€€€€€€€€‚VçF—G’ÃÒRçVçF—G’À¢$”ådÄ”EõTåD•E’"À¢”]X[YYH[°è[YKˆ‹ˆ
-NÂˆÛÛœİ™[HBˆ   merchantPrice(s, c, c.items[e.itemId].sellPrice, "sell") *¨ÅÕ…¹Ñ¥Ñäì(€€€€€½¹ÍÕµ”¡Ì°”°ÅÕ…¹Ñ¥Ñä¤ì(€€€€€Ì¹é•¹ä€¬ôé–Vç“°¢2çF÷FÇ2ç¦Vç’³Ò¦Vç“°¢'&V³°¢Ğ¢66YHœÙ[ÛİˆÂˆİÛŠÊNÂˆ]™[HHÂˆ›Üˆ (const e of [...s.inventory])
-        if (c.items[e.itemId].¹ÑåÁ”€ôôô€‰±½½Ğˆ€˜˜€…¥ÍAÉ½Ñ•Ñ•¡Ì°”¤¤ì(€€€€€€€€€é•¹ä€¬ô(‚ÖW&6†çE&–6R‡2Â2Â2æ—FV×5¶Ræ—FVÔ–EÒç6VÆÅ&–6RÂœÙ[ŠH
-‚ˆKœ]X[]NÂˆÛÛœİ[YJËKK®quantity);
+        !isProtected(s, e),
+        "PROTECTED_ITEM",
+        "Item equipado, favorito, refinado ou com cartas estÃ¡ protegido.",
+      );
+      const quantity = command.quantity;
+      requireRule(
+        Number.isSafeInteger(quantity) &&
+          quantity > 0 &&
+          quantity <= e.quantity,
+        "INVALID_QUANTITY",
+        "Quantidade invÃ¡lida.",
+      );
+      const zeny =
+        merchantPrice(s, c, c.items[e.itemId].sellPrice, "sell") * quantity;
+      consume(s, e, quantity);
+      s.zeny += zeny;
+      s.totals.zeny += zeny;
+      break;
+    }
+    case "sellLoot": {
+      town(s);
+      let zeny = 0;
+      for (const e of [...s.inventory])
+        if (c.items[e.itemId].type === "loot" && !isProtected(s, e)) {
+          zeny +=
+            merchantPrice(s, c, c.items[e.itemId].sellPrice, "sell") *
+            e.quantity;
+          consume(s, e, e.quantity);
         }
       s.zeny += zeny;
-      s.totals.ze•¹ä€¬ôé•¹äì(€€€€€•Ù•¹Ğ¡Ì°¹½Ü°€‰Í•±°ˆ°M…ÅÕ”Ù•¹‘¥‘¼Á½È€’G·¦Vç—Ò¦Vç’æ“°¢'&V³°¢Ğ¢66R'&W—$ÆÂ#¢°¢İÛŠÊNÂˆÛÛœİœ›ÚÙ[ˆHËš[™[ÜK™š[\Š[H => isEquipmentBroken(entry) && c.items[entry.itemId]?.type =ôôô€•ÅÕ¥Áµ•¹Ğœ¤ì(€€€€€É•ÅÕ¥É•IÕ±”¡‰É½­•¸¹±•¹Ñ €ø€À°€9=}	I$ô´TåôUT•ÔTåBrÂtì:6òŒ:WV—ÖVçF÷2VV'&F÷2&&W,˜\‹‰ÊNÂˆÛÛœİšXÙHHœ›ÚÙ[‹›[™İ
-ˆLÂˆÜ[™$(s, price);
-      for (const entry of broken) delete entry.b‰É½­•¸ì(€€€€€•Ù•¹Ğ¡Ì°¹½Ü°€É•Á…¥Èœ°€‘í‰É½­•¸¹±•¹Ñ¡ô•ÅÕ¥ÃÖVçFò‡2’&W&Fò‡2’÷"G·&–6WÒ¦Vç’æÂVæFVf–æVBÂVæFVfš[™YˆÈ]X[]Nˆœ›ÚÙ[‹›[™İJNÂˆœ™XZÎÂˆ }
+      s.totals.zeny += zeny;
+      event(s, now, "sell", `Saque vendido por ${zeny} zeny.`);
+      break;
+    }
+    case "repairAll": {
+      town(s);
+      const broken = s.inventory.filter(entry => isEquipmentBroken(entry) && c.items[entry.itemId]?.type === 'equipment');
+      requireRule(broken.length > 0, 'NO_BROKEN_EQUIPMENT', 'NÃ£o hÃ¡ equipamentos quebrados para reparar.');
+      const price = broken.length * 5000;
+      spend(s, price);
+      for (const entry of broken) delete entry.broken;
+      event(s, now, 'repair', `${broken.length} equipamento(s) reparado(s) por ${price} zeny.`, undefined, undefined,
+        { quantity: broken.length });
+      break;
+    }
     case "identify": {
-      requireRule(!classicBuffActivÙ”¡Ì°Œ°€1-}	IMI,œ°¹½Ü¤°€%Q5}MQQUM}	1=-œ°€É•¹•Í¤‚–×VFRW6"—FVç2R†&–Æ–FFW2âr“°¢6öç7BRÒ÷væVB‡2ËÛÛ[X[™ZY
-NÂˆÛÛœİ][HHËš][\ÖÙKš][RYNÂˆ²equireRule(item.type === "equipment", "INVALID_IDENTIFICATIO=8ˆ°€‰M½µ•¹Ñ”•ÅÕ¥Á…µ•¹Ñ½ÌÁÉ•¥Í…´‘”¥‘•¹Ñ¥™¥‡Ÿ¼¸ˆ¤ì(€‚&WV—&U'VÆR‚—4—FVÔ–FVçF–f–VB†R’Â$Å$TE•ô”DTåD”d”TB"Â‘\İH\]Z\[Y[È°èH›ÚHY[YšXØYËˆŠNÂˆ™\]Z\™T[e(command.method === undefined || command.method === "magnifi¥•Èˆñğ½µµ…¹¹µ•Ñ¡½€ôôô€‰Í­¥±°ˆ°€‰%9Y1%}%9Q%%Q%=8ˆ²Â$Ü:—FöFòFR–FVçF–f–6:|:6ò–çl:Æ–Fòâ"“°¢–b†6öÖÖæI›Y]ÙOOHœÚÚ[ŠHÂˆÛÛœİÚÚ[HÛ\ÜÔÚÚ[ÊË s.job).map(id => c.skills[id]).find(skill => skill?.sourceNa…µ”€ôôô€‰5}%9Q%dˆ€˜˜Í­¥±°¹¥µÁ±•µ•¹Ñ…Ñ¥½¸€ôôô€‰ÍÕÁÁ½ÉÑ•Š"“°¢6öç7BÆWfVÂÒ6¶–ÆÂò2æÆV&æVE6¶–ÆÇ5·6¶–ÆÂæ–EÒÿÏÈˆÂˆ™\]Z\™T[JÚÚ[	‰ˆ[X™\‹š\ÔØY™R[YÙ\Š,evel) && level > 0 && level <= skill.maxLevel, "IDENTIFY_SKI%11}IEU%Iˆ°€‰ÁÉ•¹‘„%‘•¹Ñ¥™¥…ÈÁ…É„ÕÍ…È•ÍÑ„¡…‰¥±¥‘…‘–Râ"“°¢&WV—&U'VÆR‡2æ‡âÂ%$T4õdU$”är"Â%&V7WW&R<Ù]H[\ÈH\Ø\ˆ\İHXš[YYKˆŠNÂˆËÈ\˜İ[\È status_check_skilluse blocks normal casts under these statusÍ•Ì¸(€€€€€€€É•ÅÕ¥É•IÕ±” …l‰Q}!%%9ˆ°€‰5=}MQ1	=dˆ°€‰1-}$U%4U$²"Â$´åôUDô4õTåDU"%Òç6öÖR‡6÷W&6RÓâ6Æ76–4'Vfd7F—fRŠËËÛİ\˜ÙK›İÊJK”ÒÒSÔÕUT×Ğ“ĞÒÑQ‹”Ù]H\İYÈ]ual impede Identificar por habilidade.");
-        const cost €ôÍ­¥±°¹ÍÁ½ÍÑm±•Ù•°€´€Åt€üüÍ­¥±°¹ÍÁ½ÍĞ¹…Ğ ´Ä¤ì(€€€€€€€É–WV—&U'VÆR†6÷7BÓÒVæFVf–æVBbbçVÖ&W"æ—4f–æ—FR†6÷7B’bb6÷<İH	‰ˆËœÜHÛÜİ”ÔÔ‘TURT‘Q‹”Ô[œİYšXÚY[H\˜a Identificar.");
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'ITEM_STATUS_BLOCKED', 'Frenesi impede usar itens e habilidades.');
+      const e = owned(s, command.uid);
+      const item = c.items[e.itemId];
+      requireRule(item.type === "equipment", "INVALID_IDENTIFICATION", "Somente equipamentos precisam de identificaÃ§Ã£o.");
+      requireRule(!isItemIdentified(e), "ALREADY_IDENTIFIED", "Este equipamento jÃ¡ foi identificado.");
+      requireRule(command.method === undefined || command.method === "magnifier" || command.method === "skill", "INVALID_IDENTIFICATION", "MÃ©todo de identificaÃ§Ã£o invÃ¡lido.");
+      if (command.method === "skill") {
+        const skill = classSkills(c, s.job).map(id => c.skills[id]).find(skill => skill?.sourceName === "MC_IDENTIFY" && skill.implementation === "supported");
+        const level = skill ? s.learnedSkills[skill.id] ?? 0 : 0;
+        requireRule(skill && Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel, "IDENTIFY_SKILL_REQUIRED", "Aprenda Identificar para usar esta habilidade.");
+        requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP antes de usar esta habilidade.");
+        // Hercules status_check_skilluse blocks normal casts under these statuses.
+        requireRule(!["TF_HIDING", "MO_STEELBODY", "LK_BERSERK", "KN_AUTOCOUNTER"].some(source => classicBuffActive(s, c, source, now)), "SKILL_STATUS_BLOCKED", "Seu estado atual impede Identificar por habilidade.");
+        const cost = skill.spCost[level - 1] ?? skill.spCost.at(-1);
+        requireRule(cost !== undefined && Number.isFinite(cost) && cost >= 0 && s.sp >= cost, "SP_REQUIRED", "SP insuficiente para Identificar.");
         s.sp -= cost;
       } else {
-      €€½¹ÍĞµ…¹¥™¥•È€ôÌ¹¥¹Ù•¹Ñ½Éä¹™¥¹ ¡¤¤€ôø¤¹¥Ñ•µ%€ôôô5tä”d”U%ô•DTÕô”Bbb’çVçF—G’â“°¢&WV—&U'VÆR†ÖvæšYšY\‹“PQÓ’Q’QT—Ô‘TURT‘Q‹°âH™XÙ\Üğè\š[È[XH\H\˜HY$entificar este equipamento.");
-        consume(s, magnifier,°€Ä¤ì(€€€€€ô(€€€€€”¹¥‘•¹Ñ¥™¥•€ôÑÉÕ”ì(€€€€€½¹ÍĞ‰½¹ÕÌ€ô‚&&—G”&öçW5FW‡B†R“°¢WfVçB‡2Âæ÷rÂ&–FVçF–g’"ÂG¶—FVÒë›˜[Y_HY[YšXØYÈ0­È	Ü˜\š]S˜[Y\ÖÙKœ˜\š]HÏÈ˜ÛÛ[[Ûˆ—_Iûbonus ? ` Â· ${bonus}` : ""}.`, undefined, undefined, { itemµ%è¥Ñ•´¹¥ô¤ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰•ÅÕ¥Àˆèì(€€€€‚&WV—&U'VÆR‚6Æ76–4'Vfd7F—fR‡2Â2ÂtÄµô$U%4U$²rÂæ÷r’ÂtQTURTÔÕUT×Ğ“ĞÒÑQ	Ë	Ñœ™[™\ÚH[\YH›ØØ\ˆ\]Z\[Y[ÜË‰Êi;
+        const magnifier = s.inventory.find((i) => i.itemId === MAGNIFIER_ITEM_ID && i.quantity > 0);
+        requireRule(magnifier, "MAGNIFIER_REQUIRED", "Ã‰ necessÃ¡rio uma Lupa para identificar este equipamento.");
+        consume(s, magnifier, 1);
+      }
+      e.identified = true;
+      const bonus = rarityBonusText(e);
+      event(s, now, "identify", `${item.name} identificado Â· ${rarityNames[e.rarity ?? "common"]}${bonus ? ` Â· ${bonus}` : ""}.`, undefined, undefined, { itemId: item.id });
+      break;
+    }
+    case "equip": {
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'EQUIP_STATUS_BLOCKED', 'Frenesi impede trocar equipamentos.');
       const e = owned(s, command.uid);
-      const item = Œ¹¥Ñ•µÍm”¹¥Ñ•µ%‘tì(€€€€€É•ÅÕ¥É•IÕ±”¡¥Í%Ñ•µ%‘•¹Ñ¥™¥•¡”¤°€‰$”DTåD”d”4D”ôåõ$UT•$TB"Â$–FVçF–f—VRW7FRWV—ÖVçFò6öÒ][XH\H[\ÈH\]Z\\‹ˆŠNÂˆ™\]Z\™T[J][K™\]Z\İ\0ported !== false, "UNSUPPORTED_EQUIPMENT", "A posiÃ§Ã£o ou o¼Ñ¥Á¼‘•ÍÑ”•ÅÕ¥Á…µ•¹Ñ¼…¥¹‘„»¼•ÍÓ„‘¥ÍÁ½»µÙ•°¹¼µ½‘¾ò–FÆRâ"“°¢&WV—&U'VÆR€¢Ræ'&ö¶VâbbWV—ÆÆ÷}ÙY
-ËË][JKˆ‘TURTQS•Ô‘TURT‘SQS•È‹ˆÃlasse, nÃ­vel ou posiÃ§Ã£o nÃ£o permite equipar este item.",°(€€€€€€¤ì(€€€€€¥˜€¡¥Ñ•´¹Ñİ½!…¹‘•¤‘•±•Ñ”Ì¹•ÅÕ¥Áµ•¹Ğ¹Í¡¥•²ÆC°¢–b†—FVÒç6Æ÷BÓÓÒ'6†–VÆB"’°¢6öç7BvVöâHËš[™[ÜK™š[™
-
-JHOˆKZYOOHË™\]Z\Y[ÙX\ÛŠNÂˆ      if (weapon && c.items[weapon.itemId].twoHanded)
-       €€€‘•±•Ñ”Ì¹•ÅÕ¥Áµ•¹Ğ¹İ•…Á½¸ì(€€€€€ô(€€€€€Ì¹•ÅÕ¥Áµ•¹Ñm¥Ñ•¶Òç6Æ÷BÒÒRçV–C°¢6ÆV%6†–VÆDFWVæFVçE7FGW6W2‡2Â2“°¢œ™XZÎÂˆBˆØ\ÙH[™\]Z\‚ˆ™\]Z\™T[JXÛassicBuffActive(s, c, 'LK_BERSERK', now), 'EQUIP_STATUS_BLOCK-œ°€É•¹•Í¤¥µÁ•‘”ÑÉ½…È•ÅÕ¥Á…µ•¹Ñ½Ì¸œ¤ì(€€€€€É•ÅÕ¥É•I×VÆR€¢°¢'vVöâ"À¢&&Ö÷""À¢œÚY[‹ˆšXY‹ˆ™Ø\›Y[‹ˆ   "shoes",
+      const item = c.items[e.itemId];
+      requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de equipar.");
+      requireRule(item.equipSupported !== false, "UNSUPPORTED_EQUIPMENT", "A posiÃ§Ã£o ou o tipo deste equipamento ainda nÃ£o estÃ¡ disponÃ­vel no modo idle.");
+      requireRule(
+        !e.broken && equipAllowed(s, c, item),
+        "EQUIPMENT_REQUIREMENTS",
+        "Classe, nÃ­vel ou posiÃ§Ã£o nÃ£o permite equipar este item.",
+      );
+      if (item.twoHanded) delete s.equipment.shield;
+      if (item.slot === "shield") {
+        const weapon = s.inventory.find((e) => e.uid === s.equipment.weapon);
+        if (weapon && c.items[weapon.itemId].twoHanded)
+          delete s.equipment.weapon;
+      }
+      s.equipment[item.slot!] = e.uid;
+      clearShieldDependentStatuses(s, c);
+      break;
+    }
+    case "unequip":
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'EQUIP_STATUS_BLOCKED', 'Frenesi impede trocar equipamentos.');
+      requireRule(
+        [
+          "weapon",
+          "armor",
+          "shield",
+          "head",
+          "garment",
+          "shoes",
           "accessory",
-        ].includes(command¹Í±½Ğ¤°(€€€€€€€€‰%9Y1%}M1=Pˆ°(€€€€€€€€‰A½Í§Ÿ¼¥¹Û…±¥‘†â"À¢“°¢FVÆWFR2æWV—ÖVçE¶6öÖÖæBç6Æ÷EÓ°¢8ÛX\”ÚY[\[™[İ]\Ù\ÊËÊNÂˆœ™XZÎÂˆØ\ÙH™˜avorite": {
+        ].includes(command.slot),
+        "INVALID_SLOT",
+        "PosiÃ§Ã£o invÃ¡lida.",
+      );
+      delete s.equipment[command.slot];
+      clearShieldDependentStatuses(s, c);
+      break;
+    case "favorite": {
       const e = owned(s, command.uid);
-      e.fa…Ù½É¥Ñ”€ô€…”¹™…Ù½É¥Ñ”ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰Í½­•Ğˆè‚°¢F÷vâ‡2“°¢6öç7BRÒ÷væVB‡2Â6öÖÖæBçV–B“°¢™\]Z\™T[J\Ò][RY[YšYY
-JK’QS•Q’PĞUSÓ—Ô‘TURT‘Q¢, "Identifique este equipamento com uma Lupa antes de inseri¥È…ÉÑ…Ì¸ˆ¤ì(€€€€€½¹ÍĞ…É€ô½İ¹•¡Ì°½µµ…¹¹…É‘U¥¤ì(‚6öç7B—FVÒÒ2æ—FV×5¶Ræ—FVÔ–EÓ°¢6öç7B6&D—FVÒÒËš][\ÖØØ\™š][RYNÂˆ™\]Z\™T[Jˆ][K\H}== "equipment" &&
-          item.equipSupported !== false &&˜(€€€€€€€€€¥Ñ•´¹Í±½Ğ€˜˜(€€€€€€€€€…É‘%Ñ•´¹ÑåÁ”€ôôô€‰…Éˆ€šb`¢6&D—FVÒæ6&E6Æ÷G3òæ–æ6ÇVFW2†—FVÒç6Æ÷B’b`¢K˜Ø\™Ë›[™İ][KœÛİÈ	‰‚ˆHOOHØ\™ˆ       "INVALID_SOCKET",
-        "Carta incompatÃ­vel ou equi¥Á…µ•¹Ñ¼Í•´Í±½Ğ±¥ÙÉ”¸ˆ°(€€€€€€¤ì(€€€€€”¹…É‘Ì¹ÁÕÍ ¡…É¹¦—FVÔ–B“°¢6öç7VÖR‡2Â6&BÂ“°¢WfVçB‡2Âæ÷rÂ'6ö6ºÙ]‹	ØØ\™][K›˜[Y_H[œÙ\šYH[H	Ú][K›˜[Y_K˜
-NÂˆœ²eak;
+      e.favorite = !e.favorite;
+      break;
+    }
+    case "socket": {
+      town(s);
+      const e = owned(s, command.uid);
+      requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de inserir cartas.");
+      const card = owned(s, command.cardUid);
+      const item = c.items[e.itemId];
+      const cardItem = c.items[card.itemId];
+      requireRule(
+        item.type === "equipment" &&
+          item.equipSupported !== false &&
+          item.slot &&
+          cardItem.type === "card" &&
+          cardItem.cardSlots?.includes(item.slot) &&
+          e.cards.length < item.slots &&
+          e !== card,
+        "INVALID_SOCKET",
+        "Carta incompatÃ­vel ou equipamento sem slot livre.",
+      );
+      e.cards.push(card.itemId);
+      consume(s, card, 1);
+      event(s, now, "socket", `${cardItem.name} inserida em ${item.name}.`);
+      break;
     }
     case "refine": {
       town(s);
-      const e”€ô½İ¹•¡Ì°½µµ…¹¹Õ¥¤ì(€€€€€É•ÅÕ¥É•IÕ±”¡¥Í%Ñ•µ%‘•¹Ñ¥™¥•’B†R’Â$”DTåD”d”4D”ôåõ$UT•$TB"Â$–FVçF–f—VRW7FRWV—ÖVçMÈÛÛH[XH\H[\ÈH™Yš[˜\‹ˆŠNÂˆ™\]Z\™T[JYK˜œ›ïken, "BROKEN_EQUIPMENT", "Repare este equipamento antes de rÉ•™¥¹…È¸ˆ¤ì(€€€€€½¹ÍĞ¥Ñ•´€ôŒ¹¥Ñ•µÍm”¹¥Ñ•µ%‘tì(€€€€€É•ÅÕ¦—&U'VÆR€¢—FVÒçG—RÓÓÒ&WV—ÖVçB"b`¢—FVÒë™\]Z\İ\ÜYOOH˜[ÙH	‰‚ˆ][KœÛİ	‰‚ˆ  item.refinable !== false &&
-          item.slot !== "accessÍ½Éäˆ€˜˜(€€€€€€€€€”¹É•™¥¹”€ğ€Ü°(€€€€€€€€‰%9Y1%}I%9ˆ°(€‚$W7FR—FVÒì:6òöFR6W"&Vf–æFò†Ü:†–Öò³r’â"À¢
-NÂˆÛÛœİÜ™HHËš[™[ÜK™š[™
-ˆ
-JHOˆKš]4emId === (item.slot === "weapon" ? 984 : 985),
+      const e = owned(s, command.uid);
+      requireRule(isItemIdentified(e), "IDENTIFICATION_REQUIRED", "Identifique este equipamento com uma Lupa antes de refinar.");
+      requireRule(!e.broken, "BROKEN_EQUIPMENT", "Repare este equipamento antes de refinar.");
+      const item = c.items[e.itemId];
+      requireRule(
+        item.type === "equipment" &&
+          item.equipSupported !== false &&
+          item.slot &&
+          item.refinable !== false &&
+          item.slot !== "accessory" &&
+          e.refine < 7,
+        "INVALID_REFINE",
+        "Este item nÃ£o pode ser refinado (mÃ¡ximo +7).",
       );
-    €€É•ÅÕ¥É•IÕ±” (€€€€€€€½É”°(€€€€€€€€‰5QI%1}IEU%Iˆ°(€€‚—FVÒç6Æ÷BÓÓÒ'vVöâ ¢ò,8’æV6W7<:&–ò÷&–IXÛÛ‹ˆ‚ˆˆ°âH™XÙ\Üğè\š[È[[š][Kˆ‹ˆ
-NÂˆ  const target = e.refine + 1;
+      const ore = s.inventory.find(
+        (i) => i.itemId === (item.slot === "weapon" ? 984 : 985),
+      );
+      requireRule(
+        ore,
+        "MATERIAL_REQUIRED",
+        item.slot === "weapon"
+          ? "Ã‰ necessÃ¡rio Oridecon."
+          : "Ã‰ necessÃ¡rio Elunium.",
+      );
+      const target = e.refine + 1;
       spend(s, target * 500);
-(€€€€€½¹ÍÕµ”¡Ì°½É”°€Ä¤ì(€€€€€½¹ÍĞ¡…¹”€ôÑ…É•Ğ€ğô€Ğ€ÿò¢³ãbÂãBÂã%Õ·F&vWBÒUÓ°¢6öç7B7V66W72ÒF&yÙ]H˜[™ÛJÊHÚ[˜ÙNÂˆYˆ
-İXØÙ\ÜÊHÂˆ e.refine = target;
-        s.highestRefine = Math.max(s.high¡•ÍÑI•™¥¹”°Ñ…É•Ğ¤ì(€€€€€ô(€€€€€•Ù•¹Ğ (€€€€€€€Ì°(€€€€€€€‚æ÷rÀ¢'&Vf–æR"À¢7V66W70¢òG¶—FVÒæë˜[Y_H
-Éİ\™Ù]Xˆˆ™Yš[›È˜[İKˆ	Ú][K›˜[Y_HÛïntinua +${e.refine}.`,
+      consume(s, ore, 1);
+      const chance = target <= 4 ? 1 : [0.6, 0.4, 0.2][target - 5];
+      const success = target <= 4 || random(s) < chance;
+      if (success) {
+        e.refine = target;
+        s.highestRefine = Math.max(s.highestRefine, target);
+      }
+      event(
+        s,
+        now,
+        "refine",
+        success
+          ? `${item.name} +${target}`
+          : `Refino falhou. ${item.name} continua +${e.refine}.`,
       );
       break;
     }
-    case €‰¡…¹•±…ÍÌˆèì(€€€€€Ñ½İ¸¡Ì¤ì(€€€€€É•ÅÕ¥É•IÕ±” (€€€€€€€†f–Æ&ÆT6Æ76W2‡2Â2’æ–æ6ÇVFW2†6öÖÖæBæ6Æ74–B’À¢$4ÃTÔ×Ô‘TURT‘SQS•È‹ˆ”™\]Z\Ú]ÜÈHÛ\ÜÙK›Ø‹]˜]ar ou ramo nÃ£o atendidos.",
+    case "changeClass": {
+      town(s);
+      requireRule(
+        availableClasses(s, c).includes(command.classId),
+        "CLASS_REQUIREMENTS",
+        "Requisitos de classe, Job, avatar ou ramo nÃ£o atendidos.",
       );
-      cancelSageEnchantÑ…ÍĞ¡Ì°Œ°¹½Ü°€½¹©ÕÉ‡Ÿ¼•¹•ÉÉ…‘„Á•±„µÕ‘…»„‘”…Ñ¦—f–FFRâr“°¢6öç7BæW‡BÒ2æ6Æ76W5¶6öÖÖæBæ6Æ74–EÓ°¢Yˆ
-Ëš›ØˆOOH™^šY
-HÛX\ÛÜYYÜ[
-ËÊNÂˆËšªob = next.id;
-      if (!canPecoMount(s, c)) s.mounted = fal±Í”ì(€€€€€É•½¹¥±•…±½¸¡Ì±Œ¤ì(€€€€€¥˜€¡¹•áĞ¹Ñ¥•È€ôôô€Ä€˜šb2æfÖ–Ç’’2æfÖ–Ç’ÒæW‡BæfÖ–Ç“°¢–b†æW‡BçF–W"ÓÓÒˆ	‰ˆ\Ëœ™X›Ü›ŠHË˜œ˜[˜ÚH™^šYÂˆËš›Ø“]™[HNÂˆ     s.jobExp = 0;
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      const next = c.classes[command.classId];
+      if (s.job !== next.id) clearCopiedSpell(s, c);
+      s.job = next.id;
+      if (!canPecoMount(s, c)) s.mounted = false;
+      reconcileFalcon(s,c);
+      if (next.tier === 1 && !s.family) s.family = next.family;
+      if (next.tier === 2 && !s.reborn) s.branch = next.id;
+      s.jobLevel = 1;
+      s.jobExp = 0;
       s.buffs = {};
-      s.combatEffects €ôíôì(€€€€€Ì¹É•½Ù•Éä€ôì¡Á5Ìè€À°ÍÁ5Ìè€À°Í­¥±±5Ìè€Àôì(‚&VÖ÷fT–æVÆ–v–&ÆR‡2Â2“°¢†VÄgVÆÂ‡2Â2“°¢WfY[
-Ë›İË˜Û\ÜÈ‹YÛÜ˜H›Øğêˆ0êH	Û™^›˜[Y_K˜
-NÂˆ¢reak;
+      s.combatEffects = {};
+      s.recovery = { hpMs: 0, spMs: 0, skillMs: 0 };
+      removeIneligible(s, c);
+      healFull(s, c);
+      event(s, now, "class", `Agora vocÃª Ã© ${next.name}.`);
+      break;
     }
     case "rebirth": {
       town(s);
-      requi¥É•IÕ±” (€€€€€€€€…Ì¹É•‰½É¸€˜˜(€€€€€€€€€Œ¹±…ÍÍ•ÍmÌ¹©½‰t¹Ñ¥•Ë"ÓÓÒ"b`¢2æ&6TÆWfVÂÓÓÒ“’b`¢2æ¦ö$ÆWm™[HLˆ”‘P’T•Ô‘TURT‘SQS•È‹ˆ”™[˜\ØÚ[Yento exige segunda classe Base 99 / Job 50.",
+      requireRule(
+        !s.reborn &&
+          c.classes[s.job].tier === 2 &&
+          s.baseLevel === 99 &&
+          s.jobLevel >= 50,
+        "REBIRTH_REQUIREMENTS",
+        "Renascimento exige segunda classe Base 99 / Job 50.",
       );
-      É•ÅÕ¥É•IÕ±” (€€€€€€€Œ¹±…ÍÍ•Ì¹¡¥¡}¹½Ù¥”°(€€€€€€€€‰I	%IQ …õTäd”Ä$ÄR"À¢$ÇFò&VæF—¢–æF—7öì:×fVÂâ"À¢
-NÂˆÜ[™
-ËL
-NÂˆØ[˜Ù[ØYÙQ[˜Ú[Ø\İ
-ËË, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');ì(€€€€€Ì¹‰É…¹ €üüôÌ¹©½ˆì(€€€€€Ì¹™…µ¥±ä€üüôŒ¹±…ÍÍ•ÍmÌ¹©¾ö%ÒæfÖ–Ç“°¢2ç&V&÷&âÒG'VS°¢6ÆV$6÷–VE7VÆÂ‡2ÂÊNÂˆËš›ØˆHšYÚÛ›İšXÙHÂˆË›[İ[YH˜[ÙNÂˆ     s.falconEquipped = false;
+      requireRule(
+        c.classes.high_novice,
+        "REBIRTH_UNAVAILABLE",
+        "Alto Aprendiz indisponÃ­vel.",
+      );
+      spend(s, 50000);
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      s.branch ??= s.job;
+      s.family ??= c.classes[s.job].family;
+      s.reborn = true;
+      clearCopiedSpell(s, c);
+      s.job = "high_novice";
+      s.mounted = false;
+      s.falconEquipped = false;
       s.baseLevel = 1;
-      sÌ¹©½‰1•Ù•°€ô€Äì(€€€€€Ì¹‰…Í•áÀ€ô€Àì(€€€€€Ì¹©½‰áÀ€ô€Àì(€€€‚2ç7FG2Ò²7G#¢Âv“¢Âf—C¢Â–çC¢ÂFWƒ¢ÂÇV³¢HNÂˆËœİ]Ú[ÈHŒÂˆËœÚÚ[Ú[ÈHÂˆ const firstAid = c.classes.high_novice.skills.find(
-        €¡¥¤€ôøŒ¹Í­¥±±Ím¥‘tü¹­¥¹€ôôô€‰¡•…°ˆ°(€€€€€€¤ì(€€€€€Ì¹±•…Ë&æVE6¶–ÆÇ2Òf—'7D–Bò²¶f—'7D–EÓ¢Ò¢·Ó°¢FVÆWFRËœÚÚ[\ÙS]™[ÎÂˆËœ›İ][ÛˆHš\œİZYÈÙš\œİZYHº [];
+      s.jobLevel = 1;
+      s.baseExp = 0;
+      s.jobExp = 0;
+      s.stats = { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 };
+      s.statPoints = 20;
+      s.skillPoints = 0;
+      const firstAid = c.classes.high_novice.skills.find(
+        (id) => c.skills[id]?.kind === "heal",
+      );
+      s.learnedSkills = firstAid ? { [firstAid]: 1 } : {};
+      delete s.skillUseLevels;
+      s.rotation = firstAid ? [firstAid] : [];
       s.skillReadyAt = {};
       s.buffs = {};
-      s.¹½µ‰…Ñ™™•ÑÌ€ôíôì(€€€€€Ì¹É•½Ù•Éä€ôì¡Á5Ìè€À°ÍÁ5Ìè€À°Ï6¶–ÆÄ×3¢Ó°¢2æWV—ÖVçBÒ·Ó°¢2æ&GFÆRÒçVÆÃ°¢ˆË˜]]Ô™\İ[YHH˜[ÙNÂˆX[[
-ËÊNÂˆ]™[®t(s, now, "rebirth", "Renascimento: Alto Aprendiz!");
-      ‰É•…¬ì(€€€ô(€€€…Í”€‰Í•ÑA½Ñ¥½¹Ìˆè(€€€€€É•ÅÕ¥É•IÕ±” (€€€€‚¶6öÖÖæBæ‡F‡&W6†öÆBÂ6öÖÖæBç7F‡&W6†öÆEÒæWfW'’€¢
-ŠHOˆ[X™\‹š\Ñš[š]JŠH	‰ˆˆH	‰ˆˆHLˆ ),
-        "INVALID_THRESHOLD",
-        "Limites de poÃ§Ã£o ‘•Ù•´•ÍÑ…È•¹ÑÉ”€À”€ÄÀÀ”¸ˆ°(€€€€€€¤ì(€€€€€Ì¹…ÕÑ½A½Ñ¥½¸€ô‚°¢‡F‡&W6†öÆC¢6öÖÖæBæ‡F‡&W6†öÆBÀ¢7F‡&W6ŠÛˆÛÛ[X[™œÜ™\ÚÛˆNÂˆœ™XZÎÂˆØ\ÙHœÙetAutoResume":
+      s.combatEffects = {};
+      s.recovery = { hpMs: 0, spMs: 0, skillMs: 0 };
+      s.equipment = {};
+      s.battle = null;
+      s.autoResume = false;
+      healFull(s, c);
+      event(s, now, "rebirth", "Renascimento: Alto Aprendiz!");
+      break;
+    }
+    case "setPotions":
       requireRule(
-        typeof command.enab‰±•€ôôô€‰‰½½±•…¸ˆ°(€€€€€€€€‰%9Y1%}MQQ%9ˆ°(€€€€€€€€‰½¹™¦–wW&:|:6ò–çl:Æ–Fâ"À¢“°¢2æWFõ&W7VÖRÒ6öÖÖæI™[˜X›YÂˆœ™XZÎÂˆØ\ÙH˜ÛZ[T]Y\İˆÂˆÛÛœİ q = c.quests.find((q) => q.id === command.questId);
-      re•ÅÕ¥É•IÕ±”¡Ä°€‰U9-9=]9}EUMPˆ°€‰5¥ÍÏ¼‘•Í½¹¡•¥‘„¸ˆ¤ì(€€€‚WFFUVW7G2‡2Â2“°¢6öç7B6fVBÒ2çVW7G5·æ–EÓ°¢™\]Z\™T[Jˆ\Ø]™Y˜ÛZ[YY	‰ˆØ]™Yœ›ÙÜ™\ÜÈ} q.amount,
-        "QUEST_NOT_READY",
-        "MissÃ£o incomµÁ±•Ñ„½ÔÉ•½µÁ•¹Í„«„É•Í…Ñ…‘„¸ˆ°(€€€€€€¤ì(€€€€€Í…Ù•¹²Æ–ÖVBÒG'VS°¢w&çE&Wv&B‡2Â2Âç&Wv&BÂæ÷rÂ²6÷W&8ÙNˆ	Ü]Y\İ	Ë]Y\İYˆKšY\™XRYˆË˜\™XRYÏÈ[™Yš[™YJNû
-      event(s, now, "quest", `MissÃ£o concluÃ­da: ${q.name}ô¹€¤ì(€€€€€‰É•…¬ì(€€€ô(€€€…Í”€‰¡…±±•¹”ˆèì(€€€€€Ñ½İ¸¡Ï2“°¢6öç7B6‚Ò2æ6†ÆÆVævW2æf–æB‚†6‚’Óâ6‚æ–BÓÓÒ6öÖÛX[™˜Ú[[™ÙRY
-NÂˆ™\]Z\™T[JˆÚ	‰ˆË˜˜\ÙS]¶el >= ch.minLevel,
-        "CHALLENGE_LOCKED",
-        "Desa…™¥¼¥¹‘¥ÍÁ½»µÙ•°Á…É„Í•Ô»µÙ•°¸ˆ°(€€€€€€¤ì(€€€€€É•ÅÕ¥É•I'VÆR€¢‡2æ6†ÆÆVævT6ööÆF÷vç5¶6‚æ–EÒóò’ÃÒæ÷rÀ¢ÒSS‘ÑWĞÓÓÓÕÓˆ‹ˆYİX\™HÈ[\˜[ÈH[ma hora do desafio.",
+        [command.hpThreshold, command.spThreshold].every(
+          (v) => Number.isFinite(v) && v >= 0 && v <= 100,
+        ),
+        "INVALID_THRESHOLD",
+        "Limites de poÃ§Ã£o devem estar entre 0 e 100%.",
       );
-      requireRule(s.hp > 0, "RI=YI%9ˆ°€‰I•ÕÁ•É”Í•Ô!@ÁÉ¥µ•¥É¼¸ˆ¤ì(€€€€€É•ÅÕ¥É•IÕ±”¢‚÷fW'vV–v‡Df÷$6öÖ&B‡2Â2’ÂutT”t…EôÄ”Ô•BrÂtÆ–&W&RW6òæ[ØÚ[H[\ÈH[šXÚX\ˆ[H\ØYš[Ë‰ÊNÂˆØ[˜Ù[ØYÙQ[˜Ú(antCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de …Ñ¥Ù¥‘…‘”¸œ¤ì(€€€€€Ì¹ÍÑ…ÑÕÌ€ô€‰¡…±±•¹”ˆì(€€€€€‰•¥¹	…ÑÑ²ÆR‡2Â2Â6‚æÖöç7FW$–BÂæ÷rÂ6‚æ–BÂ6öçFW‡B“°¢'&V³°¢BˆØ\ÙH™\ÛZ\ÜÓÙ™›[™H‚ˆË›Ù™›[™Tİ[[X\HH[û
+      s.autoPotion = {
+        hpThreshold: command.hpThreshold,
+        spThreshold: command.spThreshold,
+      };
+      break;
+    case "setAutoResume":
+      requireRule(
+        typeof command.enabled === "boolean",
+        "INVALID_SETTING",
+        "ConfiguraÃ§Ã£o invÃ¡lida.",
+      );
+      s.autoResume = command.enabled;
+      break;
+    case "claimQuest": {
+      const q = c.quests.find((q) => q.id === command.questId);
+      requireRule(q, "UNKNOWN_QUEST", "MissÃ£o desconhecida.");
+      updateQuests(s, c);
+      const saved = s.quests[q.id];
+      requireRule(
+        !saved.claimed && saved.progress >= q.amount,
+        "QUEST_NOT_READY",
+        "MissÃ£o incompleta ou recompensa jÃ¡ resgatada.",
+      );
+      saved.claimed = true;
+      grantReward(s, c, q.reward, now, { source: 'quest', questId: q.id, areaId: s.areaId ?? undefined });
+      event(s, now, "quest", `MissÃ£o concluÃ­da: ${q.name}.`);
+      break;
+    }
+    case "challenge": {
+      town(s);
+      const ch = c.challenges.find((ch) => ch.id === command.challengeId);
+      requireRule(
+        ch && s.baseLevel >= ch.minLevel,
+        "CHALLENGE_LOCKED",
+        "Desafio indisponÃ­vel para seu nÃ­vel.",
+      );
+      requireRule(
+        (s.challengeCooldowns[ch.id] ?? 0) <= now,
+        "CHALLENGE_COOLDOWN",
+        "Aguarde o intervalo de uma hora do desafio.",
+      );
+      requireRule(s.hp > 0, "RECOVERING", "Recupere seu HP primeiro.");
+      requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de iniciar um desafio.');
+      cancelSageEnchantCast(s, c, now, 'ConjuraÃ§Ã£o encerrada pela mudanÃ§a de atividade.');
+      s.status = "challenge";
+      beginBattle(s, c, ch.monsterId, now, ch.id, context);
+      break;
+    }
+    case "dismissOffline":
+      s.offlineSummary = null;
       break;
     default:
-      throw new GameError("UNKNOW]9}=559ˆ°€‰½µ…¹‘¼‘•Í½¹¡•¥‘¼¸ˆ¤ì(€ô(€¥˜¡½µµ…¹¹ÑåÁ”÷ÓÓÒwFVÆW÷'Brbg2çvVöå&Vf–æTÖVçR—¶6öç7B–C×2çvVöå&Vf–æTÖVëKšYØØ[˜Ù[ÙX\Û”™Yš[™JËËY›İÊNßBˆ™XÛÛ˜Ú[UÙX\Û”™Yš[®e(s,c,now);
+      throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
+  }
+  if(command.type==='teleport'&&s.weaponRefineMenu){const id=s.weaponRefineMenu.id;cancelWeaponRefine(s,c,id,now);}
+  reconcileWeaponRefine(s,c,now);
   reconcileFalcon(s,c);
-  discardAloeveraUnderAuÕÑ½	•ÉÍ•É¬¡Ì±Œ±¹½Ü¤ì(€¥˜€¡Ì¹…ÉÉåI•ÑÕÉ¹I•ÅÕ•ÍÑ•‘Ğ€„ôôÕ¹‘•šf–æVBbb2æ6''•&WGW&å&WVW7FVDBÃÒæ÷r¢&WGW&äf÷$6''’ŠËË›İÊNÂˆYˆ
-Û\ÜÚXÑÜ›İ[™ØÙ[™RÙ^JÊHOOH™]š[İ\ÔØÙ[™e) { clearClassicGrounds(s, c); clearSageField(s); }
-  clampRI•Í½ÕÉ•Ì¡Ì°Œ¤ì(€ÕÁ‘…Ñ•EÕ•ÍÑÌ¡Ì°Œ¤ì)ô(
+  discardAloeveraUnderAutoBerserk(s,c,now);
+  if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)
+    returnForCarry(s, c, now);
+  if (classicGroundSceneKey(s) !== previousScene) { clearClassicGrounds(s, c); clearSageField(s); }
+  clampResources(s, c);
+  updateQuests(s, c);
+}

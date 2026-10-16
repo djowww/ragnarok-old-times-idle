@@ -1,160 +1,408 @@
 /**
  * Hercules pre-renewal status.c / skill.c, pinned at
- *¨€ĞÄÁˆäÜÌáŒÀĞå…ˆÄàÈÕØİˆÌÙˆÀÜÉàÌİŒÅÁˆÌÍ„¸A0´Ì¸Àµ½Èµ±…Ñ•Èºà¢¢ğ¦–×÷'BG—R²6FÆörÂvÖU7FFRÂÖöç7FW"Â6¶–ÆÂÒg&öÛH‹‹‹ÜÚ\™Yİ\\ËšœÈÂš[\ÜÈ›YTİÜÚÚ[[İÙY›YeStopTarget } from './bladeStop.js';
+ * 410b9738c049ab1825d67b36b072d837c1d0b33a. GPL-3.0-or-later.
+ */
+import type { Catalog, GameState, Monster, Skill } from "../shared/types.js";
+import { bladeStopSkillAllowed, bladeStopTarget } from './bladeStop.js';
 
-const lifecycleSources €ô¹•ÜM•Ğ¡l‰Q}!%%9ˆ°€‰M}1=-%9ˆ°€‰	M}5a%5%i‰t¤ì)½¹Ï7BFövvÆU6÷W&6W2ÒæWr6WB…²ââæÆ–fV7–6ÆU6÷W&6W2Â$5%ôDTdTäDU$ˆ‹”ÓWĞUUĞ‘T”ÑT’È‹Ô—ÔÒ’S’È‹“•—Õ’PÒÑPQ‹”WÑÓÔÔS"]);
+const lifecycleSources = new Set(["TF_HIDING", "AS_CLOAKING", "BS_MAXIMIZE"]);
+const toggleSources = new Set([...lifecycleSources, "CR_DEFENDER", "SM_AUTOBERSERK", "CR_SHRINK", "NV_TRICKDEAD", "PA_GOSPEL"]);
 const hiddenActions = new Set([
   "TF_HIDING",
-  "AS_GRI%5Q==Q ˆ°(€€‰I}	-MQ@ˆ°(€€‰I}I%ˆ°(€€‰9)}M!=])U5@ˆ°(‚$ä¥ô´•$”´tR"À¢$´õõ”Ô”µTÔò"À¥Ò“°¦6öç7BÆVv7•6÷W&6W3¢&YXÛÜ™İš[™Ëİš[™ÏˆHÂˆY[™Îˆ•—ÒQS‘È‹ˆÛØZÚ[™Îˆ "AS_CLOAKING",
+  "AS_GRIMTOOTH",
+  "RG_BACKSTAP",
+  "RG_RAID",
+  "NJ_SHADOWJUMP",
+  "NJ_KIRIKAGE",
+  "KO_YAMIKUMO",
+]);
+const legacySources: Record<string, string> = {
+  hiding: "TF_HIDING",
+  cloaking: "AS_CLOAKING",
   maximize_power: "BS_MAXIMIZE",
 };
-// These ½ÁÑ¥½¹…°™¥•±‘Ì…±Í¼±•ĞÁÉ½™¥±•ÌÍ…Ù•‰•™½É”Ñ¡”±¥™•å±–R&VÖ–âfÆ–Bà§G—RÆ–fV7–6ÆU6¶–ÆÂÒ6¶–ÆÂb°¢7G&–ä–çFY\˜[\ÏÎˆ[X™\–×NÂˆÜ˜Z[[[İ[Îˆ[X™\ÂŸNÂ\HY™”[®time = NonNullable<GameState["combatEffects"]> & {
-  buffLevÙ•±ÌüèI•½ÉñÍÑÉ¥¹œ°¹Õµ‰•Èøì)ôì()½¹ÍĞÍ½ÕÉ•9…µ”€ô€¡Í­¥±°ë¢6¶–ÆÂ’Óâ°¢6öç7B6÷W&6RÒ€¢6¶–ÆÂç6÷W&6TæÖRóğ¢ÚÚ[›YXÚ[šXÈÏÂˆYØXŞTÛİ\˜Ù\ÖÜÚÚ[šYHÏÂˆÚÚ[šid
-  ).toUpperCase();
-  return source === "RG_CHASEWALK" ? "SMQ}!M]1,ˆ€èÍ½ÕÉ”ì)ôì)½¹ÍĞÙ…±Õ”€ô€ (€Ù…±Õ•Ìè¹Õµ‰•ÉmuÒÂVæFVf–æVBÀ¢ÆWfVÃ¢çVÖ&W"À¢fÆÆ&6³¢çVÖ&W"À¢’Óâ°¢ÛÛœİ™\İ[H˜[Y\ÏË–Û]™[HWHÏÈ˜[Y\ÏË˜]
-LJNÂˆ™]urn Number.isFinite(result) ? result! : fallback;
+// These optional fields also let profiles saved before the lifecycle remain valid.
+type LifecycleSkill = Skill & {
+  spDrainIntervalMs?: number[];
+  spDrainAmount?: number;
 };
-const buÕ™™M½ÕÉ”€ô€¡Œè…Ñ…±½œ°¥èÍÑÉ¥¹œ¤€ôø(€Œ¹Í­¥±±Ím¥‘t(€€€€ü‚6÷W&6TæÖR†2ç6¶–ÆÇ5¶–EÒ¢¢†ÆVv7•6÷W&6W5¶–EÒóò–B’çFõU\\Ø\ÙJ
-NÂ˜ÛÛœİ[[YHH
-ÎˆØ[YTİ]JNˆY™”[[YHOˆ
-(s.combatEffects ??= {});
-const activeCombo = (s: GameState, Œè…Ñ…±½œ°…Ğè¹Õµ‰•È¤€ôøì(€½¹ÍĞ½µ‰¼€ôÌ¹½µ‰…Ñ™™•ÑÏ3òæ6öÖ&ó°¢&WGW&â6öÖ&òbb6öÖ&òæW‡—&W4Bâ@¢ò'Vfe6ûİ\˜ÙJËÛÛX›ËœÛİ\˜ÙS˜[YJBˆˆ[™Yš[™YÂŸNÂ‚‹ÊŠˆ™XYXİive statuses by Hercules source name, including catalog aliasÍ•Ì¸€¨¼)•áÁ½ÉĞ™Õ¹Ñ¥½¸±…ÍÍ¥	Õ™™Ñ¥Ù” (€Ìè…µ•MÑ…Ñ”°(€‚3¢6FÆörÀ¢6÷W&6S¢7G&–ærÀ¢C¢çVÖ&W"À¢“¢&ööÆVâ°¢8ÛÛœİØ[›ÛšXØ[HY™”Ûİ\˜ÙJËÛİ\˜ÙJNÂˆ™]\›ˆØš™Xİ™[²ies(s.buffs).some(
-    ([id, buff]) => buff.expiresAt > at &˜˜‰Õ™™M½ÕÉ”¡Œ°¥¤€ôôô…¹½¹¥…°°(€€¤ì)ô((¼¨¨½¹ÍÕµ”Ñ¡”¾öæRÖ67B&R×&VæWvÂ7Vfg&v—VÒ7FGW2v†Vâ6¶–ÆÂ6ö×WFW2Ø\İ[YKˆ
-‹Â™^Ü[˜İ[ÛˆÛÛœİ[YTİY™œ˜YÚ][Q›ÜØ\İ
-ˆÎº GameState,
+type BuffRuntime = NonNullable<GameState["combatEffects"]> & {
+  buffLevels?: Record<string, number>;
+};
+
+const sourceName = (skill: Skill) => {
+  const source = (
+    skill.sourceName ??
+    skill.mechanic ??
+    legacySources[skill.id] ??
+    skill.id
+  ).toUpperCase();
+  return source === "RG_CHASEWALK" ? "ST_CHASEWALK" : source;
+};
+const value = (
+  values: number[] | undefined,
+  level: number,
+  fallback: number,
+) => {
+  const result = values?.[level - 1] ?? values?.at(-1);
+  return Number.isFinite(result) ? result! : fallback;
+};
+const buffSource = (c: Catalog, id: string) =>
+  c.skills[id]
+    ? sourceName(c.skills[id])
+    : (legacySources[id] ?? id).toUpperCase();
+const runtime = (s: GameState): BuffRuntime => (s.combatEffects ??= {});
+const activeCombo = (s: GameState, c: Catalog, at: number) => {
+  const combo = s.combatEffects?.combo;
+  return combo && combo.expiresAt > at
+    ? buffSource(c, combo.sourceName)
+    : undefined;
+};
+
+/** Read active statuses by Hercules source name, including catalog aliases. */
+export function classicBuffActive(
+  s: GameState,
+  c: Catalog,
+  source: string,
+  at: number,
+): boolean {
+  const canonical = buffSource(c, source);
+  return Object.entries(s.buffs).some(
+    ([id, buff]) => buff.expiresAt > at && buffSource(c, id) === canonical,
+  );
+}
+
+/** Consume the one-cast pre-renewal Suffragium status when a skill computes cast time. */
+export function consumeSuffragiumForCast(
+  s: GameState,
   c: Catalog,
   skill: Skill,
   at: number,
-): b‰½½±•…¸ì(€¥˜€¡Í­¥±°¹¥¹½É•ÍMÑ…ÑÕÍ™™•ÑÌñğÍ½ÕÉ•9…µ”¡Í­¥²ÆÂ’ÓÓÒu%õ5Tde$t•TÒrÇÀ¢6Æ76–4'Vfd7F—fR‡2Â2Âu$—ÔÕQ‘”QÒUSIË]
-JH™]\›ˆ˜[ÙNÂˆØ[˜Ù[Û\ÜÚXĞY™ŠËË	çPR_SUFFRAGIUM');
+): boolean {
+  if (skill.ignoresStatusEffects || sourceName(skill) === 'PR_SUFFRAGIUM' ||
+      !classicBuffActive(s, c, 'PR_SUFFRAGIUM', at)) return false;
+  cancelClassicBuff(s, c, 'PR_SUFFRAGIUM');
   return true;
 }
 
-/** Also removes persiste•ÕÁ­••Àµ•Ñ…‘…Ñ„İ¡•¸½µ‰…Ğ•¹‘Ì„ÍÑ…ÑÕÌ¸€¨¼)•áÁ½ÉĞ™Õ¹ÓF–öâ6æ6VÄ6Æ76–4'Vfb€¢3¢vÖU7FFRÀ¢3¢6FÆörÀ¢6÷W&8ÙNˆİš[™ËŠNˆ›ÚYÂˆÛÛœİØ[›ÛšXØ[HY™”Ûİ\˜ÙJËÛİ\˜ãe);
-  const effects = s.combatEffects as BuffRuntime | undef™¥¹•ì(€™½È€¡½¹ÍĞ¥½˜=‰©•Ğ¹­•åÌ¡Ì¹‰Õ™™Ì¤¤ì(€€€¥˜€¡‰Õšfe6÷W&6R†2Â–B’ÓÒ6æöæ–6Â’6öçF–çVS°¢FVÆWFR2æ'Vfg5¶šYNÂˆYˆ
-Y™™XİÏË˜Y™‘˜Z[]
-H[]HY™™XİË˜Y™‘˜Z[]4[id];
-    if (effects?.buffLevels) delete effects.buffLevelsÍm¥‘tì(€ô(€¥˜€¡•™™•ÑÌ¤ì(€€€¥˜€¡…¹½¹¥…°€ôôô€‰MQ}I)QM5tõ$B"’FVÆWFRVffV7G2ç&V¦V7E7v÷&C°¢–b†6æöæ–6ÂÓÓÒ$4×ÔÒTÓÓ”‘PPÕŠH[]HY™™XİËœÚ\ÛÛ”™XXİÂˆYˆ
-Ø[›ÛšXØ[, === "LK_TENSIONRELAX") delete effects.tensionRelax;
-    if €¡…¹½¹¥…°€ôôô€‰A}=MA0ˆ¤‘•±•Ñ”•™™•ÑÌ¹‰…ÑÑ±•¡…¹Ğì(€€€‚–b†6æöæ–6ÂÓÓÒ%4ôUDõ5TÄÂ"’FVÆWFRVffV7G2æWF÷7VÆÃ°¢ˆYˆ
-Ø[›ÛšXØ[OOH”—ÓQSSÔ’V‘HŠHY™™XİË›Y[[Üš^™PÚ\™Ù\ó = 0;
-    if (canonical === "SM_ENDURE") delete effects.enduÕÉ”ì(€€€¥˜€¡…¹½¹¥…°€ôôô€‰A}MI%%ˆ¤‘•±•Ñ”•™™•ÑÌ¹Í…7&–f–6S°¢–b†6æöæ–6ÂÓÓÒ$ÅõäUTÔ"’FVÆWFRVffV7G2çë™][XQÜ›İ[™ÂˆYˆ
-Ø[›ÛšXØ[OOH“Q×ÔĞQ‘UUĞSŠHÈY™™Xİó.safetyWallHits = 0; delete effects.safetyWallGround; }
-    ¥˜€¡…¹½¹¥…°€ôôô€‰1}A9U5ˆñğ…¹½¹¥…°€ôôô€‰5}MQe]0ÄÂ"¢VffV7G2æFVfVç6—fTw&÷VæG2ÒVffV7G2æFVfVç6—fTw&÷VæIÏË™š[\ŠÜ›İ[™O‚ˆÜ›İ[™šÚ[™OOH
-Ø[›ÛšXØ[OOH¢AL_PNEUMA" ? "pneumaGround" : "safetyWallGround"));
+/** Also removes persisted upkeep metadata when combat ends a status. */
+export function cancelClassicBuff(
+  s: GameState,
+  c: Catalog,
+  source: string,
+): void {
+  const canonical = buffSource(c, source);
+  const effects = s.combatEffects as BuffRuntime | undefined;
+  for (const id of Object.keys(s.buffs)) {
+    if (buffSource(c, id) !== canonical) continue;
+    delete s.buffs[id];
+    if (effects?.buffDrainAt) delete effects.buffDrainAt[id];
+    if (effects?.buffLevels) delete effects.buffLevels[id];
+  }
+  if (effects) {
+    if (canonical === "ST_REJECTSWORD") delete effects.rejectSword;
+    if (canonical === "AS_POISONREACT") delete effects.poisonReact;
+    if (canonical === "LK_TENSIONRELAX") delete effects.tensionRelax;
+    if (canonical === "PA_GOSPEL") delete effects.battleChant;
+    if (canonical === "SA_AUTOSPELL") delete effects.autospell;
+    if (canonical === "PF_MEMORIZE") effects.memorizeCharges = 0;
+    if (canonical === "SM_ENDURE") delete effects.endure;
+    if (canonical === "PA_SACRIFICE") delete effects.sacrifice;
+    if (canonical === "AL_PNEUMA") delete effects.pneumaGround;
+    if (canonical === "MG_SAFETYWALL") { effects.safetyWallHits = 0; delete effects.safetyWallGround; }
+    if (canonical === "AL_PNEUMA" || canonical === "MG_SAFETYWALL")
+      effects.defensiveGrounds = effects.defensiveGrounds?.filter(ground =>
+        ground.kind !== (canonical === "AL_PNEUMA" ? "pneumaGround" : "safetyWallGround"));
   }
 }
-/*¨¨!•ÉÕ±•Ì±•…ÉÌ„…ÍÑ•ÈÌÉ½Õ¹É½ÕÁÌ½¸İ…ÉÀÕ¹‘•ÈÑ¡–RFVfVÇB6WGF–ærâ¢ğ¦W‡÷'BgVæ7F–öâ6ÆV$6Æ76–4w&÷VæG2‡3¢Ø[YTİ]KÎˆØ][ÙÊHÂˆ[]HË™Ü›İ[™XÙ[Y[ÎÂˆØ[˜ãelClassicBuff(s, c, "AL_PNEUMA");
-  cancelClassicBuff(s, c, €‰5}MQe]10ˆ¤ì(€…¹•±±…ÍÍ¥	Õ™˜¡Ì°Œ°€‰A}=]10ˆ¤ì)÷Ğ¦W‡÷'BgVæ7F–öâ6Æ76–4w&÷VæE66VæT¶W’‡3¢vÖU7FFR“¢7G&–æyÈÂˆYˆ
-Ë˜˜]OË˜Ú[[™ÙRY
-H™]\›ˆÚ[[™ÙN‰ÜË˜˜]e.attemptId ?? s.battle.challengeId}`;
-  return s.status === €‰¡Õ¹Ñ¥¹œˆñğÌ¹ÍÑ…ÑÕÌ€ôôô€‰É•ÍÑ¥¹œˆ€˜˜Ì¹É•ÍÑ5½‘”€ôôô€‰™¥•±’B"ò2æ&V–Bóò'F÷vâ"¢'F÷vâ#°§Ğ ¢ò¢¢7FGW2æ2W&Ö—G2F†š\È\İÚ[HY[È[ˆ[™Yš[™YÚÚ[\ÈH˜\ÚXÈ]XÚËˆ
-ª/
-export function canActWhileHidden(skill?: Skill): boolean ì(€É•ÑÕÉ¸€„…Í­¥±°€˜˜¡¥‘‘•¹Ñ¥½¹Ì¹¡…Ì¡Í½ÕÉ•9…µ”¡Í­¥±°¤¤ì(§Ğ ¢ò¢¢ÔEôDUDT5Dõ"—2WF†÷&—FF—fS²F†R&6RfÆÆ&6²7WûÜÈÛ\ˆØ][ÙÜËˆ
-‹Â™^Ü[˜İ[Ûˆ^Y\’Y[‘œ›ÛJˆó: GameState,
+/** Hercules clears a caster's ground groups on warp under the default setting. */
+export function clearClassicGrounds(s: GameState, c: Catalog) {
+  delete s.groundPlacements;
+  cancelClassicBuff(s, c, "AL_PNEUMA");
+  cancelClassicBuff(s, c, "MG_SAFETYWALL");
+  cancelClassicBuff(s, c, "PF_FOGWALL");
+}
+export function classicGroundSceneKey(s: GameState): string {
+  if (s.battle?.challengeId) return `challenge:${s.battle.attemptId ?? s.battle.challengeId}`;
+  return s.status === "hunting" || s.status === "resting" && s.restMode === "field" ? s.areaId ?? "town" : "town";
+}
+
+/** status.c permits this list while hidden; an undefined skill is a basic attack. */
+export function canActWhileHidden(skill?: Skill): boolean {
+  return !!skill && hiddenActions.has(sourceName(skill));
+}
+
+/** MD_DETECTOR is authoritative; the race fallback supports older catalogs. */
+export function playerHiddenFrom(
+  s: GameState,
   c: Catalog,
   monster: Monster,
-  at: number,°(¤è‰½½±•…¸ì(€¥˜€ (€€€€…±…ÍÍ¥	Õ™™Ñ¥Ù”¡Ì°Œ°€‰Q}!%%9r"ÂB’b`¢6Æ76–4'Vfd7F—fR‡2Â2Â$5ô4Äô´”är"ÂB’bi‚ˆXÛ\ÜÚXĞY™Xİ]™JËË”ÕĞÒTÑUĞSÈ‹]
-Bˆ
-Bˆ™eturn false;
+  at: number,
+): boolean {
+  if (
+    !classicBuffActive(s, c, "TF_HIDING", at) &&
+    !classicBuffActive(s, c, "AS_CLOAKING", at) &&
+    !classicBuffActive(s, c, "ST_CHASEWALK", at)
+  )
+    return false;
   const boss =
     monster.boss ??
-    c.challen¹•Ì¹Í½µ” (€€€€€€¡ ¤€ôø ¹µ½¹ÍÑ•É%€ôôôµ½¹ÍÑ•È¹¥€˜˜ ¹†FVv÷'’ÓÓÒ&×g"À¢“°¢6öç7BFWFV7F÷"Ğ¢Ööç7FW"æFWFYXİÜˆÏÂˆÈ™[[Ûˆ‹š[œÙXİ—Kš[˜ÛY\Ê[Ûœİ\‹œ˜XÙKÓİÙerCase());
+    c.challenges.some(
+      (ch) => ch.monsterId === monster.id && ch.category === "mvp",
+    );
+  const detector =
+    monster.detector ??
+    ["demon", "insect"].includes(monster.race.toLowerCase());
   return !boss && !detector;
 }
 
-/** A successful tÑ½±”•¹‘Ì…¸…Ñ¥Ù”ÍÑ…ÑÕÌ‰•™½É”Ñ¡”…±±•È¡…É•ÌÉ•Í½ÕË&6W2â¢ğ¦W‡÷'BgVæ7F–öâFövvÆT6Æ76–4'Vfb€¢3¢vÖU7FFRÀ¢ÎˆØ][ÙËˆÚÚ[ˆÚÚ[ˆÛ]™[ˆ[X™\‹ˆ]ˆ[X™\‹,
+/** A successful toggle ends an active status before the caller charges resources. */
+export function toggleClassicBuff(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  _level: number,
+  at: number,
 ): boolean {
   const source = sourceName(skill);
-  if (!tog±•M½ÕÉ•Ì¹¡…Ì¡Í½ÕÉ”¤ñğ€…±…ÍÍ¥	Õ™™Ñ¥Ù”¡Ì°Œ°Í½ÕÉ”°†B’¢&WGW&âfÇ6S°¢6æ6VÄ6Æ76–4'Vfb‡2Â2Â6÷W&6R“°¢,™]\›ˆYNÂŸB‚™[˜İ[Ûˆ˜Z[’[\˜[
-ÚÚ[ˆY™XŞXÛTÚÚ[, level: number): number {
-  const source = sourceName(skill)¤ì(€½¹ÍĞ™…±±‰…¬€ôÍ½ÕÉ”€ôôô€‰	M}5a%5%iˆ€ü±•Ù•°€¨€ÄÀÀÃ¢†ÆWfVÂÒ’¢°¢òòf÷"F†W6RGvò6¶–ÆÇ26¶–ÆÄFF\ÈH\ÙY\[\˜[›İZ\ˆY™\Ü[‹‚ˆ™]\›ˆX]›Xax(
+  if (!toggleSources.has(source) || !classicBuffActive(s, c, source, at))
+    return false;
+  cancelClassicBuff(s, c, source);
+  return true;
+}
+
+function drainInterval(skill: LifecycleSkill, level: number): number {
+  const source = sourceName(skill);
+  const fallback = source === "BS_MAXIMIZE" ? level * 1000 : (level - 1) * 1000;
+  // For these two skills SkillData1 is the upkeep interval, not their lifespan.
+  return Math.max(
     1,
     Math.floor(
       value(
-        skill.spDrain¹%¹Ñ•ÉÙ…±5Ì°(€€€€€€€±•Ù•°°(€€€€€€€Ù…±Õ”¡Í­¥±°¹ÍÑ…ÑÕÍÕÉ…Ñ¥¾öä×2ÂÆWfVÂÂfÆÆ&6²’À¢’À¢’À¢“°§Ğ ¢ò¢¢7F—fFRY\ˆHØ[\ˆ^\ÈHØ\İÛÜİˆHØØ[X\\È›ÈÛ,oak walls. */
-export function applyClassicBuff(
-  s: GameSta…Ñ”°(€Œè…Ñ…±½œ°(€Í­¥±°èM­¥±°°(€±•Ù•°è¹Õµ‰•È°(€…Ğè¹Õ¶Ö&W"À¢“¢&ööÆVâ°¢6öç7B6÷W&6RÒ6÷W&6TæÖR‡6¶–ÆÂ“°¢6öç<İ˜]PÚ[HÛİ\˜ÙHOOH”WÑÓÔÔSÂˆYˆ
-ˆ
-[Y™XŞXãleSources.has(source) && !battleChant) ||
-    skill.implemen¹Ñ…Ñ¥½¸€ôôô€‰Õ¹ÍÕÁÁ½ÉÑ•ˆñğ(€€€€…9Õµ‰•È¹¥ÍM…™•%¹Ñ••È¡±•Ù•°¦’ÇÀ¢ÆWfVÂÂÇÀ¢ÆWfVÂâ6¶–ÆÂæÖ„ÆWfVÂÇÀ¢çVÖ(™\‹š\Ñš[š]J]
-Hˆ
-Ûİ\˜ÙHOOHT×ĞÓĞRÒS‘Èˆ	‰ˆ]™[ 3)
-  )
-    return false;
-  cancelClassicBuff(s, c, source);
-(€¥˜€¡‰…ÑÑ±•¡…¹Ğ¤ì(€€€€¼¼A}=MA0ÌÍ•±˜ÍÑ…ÑÕÌ±•…ÉÌÓF†R67FW"w27F—fR'Vfg2æB–ÆÖVçG2à¢f÷"†6öç7B–BöbØš™XİšÙ^\ÊË˜Y™œÊJBˆØ[˜Ù[Û\ÜÚXĞY™ŠËËY™”Ûİ\²ce(c, id));
-    s.playerStatuses = {};
-  }
-  const effects =ôÉÕ¹Ñ¥µ”¡Ì¤ì(€€¡•™™•ÑÌ¹‰Õ™™1•Ù•±Ì€üüôíô¥mÍ­¥±°¹¥‘t€ô±•Ù•²Ã°¢–b†&GFÆT6†çB’°¢6öç7BGW&F–öâÒÖF‚æÖ‚€¢ˆ˜[YJÚÚ[œİ]\Ñ\˜][Û“\Ë]™[ÚÚ[™\˜][Û®Ms ?? 60_000),
-    );
-    const interval = 10_000;
-    s.buf™™ÍmÍ­¥±°¹¥‘t€ôì(€€€€€ÍÑ…ÉÑÍĞè…Ğ°(€€€€€•áÁ¥É•ÍĞè…Ğ€¬’GW&F–öâÀ¢VffV7G3¢²ââç6¶–ÆÂæVffV7G2ÒÀ¢Ó°¢Vfi™XİË˜˜]PÚ[HÂˆ™^XÚĞ]ˆ]
-È[\˜[ˆ // status.c initializes val2 to duration/interval, decrementÑÌ‰•™½É”¡•…°¸(€€€€€É•µ…¥¹¥¹Q¥­Ìè5…Ñ ¹µ…à À°5…Ñ ¹™±½½È¢†GW&F–öâò–çFW'fÂ’Ò’À¢ÆWfVÂÀ¢Ó°¢&WGW&âG,YNÂˆBˆ
-Y™™XİË˜Y™‘˜Z[]ÏÏHßJVÜÚÚ[šYHBˆ]
-È (source === "TF_HIDING" ? 1000 : drainInterval(skill, level)¤¤ì(€Ì¹‰Õ™™ÍmÍ­¥±°¹¥‘t€ôì(€€€€¼¼%¹™¥¹¥ÑäÍ•É¥…±¥é•ÌÑ¼¹Õ²ÆÂ–âF†RW'6—7FVB¥4ôâ7FFRà¢W‡—&W4C ¢6÷W&6RßOOH•—ÒQS‘È‚ˆÈ]
-ÂˆX]›X^
-L˜[Ye(skill.statusDurationMs, level, 30_000 * level))
-        : N9Õµ‰•È¹5a}M}%9QH°(€€€•™™•ÑÌèì€¸¸¹Í­¥±°¹•™™•ÑÌô°(‚Ó°¢&WGW&âG'VS°§Ğ ¢ò¢¢W¶VWöæÇ“²&W6÷W&6R6÷7G2f÷"FŠHÜšYÚ[˜[ÚÚ[™[XZ[ˆÚ]HÛÛX˜]Ø[\‹ˆ
-‹Â™^Üunction tickClassicBuffs(s: GameState, c: Catalog, at: numberÈ¤èÙ½¥ì(€¥˜€ …9Õµ‰•È¹¥Í¥¹¥Ñ”¡…Ğ¤¤É•ÑÕÉ¸ì(€½¹ÍĞ•™™•ÓG2Ò'VçF–ÖR‡2“°¢6öç7BF–ÖW'2Ò†VffV7G2æ'VfdG&–äBóóÒ·ßJNÂˆÛÛœİ]™[ÈH
-Y™™XİË˜Y™“]™[ÈÏÏHßJNÂˆ›Üˆ
-ÛÛœót id of Object.keys(timers))
-    if (!s.buffs[id] || !lifecyå±•M½ÕÉ•Ì¹¡…Ì¡‰Õ™™M½ÕÉ”¡Œ°¥¤¤€˜˜‰Õ™™M½ÕÉ”¡Œ°¥¤€„ôô€u5Eô4„4UtÄ²r’°¢FVÆWFRF–ÖW'5¶–EÓ°¢FVÆWFRÆWfVËÖÚYNÂˆBˆ›Üˆ
-ÛÛœİÚYY™—HÙˆØš™Xİ™[šY\ÊË˜Y¦fs)) {
-    const source = buffSource(c, id);
-    if (!lifecyå±•M½ÕÉ•Ì¹¡…Ì¡Í½ÕÉ”¤¤½¹Ñ¥¹Õ”ì(€€€½¹ÍĞÍ­¥±°€ôŒ¹Í­¥±±Ï5¶–EÒ2Æ–fV7–6ÆU6¶–ÆÂÂVæFVf–æVC°¢6öç7BVæF–æt†–F–æuEXÚÜÈBˆÛİ\˜ÙHOOH•—ÒQS‘Èˆ	‰‚ˆ[X™\‹š\Ñš[š]e(timers[id]) &&
-      timers[id] <= at &&
-      timers[id] <ğô‰Õ™˜¹•áÁ¥É•ÍĞì(€€€¥˜€ (€€€€€€…Í­¥±°ñğ(€€€€€Í­¥±°¹¥µÁ±–VÖVçFF–öâÓÓÒ'Vç7W÷'FVB"ÇÀ¢2æ‡ÃÒÇÀ¢†'Vi™‹™^\™\Ğ]H]	‰ˆ\[™[™ÒY[™ÕXÚÜÊBˆ
-HÂˆØ[˜ãelClassicBuff(s, c, source);
-      continue;
-    }
-    constĞ±•Ù•°€ô5…Ñ ¹µ…à (€€€€€€Ä°(€€€€€5…Ñ ¹µ¥¸ (€€€€€€€Í­¥±°¹µ†„ÆWfVÂÀ¢ÖF‚æfÆö÷"†ÆWfVÇ5¶–EÒóò2æÆV&æVE6¶–ÆÇ5¶–E×HÏÈJKˆ
-Kˆ
-NÂˆ]™[ÖÚYHH]™[ÂˆYˆ
-Ûİ\²ce === "AS_CLOAKING" && level < 3) {
-      cancelClassicBuff˜¡Ì°Œ°Í½ÕÉ”¤ì(€€€€€½¹Ñ¥¹Õ”ì(€€€ô(€€€½¹ÍĞ¥¹Ñ•ÉÙ…°€ô(‚6÷W&6RÓÓÒ%Deô„”D”är"ò¢G&–ä–çFW'fÂ‡6¶–ÆÂÂÆY]™[
-NÂˆYˆ
-S[X™\‹š\Ñš[š]J[Y\œÖÚYJJHÂˆËÈÛ¦inite Cloaking/Maximize buffs become infinite while still acÑ¥Ù”¸(€€€€€¥˜€¡Í½ÕÉ”€„ôô€‰Q}!%%9ˆ¤‰Õ™˜¹•áÁ¥É•ÍĞ€ô9Õ¶Ö&W"äÔ…õ4dUô”åDTtU#°¢F–ÖW'5¶–EÒÒB²–çFW'fÃ°¢BˆB‚ˆËÈ›ØÙ\ÜÈÚ[][[™[İ\Èİ]\Ù\È[ˆ[YHÜ™\ˆÛÈa failed charge ends the
-  // status whose timer actually ran¸½ÕĞ½˜M@°¥¹±Õ‘¥¹œ‘ÕÉ¥¹œ½™™±¥¹”…Ñ µÕÀ¸(€İ¡¥±”€¡ÑÉÕ–R’°¢6öç7BGVRÒö&¦V7BæVçG&–W2‡F–ÖW'2¢æf–ÇFW"‚…¶šYXÚ×JHOˆË˜Y™œÖÚYH	‰ˆY™XŞXÛTÛİ\˜Ù\Ëš\ÊY™”Ûİ\˜ÙJ(c, id)) && tick <= at)
-      .sort((a, b) => a[1] - b[1])[0]tì(€€€¥˜€ …‘Õ”¤‰É•…¬ì(€€€½¹ÍĞm¥°Ñ¥­t€ô‘Õ”ì(€€€½¹ÍÓB6¶–ÆÂÒ2ç6¶–ÆÇ5¶–EÒ2Æ–fV7–6ÆU6¶–ÆÃ°¢6öç7B6÷W&6RÒÛİ\˜ÙS˜[YJÚÚ[
-NÂˆÛÛœİ]™[H]™[ÖÚYNÂˆÛÛœİ¢uff = s.buffs[id];
-    let charge = true;
-    if (source ===ô€‰Q}!%%9ˆ¤ì(€€€€€€¼¼ÍÑ…ÑÕÌ¹Œ‘•É•µ•¹ÑÌÑ¡”É•µ…¥¹¥¹œÏ6V6öæG2f—'7BÂF†VâFW7G2fÃ"RfÃBà¢6öç7B&VÖ–æ–ærHX]™›ÛÜŠ
-Y™‹™^\™\Ğ]HXÚÊHÈL
-NÂˆYˆ
-™[Xaining <= 0) {
-        cancelClassicBuff(s, c, source);
-     €€€½¹Ñ¥¹Õ”ì(€€€€€ô(€€€€€¡…É”€ôÉ•µ…¥¹¥¹œ€”€¡±•Ù•°€¬€Ì¤‚ÓÓÒ°¢Ğ¢6öç7BÖ÷VçBÒÖF‚æÖ‚ƒÂÖF‚æfÆö÷"‡6¶–ÆËœÜ˜Z[[[İ[ÏÈJJNÂˆYˆ
-Ú\™ÙH	‰ˆËœÜ[[İ[
-HÂˆ     cancelClassicBuff(s, c, source);
-      continue;
-    }
- €€€¥˜€¡¡…É”¤Ì¹ÍÀ€´ô…µ½Õ¹Ğì(€€€Ñ¥µ•ÉÍm¥‘t€ô(€€€€€Ñ¥¬€®²‡6÷W&6RÓÓÒ%Deô„”D”är"ò¢G&–ä–çFW'fÂ‡6¶–ÆÂÂÆWfVË
-JNÂˆBŸB‚‹ÊŠˆHÛÛX›È™Xİ\œÛÜˆ\ÈÚXÚÙY]™[ˆÚ[ˆÚÚ[,lRequiredState is absent. */
-export function comboAllowed(
- €Ìè…µ•MÑ…Ñ”°(€Œè…Ñ…±½œ°(€Í­¥±°èM­¥±°°(€…Ğè¹Õµ‰•È°(¦“¢&ööÆVâ°¢6öç7B&Wf–÷W2Ò7F—fT6öÖ&ò‡2Â2ÂB“°¢7v—MÚ
-Ûİ\˜ÙS˜[YJÚÚ[
-JHÂˆØ\ÙH’ÔÕÑTˆ‚ˆ™]\›ˆ0revious === "AC_DOUBLE";
-    case "MO_CHAINCOMBO":
-      retÑÕÉ¸ÁÉ•Ù¥½ÕÌ€ôôô€‰5=}QI%A1QQ,ˆñğ€  ¤€ôøì(€€€€€€€½¹ÍÓBÆ–æ²Ò2æ6öÖ&DVffV7G3òæ&ÆFU7F÷Æ–æ³°¢&WGW&âÆ–ëšÈ	‰ˆHX›YTİÜ\™Ù]
-Ë]
-H	‰ˆ›YTİÜÚÚ[[İÙY
-	ÓS×ĞÃHAINCOMBO', link.level);
-      })();
-    case "MO_COMBOFINISM ˆè(€€€€€É•ÑÕÉ¸ÁÉ•Ù¥½ÕÌ€ôôô€‰5=}!%9=5	<ˆì(€€€…Í”€‰!}õD”tU$d•5B# ¢&WGW&â&Wf–÷W2ÓÓÒ$Ôõô4ôÔ$ôd”ä•4‚#°¢Ø\ÙHÒĞÒRSÔ•TÒ‚ˆ™]\›ˆ™]š[İ\ÈOOH“S×ĞÓÓP“Ñ’SISH" || previous === "CH_TIGERFIST";
-    case "MO_EXTREMITYF%MPˆè(€€€€€É•ÑÕÉ¸€ (€€€€€€€€…ÁÉ•Ù¥½ÕÌñğ(€€€€€€€l‰5=}=5	<ôd”ä•4‚"Â$4…õD”tU$d•5B"Â$4…ô4„”ä5%U4‚%Òæ–æ6ÇVFW2‡&Wf–÷W2šBˆ
-NÂˆY˜][‚ˆ™]\›ˆYNÂˆBŸB‚‹ÊŠˆÛİ\˜ÙH pre-renewal Asura combo costs and Finger Offensive's availab‰±”‰…±±Ì¸€¨¼)•áÁ½ÉĞ™Õ¹Ñ¥½¸ÍÁ¡•É•½ÍÑ½ÉM­¥±° (€Ìè…µ•MÓFFRÀ¢3¢6FÆörÀ¢6¶–ÆÃ¢6¶–ÆÂÀ¢ÆWfVÃ¢çVÖ&W"À¢C¢ç][X™\‹ŠNˆ[X™\ˆÂˆÛÛœİÛİ\˜ÙHHÛİ\˜ÙS˜[YJÚÚ[
-NÂˆÛÛœót count = Math.max(0, Math.floor(s.combatEffects?.spiritSphe•É•Ì€üü€À¤¤ì(€½¹ÍĞ½ÍĞ€ô5…Ñ ¹µ…à (€€€€À°(€€€5…Ñ ¹™±½½È (¢fÇVR€¢6¶–ÆÂç7†W&T6÷7BÀ¢ÆWfVÂÀ¢Ûİ\˜ÙHOOH“S×ÑV‘SRUQ’TÕˆÈHˆÛİ\˜ÙHOOH“S×Ğ“ÑT‘SOCATION" ? 1 : 0,
+        skill.spDrainIntervalMs,
+        level,
+        value(skill.statusDurationMs, level, fallback),
       ),
     ),
   );
-  if (source === "MO_}%9I=9M%Yˆ¤(€€€É•ÑÕÉ¸½Õ¹Ğ€ø€À€ü5…Ñ ¹µ¥¸¡½ÍĞñğ±–WfVÂÂ6÷VçB’¢6÷7BÇÂÆWfVÃ°¢–b€¢6÷W&6RÓÓÒ$Ôõô$ôE•$‘SĞĞUSÓˆˆ	‰‚ˆÛ\ÜÚXĞY™Xİ]™JËË“S×ÑVÔÒSÓ”ÔT’ITS", at)
+}
+
+/** Activate after the caller pays the cast cost. The local map has no cloak walls. */
+export function applyClassicBuff(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  level: number,
+  at: number,
+): boolean {
+  const source = sourceName(skill);
+  const battleChant = source === "PA_GOSPEL";
+  if (
+    (!lifecycleSources.has(source) && !battleChant) ||
+    skill.implementation === "unsupported" ||
+    !Number.isSafeInteger(level) ||
+    level < 1 ||
+    level > skill.maxLevel ||
+    !Number.isFinite(at) ||
+    (source === "AS_CLOAKING" && level < 3)
+  )
+    return false;
+  cancelClassicBuff(s, c, source);
+  if (battleChant) {
+    // PA_GOSPEL's self status clears the caster's active buffs and ailments.
+    for (const id of Object.keys(s.buffs))
+      cancelClassicBuff(s, c, buffSource(c, id));
+    s.playerStatuses = {};
+  }
+  const effects = runtime(s);
+  (effects.buffLevels ??= {})[skill.id] = level;
+  if (battleChant) {
+    const duration = Math.max(
+      0,
+      value(skill.statusDurationMs, level, skill.durationMs ?? 60_000),
+    );
+    const interval = 10_000;
+    s.buffs[skill.id] = {
+      startsAt: at,
+      expiresAt: at + duration,
+      effects: { ...skill.effects },
+    };
+    effects.battleChant = {
+      nextTickAt: at + interval,
+      // status.c initializes val2 to duration/interval, decrements before heal.
+      remainingTicks: Math.max(0, Math.floor(duration / interval) - 1),
+      level,
+    };
+    return true;
+  }
+  (effects.buffDrainAt ??= {})[skill.id] =
+    at + (source === "TF_HIDING" ? 1000 : drainInterval(skill, level));
+  s.buffs[skill.id] = {
+    // Infinity serializes to null in the persisted JSON state.
+    expiresAt:
+      source === "TF_HIDING"
+        ? at +
+          Math.max(1000, value(skill.statusDurationMs, level, 30_000 * level))
+        : Number.MAX_SAFE_INTEGER,
+    effects: { ...skill.effects },
+  };
+  return true;
+}
+
+/** Upkeep only; resource costs for the original skill remain with the combat caller. */
+export function tickClassicBuffs(s: GameState, c: Catalog, at: number): void {
+  if (!Number.isFinite(at)) return;
+  const effects = runtime(s);
+  const timers = (effects.buffDrainAt ??= {});
+  const levels = (effects.buffLevels ??= {});
+  for (const id of Object.keys(timers))
+    if (!s.buffs[id] || !lifecycleSources.has(buffSource(c, id)) && buffSource(c, id) !== 'ST_CHASEWALK') {
+      delete timers[id];
+      delete levels[id];
+    }
+  for (const [id, buff] of Object.entries(s.buffs)) {
+    const source = buffSource(c, id);
+    if (!lifecycleSources.has(source)) continue;
+    const skill = c.skills[id] as LifecycleSkill | undefined;
+    const pendingHidingTicks =
+      source === "TF_HIDING" &&
+      Number.isFinite(timers[id]) &&
+      timers[id] <= at &&
+      timers[id] <= buff.expiresAt;
+    if (
+      !skill ||
+      skill.implementation === "unsupported" ||
+      s.hp <= 0 ||
+      (buff.expiresAt <= at && !pendingHidingTicks)
+    ) {
+      cancelClassicBuff(s, c, source);
+      continue;
+    }
+    const level = Math.max(
+      1,
+      Math.min(
+        skill.maxLevel,
+        Math.floor(levels[id] ?? s.learnedSkills[id] ?? 1),
+      ),
+    );
+    levels[id] = level;
+    if (source === "AS_CLOAKING" && level < 3) {
+      cancelClassicBuff(s, c, source);
+      continue;
+    }
+    const interval =
+      source === "TF_HIDING" ? 1000 : drainInterval(skill, level);
+    if (!Number.isFinite(timers[id])) {
+      // Old finite Cloaking/Maximize buffs become infinite while still active.
+      if (source !== "TF_HIDING") buff.expiresAt = Number.MAX_SAFE_INTEGER;
+      timers[id] = at + interval;
+    }
+  }
+
+  // Process simultaneous statuses in time order so a failed charge ends the
+  // status whose timer actually ran out of SP, including during offline catch-up.
+  while (true) {
+    const due = Object.entries(timers)
+      .filter(([id, tick]) => s.buffs[id] && lifecycleSources.has(buffSource(c, id)) && tick <= at)
+      .sort((a, b) => a[1] - b[1])[0];
+    if (!due) break;
+    const [id, tick] = due;
+    const skill = c.skills[id] as LifecycleSkill;
+    const source = sourceName(skill);
+    const level = levels[id];
+    const buff = s.buffs[id];
+    let charge = true;
+    if (source === "TF_HIDING") {
+      // status.c decrements the remaining seconds first, then tests val2 % val4.
+      const remaining = Math.floor((buff.expiresAt - tick) / 1000);
+      if (remaining <= 0) {
+        cancelClassicBuff(s, c, source);
+        continue;
+      }
+      charge = remaining % (level + 3) === 0;
+    }
+    const amount = Math.max(1, Math.floor(skill.spDrainAmount ?? 1));
+    if (charge && s.sp < amount) {
+      cancelClassicBuff(s, c, source);
+      continue;
+    }
+    if (charge) s.sp -= amount;
+    timers[id] =
+      tick + (source === "TF_HIDING" ? 1000 : drainInterval(skill, level));
+  }
+}
+
+/** The combo precursor is checked even when SkillRequiredState is absent. */
+export function comboAllowed(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  at: number,
+): boolean {
+  const previous = activeCombo(s, c, at);
+  switch (sourceName(skill)) {
+    case "HT_POWER":
+      return previous === "AC_DOUBLE";
+    case "MO_CHAINCOMBO":
+      return previous === "MO_TRIPLEATTACK" || (() => {
+        const link = s.combatEffects?.bladeStopLink;
+        return !!link && !!bladeStopTarget(s, at) && bladeStopSkillAllowed('MO_CHAINCOMBO', link.level);
+      })();
+    case "MO_COMBOFINISH":
+      return previous === "MO_CHAINCOMBO";
+    case "CH_TIGERFIST":
+      return previous === "MO_COMBOFINISH";
+    case "CH_CHAINCRUSH":
+      return previous === "MO_COMBOFINISH" || previous === "CH_TIGERFIST";
+    case "MO_EXTREMITYFIST":
+      return (
+        !previous ||
+        ["MO_COMBOFINISH", "CH_TIGERFIST", "CH_CHAINCRUSH"].includes(previous)
+      );
+    default:
+      return true;
+  }
+}
+
+/** Source pre-renewal Asura combo costs and Finger Offensive's available balls. */
+export function sphereCostForSkill(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  level: number,
+  at: number,
+): number {
+  const source = sourceName(skill);
+  const count = Math.max(0, Math.floor(s.combatEffects?.spiritSpheres ?? 0));
+  const cost = Math.max(
+    0,
+    Math.floor(
+      value(
+        skill.sphereCost,
+        level,
+        source === "MO_EXTREMITYFIST" ? 5 : source === "MO_BODYRELOCATION" ? 1 : 0,
+      ),
+    ),
+  );
+  if (source === "MO_FINGEROFFENSIVE")
+    return count > 0 ? Math.min(cost || level, count) : cost || level;
+  if (
+    source === "MO_BODYRELOCATION" &&
+    classicBuffActive(s, c, "MO_EXPLOSIONSPIRITS", at)
   )
     return 0;
-  if (source !== "MO_EXTREMITYFISMPˆ¤É•ÑÕÉ¸½ÍĞì(€½¹ÍĞ‰±…‘•1¥¹¬€ôÌ¹½µ‰…Ñ™™•ÑÌü¹‰±…‘•M7F÷Æ–æ³°¢–b†&ÆFTÆ–æ²bb&ÆFU7F÷F&vWB‡2ÂB’bb&ÆFU4İÜÚÚ[[İÙY
-	ÓS×ÑV‘SRUQ’TÕ	Ë›YS[šË›]™[
-JBˆ™eturn Math.max(1, cost - 1);
-  switch (activeCombo(s, c, at))¤ì(€€€…Í”€‰5=}=5	=%9%M ˆè(€€€€€É•ÑÕÉ¸€Ğì(€€€…Í”€‰!}QD”tU$d•5B# ¢&WGW&â3°¢66R$4…ô4„”ä5%U4‚# ¢,™]\›ˆX]›X^
-KÛİ[
-NÂˆY˜][‚ˆ™]\›ˆÛÜİÂˆ }
+  if (source !== "MO_EXTREMITYFIST") return cost;
+  const bladeLink = s.combatEffects?.bladeStopLink;
+  if (bladeLink && bladeStopTarget(s, at) && bladeStopSkillAllowed('MO_EXTREMITYFIST', bladeLink.level))
+    return Math.max(1, cost - 1);
+  switch (activeCombo(s, c, at)) {
+    case "MO_COMBOFINISH":
+      return 4;
+    case "CH_TIGERFIST":
+      return 3;
+    case "CH_CHAINCRUSH":
+      return Math.max(1, count);
+    default:
+      return cost;
+  }
 }
