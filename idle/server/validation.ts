@@ -26,7 +26,7 @@ const rules: Record<string, Record<string, Rule>> = {
   setMount: { mounted: boolean },
   rentFalcon: {}, dismissFalcon: {},
   weaponRefine: {menuId:token,uid:token},cancelWeaponRefine:{menuId:token},
-  setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token) },
+  setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token), areaId: value => value === undefined || token(value) },
   buy: { itemId: integer(1, 1_000_000), quantity: integer(1, 9999) },
   craftPharmacy: { itemId: oneOf(501,503,504,505,545,546,547,7135,7136,7137,7138,7139,12118,12119,12120,12121,605,606,970,7142), quantity: integer(1,1000) },
   craftConverter: { itemId: oneOf(12114,12115,12116,12117), quantity: integer(1,1000) },

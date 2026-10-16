@@ -5,7 +5,11 @@ import { event } from './state.js';
 export function clearCopiedSpell(s: GameState, _c: Catalog): void {
   const id = s.copiedSkill?.skillId;
   delete s.copiedSkill;
-  if (id && !(s.learnedSkills[id] > 0)) s.rotation = s.rotation.filter(candidate => candidate !== id);
+  if (id && !(s.learnedSkills[id] > 0)) {
+    s.rotation = s.rotation.filter(candidate => candidate !== id);
+    if (s.rotationByArea) for (const [areaId, ids] of Object.entries(s.rotationByArea))
+      s.rotationByArea[areaId] = ids.filter(candidate => candidate !== id);
+  }
   // A committed cast owns its ID/level snapshot: clearing the slot does not cancel it.
 }
 /** skill.c:3670..3737: after defenses, before damage; acquisition makes no RNG draw. */

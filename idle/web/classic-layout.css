@@ -328,6 +328,28 @@
   color: #3a5660;
 }
 
+.rotation-profile-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+  margin: 5px 0 9px;
+  color: #3a5660;
+  font: 11px/1.4 Tahoma, "Segoe UI", sans-serif;
+}
+
+.rotation-profile-control label { font-weight: 700; }
+.rotation-profile-control select {
+  min-width: min(100%, 220px);
+  padding: 5px 8px;
+  border: 1px solid #a5b8b5;
+  border-radius: 3px;
+  background: #f3f3e9;
+  color: #334f5a;
+  font: inherit;
+}
+.rotation-profile-control p { flex: 1 1 100%; margin: 0; color: #64746d; }
+
 .skill-wheel-layout {
   display: grid;
   grid-template-columns: 258px minmax(0, 1fr);

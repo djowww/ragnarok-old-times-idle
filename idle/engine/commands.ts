@@ -614,6 +614,8 @@ export function executeCommand(
         "INVALID_ROTATION",
         "Use até nove habilidades distintas.",
       );
+      if (command.areaId !== undefined)
+        requireRule(c.areas.some(area => area.id === command.areaId), "INVALID_ROTATION_AREA", "Escolha uma área válida para esta rotação.");
       for (const id of command.skillIds)
         requireRule(
           effectiveSkillLevel(s, c, id) &&
@@ -630,7 +632,8 @@ export function executeCommand(
           "INVALID_ROTATION",
           "A rotação exige habilidades ativas disponíveis e aprendidas.",
         );
-      s.rotation = [...command.skillIds];
+      if (command.areaId === undefined) s.rotation = [...command.skillIds];
+      else (s.rotationByArea ??= {})[command.areaId] = [...command.skillIds];
       break;
     }
     case "craftPharmacy": {
@@ -911,6 +914,7 @@ export function executeCommand(
       s.learnedSkills = firstAid ? { [firstAid]: 1 } : {};
       delete s.skillUseLevels;
       s.rotation = firstAid ? [firstAid] : [];
+      delete s.rotationByArea;
       s.skillReadyAt = {};
       s.buffs = {};
       s.combatEffects = {};

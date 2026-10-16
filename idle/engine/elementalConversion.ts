@@ -7,6 +7,7 @@ import {classSkills} from './stats.js';
 import {canPaySkillResources} from './skillResources.js';
 import {event,random} from './state.js';
 import {conversionSpec,conversionAttemptStages,conversionElementLevel,ELEMENTAL_CONVERSION_DURATION_MS} from './elementalConversionRules.js';
+import { automaticSkillRotation } from '../shared/skillRotation.js';
 export function elementalConversionEligible(s:GameState,c:Catalog,skill:Skill,level:number,enemy:BattleEnemy,at:number) {
  const current=c.skills[skill.id];
  return !!conversionSpec(skill.sourceName??'')&&current?.sourceName===skill.sourceName&&current.implementation==='supported'&&level===1&&Number.isFinite(at)&&
@@ -22,7 +23,7 @@ export function elementalConversionTarget(s:GameState,c:Catalog,skill:Skill,at:n
  const spec=conversionSpec(skill.sourceName??''),level=s.learnedSkills[skill.id];
  if(!spec||!canPaySkillResources(s,c,skill,level,at))return;
  const tree=classSkills(c,s.job);
- const planned=s.rotation.map(id=>c.skills[id]).filter(attack=>attack&&attack.implementation==='supported'&&tree.includes(attack.id)&&
+ const planned=automaticSkillRotation(s).map(id=>c.skills[id]).filter(attack=>attack&&attack.implementation==='supported'&&tree.includes(attack.id)&&
   Number.isSafeInteger(s.learnedSkills[attack.id])&&s.learnedSkills[attack.id]>0&&s.learnedSkills[attack.id]<=attack.maxLevel&&
   ['physical','magical'].includes(attack.kind)&&attack.element&&attack.element.toLowerCase()!=='weapon'&&canPaySkillResources(s,c,attack,s.learnedSkills[attack.id],at));
  return s.battle?.enemies?.find(enemy=>{

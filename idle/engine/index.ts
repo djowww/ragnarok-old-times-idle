@@ -31,6 +31,13 @@ function reconcileRemovedSkills(s: GameState, c: Catalog) {
     delete s.learnedSkills[id];
   }
   s.rotation = s.rotation.filter(id => !removed(id));
+  if (s.rotationByArea) {
+    const validAreaIds = new Set(c.areas.map(area => area.id));
+    for (const [areaId, ids] of Object.entries(s.rotationByArea)) {
+      if (!validAreaIds.has(areaId)) delete s.rotationByArea[areaId];
+      else s.rotationByArea[areaId] = ids.filter(id => !removed(id));
+    }
+  }
   for (const id of Object.keys(s.skillReadyAt)) {
     if (removed(id)) delete s.skillReadyAt[id];
   }
