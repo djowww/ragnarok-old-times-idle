@@ -5,6 +5,7 @@ import { activePlayerStatus } from './playerStatuses.js';
 import { effectiveMonsterStatus } from './classicStatuses.js';
 import { classicSoftMdef } from './classic.js';
 import { derivedStats, classSkills, inventoryLoad } from './stats.js';
+import { automaticSkillRotation } from '../shared/skillRotation.js';
 
 const SENSE_ELEMENTS = ['water', 'earth', 'fire', 'wind', 'poison', 'holy', 'dark', 'ghost', 'undead'] as const;
 
@@ -28,7 +29,7 @@ export function senseManualTarget(state: GameState, catalog: Catalog, at: number
   if (!skill || skill.implementation !== 'supported' || skill.manualUse !== 'inspect' ||
       skill.targetType !== 'enemy' || skill.maxLevel !== 1 || !battle ||
       (state.status !== 'hunting' && state.status !== 'challenge') || state.hp <= 0 ||
-      state.rotation.includes(skill.id) || !classSkills(catalog, state.job).includes(skill.id) ||
+      automaticSkillRotation(state).includes(skill.id) || !classSkills(catalog, state.job).includes(skill.id) ||
       state.learnedSkills[skill.id] !== 1 || (battle.cast && battle.cast.endsAt > at) ||
       CONTROL_STATUSES.some(source => classicBuffActive(state, catalog, source, at)) ||
       activePlayerStatus(state, 'SC_SILENCE', at))

@@ -3,6 +3,7 @@ import type { Catalog, GameState, PlayerDisease, PlayerStatus, Skill } from '../
 import { playerStatusResistance, poisonTickParameters, poisonTickDecision, deadlyPoisonInitialDamage } from './playerStatusRules.js';
 import { derivedStats, classSkills } from './stats.js';
 import { classicBuffActive, canActWhileHidden } from './classicBuffs.js';
+import { automaticSkillRotation } from '../shared/skillRotation.js';
 import { event, random } from './state.js';
 export const treatmentSources = new Set(['AL_CURE','TF_DETOXIFY','PR_SLOWPOISON']);
 const cureStatuses = ['SC_SILENCE','SC_BLIND','SC_CONFUSION','SC_BITESCAR'] as const;
@@ -66,7 +67,7 @@ export function statusTreatmentNeeded(s:GameState,c:Catalog,skill:Skill,at:numbe
 }
 export function statusTreatmentEligible(s:GameState,c:Catalog,skill:Skill,level:number,at:number) {
   if (['MO_STEELBODY','LK_BERSERK','KN_AUTOCOUNTER'].some(source=>classicBuffActive(s,c,source,at)) || classicBuffActive(s,c,'TF_HIDING',at)&&!canActWhileHidden(skill)) return false;
-  return s.hp>0&&skill.implementation!=='unsupported'&&s.learnedSkills[skill.id]===level&&level>0&&level<=skill.maxLevel&&classSkills(c,s.job).includes(skill.id)&&s.rotation.includes(skill.id)&&statusTreatmentNeeded(s,c,skill,at)&&!activePlayerStatus(s,'SC_SILENCE',at);
+  return s.hp>0&&skill.implementation!=='unsupported'&&s.learnedSkills[skill.id]===level&&level>0&&level<=skill.maxLevel&&classSkills(c,s.job).includes(skill.id)&&automaticSkillRotation(s).includes(skill.id)&&statusTreatmentNeeded(s,c,skill,at)&&!activePlayerStatus(s,'SC_SILENCE',at);
 }
 export function resolveStatusTreatment(s:GameState,c:Catalog,skill:Skill,level:number,at:number) {
   if(!statusTreatmentNeeded(s,c,skill,at)) return false;

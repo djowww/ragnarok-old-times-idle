@@ -1,4 +1,5 @@
 import type { Catalog, GameState } from '../shared/types.js';
+import { automaticSkillRotation } from '../shared/skillRotation.js';
 import { classSkills, inventoryLoad } from './stats.js';
 
 export const PICK_STONE_ITEM_ID = 7049;
@@ -20,7 +21,7 @@ export function pickStoneAfkNeeded(s: GameState, c: Catalog): boolean {
   if (s.hp <= 0 || stoneCount(s) !== 0 || !c.items[PICK_STONE_ITEM_ID]) return false;
   const tree = classSkills(c, s.job);
   for (const source of ['TF_PICKSTONE', 'TF_THROWSTONE']) {
-    const skill = s.rotation.map(id => c.skills[id]).find(candidate => candidate?.sourceName === source);
+    const skill = automaticSkillRotation(s).map(id => c.skills[id]).find(candidate => candidate?.sourceName === source);
     if (!skill || skill.implementation !== 'supported' || skill.manualUse || skill.kind === 'passive' ||
       !tree.includes(skill.id) || s.jobLevel < (skill.minimumJobLevel ?? 0)) return false;
     const level = s.learnedSkills[skill.id];

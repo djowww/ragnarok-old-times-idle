@@ -8,6 +8,7 @@ import ClassicStatus from "../components/ClassicStatus";
 import SkillIcon from "../components/SkillIcon";
 import SkillWheel, { SKILL_ROTATION_LIMIT } from "../components/SkillWheel";
 import { classSkills } from "../../engine/stats";
+import { skillRotationForArea } from "../../shared/skillRotation";
 import { classicCastTime } from "../../engine/classic";
 import { automaticSpellChoices } from "../../engine/sageCasting";
 import { classicBuffActive } from "../../engine/classicBuffs";
@@ -50,7 +51,19 @@ export default function Build({
   const copy = copiedSpell(state, catalog);
   const skills = [...ids].map((id) => catalog.skills[id]).filter(Boolean);
   if (copy && !ids.has(copy.skill.id)) skills.unshift(copy.skill);
-  const rotation = state.rotation;
+  const [rotationAreaId, setRotationAreaId] = useState(() =>
+    state.status === "hunting" ? state.areaId ?? "" : "",
+  );
+  const selectedRotationAreaId = catalog.areas.some(area => area.id === rotationAreaId) ? rotationAreaId : "";
+  const rotation = selectedRotationAreaId
+    ? skillRotationForArea(state, selectedRotationAreaId)
+    : state.rotation;
+  const changeRotation = (skillIds: string[]) => void command({
+    type: "setRotation",
+    ...(selectedRotationAreaId ? { areaId: selectedRotationAreaId } : {}),
+    skillIds,
+  });
+  const hasAreaRotation = selectedRotationAreaId && Object.hasOwn(state.rotationByArea ?? {}, selectedRotationAreaId);
   const autospellChoices = automaticSpellChoices(state, catalog);
   const mounted = isPecoMounted(state, catalog);
   const falconEquipped = isFalconEquipped(state,catalog);
@@ -62,8 +75,20 @@ export default function Build({
           <h3>Habilidades</h3>
           <b className="point-count">{number(state.skillPoints)} pontos</b>
         </div>
+        <div className="rotation-profile-control">
+          <label htmlFor="auto-skill-rotation-area">Perfil de caça</label>
+          <select id="auto-skill-rotation-area" aria-label="Área da rotação automática"
+            value={selectedRotationAreaId}
+            onChange={event => setRotationAreaId(event.currentTarget.value)}>
+            <option value="">Geral · todos os mapas</option>
+            {catalog.areas.map(area => <option value={area.id} key={area.id}>{area.name}</option>)}
+          </select>
+          <p>{selectedRotationAreaId
+            ? hasAreaRotation ? "Rotação exclusiva deste mapa." : "Herdando a rotação geral; a primeira alteração cria um perfil próprio."
+            : "Usada nos mapas sem perfil próprio e nos desafios."}</p>
+        </div>
         <SkillWheel skills={catalog.skills} rotation={rotation} busy={busy}
-          onChange={(skillIds) => void command({ type: "setRotation", skillIds })} />
+          onChange={changeRotation} />
         <div className="skill-list">
           {skills.map((skill) => {
             const isCopy = copy?.skill.id === skill.id;
@@ -368,12 +393,9 @@ export default function Build({
                         }
                         aria-pressed={active}
                         onClick={() =>
-                          void command({
-                            type: "setRotation",
-                            skillIds: active
-                              ? rotation.filter((s) => s !== skill.id)
-                              : [...rotation, skill.id],
-                          })
+                          changeRotation(active
+                            ? rotation.filter((s) => s !== skill.id)
+                            : [...rotation, skill.id])
                         }
                       >
                         {active ? "Remover da rotação" : "Usar na rotação"}

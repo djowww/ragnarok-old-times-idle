@@ -6,6 +6,7 @@ import { itemElementResistance } from '../shared/consumables.js';
 import { consumeItem, consumeItemBlockReason, discardAloeveraUnderAutoBerserk, clearConsumableStatusesOnDeath } from "./consumables.js";
 import { applyMeltdownHit } from './meltdown.js';
 import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
+import { automaticSkillRotation } from '../shared/skillRotation.js';
 import { soloAlchemyAfkUseful, startSoloAlchemyCast } from './soloAlchemy.js';
 import type {
   BattleEnemy,
@@ -1188,7 +1189,7 @@ function bladeStopAutoHasUsefulFollowup(s: GameState, c: Catalog, blade: Skill, 
   if (!clonedPartner) return false;
   createBladeStopLink(afterPayment, clonedPartner, level, linkAt);
   const followups = new Set(['MO_FINGEROFFENSIVE', 'MO_INVESTIGATE', 'MO_CHAINCOMBO', 'MO_EXTREMITYFIST']);
-  return s.rotation.some(id => {
+  return automaticSkillRotation(s).some(id => {
     const skill = c.skills[id], followupLevel = s.learnedSkills[id];
     return !!skill && !!followupLevel && skill.implementation !== 'unsupported' &&
       followups.has(skill.sourceName ?? '') && bladeStopSkillAllowed(skill.sourceName ?? '', level) &&
@@ -1249,16 +1250,17 @@ function chooseSkill(
   if (classicBuffActive(s, c, 'MO_STEELBODY', at) || classicBuffActive(s, c, 'LK_BERSERK', at) ||
     classicBuffActive(s, c, 'KN_AUTOCOUNTER', at) || classicBuffActive(s, c, 'ST_CHASEWALK', at)) return;
   const d = derivedStats(s, c);
+  const rotation = automaticSkillRotation(s);
   const entry = s.inventory.find((e) => e.uid === s.equipment.weapon);
   const type = entry ? c.items[entry.itemId]?.weaponType : undefined;
-  for (const id of s.rotation) {
+  for (const id of rotation) {
     const skill = c.skills[id],
       level = skillUseLevel(s, c, id);
     if (skill?.sourceName === 'KN_AUTOCOUNTER' && type === 'bow') continue;
     if (skill?.sourceName === 'CR_SHRINK') {
       const autoGuard = Object.values(c.skills).find(candidate => candidate.sourceName === 'CR_AUTOGUARD');
       const guardActive = (activeBySource(s, c, at).CR_AUTOGUARD ?? 0) > 0;
-      const guardPlanned = !!autoGuard && s.rotation.includes(autoGuard.id) &&
+      const guardPlanned = !!autoGuard && rotation.includes(autoGuard.id) &&
         (s.learnedSkills[autoGuard.id] ?? 0) > 0 && autoGuard.implementation === 'supported' &&
         guardianSkillEligible(s, c, autoGuard);
       if (guardianStatusActive(s, c, 'CR_SHRINK', at) || !guardianShieldEquipped(s, c) ||
@@ -3555,7 +3557,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
     if (b.playerNextAttackAt <= at) b.playerNextAttackAt = at + 250;
     return;
   }
-  if (!target && s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], at)))
+  if (!target && automaticSkillRotation(s).some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], at)))
     target = { id: s.id, monsterId: b.monsterId, hp: 0, maxHp: b.maxHp, startedAt: b.startedAt, arrivedAt: at, enemyNextAttackAt: Infinity, spawnDirection: 0, position: battleHeroAt(s, at) };
   if (!target || s.hp <= 0) return;
   const stats = derivedStats(s, c);
@@ -3902,7 +3904,7 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     const activePlayerCast = currentPlayerCast(s, cursor);
     const freeCastDuringCast = !!activePlayerCast && activeFreeCastLevel(s, c, cursor) > 0;
     const supportCastBlocksPlayer = activePlayerCast?.kind === 'support' && !freeCastDuringCast;
-    if (s.hp > 0 && !overweightForCombat(s, c) && !(s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= cursor) && !trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).some(enemy => enemy.hp > 0) || s.rotation.some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
+    if (s.hp > 0 && !overweightForCombat(s, c) && !(s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= cursor) && !trickDeadActive(s, c, cursor) && (!b.cast || freeCastDuringCast) && !supportCastBlocksPlayer && (enemies(s).some(enemy => enemy.hp > 0) || automaticSkillRotation(s).some(id => treatmentSources.has(c.skills[id]?.sourceName ?? '') && statusTreatmentEligible(s, c, c.skills[id], s.learnedSkills[id], cursor)))) {
       const nextPlayerWork = freeCastDuringCast ? b.playerNextAttackAt : Math.min(
         Math.max(b.playerNextAttackAt, b.playerActionReadyAt ?? 0, s.playerCanActAt ?? 0),
         Math.max(b.playerNextSkillAt ?? b.playerNextAttackAt, s.playerCanActAt ?? 0));

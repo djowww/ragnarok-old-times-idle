@@ -22,6 +22,13 @@ describe('command boundary', () => {
     expect(() => parseCommandRequest({ requestId, command: { type: 'setPotions', hpThreshold: 101, spThreshold: 30 } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'allocate', stat: 'power', amount: 1 } })).toThrow();
   });
+  it('accepts an area-scoped rotation while keeping legacy global commands valid', () => {
+    expect(parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['fire_bolt'] } }))
+      .toEqual({ requestId, command: { type: 'setRotation', skillIds: ['fire_bolt'] } });
+    expect(parseCommandRequest({ requestId, command: { type: 'setRotation', areaId: 'pay_fild01', skillIds: [] } }))
+      .toEqual({ requestId, command: { type: 'setRotation', areaId: 'pay_fild01', skillIds: [] } });
+    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', areaId: '!invalid', skillIds: [] } })).toThrow();
+  });
   it('accepts a real purchase intention without converting it into a reward', () => {
     expect(parseCommandRequest({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } }))
       .toEqual({ requestId, command: { type: 'buy', itemId: 501, quantity: 3 } });
