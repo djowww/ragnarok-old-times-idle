@@ -54,10 +54,22 @@ export interface PresentedActorAction {
   effectStart: number;
   impact: number;
   actionDuration: number;
+  motionMs?: number;
+  reactionDuration?: number;
   duration?: number;
   presentationDirection?: number;
   /** False when a reconnect/backlog action was intentionally compressed. */
   presented?: boolean;
+}
+/** Place an attack's visible contact no earlier than its decoded ACT completes. */
+export function actorActionImpactAt(
+  action: Pick<PresentedActorAction, 'actorAction' | 'start' | 'effectStart' | 'actionDuration'> & { motionMs?: number },
+) {
+  if (action.actorAction === 'none') return action.effectStart;
+  const contactDelay = action.actorAction === 'attack'
+    ? Math.max(action.motionMs ?? 0, action.actionDuration)
+    : action.actionDuration * 0.5;
+  return Math.max(action.effectStart, action.start + contactDelay);
 }
 export type ActorActionWatermark = Pick<PresentedActorAction, 'actionAt' | 'actionId' | 'id' | 'start'> & {
   end: number;
@@ -294,7 +306,7 @@ export interface PresentedActorReaction {
   blocked?: boolean; reactionSuppressed?: boolean;
 }
 
-/** Reconcile actual ACT length once decoded, keeping damage at its own clock. */
+/** Reconcile the decoded ACT and keep visual contact aligned with its final attack frame. */
 export function reconcileActorPlayback<T extends PresentedActorAction>(cues: T[], marks: Map<string, ActorActionWatermark>, active: T, duration: number): Map<number, number> {
   const moved = new Map<number, number>();
   if (!active.presented || !Number.isFinite(duration) || duration <= 0) return moved;
@@ -303,22 +315,29 @@ export function reconcileActorPlayback<T extends PresentedActorAction>(cues: T[]
   const impactFloor = maxFiniteDuration(...actionCues.map(cue => cue.impact - cue.start));
   const actionDuration = maxFiniteDuration(duration, impactFloor);
   const delta = actionDuration - active.actionDuration;
-  if (Math.abs(delta) < .000001) return moved;
   const oldEnd = active.start + active.actionDuration;
   for (const cue of cues) {
     if (cue.sourceActorId !== active.sourceActorId || cue.actorAction === 'none' || !cue.presented) continue;
     if (cue.actionAt === active.actionAt && cue.actionId === active.actionId) {
       cue.actionDuration = actionDuration;
-      cue.duration = maxFiniteDuration(cue.duration ?? actionDuration, actionDuration);
-    } else if (cue.start >= oldEnd) {
+      if (cue.actorAction === 'attack') {
+        const oldImpact = cue.impact;
+        cue.impact = Math.max(oldImpact, actorActionImpactAt({
+          ...cue, motionMs: cue.motionMs ?? 0,
+        }));
+        if (cue.impact > oldImpact) moved.set(cue.id, cue.impact - oldImpact);
+      }
+      cue.duration = maxFiniteDuration(cue.duration ?? actionDuration, actionDuration,
+        cue.impact - cue.start + (cue.reactionDuration ?? 0));
+    } else if (delta > 0 && cue.start >= oldEnd) {
       cue.start += delta; cue.effectStart += delta; cue.impact += delta;
-      moved.set(cue.id, delta);
+      moved.set(cue.id, (moved.get(cue.id) ?? 0) + delta);
     }
   }
   const mark = marks.get(active.sourceActorId);
   if (mark?.presented) {
     if (mark.actionAt === active.actionAt && mark.actionId === active.actionId) mark.end = mark.start + actionDuration;
-    else if (mark.start >= oldEnd) { mark.start += delta; mark.end += delta; }
+    else if (delta > 0 && mark.start >= oldEnd) { mark.start += delta; mark.end += delta; }
   }
   return moved;
 }

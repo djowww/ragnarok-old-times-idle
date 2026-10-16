@@ -19,7 +19,7 @@ function cue(id: number, actionId: string, job: string, motionMs: number, start 
   return { id, actionId, actionAt: start, sourceActorId: 'hero', targetActorId: `mob-${id}`,
     actorAction: 'attack' as const, start, effectStart: start, impact: start + motionMs,
     actionDuration: render.getActorPlaybackDuration(actor(job, weapon), 'attack', motionMs),
-    duration: motionMs, presented: true, hit: true, targetHpBefore: 30, amount: 30 };
+    motionMs, duration: motionMs, reactionDuration: 0, presented: true, hit: true, targetHpBefore: 30, amount: 30 };
 }
 
 describe('contact-aligned combat playback', () => {
@@ -47,7 +47,7 @@ describe('contact-aligned combat playback', () => {
   it.each([
     { job: 'swordsman', weapon: 'sword' as const, motionMs: 300, expected: 600 },
     { job: 'assassin', weapon: 'katar' as const, motionMs: 300, expected: 1200 },
-  ])('$job/$weapon preserves the pinned ACT playback pace when its pose outlasts contact', ({ job, weapon, motionMs, expected }) => {
+  ])('$job/$weapon aligns hit contact with the pinned ACT playback', ({ job, weapon, motionMs, expected }) => {
     const value = actor(job, weapon);
     const hit = cue(1, 'armed', job, motionMs, 1000, weapon);
     const marks = new Map();
@@ -56,7 +56,7 @@ describe('contact-aligned combat playback', () => {
     expect(nativeDuration).toBe(expected);
     presentation.reconcileActorPlayback([hit], marks, hit, nativeDuration);
     expect(hit.actionDuration).toBe(expected);
-    expect(hit.impact).toBe(hit.start + motionMs);
+    expect(hit.impact).toBe(hit.start + expected);
     expect(presentation.presentedActorActionAt([hit], 'hero', hit.impact - 0.001)).toBe(hit);
     expect(render.getActorPose(value, 'attack', nativeDuration - 0.001, 0, motionMs)[0]?.x).toBe(11);
     expect(presentation.presentedActorActionAt([hit], 'hero', hit.start + expected)).toBeUndefined();
@@ -100,6 +100,33 @@ describe('contact-aligned combat playback', () => {
     presentation.presentLatestActorActions([lateMarkSibling], lateMarks, 1100);
     expect(lateMarkSibling.actionDuration).toBe(300);
     expect(lateMarks.get('hero')?.end).toBe(first.start + 300);
+  });
+
+  it('aligns attack contact and monster death with the end of a longer decoded ACT', () => {
+    const hit = cue(1, 'swordsman-contact', 'swordsman', 300, 1000, 'sword');
+    expect(hit.actionDuration).toBe(600);
+    expect(presentation.actorActionImpactAt(hit)).toBe(1600);
+  });
+  it('keeps the target reaction visible through the late-decoded attack ACT tail', () => {
+    const hit = cue(1, 'late-swordsman-contact', 'swordsman', 300, 1000, 'sword');
+    hit.actionDuration = 300;
+    hit.reactionDuration = 320;
+    hit.impact = hit.start + 300;
+    const marks = new Map([['hero', { actionAt: hit.actionAt, actionId: hit.actionId,
+      id: hit.id, start: hit.start, end: hit.start + 300, presented: true }]]);
+    const moved = presentation.reconcileActorPlayback([hit], marks, hit, 600);
+    expect(moved.get(hit.id)).toBe(300);
+    expect(hit.actionDuration).toBe(600);
+    expect(hit.impact).toBe(1600);
+    const reactionAt = 1900;
+    const retained = [hit].filter(cue => cue.start + (cue.duration ?? 0) > reactionAt);
+    expect(presentation.presentedActorReactionAt(retained, hit.targetActorId, reactionAt)).toBe(hit);
+  });
+
+  it('keeps server motion contact when the decoded attack ACT is shorter', () => {
+    const hit = cue(1, 'monk-contact', 'monk', 300, 1000);
+    expect(hit.actionDuration).toBe(250);
+    expect(presentation.actorActionImpactAt(hit)).toBe(1300);
   });
 
   it('ignores non-finite or non-positive decoded playback durations without corrupting contact clocks', () => {

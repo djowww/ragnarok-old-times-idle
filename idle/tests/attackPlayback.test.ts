@@ -72,7 +72,7 @@ describe('pinned client attack playback', () => {
     const other = { ...make(3, 1300, 300), sourceActorId: 'other' };
     const marks = new Map([['hero', { actionAt: queued.actionAt, actionId: queued.actionId, id: queued.id, start: queued.start, end: 1600, presented: true }]]);
     presentation.reconcileActorPlayback([active, queued, other], marks, active, 600);
-    expect(active.actionDuration).toBe(600); expect(active.impact).toBe(1300);
+    expect(active.actionDuration).toBe(600); expect(active.impact).toBe(1600);
     expect(queued.start).toBe(1600); expect(queued.impact).toBe(1900); expect(other.start).toBe(1300);
     expect(marks.get('hero')!.end).toBe(1900);
     presentation.reconcileActorPlayback([active, queued, other], marks, active, 600);
