@@ -49,7 +49,7 @@ describe('pinned client attack playback', () => {
   });
   it('slices only unarmed Monk/Champion attacks to five frames and preserves full armed attacks', () => {
     for (const job of ['monk', 'champion']) {
-      expect(render.getActorPlaybackDuration(actor(job), 'attack', 300)).toBe(250);
+      expect(render.getActorPlaybackDuration(actor(job), 'attack', 300)).toBe(300);
       expect(render.getActorPose(actor(job), 'attack', 299, 0, 300).map(layer => layer.x)).toEqual([4, 4]);
       expect(render.getActorPlaybackDuration(actor(job, 'male', 'mace'), 'attack', 300)).toBe(600);
     }

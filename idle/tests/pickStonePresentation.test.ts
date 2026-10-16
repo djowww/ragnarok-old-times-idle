@@ -6,10 +6,11 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import rawCatalog from '../content/catalog.json';
 import { drawSkillEffect, combatPopupText, SKILL_EFFECT_MS } from '../web/assets/sceneEffects';
-import { skillCueCastDuration, presentLatestActorActions, presentedActorActionAt, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill } from '../web/assets/combatPresentation';
+import { actorActionImpactAt, skillVisualEffectAt, skillCueCastDuration, presentLatestActorActions, presentedActorActionAt, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill } from '../web/assets/combatPresentation';
 import { hasSceneAction, trapCueAction } from '../web/assets/groundTraps';
 import { isTownScene } from '../shared/worldScene';
 import { isNpcStatusAction } from '../shared/playerStatusView';
+import { getCombatActorAction } from '../web/assets/renderer';
 
 const scene = readFileSync(new URL('../web/components/Scene.tsx', import.meta.url), 'utf8');
 const effectStart = scene.indexOf('    const previous = stateRef.current.state;');
@@ -41,6 +42,7 @@ function snapshotFixture(population: boolean) {
     projection: ref(null), encounterPose: ref(null), roaming: ref({ position: { x: .5, y: .5 } }),
     skillCueCastDuration, selectSceneEventBatch, shiftCorpsePresentation, alignFalconCues, isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
     presentLatestActorActions, retireInterruptedCastCues, retireTrickDeadPoses, hasSceneAction, trapCueAction, combatPopupText, SKILL_EFFECT_MS,
+    getCombatActorAction, actorActionImpactAt, skillVisualEffectAt,
   };
   return scope;
 }

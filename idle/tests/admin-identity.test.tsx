@@ -90,3 +90,129 @@ it('does not invalidate authentication when an expired response arrives after un
   await act(async () => resolve(json({ error: { code: 'AUTH_REQUIRED', message: 'Sessão expirada.' } }, 401)));
   expect(authA).not.toHaveBeenCalled(); expect(changedA).not.toHaveBeenCalled();
 });
+
+it('uses a server-selected character for grants while keeping the caller identity', async () => {
+  const betaState = createInitialState(catalog, 1000);
+  const target = { profileId: accountB.profileId, username: accountB.username,
+    characterName: accountB.characterName, classId: betaState.job, baseLevel: betaState.baseLevel,
+    jobLevel: betaState.jobLevel, gender: betaState.gender, status: betaState.status, zeny: betaState.zeny };
+  responder = async path => path === '/api/admin/session'
+    ? json({ enabled: true, authenticated: true })
+    : path.startsWith('/api/admin/characters?')
+      ? json({ characters: [target] })
+      : json({ ok: true, target: { ...target, baseLevel: target.baseLevel + 1 } });
+  await render(accountA);
+  const search = host.querySelector<HTMLInputElement>('.admin-target-search input');
+  expect(search).not.toBeNull();
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(search, 'b');
+    search!.dispatchEvent(new Event('input', { bubbles: true }));
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(search, 'be');
+    search!.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await act(async () => host.querySelector<HTMLButtonElement>('.admin-target-search button')!.click());
+  await act(async () => host.querySelector<HTMLButtonElement>('.admin-target-results button')!.click());
+  await clickBase();
+  const action = requests.find(call => call.path === '/api/admin/action')!;
+  expect(JSON.parse(action.options.body as string)).toMatchObject({ targetProfileId: accountB.profileId,
+    action: { type: 'baseLevels', amount: 1 } });
+  expect(new Headers(action.options.headers).get('X-Idle-Expected-Identity'))
+    .toBe(JSON.stringify([accountA.accountId, accountA.profileId]));
+});
+
+it('ignores an older character search response that arrives after a newer one', async () => {
+  const pending = new Map<string, (response: Response) => void>();
+  const state = createInitialState(catalog, 1000);
+  const character = (name: string) => ({ profileId: `profile-${name}`, username: name,
+    characterName: name, classId: state.job, baseLevel: state.baseLevel,
+    jobLevel: state.jobLevel, gender: state.gender, status: state.status, zeny: state.zeny });
+  responder = async path => path === '/api/admin/session'
+    ? json({ enabled: true, authenticated: true })
+    : new Promise<Response>(resolve => { pending.set(path, resolve); });
+  await render();
+  const input = host.querySelector<HTMLInputElement>('.admin-target-search input')!;
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+  const search = async (query: string) => {
+    await act(async () => {
+      setter.call(input, query.slice(0, 1)); input.dispatchEvent(new Event('input', { bubbles: true }));
+      setter.call(input, query); input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => host.querySelector<HTMLButtonElement>('.admin-target-search button')!.click());
+  };
+  await search('al');
+  await search('be');
+  expect(pending.has('/api/admin/characters?query=al')).toBe(true);
+  expect(pending.has('/api/admin/characters?query=be')).toBe(true);
+  await act(async () => pending.get('/api/admin/characters?query=be')!(json({ characters: [character('beta')] })));
+  expect(host.querySelector('.admin-target-results')?.textContent).toContain('beta');
+  await act(async () => pending.get('/api/admin/characters?query=al')!(json({ characters: [character('alpha')] })));
+  expect(host.querySelector('.admin-target-results')?.textContent).toContain('beta');
+  expect(host.querySelector('.admin-target-results')?.textContent).not.toContain('alpha');
+});
+
+it('reuses a pending v1 self-grant receipt after an upgrade', async () => {
+  const action = { type: 'baseLevels', amount: 1 };
+  const legacyId = 'legacy-admin-request-01';
+  const storageKey = 'ragidle-admin-pending-action-ids-v1:account-a:profile-a';
+  sessionStorage.setItem(storageKey, JSON.stringify({ [JSON.stringify(action)]: legacyId }));
+  responder = async path => path === '/api/admin/session'
+    ? json({ enabled: true, authenticated: true })
+    : Promise.reject(new TypeError('connection lost after sending'));
+  await render(); await clickBase();
+  const sent = requests.find(call => call.path === '/api/admin/action')!;
+  expect(JSON.parse(sent.options.body as string).requestId).toBe(legacyId);
+  const pending = JSON.parse(sessionStorage.getItem(storageKey)!);
+  expect(pending[JSON.stringify([accountA.profileId, action])]).toBe(legacyId);
+  expect(pending[JSON.stringify(action)]).toBeUndefined();
+});
+
+it('shows a restricted state without a token form when this account is not an admin', async () => {
+  responder = async path => path === '/api/admin/session'
+    ? json({ error: { code: 'ADMIN_ACCOUNT_FORBIDDEN', message: 'Esta conta não tem acesso ao painel administrativo.' } }, 403)
+    : json({ ok: true });
+  await render();
+  expect(host.textContent).toContain('Acesso restrito');
+  expect(host.textContent).toContain('Esta conta não tem acesso');
+  expect(host.querySelector('input[type=password]')).toBeNull();
+});
+
+it('keeps the new target selected when an earlier grant finishes later', async () => {
+  const state = createInitialState(catalog, 1000);
+  const character = (name: string) => ({ profileId: `target-${name}`, username: name,
+    characterName: name, classId: state.job, baseLevel: state.baseLevel,
+    jobLevel: state.jobLevel, gender: state.gender, status: state.status, zeny: state.zeny });
+  const alpha = character('alpha'); const beta = character('beta');
+  let finishAlpha!: (response: Response) => void;
+  let grants = 0;
+  responder = async path => {
+    if (path === '/api/admin/session') return json({ enabled: true, authenticated: true });
+    if (path === '/api/admin/characters?query=al') return json({ characters: [alpha] });
+    if (path === '/api/admin/characters?query=be') return json({ characters: [beta] });
+    if (path === '/api/admin/action') {
+      grants++;
+      return grants === 1 ? new Promise<Response>(resolve => { finishAlpha = resolve; })
+        : json({ ok: true, target: beta });
+    }
+    return json({ ok: true });
+  };
+  await render();
+  const input = host.querySelector<HTMLInputElement>('.admin-target-search input')!;
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+  const select = async (query: string) => {
+    await act(async () => {
+      setter.call(input, query.slice(0, 1)); input.dispatchEvent(new Event('input', { bubbles: true }));
+      setter.call(input, query); input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await act(async () => host.querySelector<HTMLButtonElement>('.admin-target-search button')!.click());
+    await act(async () => host.querySelector<HTMLButtonElement>('.admin-target-results button')!.click());
+  };
+  await select('al'); await clickBase();
+  await select('be');
+  expect(host.querySelector('.admin-target-heading')?.textContent).toContain('beta');
+  await act(async () => finishAlpha(json({ ok: true, target: { ...alpha, baseLevel: alpha.baseLevel + 1 } })));
+  expect(host.querySelector('.admin-target-heading')?.textContent).toContain('beta');
+  await clickBase();
+  const actions = requests.filter(call => call.path === '/api/admin/action');
+  expect(actions.map(call => JSON.parse(call.options.body as string).targetProfileId))
+    .toEqual([alpha.profileId, beta.profileId]);
+});

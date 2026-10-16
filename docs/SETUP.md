@@ -33,7 +33,9 @@ O painel administrativo é opcional e fica desativado até receber uma chave pri
 docker compose up -d --force-recreate idle-game
 ```
 
-No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas. O painel pode conceder níveis Base e Job, trocar a classe, adicionar zeny e entregar itens do catálogo ao personagem da conta autenticada; ele não altera os personagens do Hercules.
+No jogo, abra **Livro do aventureiro → Administração** e entre com a chave. A sessão usa um cookie `HttpOnly` com validade de oito horas e pertence à conta que entrou com ela. O painel pode buscar personagens vinculados a outras contas e conceder níveis Base e Job, trocar a classe, adicionar zeny e entregar itens do catálogo. As concessões registram conta de origem, destino e ação no banco. A troca de classe exige que o personagem esteja na cidade; o painel não altera personagens do Hercules.
+
+Para limitar o painel a uma conta específica, defina `RAGIDLE_ADMIN_ACCOUNT_ID` no `.env` privado com o ID estável dessa conta e recrie o serviço `idle-game`. Se a variável não estiver definida, qualquer conta que conheça a chave administrativa pode usar o painel. O ID não deve ser colocado neste documento nem no repositório público.
 
 Abra o idle em **http://localhost:3339/**. O cliente clássico fica em **http://localhost:3338/applications/pwa/index.html**. O primeiro build compila os serviços e pode levar alguns minutos.
 

@@ -1,7 +1,11 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import{describe,it,expect}from'vitest';
 import{createHash}from'node:crypto';
-import catalog from'../content/catalog.json';import manifest from'../content/source-manifest.json';
+import currentCatalog from'../content/catalog.json';import currentManifest from'../content/source-manifest.json';
 import{beforeFalconCatalog,beforeFalconManifest}from'./falcon-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 const sha=(x:unknown)=>createHash('sha256').update(JSON.stringify(x,null,2)+'\n').digest('hex');
 describe('strict Falcon historical compatibility',()=>{
  it('reconstructs the complete preceding files',()=>{

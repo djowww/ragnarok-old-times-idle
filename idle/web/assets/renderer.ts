@@ -221,8 +221,9 @@ function actorPlayback(actor: DecodedActor, action: ActorAction, selected: NonNu
     const divisor = attack && ['novice', 'high_novice', 'super_novice', 'baby_novice', 'baby_super_novice'].includes(job ?? '') && identity?.gender === 'male' ? 5.85
         : attack && ['assassin', 'assassin_cross', 'baby_assassin'].includes(job ?? '') && type === 'katar' ? 3 : 6;
     const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
+    // Short ACT sheets should use the whole server contact window, not freeze on the final frame.
     const delay = !looping && Number.isFinite(motionMs) && motionMs! > 0
-        ? Math.max(1, motionMs! / (attack ? divisor : frames)) : selected.delay;
+        ? Math.max(1, motionMs! / (attack ? Math.min(divisor, frames) : frames)) : selected.delay;
     return { frames, delay, duration: frames * delay };
 }
 export function getActorPlaybackDuration(actor: DecodedActor, action: ActorAction, motionMs: number, direction = 0): number {

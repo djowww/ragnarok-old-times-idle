@@ -7,17 +7,23 @@ import { getSnapshot, GameError } from '../engine/index.js';
 import { ValidationError } from './validation.js';
 import { registerChatRoutes, type ChatRepository } from './chat.js';
 import { registerAdminRoutes } from './admin.js';
+import type { AdminDirectory } from './adminDirectory.js';
 import { PortalError, type AccountStore, type GameProfiles } from './identity/types.js';
 import { createAuthService } from './identity/service.js';
 import { assertAllowedMutation, LOCAL_ORIGINS, registerAuthRoutes } from './identity/routes.js';
-import { callerRepository, registerGameRoutes, resolveGameRepository } from './game-routes.js';
+import { assertExpectedIdentity, callerRepository, registerGameRoutes, resolveGameRepository } from './game-routes.js';
 import type { PortalQueries } from './portal/types.js';
 import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
 import { SessionGameProfiles } from './profiles.js';
 import type { SimulationContext } from '../engine/fieldNavigation.js';
-export interface AppOptions { assetFailureReporter?: (failure: AssetProxyFailure) => void; catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; trustedProxyAddresses?: readonly string[]; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, trustedProxyAddresses, assetFailureReporter = reportAssetProxyFailure }: AppOptions) {
+export interface AppOptions { assetFailureReporter?: (failure: AssetProxyFailure) => void; catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; simulationContext?: SimulationContext; navigationReady?: boolean; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; adminToken?: string; adminAccountId?: string; adminDirectory?: AdminDirectory; trustedProxyAddresses?: readonly string[]; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, simulationContext, navigationReady = true, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot, adminToken, adminAccountId, adminDirectory, trustedProxyAddresses, assetFailureReporter = reportAssetProxyFailure }: AppOptions) {
+  const authorizedAccountId = adminAccountId?.trim();
+  if (adminAccountId !== undefined && !/^[A-Za-z0-9_-]{1,80}$/.test(authorizedAccountId ?? ''))
+    throw new Error('Invalid admin account restriction');
+  if (authorizedAccountId && !adminDirectory)
+    throw new Error('Admin account restriction requires the admin directory');
   const app = Fastify({ bodyLimit: 16384, logger: false });
   const gameProfiles = profiles instanceof SessionGameProfiles ? profiles : new SessionGameProfiles(profiles, catalog);
   const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
@@ -47,7 +53,13 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
   await registerGameRoutes(app, { auth, profiles: gameProfiles, catalog, now, context: simulationContext });
   registerChatRoutes(app, chatRepository, async request => resolveGameRepository(request, auth, gameProfiles), now);
-  registerAdminRoutes(app, request => resolveGameRepository(request, auth, gameProfiles), catalog, now, adminToken, trustedProxyAddresses, simulationContext);
+  registerAdminRoutes(app, request => resolveGameRepository(request, auth, gameProfiles), catalog, now, adminToken, trustedProxyAddresses, simulationContext,
+    adminDirectory ? { directory: adminDirectory, profiles: gameProfiles, authorizedAccountId, resolveActor: async request => {
+      const actor = await auth.resolve(request.cookies.idle_session);
+      if (!actor) throw new PortalError('AUTH_REQUIRED', 401, 'Entre na sua conta para continuar.');
+      assertExpectedIdentity(request.headers, actor);
+      return actor;
+    } } : undefined);
   app.get('/api/catalog', async () => catalog);
   app.get('/api/health', async (_request, reply) => {
     const healthy = navigationReady && (await accounts.health()) && (await profiles.health());

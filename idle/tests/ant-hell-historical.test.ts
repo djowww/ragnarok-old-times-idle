@@ -1,9 +1,13 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/antHellBaseline.json';
 import { beforeAntHellCatalog, beforeAntHellManifest } from './ant-hell-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 
 const fileSha = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n').digest('hex');

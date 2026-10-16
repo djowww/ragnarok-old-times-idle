@@ -1,8 +1,12 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { describe, expect, it } from "vitest";
 import { createHash } from 'node:crypto';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import { beforeTarotCardCatalog, beforeTarotCardManifest } from './tarot-card-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 
 const hash = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n')

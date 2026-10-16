@@ -1,8 +1,12 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { beforeBeastStrafingCatalog, beforeBeastStrafingManifest } from './beast-strafing-historical.js';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/beastStrafingBaseline.json';
 import { describe, expect, it } from 'vitest';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 
 describe('Beast Strafing historical projection', () => {
   it('restores the exact prior catalog and manifest records', () => {

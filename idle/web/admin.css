@@ -50,6 +50,31 @@
   font-size: 11px;
   line-height: 1.5;
 }
+.admin-target-panel {
+  margin: 0 0 13px;
+  padding: 12px;
+  border: 1px solid #b9c3ad;
+  border-radius: 7px;
+  background: #f9f7ece6;
+}
+.admin-target-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.admin-target-heading strong { color: #3d6268; font: 700 14px Georgia, serif; }
+.admin-target-heading p { margin: 3px 0 0; color: #56685f; font-size: 11px; }
+.admin-target-heading button { white-space: nowrap; font-size: 10px; }
+.admin-target-search { display: flex; align-items: end; gap: 8px; }
+.admin-target-search label { display: grid; flex: 1; gap: 4px; min-width: 0; color: #56685f; font-size: 10px; font-weight: 700; }
+.admin-target-search input { box-sizing: border-box; width: 100%; min-height: 31px; padding: 5px 8px; border: 1px solid #abb9ae; border-radius: 4px; background: #fffdf4; color: #344d51; font-size: 11px; }
+.admin-target-search button { min-height: 31px; padding: 6px 11px; font-size: 10px; }
+.admin-target-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin-top: 9px; }
+.admin-target-results button { display: grid; gap: 2px; text-align: left; border: 1px solid #b9c3ad; border-radius: 4px; padding: 7px; background: #f6f4e8; color: #304650; }
+.admin-target-results button:hover { background: #e8eee2; }
+.admin-target-results span, .admin-target-results small { color: #64766c; font-size: 10px; }
 .admin-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -157,6 +182,7 @@
 @media (max-width: 620px) {
   .admin-panel { padding: 10px; }
   .admin-actions { grid-template-columns: 1fr; }
+  .admin-target-heading, .admin-target-search { align-items: stretch; flex-direction: column; }
   .admin-item-card { grid-column: auto; }
   .admin-action-card p { min-height: auto; }
   .admin-login { grid-template-columns: 1fr; }

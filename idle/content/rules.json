@@ -2157,6 +2157,65 @@
       ],
       "scene": "cave",
       "description": "Caçada no Formigueiro de Ants, segundo andar. Acesso definido pelo balanceamento idle."
+    },
+    {
+      "id": "payon_cave_third",
+      "name": "Caverna de Payon — terceiro nível",
+      "map": "pay_dun02",
+      "minLevel": 33,
+      "monsters": [
+        1028,
+        1026,
+        1188,
+        1031,
+        1016
+      ],
+      "scene": "cave",
+      "description": "O terceiro nível de Payon reúne Munaks, Bonguns e esqueletos entre corredores antigos."
+    },
+    {
+      "id": "byalan_third",
+      "name": "Byalan — terceiro nível",
+      "map": "iz_dun03",
+      "minLevel": 38,
+      "monsters": [
+        1158,
+        1142,
+        1069,
+        1045,
+        1068
+      ],
+      "scene": "sea",
+      "description": "Correntes mais fundas abrigam Phen, Swordfish, Marc e esferas marinhas."
+    },
+    {
+      "id": "geffen_dungeon_first",
+      "name": "Calabouço de Geffen — primeiro nível",
+      "map": "gef_dun01",
+      "minLevel": 42,
+      "monsters": [
+        1111,
+        1061,
+        1015,
+        1036,
+        1130
+      ],
+      "scene": "cave",
+      "description": "Drainliars, Nightmares e mortos-vivos rondam as primeiras galerias sob Geffen."
+    },
+    {
+      "id": "glast_heim_prison",
+      "name": "Prisão de Glast Heim",
+      "map": "gl_prison",
+      "minLevel": 70,
+      "monsters": [
+        1257,
+        1035,
+        1197,
+        1201
+      ],
+      "scene": "castle",
+      "description": "A prisão arruinada abriga Injustices, Zombie Prisoners e Rybios."
     }
   ],
   "cards": {

@@ -1,9 +1,13 @@
+import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import {createHash} from 'node:crypto';
 import {describe,expect,it} from 'vitest';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import currentCatalog from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/consumablesBaseline.json';
 import {beforeConsumablesCatalog,beforeConsumablesManifest} from './consumables-historical';
+
+const catalog = beforeFourMapExpansionCatalog(currentCatalog);
+const manifest = beforeFourMapExpansionManifest(currentManifest);
 const hash=(x:unknown)=>createHash('sha256').update(JSON.stringify(x,null,2)+'\n').digest('hex');
 describe('strict usable-potion content delta',()=>{
  it('reconstructs the complete preceding Pharmacy catalog bytes',()=>expect(hash(beforeConsumablesCatalog(catalog))).toBe(baseline.beforeCatalogSha256));

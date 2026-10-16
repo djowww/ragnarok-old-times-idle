@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Battle, Catalog } from '../shared/types';
 import catalogJson from '../content/catalog.json';
-import { BATTLE_HERO, enemyPositionAt } from '../shared/battleSpatial';
+import { BATTLE_HERO, enemyPositionAt, playerBattleDistance } from '../shared/battleSpatial';
 import { advanceState, applyCommand, createInitialState } from '../engine/index';
 import { beginBattle } from '../engine/encounters';
 import * as stateTools from '../engine/state';
@@ -242,5 +242,105 @@ describe('Hercules monster SP and solo trap coverage', () => {
     const next = advanceState(ctx.s, ctx.c, 1000);
     expect(next.battle?.traps ?? []).toHaveLength(0);
     expect(next.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity).toBe(20);
+  });
+});
+
+describe('offensive Hunter traps use the persisted ground-unit timeline', () => {
+  it.each([
+    ['HT_LANDMINE', 1, 40000],
+    ['HT_FREEZINGTRAP', 2, 30000],
+    ['HT_BLASTMINE', 1, 5000],
+    ['HT_CLAYMORETRAP', 2, 100000],
+  ] as const)('%s arms a visible unit and spends resources without damaging on cast', (source, cost, lifetime) => {
+    const { c, s, skill, enemy, reagent } = setup(source);
+    const beforeHp = enemy.hp, beforeSp = s.sp;
+    const placed = advanceState(s, c, 1000);
+    expect(placed.battle?.traps).toHaveLength(1);
+    expect(placed.battle!.traps![0]).toMatchObject({
+      skillId: skill.id, level: 5, placedAt: 1000, nextTickAt: 2000,
+      expiresAt: 1000 + lifetime,
+    });
+    expect(playerBattleDistance(BATTLE_HERO, placed.battle!.traps![0].position)).toBeLessThanOrEqual(3);
+    expect(placed.battle!.enemies![0].hp).toBe(beforeHp);
+    expect(placed.events.some(event => event.kind === 'damage' && event.skillId === skill.id)).toBe(false);
+    expect(placed.events.some(event => event.kind === 'trap-placed' && event.skillId === skill.id)).toBe(true);
+    expect(placed.inventory.find(item => item.itemId === reagent.itemId)?.quantity).toBe(20 - cost);
+    expect(placed.sp).toBeLessThan(beforeSp);
+  });
+
+  it.each(['HT_LANDMINE', 'HT_FREEZINGTRAP', 'HT_BLASTMINE', 'HT_CLAYMORETRAP'] as const)(
+    '%s damages at first contact only, without a second player action or resource cost', source => {
+      const ctx = setup(source);
+      const placed = advanceState(ctx.s, ctx.c, 1000);
+      const trap = placed.battle!.traps![0];
+      placed.rotation = [];
+      placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+      const enemy = placed.battle!.enemies![0];
+      Object.assign(enemy, { position: { ...trap.position }, approachFrom: { ...trap.position },
+        arrivedAt: 1000, enemyNextAttackAt: 999999 });
+      const hp = enemy.hp, sp = placed.sp;
+      const items = placed.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity;
+      const triggered = advanceState(placed, ctx.c, 2000);
+      expect(triggered.events.filter(event => event.kind === 'trap-trigger' && event.skillId === ctx.skill.id))
+        .toHaveLength(1);
+      expect(triggered.events.find(event => event.kind === 'damage' && event.skillId === ctx.skill.id))
+        .toMatchObject({ at: 2000, targetActorId: enemy.id, actorAction: 'none' });
+      expect(triggered.battle!.enemies![0].hp).toBeLessThan(hp);
+      expect(triggered.sp).toBe(sp);
+      expect(triggered.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity).toBe(items);
+      expect(triggered.battle!.traps![0]).toMatchObject({ triggeredAt: 2000, expiresAt: 3500 });
+      const expired = advanceState(triggered, ctx.c, 4000);
+      expect(expired.events.filter(event => event.kind === 'trap-trigger' && event.skillId === ctx.skill.id))
+        .toHaveLength(1);
+      expect(expired.battle!.traps ?? []).toHaveLength(0);
+    },
+  );
+
+  it.each(['HT_BLASTMINE', 'HT_CLAYMORETRAP'] as const)(
+    '%s resolves both targets in its trap-centered splash', source => {
+      const ctx = setup(source);
+      const placed = advanceState(ctx.s, ctx.c, 1000);
+      const trap = placed.battle!.traps![0];
+      placed.rotation = [];
+      placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+      const first = placed.battle!.enemies![0];
+      Object.assign(first, { position: { ...trap.position }, approachFrom: { ...trap.position },
+        arrivedAt: 1000, enemyNextAttackAt: 999999 });
+      const nearby = { x: trap.position.x + 1 / 12, y: trap.position.y };
+      placed.battle!.enemies!.push({ ...structuredClone(first), id: 'second-trap-target',
+        position: nearby, approachFrom: nearby });
+      const triggered = advanceState(placed, ctx.c, 2000);
+      const hits = triggered.events.filter(event => event.kind === 'damage' && event.skillId === ctx.skill.id);
+      expect(hits.map(event => event.targetActorId).sort()).toEqual([first.id, 'second-trap-target'].sort());
+      expect(hits.every(event => event.at === 2000)).toBe(true);
+    },
+  );
+
+  it.each([
+    ['HT_LANDMINE', 'SC_STUN'],
+    ['HT_FREEZINGTRAP', 'SC_FREEZE'],
+  ] as const)('%s applies its source status only when triggered', (source, status) => {
+    const ctx = setup(source);
+    vi.spyOn(stateTools, 'random').mockReturnValue(0);
+    const placed = advanceState(ctx.s, ctx.c, 1000);
+    expect(placed.battle!.enemies![0].statuses?.[status]).toBeUndefined();
+    const trap = placed.battle!.traps![0];
+    placed.rotation = [];
+    placed.battle!.playerNextAttackAt = placed.battle!.playerNextSkillAt = 999999;
+    Object.assign(placed.battle!.enemies![0], { position: { ...trap.position },
+      approachFrom: { ...trap.position }, arrivedAt: 1000, enemyNextAttackAt: 999999 });
+    const triggered = advanceState(placed, ctx.c, 2000);
+    expect(triggered.battle!.enemies![0].statuses?.[status]?.expiresAt).toBeGreaterThan(2000);
+  });
+
+  it('returns exactly one reagent from an expired unused Claymore Trap, which costs two', () => {
+    const ctx = setup('HT_CLAYMORETRAP');
+    const trap = seedTrap(ctx); trap.expiresAt = 750;
+    const before = ctx.s.inventory.find(item => item.itemId === ctx.reagent.itemId)!.quantity;
+    const expired = advanceState(ctx.s, ctx.c, 1000);
+    expect(expired.battle!.traps).toHaveLength(0);
+    expect(expired.inventory.find(item => item.itemId === ctx.reagent.itemId)?.quantity).toBe(before + 1);
+    expect(expired.events.find(event => event.kind === 'loot' && event.itemId === ctx.reagent.itemId))
+      .toMatchObject({ at: 750, quantity: 1, enemyPosition: trap.position });
   });
 });
