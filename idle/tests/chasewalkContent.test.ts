@@ -6,7 +6,7 @@ describe('pinned ChaseWalk content', () => {
     expect(raw.skills.st_chasewalk).toMatchObject({ herculesId:389, name:'Furtividade', implementation:'supported', manualUse:'toggle',
       spCost:[10,10,10,10,10], castTimeMs:[1200,1200,1200,1200,1200], iconResource:'data/texture/유저인터페이스/item/st_chasewalk.bmp',
       prerequisites:[{skillId:'tf_hiding',level:5},{skillId:'rg_tunneldrive',level:3}] });
-    expect(manifest.skillCoverage.supported).toBe(273);
+    expect(manifest.skillCoverage.supported).toBe(274);
     expect(manifest.skillSources.st_chasewalk.adaptation).toContain('NoSave');
   });
 });

@@ -1,0 +1,263 @@
+{
+  "catalog": {
+    "beforeFileSha256": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
+    "beforeSkill": {
+      "id": "cr_providence",
+      "name": "Resistant Souls",
+      "kind": "buff",
+      "maxLevel": 5,
+      "herculesId": 256,
+      "sourceName": "CR_PROVIDENCE",
+      "mechanic": "CR_PROVIDENCE",
+      "implementation": "unsupported",
+      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "description": "Resistant Souls. Aplica PROVIDENCE. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "iconResource": "data/texture/유저인터페이스/item/cr_providence.bmp",
+      "spCost": [
+        30,
+        30,
+        30,
+        30,
+        30
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        3000,
+        3000,
+        3000,
+        3000,
+        3000
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "range": [
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "targetType": "support",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "al_dp",
+          "level": 5
+        },
+        {
+          "skillId": "heal",
+          "level": 5
+        }
+      ],
+      "prerequisitesByClass": {
+        "crusader": [
+          {
+            "skillId": "al_dp",
+            "level": 5
+          },
+          {
+            "skillId": "heal",
+            "level": 5
+          }
+        ],
+        "paladin": [
+          {
+            "skillId": "al_dp",
+            "level": 5
+          },
+          {
+            "skillId": "heal",
+            "level": 5
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "statusEffect": "SC_PROVIDENCE",
+      "statusDurationMs": [
+        180000,
+        180000,
+        180000,
+        180000,
+        180000
+      ],
+      "durationMs": 180000
+    },
+    "afterSkillSha256": "1e42b936c2f9fc4c0eac9a47f6f122bfd4daa24225f5d68468df710514fe9b96",
+    "sourceHash": {
+      "before": "a3fc35cfa97c4798e39155b6e33bc6b04b40fcaafb86bd85ca01d5d3454910cc",
+      "after": "75b5f15f7e0cc717a585f996bd9115d55bc93bfc37cd567beacec0a33a2ec461"
+    }
+  },
+  "rules": {
+    "beforeFileSha256": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+    "areas": {
+      "geffen_dungeon": {
+        "afterSha256": "ce18369e69ab34d0e4183bbfe1f4480f791ac34f0667eba488dd22c004892c71",
+        "before": {
+          "id": "geffen_dungeon",
+          "name": "Calabouço de Geffen",
+          "map": "gef_dun02",
+          "minLevel": 50,
+          "monsters": [
+            1109,
+            1061
+          ],
+          "scene": "cave",
+          "description": "Caçada em Calabouço de Geffen. Acesso definido pelo balanceamento idle."
+        }
+      },
+      "geffen_dungeon_f1": {
+        "afterSha256": "1f993c5a99e05f0862fb8dc7cc7d7b14204978b7554d16562dd7fdab207c4e30"
+      },
+      "geffen_dungeon_first": {
+        "afterSha256": "0372f36f2993bcd2f446802d1995a8caa2de3214f7679452ab40b074ba344643",
+        "before": {
+          "id": "geffen_dungeon_first",
+          "name": "Calabouço de Geffen — primeiro nível",
+          "map": "gef_dun01",
+          "minLevel": 42,
+          "monsters": [
+            1111,
+            1061,
+            1015,
+            1036,
+            1130
+          ],
+          "scene": "cave",
+          "description": "Drainliars, Nightmares e mortos-vivos rondam as primeiras galerias sob Geffen."
+        }
+      }
+    }
+  },
+  "manifest": {
+    "beforeFileSha256": "b74a0fa5eda0966e90b66685d14cb1fa5a9e950f6f58d33e8976002279d4c8d7",
+    "beforeSkillSource": {
+      "id": 256,
+      "name": "CR_PROVIDENCE",
+      "sourceMaxLevel": 5,
+      "sourceRequirements": {
+        "SPCost": 30
+      },
+      "sourceDamageType": {
+        "NoDamage": true
+      },
+      "sourceUnit": {},
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceSplashRange": 0,
+      "implementation": "unsupported",
+      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "ratioSource": "src/map/skill.c and src/map/status.c",
+      "unsupportedRequirements": []
+    },
+    "afterSkillSourceSha256": "d249327e1de8c0abc39f21d518ad0f12139db46fdd7b856b412f650cff791bd7",
+    "afterCoverageSha256": "197658b86f4f8ff07754c6161c9b3eac6ef377a3302b11758d9603d548ba272b",
+    "beforeCoverage": {
+      "supported": 273,
+      "unsupported": 75,
+      "crusader": {
+        "sourceTree": 31,
+        "supported": 28,
+        "unsupported": 3
+      },
+      "paladin": {
+        "sourceTree": 35,
+        "supported": 32,
+        "unsupported": 3
+      },
+      "unavailableIndex": 10,
+      "unavailableEntry": {
+        "skillId": "cr_providence",
+        "sourceName": "CR_PROVIDENCE",
+        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+      }
+    },
+    "beforeMaps": [
+      "prt_fild08",
+      "prt_sewb1",
+      "prt_fild04",
+      "prt_fild03",
+      "pay_dun00",
+      "iz_dun01",
+      "gef_fild10",
+      "moc_pryd02",
+      "gef_dun02",
+      "gl_knt01",
+      "prt_sewb2",
+      "pay_dun01",
+      "iz_dun02",
+      "orcsdun01",
+      "prt_fild00",
+      "prt_fild01",
+      "prt_fild02",
+      "prt_fild05",
+      "prt_fild06",
+      "prt_fild07",
+      "prt_fild09",
+      "prt_fild10",
+      "prt_fild11",
+      "gef_fild00",
+      "gef_fild02",
+      "gef_fild09",
+      "pay_fild01",
+      "pay_fild04",
+      "pay_fild09",
+      "moc_pryd05",
+      "gl_chyard",
+      "anthell01",
+      "anthell02",
+      "pay_dun02",
+      "iz_dun03",
+      "gef_dun01",
+      "gl_prison"
+    ],
+    "afterMapsSha256": "3a9043f63e98ef817e0185fc8519db01d3eabc69abce4efc78bd8d56219ab65b",
+    "catalogSha256": {
+      "before": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
+      "after": "22e5efe12223f5c0b9524d7c18e7db0259ce19678a4e188028f65e299447afde"
+    },
+    "rulesSha256": {
+      "before": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+      "after": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44"
+    }
+  }
+}

@@ -55,7 +55,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "a3fc35cfa97c4798e39155b6e33bc6b04b40fcaafb86bd85ca01d5d3454910cc"
+    "hash": "75b5f15f7e0cc717a585f996bd9115d55bc93bfc37cd567beacec0a33a2ec461"
   },
   "rates": {
     "baseExp": 4,
@@ -94318,9 +94318,9 @@
       "herculesId": 256,
       "sourceName": "CR_PROVIDENCE",
       "mechanic": "CR_PROVIDENCE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Resistant Souls. Aplica PROVIDENCE. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "activate",
+      "description": "Resistant Souls. Aplica PROVIDENCE.",
       "iconResource": "data/texture/유저인터페이스/item/cr_providence.bmp",
       "spCost": [
         30,

@@ -88,11 +88,10 @@ describe('Suffragium solo pre-renewal', () => {
       enemy.enemyNextAttackAt = Number.MAX_SAFE_INTEGER;
       enemy.hp = enemy.maxHp = 100000;
     }
-    s.rotation = [buff.id, spell.id];
     s.battle!.playerNextAttackAt = Number.MAX_SAFE_INTEGER;
     s.battle!.playerNextSkillAt = 0;
     s.battle!.playerActionReadyAt = 0;
-    const result = advanceState(s, c, 6000);
+    const result = advanceState(applyCommand(s, c, { type: 'setRotation', skillIds: [buff.id, spell.id] }, 0), c, 6000);
     const cast = result.events.find(event => event.kind === 'cast' && event.skillId === spell.id);
     const base = spell.castTimeMs?.[0] ?? 0;
     expect(result.events.some(event => event.kind === 'skill' && event.skillId === buff.id && event.targetActorId === result.id)).toBe(true);

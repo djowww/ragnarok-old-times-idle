@@ -154,13 +154,23 @@ export function classicDivineProtection(baseLevel: number, skillLevel: number): 
 
 /** status.c:2219..2238; returns a 0..1 incoming damage multiplier.
  * Equipment element resistance shares the additive source element category;
- * dragon race resistance is a separate multiplicative category.
+ * race resistance is a separate multiplicative category. Providence adds to
+ * the Holy element and Demon race categories while its status is active.
  */
-export function classicIncomingSkillReduction(levels: Record<string, number>, race: string, element: string, equipmentElementResistancePct = 0): number {
+export function classicIncomingSkillReduction(
+  levels: Record<string, number>,
+  race: string,
+  element: string,
+  equipmentElementResistancePct = 0,
+  activeLevels: Record<string, number> = {},
+): number {
   const skin = levels.BS_SKINTEMPER ?? 0;
+  const providence = Math.max(0, Math.min(5, integer(activeLevels.CR_PROVIDENCE ?? 0)));
+  const holyProvidence = element.toLowerCase() === 'holy' ? 5 * providence : 0;
+  const demonProvidence = race.toLowerCase() === 'demon' ? 5 * providence : 0;
   const elementResistance = equipmentElementResistancePct
-    + (element.toLowerCase() === 'neutral' ? skin : element.toLowerCase() === 'fire' ? 4 * skin : element.toLowerCase() === 'holy' ? 5 * (levels.CR_TRUST ?? 0) : 0);
-  const raceResistance = race.toLowerCase() === 'dragon' ? 4 * (levels.SA_DRAGONOLOGY ?? 0) : 0;
+    + (element.toLowerCase() === 'neutral' ? skin : element.toLowerCase() === 'fire' ? 4 * skin : element.toLowerCase() === 'holy' ? 5 * (levels.CR_TRUST ?? 0) + holyProvidence : 0);
+  const raceResistance = (race.toLowerCase() === 'dragon' ? 4 * (levels.SA_DRAGONOLOGY ?? 0) : 0) + demonProvidence;
   return Math.max(0, 100 - elementResistance) / 100 * Math.max(0, 100 - raceResistance) / 100;
 }
 

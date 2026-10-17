@@ -62,6 +62,7 @@ import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
 import { applyTeleport } from './teleport.js';
 import { cancelSageEnchantCast } from './sageEnchantments.js';
 import { resolveSuffragiumCast, suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
+import { providenceCanStart, resolveProvidenceCast, startProvidenceCast } from './providence.js';
 function town(s: GameState) {
   requireRule(
     s.status === "town",
@@ -176,6 +177,14 @@ export function executeCommand(
         break;
       }
       requireRule(!overweightForCombat(s, c), 'WEIGHT_LIMIT', 'Libere peso na mochila antes de usar habilidades.');
+      if (skill?.sourceName === 'CR_PROVIDENCE') {
+        requireRule(providenceCanStart(s, c, skill, level, now), 'PROVIDENCE_UNAVAILABLE',
+          'Aprenda Providência, tenha 30 SP e esteja vivo e livre para conjurar.');
+        requireRule(startProvidenceCast(s, c, skill, level, now), 'PROVIDENCE_UNAVAILABLE',
+          'Não foi possível iniciar Providência em si mesmo.');
+        if (s.supportCast && s.supportCast.endsAt <= now) resolveProvidenceCast(s, c, now);
+        break;
+      }
       if (skill?.sourceName === 'PR_SUFFRAGIUM') {
         requireRule(suffragiumCanStart(s, c, skill, level, now), 'SUFFRAGIUM_UNAVAILABLE',
           'Aprenda Suffragium, tenha SP e esteja vivo e livre para conjurar.');
@@ -627,6 +636,8 @@ export function executeCommand(
             c.skills[id].sourceName === 'MO_BLADESTOP' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'HT_DETECTING' && c.skills[id].manualUse === 'activate' ||
             c.skills[id].sourceName === 'SA_MAGICROD' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'PR_SUFFRAGIUM' && c.skills[id].manualUse === 'activate' ||
+            c.skills[id].sourceName === 'CR_PROVIDENCE' && c.skills[id].manualUse === 'activate' ||
             ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'WS_MELTDOWN', 'AM_POTIONPITCHER'].includes(c.skills[id].sourceName ?? '')) &&
             c.skills[id].implementation !== "unsupported",
           "INVALID_ROTATION",

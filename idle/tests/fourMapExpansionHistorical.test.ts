@@ -2,7 +2,9 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import rawCatalog from '../content/catalog.json';
 import rawManifest from '../content/source-manifest.json';
-import rules from '../content/rules.json';
+import currentRules from '../content/rules.json';
+import { beforeProvidenceRules } from './providence-historical';
+const rules = beforeProvidenceRules(currentRules);
 import baseline from './fixtures/fourMapExpansionBaseline.json';
 import { beforeGeffenDungeonFloorCatalog, beforeGeffenDungeonFloorManifest } from './geffen-dungeon-f1-historical';
 import {

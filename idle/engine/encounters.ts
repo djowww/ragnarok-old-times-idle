@@ -1100,7 +1100,8 @@ function resolveNpcMagicAttack(s: GameState, c: Catalog, enemy: BattleEnemy, mon
     elementRate: sageFieldElementRate(monsterMagicElementRate(c, spellElement, playerDefenseElement(s, c)),
       sageFieldModifiers(s, enemy.id, at), spellElement) });
   const passiveReduction = classicIncomingSkillReduction(learnedBySource(s, c), monster.race, spellElement,
-    (spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0) + itemElementResistance(s,spellElement,at));
+    (spellElement.toLowerCase() === 'neutral' ? d.effects.neutralResist ?? 0 : 0) + itemElementResistance(s,spellElement,at),
+    activeBySource(s, c, at));
   let damage = Math.floor(perHitDamage * passiveReduction) * Math.max(1, skill.hitCount ?? 1);
   // battle.c:3472..3475 uses `damage -= 25 * damage / 100` for direct BF_SKILL.
   if (fogWallActive) damage = Math.max(0, damage - Math.floor(damage * 25 / 100));
@@ -1203,6 +1204,7 @@ import { tryMonsterStatusSkill, takeMonsterStatusCast, applyMonsterStatusEffect,
 import { activeRuwachConcealment, revealRuwachTarget } from './ruwachRules.js';
 import { resolveSageEnchantCast, interruptSageEnchantCast, cancelSageEnchantCast, sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
+import { providenceCanStart, startProvidenceCast } from './providence.js';
 import { tickChasewalk, CHASEWALK_STRENGTH_ID } from './chasewalk.js';
 import { resolveSupportCast } from './supportCasts.js';
 import { beginSkillAction, finishSkillAction, cancelSkillAction, sourceAfterCastDelay } from './skillActionClock.js';
@@ -1286,7 +1288,8 @@ function chooseSkill(
         !(skill.sourceName === 'MO_BLADESTOP' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'HT_DETECTING' && skill.manualUse === 'activate') &&
         !(skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate') &&
-        !(skill.sourceName === 'PR_SUFFRAGIUM' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
+        !(skill.sourceName === 'PR_SUFFRAGIUM' && skill.manualUse === 'activate') &&
+        !(skill.sourceName === 'CR_PROVIDENCE' && skill.manualUse === 'activate') && !sageFieldSource(skill.sourceName) ||
       skill.implementation === "unsupported" ||
       (s.skillReadyAt[id] ?? 0) > at
     )
@@ -1299,6 +1302,7 @@ function chooseSkill(
       !['brute', 'insect'].includes(c.monsters[target.monsterId]?.race.toLowerCase() ?? '')) continue;
     if (skill.sourceName === 'SA_MAGICROD' && ((s.buffs[id]?.expiresAt ?? 0) > at || !magicRodTarget(s, c, level, at))) continue;
     if (skill.sourceName === 'PR_SUFFRAGIUM' && !suffragiumCanStart(s, c, skill, level, at)) continue;
+    if (skill.sourceName === 'CR_PROVIDENCE' && !providenceCanStart(s, c, skill, level, at)) continue;
     if (skill.sourceName === 'ST_PRESERVE' && !copiedSpell(s, c)) continue;
     if (bladeLink && linkedTarget && !bladeStopSkillAllowed(skill.sourceName ?? '', bladeLink.level)) continue;
     if (skill.sourceName === 'MO_BLADESTOP' && (bladeLink || s.combatEffects?.bladeStopWait && bladeStopWaitActive(s.combatEffects.bladeStopWait, at) ||
@@ -3199,6 +3203,7 @@ function enemyAttack(s: GameState, c: Catalog, enemy: BattleEnemy, at: number, n
             monster.race,
             "neutral",
             d.effects.neutralResist ?? 0,
+            activeBySource(s, c, at),
           ),
       ),
     );
@@ -3567,6 +3572,10 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
   if (skill) {
     if (skill.sourceName === 'PR_SUFFRAGIUM') {
       startSuffragiumCast(s, c, skill, skillUseLevel(s, c, skill.id), at);
+      return;
+    }
+    if (skill.sourceName === 'CR_PROVIDENCE') {
+      startProvidenceCast(s, c, skill, skillUseLevel(s, c, skill.id), at);
       return;
     }
     if (skill.sourceName === 'HT_DETECTING') {

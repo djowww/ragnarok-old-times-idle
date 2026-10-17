@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import {detectingCanStart} from '../../engine/falconDetect';
 import {canEquipFalcon,isFalconEquipped,FALCON_RENTAL_ZENY} from '../../engine/falcon';
 import { chasewalkCanStart } from '../../engine/chasewalk';
+import { providenceCanStart } from '../../engine/providence';
+import { suffragiumCanStart } from '../../engine/suffragium';
 import { teleportAvailable } from '../../engine/teleport';
 import { number, type PanelProps } from "../components/common";
 import ClassicStatus from "../components/ClassicStatus";
@@ -344,6 +346,14 @@ export default function Build({
                       (state.status !== 'hunting' && !(state.status === 'resting' && state.restMode === 'field')) ||
                       !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
                       onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>Sentar e relaxar</button>}
+                    {skill.manualUse === 'activate' && ['CR_PROVIDENCE', 'PR_SUFFRAGIUM'].includes(skill.sourceName ?? '') && <button
+                      disabled={busy || !(skill.sourceName === 'CR_PROVIDENCE'
+                        ? providenceCanStart(state, catalog, skill, level, snapshot.serverTime)
+                        : suffragiumCanStart(state, catalog, skill, level, snapshot.serverTime))}
+                      onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                      {classicBuffActive(state, catalog, skill.sourceName!, snapshot.serverTime) ? 'Efeito ativo'
+                        : state.supportCast?.skillId === skill.id ? 'Conjurando…' : `Conjurar ${skill.name}`}
+                    </button>}
                     {skill.manualUse === 'activate' && skill.sourceName === 'PA_SACRIFICE' && <button
                       disabled={busy || unsupported || level === 0 || !ids.has(skill.id) || missingPrerequisites || missingJobLevel ||
                         sacrificeActivationBlocked || !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
@@ -382,7 +392,8 @@ export default function Build({
                       sageGroundSkill ||
                       skill.sourceName === 'HT_DETECTING' && skill.manualUse === 'activate' ||
                       skill.sourceName === 'PA_SACRIFICE' && skill.manualUse === 'activate' ||
-                      skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate')) && (
+                      skill.sourceName === 'SA_MAGICROD' && skill.manualUse === 'activate' ||
+                      ['CR_PROVIDENCE', 'PR_SUFFRAGIUM'].includes(skill.sourceName ?? '') && skill.manualUse === 'activate')) && (
                       <button
                         disabled={
                           busy ||

@@ -5367,10 +5367,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Solo self-cast; 3 s base cast, 30 SP, 180 s duration. Reduces Demon-race and Holy-element incoming damage by 5% per level, using Hercules resistance categories. Active level is captured by the status; AFK rotation skips recasts until it expires."
     },
     "cr_defender": {
       "id": 257,
@@ -13828,6 +13828,7 @@
       "anthell02",
       "pay_dun02",
       "iz_dun03",
+      "gef_dun00",
       "gef_dun01",
       "gl_prison"
     ],
@@ -15011,8 +15012,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 273,
-    "unsupported": 75,
+    "supported": 274,
+    "unsupported": 74,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15096,13 +15097,13 @@
       },
       "crusader": {
         "sourceTree": 31,
-        "supported": 28,
-        "unsupported": 3
+        "supported": 29,
+        "unsupported": 2
       },
       "paladin": {
         "sourceTree": 35,
-        "supported": 32,
-        "unsupported": 3
+        "supported": 33,
+        "unsupported": 2
       },
       "wizard": {
         "sourceTree": 30,
@@ -15306,6 +15307,7 @@
       "CR_REFLECTSHIELD",
       "CR_HOLYCROSS",
       "CR_GRANDCROSS",
+      "CR_PROVIDENCE",
       "CR_DEFENDER",
       "CR_SPEARQUICKEN",
       "CR_SHRINK",
@@ -15540,11 +15542,6 @@
         "skillId": "cr_devotion",
         "sourceName": "CR_DEVOTION",
         "reason": "Requer outro personagem para transferir dano."
-      },
-      {
-        "skillId": "cr_providence",
-        "sourceName": "CR_PROVIDENCE",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "ice_wall",
@@ -16527,7 +16524,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+  "rulesSha256": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16582,6 +16579,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
+  "catalogSha256": "22e5efe12223f5c0b9524d7c18e7db0259ce19678a4e188028f65e299447afde",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
