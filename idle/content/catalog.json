@@ -55,7 +55,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "363ee14fc0649768b0df54e5db5a7297fa2f2d749822037c22800e9836341020"
+    "hash": "858611f3cc6b3225cc9320d7f6c615b5a529552a359660e3eb85ec814fac82c5"
   },
   "rates": {
     "baseExp": 4,
@@ -1288,8 +1288,8 @@
       "name": "Verit",
       "aegisName": "VERIT",
       "sprite": {
-        "spr": "data/sprite/몬스터/verit.spr",
-        "act": "data/sprite/몬스터/verit.act"
+        "spr": "data/sprite/몬스터/vorit.spr",
+        "act": "data/sprite/몬스터/vorit.act"
       },
       "level": 38,
       "hp": 5272,
@@ -1778,8 +1778,8 @@
       "name": "Steel Chonchon",
       "aegisName": "STEEL_CHONCHON",
       "sprite": {
-        "spr": "data/sprite/몬스터/steel_chonchon.spr",
-        "act": "data/sprite/몬스터/steel_chonchon.act"
+        "spr": "data/sprite/몬스터/steel_chocho.spr",
+        "act": "data/sprite/몬스터/steel_chocho.act"
       },
       "level": 17,
       "hp": 530,
@@ -2096,8 +2096,8 @@
       "name": "Peco Peco Egg",
       "aegisName": "PECOPECO_EGG",
       "sprite": {
-        "spr": "data/sprite/몬스터/pecopeco_egg.spr",
-        "act": "data/sprite/몬스터/pecopeco_egg.act"
+        "spr": "data/sprite/몬스터/peco_egg.spr",
+        "act": "data/sprite/몬스터/peco_egg.act"
       },
       "level": 3,
       "hp": 420,
@@ -12478,8 +12478,8 @@
       "name": "Atroce",
       "aegisName": "ATROCE",
       "sprite": {
-        "spr": "data/sprite/몬스터/atroce.spr",
-        "act": "data/sprite/몬스터/atroce.act"
+        "spr": "data/sprite/몬스터/atros.spr",
+        "act": "data/sprite/몬스터/atros.act"
       },
       "level": 82,
       "hp": 1008420,

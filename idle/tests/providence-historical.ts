@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/providenceBaseline.json';
+import {beforeMonsterSpritesRules} from './monster-sprites-historical';
 import { beforeWeaponElementsCatalog, beforeWeaponElementsManifest } from './weapon-elements-historical';
 
 const same = (value: unknown, hash: string) => value !== undefined
@@ -16,7 +17,7 @@ export function beforeProvidenceCatalog<T>(input: T): T {
 }
 
 export function beforeProvidenceRules<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeMonsterSpritesRules(input) as Record<string, any>;
   for (const [id, row] of Object.entries(baseline.rules.areas)) {
     const index = result.areas.findIndex((area: { id: string }) => area.id === id);
     if (index < 0 || !same(result.areas[index], row.afterSha256)) continue;

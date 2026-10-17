@@ -1,0 +1,72 @@
+{
+  "catalog": {
+    "monsters": {
+      "1032": {
+        "beforeSprite": {
+          "spr": "data/sprite/몬스터/verit.spr",
+          "act": "data/sprite/몬스터/verit.act"
+        },
+        "afterSha256": "22217db99b735958be083e729c14bb2efaba62b47d7a10b72ebe53e335a3f329"
+      },
+      "1042": {
+        "beforeSprite": {
+          "spr": "data/sprite/몬스터/steel_chonchon.spr",
+          "act": "data/sprite/몬스터/steel_chonchon.act"
+        },
+        "afterSha256": "ea548390593e525b8c2ce08460f962a64a2e6c94c330f51ae69465641751e2f4"
+      },
+      "1047": {
+        "beforeSprite": {
+          "spr": "data/sprite/몬스터/pecopeco_egg.spr",
+          "act": "data/sprite/몬스터/pecopeco_egg.act"
+        },
+        "afterSha256": "7ec253a68876b1df6b330dca1c8be95a9123f951ef9ab0950f0d5713a2dfaab7"
+      },
+      "1785": {
+        "beforeSprite": {
+          "spr": "data/sprite/몬스터/atroce.spr",
+          "act": "data/sprite/몬스터/atroce.act"
+        },
+        "afterSha256": "2032e468f43f03163b7db1e4affe4a03c26934ad60c959aaeaf954799e48066a"
+      }
+    },
+    "sourceHash": {
+      "before": "363ee14fc0649768b0df54e5db5a7297fa2f2d749822037c22800e9836341020",
+      "after": "858611f3cc6b3225cc9320d7f6c615b5a529552a359660e3eb85ec814fac82c5"
+    },
+    "beforeFileSha256": "78cd57a37d707fda157e4a53de038907bc7d330b49b6c1febfd7aaa170318e8f"
+  },
+  "rules": {
+    "beforeAliases": {
+      "1016": "skel_archer",
+      "1028": "skel_soldier",
+      "1502": "poring",
+      "1626": "dark_priest",
+      "1646": "seyren",
+      "1647": "eremes",
+      "1648": "harword",
+      "1649": "magaleta",
+      "1650": "shecil",
+      "1651": "katrinn",
+      "1658": "ygnizem",
+      "1802": "magaleta",
+      "1813": "hydro",
+      "1917": "morocc"
+    },
+    "afterAliasesSha256": "d215fab6628768bdc48b6c328354963bbf6bd29b54881e89cfd5e8320cbe45e7",
+    "addedReferenceHash": "f0ac24bd425d8771ccf940bf65b612ada177231b1c282811749d4f0729e7cbdc",
+    "beforeFileSha256": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44"
+  },
+  "manifest": {
+    "mappingSha256": "3177533f38b22fdaa18139288814acc025cb8b72c653324f13bfdcc0797e2e60",
+    "catalogSha256": {
+      "before": "78cd57a37d707fda157e4a53de038907bc7d330b49b6c1febfd7aaa170318e8f",
+      "after": "a629a7164a41a8451b5e325b0c6e13019a6f0f0d6ff66c584c3d92acfcb973a6"
+    },
+    "rulesSha256": {
+      "before": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44",
+      "after": "31c620d7f1ef8a42bf6c7fac3a4f1ed1a2d6e7bd81911426eec895e1515ee6d4"
+    },
+    "beforeFileSha256": "94049aa9ea93816fef25bc27e7cf13ed8966e34eef9d35c6d1dbc6fc84a8a471"
+  }
+}
