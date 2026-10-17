@@ -5,8 +5,16 @@ import {healFull} from '../engine/stats';
 import {addItem} from '../engine/state';
 import data from '../content/catalog.json';
 import type {Catalog,GameState,BattleEnemy} from '../shared/types';
-import { presentLatestActorActions, presentedActorActionAt, combatActionCueFromEvent, targetHealthAt } from '../web/assets/combatPresentation';
+import { getActorPlaybackDuration, getCombatActorAction, type DecodedActor } from '../web/assets/renderer';
+import { HERO_COMBAT_DIRECTION, presentLatestActorActions, presentedActorActionAt, combatActionCueFromEvent, targetHealthAt } from '../web/assets/combatPresentation';
 import { selectSceneEventBatch } from '../web/assets/sceneEventBootstrap';
+
+function decodedHunterActor(): DecodedActor {
+ const image={width:1,height:1,type:0 as const,rgba:new Uint8ClampedArray([255,0,0,255])};
+ const layer={x:0,y:0,index:0,mirror:false,color:[255,255,255,255] as [number,number,number,number],scaleX:1,scaleY:1,rotation:0,type:0,width:0,height:0};
+ const part={sprite:{version:2.1,indexedCount:1,frames:[image]},action:{version:2.5,sounds:[],actions:Array.from({length:104},()=>({delayMs:100,frames:Array.from({length:12},(_,i)=>({layers:[{...layer,x:i}],anchors:[],sound:-1}))}))}} as NonNullable<DecodedActor['body']>;
+ return {kind:'character',fallback:false,identity:{job:'hunter',gender:'male'},weaponVisual:{type:'bow',job:'hunter',gender:'male'},body:part};
+}
 function setup(){
  const c=structuredClone(data) as unknown as Catalog;suppressDrops(c);
  const s=createInitialState(c,0);s.job='hunter';c.classes.hunter.jobBonuses={};s.baseLevel=70;s.jobLevel=40;s.stats={str:1,agi:1,vit:30,int:71,dex:97,luk:333};s.equipment={};
@@ -226,32 +234,57 @@ describe('field AFK target handoff after a kill', () => {
     expect(afterNextAttack.events.filter(event => event.kind === 'damage' && event.enemyId === second.id)).toHaveLength(1);
     expect(afterNextAttack.battle?.enemies?.find(enemy => enemy.id === second.id)?.hp).toBeLessThan(second.maxHp);
 
-    const sceneBatch = selectSceneEventBatch({
-      events: afterNextAttack.events,
-      snapshotAt: nextCombatTick,
-      scope: { profileId: s.id, areaId: s.areaId ?? undefined, status: 'field', presentation: 'group' },
+    const scope = { profileId: s.id, areaId: s.areaId ?? undefined, status: 'field' as const, presentation: 'group' as const };
+    const firstBatch = selectSceneEventBatch({
+      events: afterKill.events,
+      snapshotAt: 250,
+      scope,
       cursor: { profileId: s.id, id: 0 },
       bootstrap: false,
     });
-    const deliveredHits = sceneBatch.events
-      .filter(event => sceneBatch.actionEventIds.has(event.id) && event.kind === 'damage' &&
-        (event.enemyId === firstId || event.enemyId === second.id))
-      .sort((a, b) => a.at - b.at || a.id - b.id);
-    expect(deliveredHits).toHaveLength(2);
+    const secondBatch = selectSceneEventBatch({
+      events: afterNextAttack.events,
+      snapshotAt: nextCombatTick,
+      scope,
+      cursor: firstBatch.cursor,
+      bootstrap: false,
+    });
+    const firstHits = firstBatch.events.filter(event => firstBatch.actionEventIds.has(event.id) &&
+      event.kind === 'damage' && event.enemyId === firstId);
+    const secondHits = secondBatch.events.filter(event => secondBatch.actionEventIds.has(event.id) &&
+      event.kind === 'damage' && event.enemyId === second.id);
+    expect(firstHits).toHaveLength(1);
+    expect(secondHits).toHaveLength(1);
+    expect(secondBatch.cursor.id).toBeGreaterThan(firstBatch.cursor.id);
 
-    const visualCues = deliveredHits.map(event => combatActionCueFromEvent(event, {
-      fallbackSourceActorId: s.id,
-      fallbackTargetActorId: event.enemyId ?? second.id,
-      actorAction: 'attack',
-      visualActorAction: 'attack',
-      actionDuration: event.actionMotionMs ?? 400,
-      fallbackMotionMs: 400,
-      fallbackReactionDuration: 320,
-      serverOffset: 0,
-      presentedEffectStart: event.at,
-    }));
-    presentLatestActorActions(visualCues, new Map(), nextCombatTick);
-    const [firstCue, secondCue] = visualCues;
+    const heroActor = decodedHunterActor();
+    const makeVisualCue = (event: (typeof afterNextAttack.events)[number]) => {
+      const actorAction = event.actorAction ?? 'attack';
+      const visualAction = getCombatActorAction(actorAction, event.skillId ? c.skills[event.skillId]?.sourceName : undefined);
+      const visualActorAction = visualAction === 'attack' ? 'attack' : actorAction === 'skill' ? 'skill' : undefined;
+      const motionMs = Math.max(1, event.actionMotionMs ?? 400);
+      const actionDuration = getActorPlaybackDuration(heroActor, visualAction, motionMs, HERO_COMBAT_DIRECTION);
+      expect(actionDuration).toBeGreaterThan(motionMs);
+      return combatActionCueFromEvent(event, {
+        fallbackSourceActorId: s.id,
+        fallbackTargetActorId: event.enemyId ?? second.id,
+        actorAction,
+        visualActorAction,
+        actionDuration,
+        fallbackMotionMs: motionMs,
+        fallbackReactionDuration: 320,
+        serverOffset: 0,
+        presentedEffectStart: event.at,
+      });
+    };
+    const firstCue = makeVisualCue(firstHits[0]);
+    const secondCue = makeVisualCue(secondHits[0]);
+    const visualCues: ReturnType<typeof combatActionCueFromEvent>[] = [];
+    const actionWatermarks = new Map();
+    presentLatestActorActions([firstCue], actionWatermarks, 250, visualCues, 4000);
+    visualCues.push(firstCue);
+    presentLatestActorActions([secondCue], actionWatermarks, nextCombatTick, visualCues, 4000);
+    visualCues.push(secondCue);
     expect(firstCue).toMatchObject({ targetActorId: firstId, presented: true });
     expect(secondCue).toMatchObject({ targetActorId: second.id, presented: true });
     expect(secondCue.start).toBe(firstCue.start + firstCue.actionDuration);
