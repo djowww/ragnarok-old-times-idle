@@ -29,6 +29,7 @@ describe('native dungeon populations and material routes', () => {
     for (const monsterId of ids) expect(c.monsters[monsterId]).toBeDefined();
   });
   it.each([
+    ['geffen_dungeon_f1', 'gef_dun00', [1035, 1031, 1077], 40, '21.mp3'],
     ['payon_cave_third', 'pay_dun02', [1028, 1026, 1188, 1031, 1016], 33, '20.mp3'],
     ['byalan_third', 'iz_dun03', [1158, 1142, 1069, 1045, 1068], 38, '49.mp3'],
     ['geffen_dungeon_first', 'gef_dun01', [1111, 1061, 1015, 1036, 1130], 42, '21.mp3'],
@@ -47,6 +48,26 @@ describe('native dungeon populations and material routes', () => {
       }
       expect(getMapLife(map, area, c).filter(actor => actor.kind === 'npc')).toHaveLength(0);
     });
+  it('keeps Geffen Dungeon floor numbering aligned with the official maps', () => {
+    expect(c.areas.find(area => area.id === 'geffen_dungeon_f1')).toMatchObject({
+      name: 'Calabouço de Geffen — primeiro nível', map: 'gef_dun00',
+      monsters: [1035, 1031, 1077], minLevel: 40,
+    });
+    expect(c.areas.find(area => area.id === 'geffen_dungeon_first')).toMatchObject({
+      name: 'Calabouço de Geffen — segundo nível', map: 'gef_dun01',
+    });
+    expect(c.areas.find(area => area.id === 'geffen_dungeon')).toMatchObject({
+      name: 'Calabouço de Geffen — terceiro nível', map: 'gef_dun02',
+    });
+    const spawnPath = 'npc/pre-re/mobs/dungeons/gef_dun.txt';
+    expect(rules.mapSpawnSources).toContain(spawnPath);
+    expect(manifest.sources).toContainEqual(expect.objectContaining({
+      path: spawnPath,
+      url: `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${spawnPath}`,
+      sha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+    }));
+  });
+
   it('pins both Ant Hell populations to the official Hercules spawn source', () => {
     const path = 'npc/pre-re/mobs/dungeons/anthell.txt';
     expect(rules.mapSpawnSources).toContain(path);

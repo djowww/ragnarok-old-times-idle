@@ -1,14 +1,18 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import catalog from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import rawCatalog from '../content/catalog.json';
+import rawManifest from '../content/source-manifest.json';
 import rules from '../content/rules.json';
 import baseline from './fixtures/fourMapExpansionBaseline.json';
+import { beforeGeffenDungeonFloorCatalog, beforeGeffenDungeonFloorManifest } from './geffen-dungeon-f1-historical';
 import {
   beforeFourMapExpansionCatalog,
   beforeFourMapExpansionManifest,
   beforeFourMapExpansionRules,
 } from './four-map-expansion-historical';
+
+const catalog = beforeGeffenDungeonFloorCatalog(rawCatalog);
+const manifest = beforeGeffenDungeonFloorManifest(rawManifest);
 
 const fileSha = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n').digest('hex');

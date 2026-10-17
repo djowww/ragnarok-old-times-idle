@@ -164,8 +164,8 @@ describe('playable source catalog', () => {
         });
     });
     it('offers valid drops, all areas, supported cards and a useful weapon for every branch', () => {
-        expect(data.areas).toHaveLength(37);
-        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(150);
+        expect(data.areas).toHaveLength(38);
+        expect(data.areas.flatMap(a => a.monsters)).toHaveLength(153);
         expect(data.challenges).toHaveLength(81);
         expect(Object.values(data.items).filter(i => i.type === 'card' && i.cardSlots?.length && !i.unsupportedEffect)).toHaveLength(10);
         for (const mob of Object.values(data.monsters))
@@ -285,7 +285,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.classes)).toHaveLength(40);
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(836);
-        expect(data.areas).toHaveLength(37);
+        expect(data.areas).toHaveLength(38);
         expect(manifest.skillCoverage).toMatchObject({ supported: 273, unsupported: 75 });
         expect(manifest.sources).toHaveLength(51);
         expect(manifest.sources).toContainEqual(expect.objectContaining({

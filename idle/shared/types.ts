@@ -263,6 +263,8 @@ export interface Area {
   minLevel: number;
   description: string;
   monsters: number[];
+  /** Hercules map spawn counts used as relative ambient encounter weights. */
+  spawnWeights?: Record<number, number>;
   scene:
     "field" | "forest" | "sewer" | "cave" | "sea" | "orc" | "desert" | "castle";
   /** Safe rendering metadata; source GAT cells and masks stay server-private. */

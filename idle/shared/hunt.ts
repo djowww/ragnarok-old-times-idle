@@ -34,7 +34,8 @@ export function chooseAreaMonster(state: GameState, catalog: Catalog, area: Area
     const monster = catalog.monsters[id];
     const match = focus.startsWith('monster:') ? id === Number(focus.slice(8))
       : focus.startsWith('element:') && monster?.element.toLowerCase() === focus.slice(8);
-    return match ? 3 : 1;
+    const spawnWeight = area.spawnWeights?.[id] ?? 1;
+    return match ? spawnWeight * 3 : spawnWeight;
   });
   let selection = roll * weights.reduce((sum, weight) => sum + weight, 0);
   for (let i = 0; i < area.monsters.length; i++) {

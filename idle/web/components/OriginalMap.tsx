@@ -32,6 +32,7 @@ const localMaps = new Set([
   "moc_pryd02",
   "moc_pryd05",
   "gef_dun02",
+  "gef_dun00",
   "gl_knt01",
   "gl_chyard",
   "prt_sewb2",

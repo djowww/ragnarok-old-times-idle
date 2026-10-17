@@ -1,8 +1,8 @@
 diff --git a/src/App/MapViewer.js b/src/App/MapViewer.js
-index 4e3faeb..6281733 100644
+index 4e3faeb7..227536a7 100644
 --- a/src/App/MapViewer.js
 +++ b/src/App/MapViewer.js
-@@ -22,12 +22,196 @@ import Entity from 'Renderer/Entity/Entity.js';
+@@ -22,12 +22,197 @@ import Entity from 'Renderer/Entity/Entity.js';
  import Mouse from 'Controls/MouseEventHandler.js';
  import MapControl from 'Controls/MapControl.js';
  import Intro from 'UI/Components/Intro/Intro.js';
@@ -43,6 +43,7 @@ index 4e3faeb..6281733 100644
 +	moc_pryd02: true,
 +	moc_pryd05: true,
 +	gef_dun02: true,
++	gef_dun00: true,
 +	gl_knt01: true,
 +	gl_chyard: true,
 +	prt_sewb2: true,
@@ -199,7 +200,7 @@ index 4e3faeb..6281733 100644
  /**
   * @var {object} Entity to target
   */
-@@ -45,6 +223,47 @@ MapViewer.dropDown = null;
+@@ -45,6 +230,47 @@ MapViewer.dropDown = null;
  MapViewer.init = function Init() {
  	// Increase max intersection test (because of the max zoom)
  	Altitude.MAX_INTERSECT_COUNT = 500;
@@ -247,7 +248,7 @@ index 4e3faeb..6281733 100644
  
  	let ready = false;
  	let maptoload = '';
-@@ -111,12 +330,27 @@ MapViewer.init = function Init() {
+@@ -111,12 +337,27 @@ MapViewer.init = function Init() {
  
  		// Initialize renderer
  		q.add(function () {
@@ -277,7 +278,7 @@ index 4e3faeb..6281733 100644
  			Intro.onFilesSubmit = function (files) {
  				Client.onFilesLoaded = q.next;
  				Client.init(files);
-@@ -132,6 +366,14 @@ MapViewer.init = function Init() {
+@@ -132,6 +373,14 @@ MapViewer.init = function Init() {
  		MapRenderer.onLoad = MapViewer.onLoad;
  		MapControl.init();
  		MapControl.onRequestWalk = MapViewer.onMouseDown;
@@ -292,7 +293,7 @@ index 4e3faeb..6281733 100644
  
  		// Direct access from API
  		if (Configs.get('api')) {
-@@ -175,16 +411,37 @@ MapViewer.init = function Init() {
+@@ -175,16 +424,37 @@ MapViewer.init = function Init() {
  MapViewer.onLoad = function () {
  	BGM.stop();
  
@@ -335,7 +336,7 @@ index 4e3faeb..6281733 100644
  	Camera.zoomFinal = 200;
 diff --git a/src/Renderer/IdleActors.js b/src/Renderer/IdleActors.js
 new file mode 100644
-index 0000000..02a18d9
+index 00000000..0f2aef71
 --- /dev/null
 +++ b/src/Renderer/IdleActors.js
 @@ -0,0 +1,396 @@
@@ -735,9 +736,8 @@ index 0000000..02a18d9
 +}
 +
 +export default { receive, render, release, isMapWorldInBounds };
-
 diff --git a/src/Renderer/MapRenderer.js b/src/Renderer/MapRenderer.js
-index be5fd21..d1f1b99 100644
+index be5fd21f..d1f1b99f 100644
 --- a/src/Renderer/MapRenderer.js
 +++ b/src/Renderer/MapRenderer.js
 @@ -9,6 +9,7 @@

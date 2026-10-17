@@ -1,0 +1,54 @@
+{
+  "catalog": {
+    "beforeFileSha256": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
+    "areas": {
+      "geffen_dungeon_f1": {
+        "afterSha256": "1f993c5a99e05f0862fb8dc7cc7d7b14204978b7554d16562dd7fdab207c4e30"
+      },
+      "geffen_dungeon_first": {
+        "afterSha256": "0372f36f2993bcd2f446802d1995a8caa2de3214f7679452ab40b074ba344643",
+        "before": {
+          "id": "geffen_dungeon_first",
+          "name": "Calabouço de Geffen — primeiro nível",
+          "map": "gef_dun01",
+          "minLevel": 42,
+          "monsters": [
+            1111,
+            1061,
+            1015,
+            1036,
+            1130
+          ],
+          "scene": "cave",
+          "description": "Drainliars, Nightmares e mortos-vivos rondam as primeiras galerias sob Geffen."
+        }
+      },
+      "geffen_dungeon": {
+        "afterSha256": "ce18369e69ab34d0e4183bbfe1f4480f791ac34f0667eba488dd22c004892c71",
+        "before": {
+          "id": "geffen_dungeon",
+          "name": "Calabouço de Geffen",
+          "map": "gef_dun02",
+          "minLevel": 50,
+          "monsters": [
+            1109,
+            1061
+          ],
+          "scene": "cave",
+          "description": "Caçada em Calabouço de Geffen. Acesso definido pelo balanceamento idle."
+        }
+      }
+    },
+    "sourceHash": {
+      "before": "afdbfcca16ce9458f9f80c3f7c10a0d5e3cb65d76b4ff49f2da33a0033b083fa",
+      "after": "a3fc35cfa97c4798e39155b6e33bc6b04b40fcaafb86bd85ca01d5d3454910cc"
+    }
+  },
+  "manifest": {
+    "beforeFileSha256": "756f6362c0d152464585197c53a8d805fa013a494c46e197383a60eafe7fa9b5",
+    "catalogSha256": {
+      "before": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
+      "after": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303"
+    }
+  }
+}
