@@ -73,6 +73,64 @@ export function actorActionImpactAt(
     : action.actionDuration * 0.5;
   return Math.max(action.effectStart, action.start + contactDelay);
 }
+export interface CombatActionCueOptions {
+  fallbackSourceActorId: string;
+  fallbackTargetActorId: string;
+  fallbackActionId?: string;
+  actorAction: PresentedActorAction['actorAction'];
+  visualActorAction?: PresentedActorAction['visualActorAction'];
+  actionDuration: number;
+  fallbackMotionMs: number;
+  fallbackReactionDuration: number;
+  serverOffset: number;
+  presentedEffectStart?: number;
+  immediateImpact?: boolean;
+}
+
+export interface CombatActionCue extends PresentedActorAction {
+  targetActorId: string;
+  hit: boolean;
+  amount?: number;
+  targetHpBefore?: number;
+  motionMs: number;
+  reactionDuration: number;
+}
+
+/** Convert a server event into the exact action clock consumed by Scene playback. */
+export function combatActionCueFromEvent(event: GameEvent, options: CombatActionCueOptions): CombatActionCue {
+  const actorAction = event.actorAction ?? options.actorAction;
+  const actionAt = event.actionStartedAt ?? event.at;
+  const start = options.serverOffset + actionAt;
+  const serverEffectAt = options.serverOffset + event.at;
+  const motionMs = Math.max(1, event.actionMotionMs ?? options.fallbackMotionMs);
+
+  return {
+    id: event.id,
+    actionId: event.actionId ?? options.fallbackActionId ?? `${event.id}`,
+    actionAt,
+    sourceActorId: event.sourceActorId ?? options.fallbackSourceActorId,
+    targetActorId: event.targetActorId ?? options.fallbackTargetActorId,
+    actorAction,
+    visualActorAction: options.visualActorAction,
+    start,
+    effectStart: options.presentedEffectStart ?? serverEffectAt,
+    impact: options.immediateImpact ? serverEffectAt : actorActionImpactAt({
+      actorAction,
+      visualActorAction: options.visualActorAction,
+      start,
+      effectStart: serverEffectAt,
+      actionDuration: options.actionDuration,
+      motionMs,
+    }),
+    actionDuration: options.actionDuration,
+    motionMs,
+    reactionDuration: Math.max(0, event.hitMotionMs ?? options.fallbackReactionDuration),
+    hit: event.kind === 'damage' && (event.amount ?? 0) > 0,
+    amount: event.kind === 'damage' ? event.amount : undefined,
+    targetHpBefore: event.targetHpBefore,
+  };
+}
+
 export type ActorActionWatermark = Pick<PresentedActorAction, 'actionAt' | 'actionId' | 'id' | 'start'> & {
   end: number;
   presented: boolean;
