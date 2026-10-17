@@ -16504,11 +16504,22 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44",
+  "rulesSha256": "31c620d7f1ef8a42bf6c7fac3a4f1ed1a2d6e7bd81911426eec895e1515ee6d4",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
     "sha256": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
+  },
+  "monsterSpriteMappingSource": {
+    "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Monsters/MonsterTable.js",
+    "license": "GPL-3.0-or-later",
+    "sha256": "f0ac24bd425d8771ccf940bf65b612ada177231b1c282811749d4f0729e7cbdc",
+    "verifiedAliases": {
+      "1032": "vorit",
+      "1042": "steel_chocho",
+      "1047": "peco_egg",
+      "1785": "atros"
+    }
   },
   "mountedPecoEvidence": {
     "mechanics": [
@@ -16715,6 +16726,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "78cd57a37d707fda157e4a53de038907bc7d330b49b6c1febfd7aaa170318e8f",
+  "catalogSha256": "a629a7164a41a8451b5e325b0c6e13019a6f0f0d6ff66c584c3d92acfcb973a6",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

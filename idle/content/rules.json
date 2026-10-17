@@ -2427,6 +2427,9 @@
   "monsterAliases": {
     "1016": "skel_archer",
     "1028": "skel_soldier",
+    "1032": "vorit",
+    "1042": "steel_chocho",
+    "1047": "peco_egg",
     "1502": "poring",
     "1626": "dark_priest",
     "1646": "seyren",
@@ -2436,6 +2439,7 @@
     "1650": "shecil",
     "1651": "katrinn",
     "1658": "ygnizem",
+    "1785": "atros",
     "1802": "magaleta",
     "1813": "hydro",
     "1917": "morocc"
@@ -2613,7 +2617,8 @@
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",
-    "jobNameTable": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b"
+    "jobNameTable": "764ebeb61c9ade923cbb9c6a499e840d7cda22ec2ac939477502f25fd727ff4b",
+    "monsterTable": "f0ac24bd425d8771ccf940bf65b612ada177231b1c282811749d4f0729e7cbdc"
   },
   "skillAliases": {
     "MG_SRECOVERY": "sp_recovery",
