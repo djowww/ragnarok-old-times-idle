@@ -48,7 +48,7 @@ import OriginalMap, { type MapStatus } from "./OriginalMap";
 import { NativeActorsBridge } from "../assets/nativeActors";
 import { corpseFrameAt, startCorpsePresentation, shiftCorpsePresentation, type CorpsePresentation } from "../assets/corpsePresentation";
 import { ActorActionPresentation, EnemyActionPresentation, type EnemyActionFrame } from "../assets/enemyActionPresentation";
-import { actorActionImpactAt, movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
+import { combatActionCueFromEvent, movementAtAction, presentLatestActorActions, presentedActorActionAt, presentedActorActions, lockActorDirection, projectStrikeContact, targetHealthAt, movementIsWalking, ActionTextureStartup, suppressActorReactions, presentedActorReactionAt, reconcileActorPlayback, autoCounterPostureAt, postureFacingPoint, type ActorActionWatermark } from "../assets/combatPresentation";
 import { backslidingFacingDirection, backslidingPresentationPoint } from '../assets/backslidingPresentation';
 import { sageFieldQuads, visibleSageField } from '../assets/sageFieldVisuals';
 import { SceneClock } from '../assets/sceneClock';
@@ -932,28 +932,36 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const visualActorAction = visualAction === 'attack' ? 'attack' : actorAction === 'skill' ? 'skill' : undefined;
       const actionDuration = sourceActor && actorAction !== 'none'
         ? getActorPlaybackDuration(sourceActor, visualAction, motionMs, HERO_COMBAT_DIRECTION) : motionMs;
-      const start = serverOffset + (event.actionStartedAt ?? event.at);
-      const effectStart = serverOffset + event.at;
-      const impact = selfSkill ? effectStart : actorActionImpactAt({
-        actorAction, visualActorAction, start, effectStart, actionDuration, motionMs,
+      const presentation = combatActionCueFromEvent(event, {
+        fallbackSourceActorId: sourceActorId,
+        fallbackTargetActorId: targetActorId,
+        fallbackActionId: skill ? `${sourceActorId}:${skill.id}:${event.at}` : `${event.id}`,
+        actorAction,
+        visualActorAction,
+        actionDuration,
+        fallbackMotionMs: fallbackMotion,
+        fallbackReactionDuration: targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320,
+        serverOffset,
+        immediateImpact: selfSkill,
       });
-      const visualEffectStart = skillVisualEffectAt({ actorAction, visualActorAction, skillKind: skill?.kind, effectStart, impact });
-      const reactionDuration = Math.max(0, event.hitMotionMs ?? (targetActorId === state.id ? 300 : sourceMonster?.damageMotionMs ?? 320));
+      const visualEffectStart = skillVisualEffectAt({ actorAction, visualActorAction,
+        skillKind: skill?.kind, effectStart: presentation.effectStart, impact: presentation.impact });
+      presentation.effectStart = visualEffectStart;
       return {
-        id: event.id, triggerActionId:event.triggerActionId,
+        ...presentation,
+        triggerActionId:event.triggerActionId,
         falconFlight:event.kind==='falcon-flight'||event.kind==='skill'&&skill?.sourceName==='HT_DETECTING',
-        start, effectStart: visualEffectStart, impact, actionDuration, motionMs, reactionDuration,
-        targetHpBefore: event.targetHpBefore, amount: event.kind === 'damage' ? event.amount : undefined,
         sourcePosition: event.actionSourcePosition, movementDestination: event.movementDestination,
         actionFacing: event.actionFacing, actionAreaId: event.areaId,
-        duration: Math.max(actionDuration, impact - start + reactionDuration, skill ? visualEffectStart - start + SKILL_EFFECT_MS : 0),
-        sourceActorId, targetActorId, actorAction, visualActorAction, castAction:event.kind === "cast",
-        actionId: event.actionId ?? (skill ? `${sourceActorId}:${skill.id}:${event.at}` : `${event.id}`),
-        actionAt: event.actionStartedAt ?? event.at,
+        duration: Math.max(presentation.actionDuration,
+          presentation.impact - presentation.start + presentation.reactionDuration,
+          skill ? visualEffectStart - presentation.start + SKILL_EFFECT_MS : 0),
+        castAction:event.kind === "cast",
         action: incoming ? "enemyAttack" : skill ? "skill" : "attack",
-        hit: event.kind === "damage" && (event.amount ?? 0) > 0,
         melee: actorAction === "attack" && !incoming && !skill && equippedType !== "bow",
-        skill, skillLevel: event.skillLevel, enemyId, castMs: skillCueCastDuration({ ...event, sourceActorId }, skill, state.id), hitCount: event.hitCount, eventAt: event.at,
+        skill, skillLevel: event.skillLevel, enemyId,
+        castMs: skillCueCastDuration({ ...event, sourceActorId }, skill, state.id),
+        hitCount: event.hitCount, eventAt: event.at,
         effectEnemyId: targetActorId === state.id ? undefined : targetActorId ?? enemyId,
       };
     };
