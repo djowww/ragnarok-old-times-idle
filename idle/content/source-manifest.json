@@ -363,11 +363,6 @@
       "sourceType": "IT_HEALING"
     },
     {
-      "itemId": 1916,
-      "aegisName": "Guitar_Of_Vast_Land",
-      "sourceType": "IT_WEAPON"
-    },
-    {
       "itemId": 2322,
       "aegisName": "Silk_Robe_",
       "sourceType": "IT_ARMOR"
@@ -668,11 +663,6 @@
       "sourceType": "IT_CARD"
     },
     {
-      "itemId": 1967,
-      "aegisName": "Whip_Of_Earth",
-      "sourceType": "IT_WEAPON"
-    },
-    {
       "itemId": 4030,
       "aegisName": "Mandragora_Card",
       "sourceType": "IT_CARD"
@@ -831,11 +821,6 @@
       "itemId": 4107,
       "aegisName": "Verit_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 1260,
-      "aegisName": "Ghoul_Leg",
-      "sourceType": "IT_WEAPON"
     },
     {
       "itemId": 4110,
@@ -1186,11 +1171,6 @@
       "itemId": 2420,
       "aegisName": "Angels_Arrival",
       "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 1917,
-      "aegisName": "Guitar_Of_Gentle_Breeze",
-      "sourceType": "IT_WEAPON"
     },
     {
       "itemId": 4211,
@@ -16560,6 +16540,162 @@
     "volatileStatusPolicy": "kept in process memory for the browser connection and cleared on a new connection",
     "contactPolicy": "one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline"
   },
+  "weaponProperties": {
+    "source": "db/pre-re/item_db.conf bAtkEle",
+    "policy": "Literal properties from flat bonus/skill statements; no script execution. Compound secondary effects remain unsupported.",
+    "items": [
+      {
+        "itemId": 1131,
+        "element": "water",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1133,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1136,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1138,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1141,
+        "element": "ghost",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1167,
+        "element": "wind",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1231,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1232,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1256,
+        "element": "water",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1258,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1260,
+        "element": "undead",
+        "secondaryEffectsUnavailable": false
+      },
+      {
+        "itemId": 1365,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1366,
+        "element": "holy",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1368,
+        "element": "wind",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1413,
+        "element": "wind",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1420,
+        "element": "holy",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1468,
+        "element": "wind",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1469,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1470,
+        "element": "holy",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1471,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1528,
+        "element": "holy",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1557,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1615,
+        "element": "undead",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1720,
+        "element": "holy",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1815,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 1916,
+        "element": "earth",
+        "secondaryEffectsUnavailable": false
+      },
+      {
+        "itemId": 1917,
+        "element": "wind",
+        "secondaryEffectsUnavailable": false
+      },
+      {
+        "itemId": 1967,
+        "element": "earth",
+        "secondaryEffectsUnavailable": false
+      },
+      {
+        "itemId": 13002,
+        "element": "dark",
+        "secondaryEffectsUnavailable": true
+      },
+      {
+        "itemId": 13303,
+        "element": "fire",
+        "secondaryEffectsUnavailable": true
+      }
+    ]
+  },
   "weaponCadence": {
     "source": "src/map/status.c:14166..14177,14300..14308,14983..14988,3763..3779",
     "inheritance": "Copy final parent BaseASPD, then override own weapon entries; defaults2000",
@@ -16579,6 +16715,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "22e5efe12223f5c0b9524d7c18e7db0259ce19678a4e188028f65e299447afde",
+  "catalogSha256": "78cd57a37d707fda157e4a53de038907bc7d330b49b6c1febfd7aaa170318e8f",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

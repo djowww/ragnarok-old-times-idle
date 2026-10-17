@@ -27,6 +27,7 @@ A versão hospedada abre diretamente no navegador. Você não precisa instalar D
 
 - **Interface clássica:** HUD inspirada no RO, janelas reposicionáveis, inventário e diário com chat.
 - **Vida em Prontera:** loja, ferreiro, estilista e retorno à cidade pela HUD.
+- **Armas elementais:** propriedades originais de 30 armas afetam ataques básicos e habilidades de propriedade da arma. Encantamentos temporários têm prioridade; efeitos secundários indisponíveis são sinalizados na mochila.
 - **Combate no servidor:** alcance, colisão do mapa, recursos e recompensas resolvidos pela simulação autoritativa.
 
 ## Estado do projeto

@@ -304,7 +304,7 @@ export default function Inventory({
             )}
             {identified && item.unsupportedEffect && (
               <p className="note" role="note">
-                O efeito original deste item ainda não é aplicado no modo idle. Ele pode ser guardado ou vendido.
+                {item.attackElement ? 'A propriedade elemental está ativa. Os demais efeitos especiais deste item ainda não são aplicados no modo idle.' : 'O efeito original deste item ainda não é aplicado no modo idle. Ele pode ser guardado ou vendido.'}
               </p>
             )}
             {identified && item.type === "equipment" && item.equipSupported === false && (
@@ -568,6 +568,7 @@ export function ItemFacts({
           DEF <b>{item.def}</b>
         </span>
       )}
+      {item.attackElement && <span>Propriedade <b>{({ neutral: 'Neutro', water: 'Água', earth: 'Terra', fire: 'Fogo', wind: 'Vento', poison: 'Veneno', holy: 'Sagrado', dark: 'Sombrio', ghost: 'Fantasma', undead: 'Maldito' } as Record<string, string>)[item.attackElement] ?? item.attackElement}</b></span>}
       {item.twoHanded && <span>Arma de duas mãos</span>}
       {!!item.healHP && (
         <span>

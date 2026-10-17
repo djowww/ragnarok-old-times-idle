@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { parseTeleportMapFlags } from './teleport-mapflags.mjs';
 import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
 import { staticDefenseElement } from './itemDefenseElement.mjs';
+import { staticWeaponElement } from './itemWeaponElement.mjs';
 import { parseMapSpawnScript, validateMapSpawnSelections } from './mapSpawns.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rules = JSON.parse(await readFile(resolve(root, 'content/rules.json'), 'utf8'));
@@ -702,6 +703,7 @@ manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'd
 function includeItem(raw, shop = false, drop = false) {
     const i = inheritedItem(raw);
     const defenseElement = staticDefenseElement(i);
+    const weaponElement = staticWeaponElement(i);
     if (catalog.items[i.Id]) {
         if (shop)
             catalog.items[i.Id].shop = true;
@@ -728,7 +730,7 @@ function includeItem(raw, shop = false, drop = false) {
     }
     else if (i.Type === 'IT_WEAPON' || i.Type === 'IT_ARMOR') {
         type = 'equipment';
-        unsupportedEffect = !!i.Script && !rules.itemEffects[i.Id] && !defenseElement;
+        unsupportedEffect = !!i.Script && !rules.itemEffects[i.Id] && !defenseElement && !weaponElement?.complete;
     }
     else if ([984, 985, 990, 716, 717, 1025, 7136].includes(i.Id))
         type = 'material';
@@ -748,6 +750,7 @@ function includeItem(raw, shop = false, drop = false) {
         catalog.items[i.Id].refinable = catalog.items[i.Id].equipSupported && slot !== 'accessory' && i.Refine !== false;
     }
     if (defenseElement) catalog.items[i.Id].defenseElement = defenseElement;
+    if (weaponElement) catalog.items[i.Id].attackElement = weaponElement.element;
     if (i.Type === 'IT_WEAPON') {
         catalog.items[i.Id].weaponLevel = i.WeaponLv ?? 1;
         catalog.items[i.Id].attackRange = i.Range ?? 0;
@@ -958,6 +961,9 @@ manifest.sightBlasterSource = {
     volatileStatusPolicy: 'kept in process memory for the browser connection and cleared on a new connection',
     contactPolicy: 'one successful pulse across the target and all eligible nearby enemies, processed on the combat deadline timeline',
 };
+manifest.weaponProperties = { source: 'db/pre-re/item_db.conf bAtkEle',
+    policy: 'Literal properties from flat bonus/skill statements; no script execution. Compound secondary effects remain unsupported.',
+    items: Object.values(catalog.items).filter(item => item.attackElement).map(item => ({ itemId: item.id, element: item.attackElement, secondaryEffectsUnavailable: !!item.unsupportedEffect })) };
 catalog.source.hash = sha(JSON.stringify(catalog));
 manifest.weaponCadence = {
     source: 'src/map/status.c:14166..14177,14300..14308,14983..14988,3763..3779',

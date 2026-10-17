@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/providenceBaseline.json';
+import { beforeWeaponElementsCatalog, beforeWeaponElementsManifest } from './weapon-elements-historical';
 
 const same = (value: unknown, hash: string) => value !== undefined
   && createHash('sha256').update(JSON.stringify(value)).digest('hex') === hash;
 
 /** Reverse only reviewed Providence and Geffen source-sync deltas. */
 export function beforeProvidenceCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeWeaponElementsCatalog(input) as Record<string, any>;
   if (same(result.skills?.cr_providence, baseline.catalog.afterSkillSha256))
     result.skills.cr_providence = structuredClone(baseline.catalog.beforeSkill);
   if (result.source?.hash === baseline.catalog.sourceHash.after)
@@ -26,7 +27,7 @@ export function beforeProvidenceRules<T>(input: T): T {
 }
 
 export function beforeProvidenceManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeWeaponElementsManifest(input) as Record<string, any>;
   if (same(result.skillSources?.cr_providence, baseline.manifest.afterSkillSourceSha256))
     result.skillSources.cr_providence = structuredClone(baseline.manifest.beforeSkillSource);
   const coverage = result.skillCoverage;

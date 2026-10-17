@@ -55,7 +55,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "75b5f15f7e0cc717a585f996bd9115d55bc93bfc37cd567beacec0a33a2ec461"
+    "hash": "363ee14fc0649768b0df54e5db5a7297fa2f2d749822037c22800e9836341020"
   },
   "rates": {
     "baseExp": 4,
@@ -27560,6 +27560,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "water",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -27636,6 +27637,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "fire",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -27712,6 +27714,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "fire",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -27750,6 +27753,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -27826,6 +27830,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "ghost",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -28104,6 +28109,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "wind",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -29110,6 +29116,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "fire",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -29138,6 +29145,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -29544,6 +29552,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "water",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -29572,6 +29581,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "fire",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -29597,9 +29607,9 @@
       "weight": 170,
       "resource": "data/texture/유저인터페이스/item/언데드의카타르.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "undead",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -30033,6 +30043,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -30065,6 +30076,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "holy",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -30097,6 +30109,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "wind",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -30412,6 +30425,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "wind",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -30508,6 +30522,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "holy",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -30698,6 +30713,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "wind",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -30730,6 +30746,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -30762,6 +30779,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "holy",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -30794,6 +30812,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "fire",
       "weaponLevel": 4,
       "attackRange": 3
     },
@@ -31361,6 +31380,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "holy",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -31540,6 +31560,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -31898,6 +31919,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "undead",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -32214,6 +32236,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "holy",
       "weaponLevel": 4,
       "attackRange": 5
     },
@@ -32493,6 +32516,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": false,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -32572,9 +32596,9 @@
       "weight": 90,
       "resource": "data/texture/유저인터페이스/item/땅의기타.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "earth",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -32600,9 +32624,9 @@
       "weight": 90,
       "resource": "data/texture/유저인터페이스/item/바람의기타.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "wind",
       "weaponLevel": 3,
       "attackRange": 1
     },
@@ -32682,9 +32706,9 @@
       "weight": 70,
       "resource": "data/texture/유저인터페이스/item/땅의채찍.bmp",
       "effects": {},
-      "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "earth",
       "weaponLevel": 3,
       "attackRange": 2
     },
@@ -56920,6 +56944,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": true,
+      "attackElement": "dark",
       "weaponLevel": 4,
       "attackRange": 1
     },
@@ -57139,6 +57164,7 @@
       "unsupportedEffect": true,
       "shop": false,
       "equipSupported": false,
+      "attackElement": "fire",
       "weaponLevel": 4,
       "attackRange": 1
     },
