@@ -1799,7 +1799,7 @@
     },
     {
       "id": "geffen_dungeon",
-      "name": "Calabouço de Geffen",
+      "name": "Calabouço de Geffen — terceiro nível",
       "map": "gef_dun02",
       "minLevel": 50,
       "monsters": [
@@ -1807,7 +1807,7 @@
         1061
       ],
       "scene": "cave",
-      "description": "Caçada em Calabouço de Geffen. Acesso definido pelo balanceamento idle."
+      "description": "As galerias mais profundas do calabouço escondem criaturas perigosas."
     },
     {
       "id": "glast_heim",
@@ -2189,8 +2189,26 @@
       "description": "Correntes mais fundas abrigam Phen, Swordfish, Marc e esferas marinhas."
     },
     {
-      "id": "geffen_dungeon_first",
+      "id": "geffen_dungeon_f1",
       "name": "Calabouço de Geffen — primeiro nível",
+      "map": "gef_dun00",
+      "minLevel": 40,
+      "monsters": [
+        1035,
+        1031,
+        1077
+      ],
+      "scene": "cave",
+      "description": "Hunter Flies, Poporings e Poison Spores rondam as primeiras galerias sob Geffen.",
+      "spawnWeights": {
+        "1031": 15,
+        "1035": 30,
+        "1077": 25
+      }
+    },
+    {
+      "id": "geffen_dungeon_first",
+      "name": "Calabouço de Geffen — segundo nível",
       "map": "gef_dun01",
       "minLevel": 42,
       "monsters": [

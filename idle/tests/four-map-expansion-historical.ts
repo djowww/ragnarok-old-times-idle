@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/fourMapExpansionBaseline.json';
+import { beforeProvidenceRules } from './providence-historical';
 import { beforeGeffenDungeonFloorCatalog, beforeGeffenDungeonFloorManifest } from './geffen-dungeon-f1-historical';
 
 const same = (value: unknown, hash: string) => value !== undefined
@@ -22,7 +23,7 @@ export function beforeFourMapExpansionCatalog<T>(input: T): T {
 }
 
 export function beforeFourMapExpansionRules<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeProvidenceRules(input) as Record<string, any>;
   result.areas = result.areas.filter((area: { id: string }) => {
     const hash = (baseline.rules.addedAreas as Record<string, string>)[area.id];
     return !hash || !same(area, hash);
