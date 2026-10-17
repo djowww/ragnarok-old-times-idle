@@ -3,7 +3,7 @@ import {falconAsset,FalconPresentation,alignFalconCues,falconDestinationWorld,fa
 import {isFalconEquipped} from '../../engine/falcon';
 import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
-import { isSoloPotionPitcher, skillCueCastDuration, skillVisualEffectAt, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
+import { HERO_COMBAT_DIRECTION, isSoloPotionPitcher, skillCueCastDuration, skillVisualEffectAt, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
@@ -176,7 +176,6 @@ export function ActorPreview({
 
 type Bounds = { left: number; right: number; top: number; bottom: number };
 // Ragnarok ACT directions: 2 faces west and 6 faces east.
-const HERO_COMBAT_DIRECTION = 6;
 const ENEMY_COMBAT_DIRECTION = 2;
 const FIELD_SCENE_ORIGIN = { x: 0.48, y: 0.76 };
 const boundsCache = new WeakMap<DecodedActor, Map<string, Bounds>>();

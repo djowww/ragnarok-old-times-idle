@@ -3,6 +3,9 @@ import type { Catalog, GameEvent, GameState, Skill } from '../../shared/types';
 import { activeFreeCastLevel } from '../../engine/stats';
 import { trickDeadActive } from '../../engine/trickDead';
 
+/** Direction the classic scene uses for the hero's combat pose. */
+export const HERO_COMBAT_DIRECTION = 6;
+
 export function resolveEffectActors<T extends { x: number; ground: number; visualHeight: number }>(
   heroId: string,
   sourceActorId: string,
