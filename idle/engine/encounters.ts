@@ -1,3 +1,4 @@
+import { isItemIdentified } from '../shared/loot.js';
 import {falconDamage,finishFalconDamage,autoFalconLevel,autoFalconProc} from './falconCombatRules.js';
 import {detectingCanStart,detectingAfkUseful,useDetecting} from './falconDetect.js';
 import {isFalconEquipped} from './falcon.js';
@@ -1893,7 +1894,8 @@ function damageEnemies(
     const attackElement =
       skill?.element && skill.element.toLowerCase() !== "weapon"
         ? skill.element
-        : classicWeaponElement(active);
+        : classicWeaponElement(active, equipped && equipped.quantity > 0 && !equipped.broken && isItemIdentified(equipped)
+          ? weapon?.attackElement ?? 'neutral' : 'neutral');
     const webFire = spiderWebFire(enemy.statuses?.SC_SPIDERWEB as SpiderWebStatus | undefined,
       skill?.ignoreElement ? '' : attackElement.toLowerCase(), at);
     if (webFire.multiplier !== 1) {

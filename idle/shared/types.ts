@@ -150,6 +150,8 @@ export interface Item {
   cardSlots?: Slot[];
   /** Statically translated Hercules bDefEle; never evaluates an item script. */
   defenseElement?: string;
+  /** Literal Hercules bAtkEle; temporary enchants take precedence. */
+  attackElement?: string;
   shop: boolean;
   /** NPC script price, independent of the item database Buy/Sell fields. */
   shopPrice?: number;
