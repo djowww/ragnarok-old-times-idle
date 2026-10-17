@@ -166,3 +166,48 @@ it('clears a conclusive conflict, accepts its snapshot and allows the next comma
   await render(); await act(async () => { expect(await game.command({ type: 'buy', itemId: 501, quantity: 2 })).toBe(false); }); expect(new PendingCommands(sessionStorage).read(a)).toBeNull(); expect(game.retryable).toBe(false); expect(game.snapshot?.state.revision).toBe(7);
   conflict = false; await act(async () => { expect(await game.command({ type: 'rest' })).toBe(true); });
 });
+
+it('keeps a verified gameplay connection while recovering an uncertain command receipt', async () => {
+  const bodies: string[] = []; const paths: string[] = []; let loseResponse = true;
+  vi.stubGlobal('fetch', async (path: string, options: RequestInit) => {
+    paths.push(path);
+    if (path === '/api/catalog') return json(catalog);
+    if (path === '/api/command') {
+      bodies.push(options.body as string);
+      if (loseResponse) { loseResponse = false; throw new TypeError('command response lost'); }
+      return json(snapshot(a, 2));
+    }
+    return json(snapshot());
+  });
+  await render(); expect(game.connected).toBe(true);
+  await act(async () => { expect(await game.command({ type: 'buy', itemId: 501, quantity: 2 })).toBe(false); });
+  expect(game.retryable).toBe(true); expect(game.busy).toBe(true);
+  expect(new PendingCommands(sessionStorage).read(a)).not.toBeNull();
+  // Only an actual connection failure may trigger App's reconnect character gate.
+  expect(game.connected).toBe(true);
+  await act(async () => { expect(await game.retry()).toBe(true); });
+  expect(game.connected).toBe(true); expect(game.retryable).toBe(false);
+  expect(new PendingCommands(sessionStorage).read(a)).toBeNull();
+  expect(bodies).toHaveLength(2); expect(bodies[1]).toBe(bodies[0]);
+  expect(paths.filter(path => path === '/api/session/open')).toHaveLength(1);
+});
+
+it('keeps the verified connection when receipt cleanup needs recovery after a successful command', async () => {
+  const bodies: string[] = [];
+  vi.stubGlobal('fetch', async (path: string, options: RequestInit) => {
+    if (path === '/api/catalog') return json(catalog);
+    if (path === '/api/command') { bodies.push(options.body as string); return json(snapshot(a, 2)); }
+    return json(snapshot());
+  });
+  await render(); expect(game.connected).toBe(true);
+  const remove = vi.spyOn(Storage.prototype, 'removeItem').mockImplementationOnce(() => { throw new Error('storage unavailable'); });
+  await act(async () => { expect(await game.command({ type: 'buy', itemId: 501, quantity: 2 })).toBe(false); });
+  expect(game.snapshot?.state.revision).toBe(2);
+  expect(game.connected).toBe(true); expect(game.retryable).toBe(true);
+  expect(new PendingCommands(sessionStorage).read(a)).not.toBeNull();
+  remove.mockRestore();
+  await act(async () => { expect(await game.retry()).toBe(true); });
+  expect(game.connected).toBe(true); expect(game.retryable).toBe(false);
+  expect(new PendingCommands(sessionStorage).read(a)).toBeNull();
+  expect(bodies).toHaveLength(2); expect(bodies[1]).toBe(bodies[0]);
+});

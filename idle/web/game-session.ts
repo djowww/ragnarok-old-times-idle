@@ -89,7 +89,10 @@ export function useGame(identity: AccountView, onAuthRequired: () => void) {
           try { pending.clear(identity, value.requestId); receipt = null; }
           catch { uncertain = true; }
         }
-        errorSource = 'command'; publish({ error: failure.message, retryable: uncertain, connected: !uncertain }); return false;
+        // A lost command response or receipt-storage failure is not a failed
+        // gameplay heartbeat. Keep the last verified connection while its exact
+        // receipt blocks further commands and remains available for recovery.
+        errorSource = 'command'; publish({ error: failure.message, retryable: uncertain }); return false;
       } finally { queued = false; publish({ sending: false }); }
     };
     const focus = () => { if (!document.hidden && !starting) void refresh(); };
