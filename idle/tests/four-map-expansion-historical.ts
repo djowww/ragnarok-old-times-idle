@@ -1,12 +1,13 @@
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/fourMapExpansionBaseline.json';
+import { beforeGeffenDungeonFloorCatalog, beforeGeffenDungeonFloorManifest } from './geffen-dungeon-f1-historical';
 
 const same = (value: unknown, hash: string) => value !== undefined
   && createHash('sha256').update(JSON.stringify(value)).digest('hex') === hash;
 
 /** Undo only exact additions from the four-map release. Unknown edits stay visible to older snapshots. */
 export function beforeFourMapExpansionCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeGeffenDungeonFloorCatalog(input) as Record<string, any>;
   for (const [id, hash] of Object.entries(baseline.catalog.addedItems))
     if (same(result.items?.[id], hash)) delete result.items[id];
   for (const [id, hash] of Object.entries(baseline.catalog.addedMonsters))
@@ -30,7 +31,7 @@ export function beforeFourMapExpansionRules<T>(input: T): T {
 }
 
 export function beforeFourMapExpansionManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = beforeGeffenDungeonFloorManifest(input) as Record<string, any>;
   if (same(result.inertDropItems, baseline.manifest.inertDropsAfterHash)) {
     const additions = baseline.manifest.addedInertDrops as Record<string, string>;
     const moved = baseline.manifest.relocatedInertDrop;

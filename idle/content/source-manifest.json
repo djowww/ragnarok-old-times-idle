@@ -16582,6 +16582,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
+  "catalogSha256": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
