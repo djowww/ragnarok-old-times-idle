@@ -151,6 +151,25 @@ export function loadActor(asset: SpriteAsset, weaponVisual?: WeaponAppearance, a
 }
 export function getAttackAction(actor: DecodedActor): number {
     const candidate = actor.kind === 'character' ? weaponAttackAction(actor.weaponVisual) : 16;
+    // Some classic GRFs put the dancer dagger in group 80 while the pinned
+    // WeaponAction table selects group 40 (entirely hidden -1 layers).
+    // Switch body and equipment together, only when all eight replacement
+    // directions exist. Other weapons and drawable table entries stay intact.
+    const visual = actor.weaponVisual;
+    if (actor.kind === 'character' && visual?.type === 'dagger' && ['dancer', 'gypsy'].includes(visual.job)
+        && actor.weapon && actor.body) {
+        const drawable = (part: ActorPart, index: number) =>
+            part.action.actions[index]?.frames.some(frame => frame.layers.some(layer => {
+                const image = layer.index < 0 ? undefined : part.sprite.frames[
+                    layer.index + (layer.type === 1 ? part.sprite.indexedCount : 0)];
+                return image && image.width > 0 && image.height > 0
+                    && layer.scaleX !== 0 && layer.scaleY !== 0 && layer.color[3] > 0;
+            })) ?? false;
+        const directions = Array.from({ length: 8 }, (_, direction) => direction);
+        if (directions.every(direction => !drawable(actor.weapon!, candidate + direction))
+            && directions.every(direction => drawable(actor.body!, 80 + direction)
+                && drawable(actor.weapon!, 80 + direction))) return 80;
+    }
     return actor.body?.action.actions[candidate]?.frames.length ? candidate : actor.kind === 'character' ? 40 : 16;
 }
 

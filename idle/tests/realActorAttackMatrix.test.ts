@@ -39,7 +39,8 @@ const pinnedGroups: Record<string, Partial<Record<WeaponType, number>>> = {
   assassin: { dagger: 80, katar: 88, sword: 80, axe: 80 },
   sage: { dagger: 80, staff: 88, book: 88 },
   bard: { dagger: 80, bow: 88, instrument: 80 },
-  dancer: { dagger: 40, bow: 88, whip: 80 },
+  // Local classic dagger ACT: table group 40 is hidden; drawable body/weapon group is 80.
+  dancer: { dagger: 80, bow: 88, whip: 80 },
 };
 
 function expectedGroup(job: string, gender: 'male' | 'female', weapon?: WeaponType) {
