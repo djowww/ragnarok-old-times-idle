@@ -144,3 +144,84 @@ describe('Hunter Beast Strafing eligibility', () => {
   });
 
 });
+
+
+describe('field AFK target handoff after a kill', () => {
+  it('keeps the lethal action on its original actor and sends the next attack to the replacement without stalling', () => {
+    const { s, c } = setup();
+    const first = field(s);
+    const firstId = 'field-first';
+
+    first.id = firstId;
+    first.hp = 1;
+    first.maxHp = 1;
+    first.fieldSlot = 0;
+    first.engaged = true;
+    first.startedAt = 0;
+    first.arrivedAt = 0;
+    first.enemyNextAttackAt = 999999;
+    first.position = { x: 0.48, y: 0.65 };
+    first.approachFrom = { ...first.position };
+
+    const second = structuredClone(first);
+    second.id = 'field-second';
+    second.fieldSlot = 1;
+    second.hp = 100000;
+    second.maxHp = 100000;
+    second.engaged = false;
+    second.position = { x: 0.49, y: 0.65 };
+    second.approachFrom = { ...second.position };
+
+    s.falconEquipped = false;
+    delete s.learnedSkills.ht_falcon;
+    delete s.learnedSkills.blitz_beat;
+    s.rotation = [];
+    s.battle!.enemies = [first, second];
+    s.battle!.targetId = firstId;
+    s.battle!.hp = first.hp;
+    s.battle!.maxHp = first.maxHp;
+    s.battle!.playerNextAttackAt = 0;
+    s.battle!.playerNextSkillAt = 999999;
+    s.battle!.playerActionReadyAt = 0;
+    s.fieldPopulation!.generation = 1;
+    s.fieldPopulation!.enemies = [first, second];
+
+    const afterKill = advanceState(s, c, 250);
+    expect(afterKill.totals.kills).toBe(1);
+    expect(afterKill.events.find(event => event.kind === 'kill')).toMatchObject({
+      enemyId: firstId,
+      monsterId: first.monsterId,
+    });
+
+    const firstAttack = afterKill.events.find(
+      event => event.kind === 'damage' && event.enemyId === firstId,
+    );
+    expect(firstAttack).toMatchObject({
+      enemyId: firstId,
+      targetActorId: firstId,
+      actorAction: 'attack',
+    });
+    expect(afterKill.battle?.targetId).toBe(second.id);
+    expect(afterKill.fieldPopulation?.enemies.some(enemy => enemy.id === firstId)).toBe(false);
+    expect(afterKill.battle?.enemies?.find(enemy => enemy.id === second.id)?.hp).toBe(second.maxHp);
+    expect(afterKill.battle?.playerNextAttackAt).toBeGreaterThan(250);
+
+    const nextAttackAt = afterKill.battle!.playerNextAttackAt;
+    const nextCombatTick = Math.ceil(nextAttackAt / 250) * 250;
+    const afterNextAttack = advanceState(afterKill, c, nextCombatTick);
+    const secondAttack = afterNextAttack.events.find(
+      event => event.kind === 'damage' && event.enemyId === second.id,
+    );
+
+    expect(secondAttack).toMatchObject({
+      at: nextAttackAt,
+      enemyId: second.id,
+      targetActorId: second.id,
+      actorAction: 'attack',
+      actionStartedAt: nextAttackAt,
+    });
+    expect(secondAttack?.actionId).not.toBe(firstAttack?.actionId);
+    expect(afterNextAttack.events.filter(event => event.kind === 'damage' && event.enemyId === second.id)).toHaveLength(1);
+    expect(afterNextAttack.battle?.enemies?.find(enemy => enemy.id === second.id)?.hp).toBeLessThan(second.maxHp);
+  });
+});
