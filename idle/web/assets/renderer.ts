@@ -193,11 +193,22 @@ function facingFrames(part: ActorPart, preferred: number): { index: number; fram
 
 export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'skill' | 'hurt' | 'dead';
 
+// roBrowserLegacy d88a3cd4, src/DB/Skills/SkillAction.js: the two regular
+// makeAttackSkillAction('ATTACK') chains for imported pre-renewal skills.
+// https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Skills/SkillAction.js
+// Dedicated throwing, combo-slice and fixed-speed handlers are distinct actions.
+const WEAPON_SKILL_ACTIONS = new Set([
+    'SM_BASH', 'SM_MAGNUM', 'KN_PIERCE', 'KN_BRANDISHSPEAR', 'KN_SPEARSTAB',
+    'KN_BOWLINGBASH', 'BS_HAMMERFALL', 'AC_CHARGEARROW', 'RG_BACKSTAP', 'RG_RAID',
+    'RG_INTIMIDATE', 'CR_SHIELDCHARGE', 'CR_HOLYCROSS', 'BA_MUSICALSTRIKE',
+    'DC_THROWARROW', 'LK_SPIRALPIERCE', 'LK_HEADCRUSH', 'LK_JOINTBEAT', 'HW_MAGICPOWER',
+    'PA_SACRIFICE', 'ASC_METEORASSAULT', 'CR_ACIDDEMONSTRATION', 'AC_DOUBLE',
+    'HT_PHANTASMIC', 'SN_SHARPSHOOTING',
+]);
+
 export function getCombatActorAction(actorAction: 'attack' | 'skill' | 'none', skillSourceName?: string): ActorAction {
     if (actorAction === 'none') return 'idle';
-    // Pinned SkillAction.js:143 uses the equipped attack for Brandish; mounted
-    // Knight spear group96 has no visible weapon layers, unlike attack88.
-    if (actorAction === 'attack' || skillSourceName === 'SM_BASH' || skillSourceName === 'KN_BRANDISHSPEAR') return 'attack';
+    if (actorAction === 'attack' || skillSourceName !== undefined && WEAPON_SKILL_ACTIONS.has(skillSourceName)) return 'attack';
     return 'skill';
 }
 
