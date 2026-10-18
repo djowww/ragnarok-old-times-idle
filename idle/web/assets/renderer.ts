@@ -236,6 +236,11 @@ function comboSlice(action: ActorAction): readonly [number, number] | undefined 
         ? COMBO_SLICES[action as keyof typeof COMBO_SLICES] : undefined;
 }
 
+/** Attack-driven skills share contact timing with their visible weapon ACT. */
+export function isWeaponAttackActorAction(action: ActorAction): boolean {
+    return action === 'attack' || comboSlice(action) !== undefined;
+}
+
 export function getCombatActorAction(actorAction: 'attack' | 'skill' | 'none', skillSourceName?: string): ActorAction {
     if (actorAction === 'none') return 'idle';
     const combo = COMBO_SKILL_ACTIONS.get(skillSourceName ?? '');
