@@ -52,6 +52,7 @@ export interface PresentedActorAction {
   actionId: string;
   actionAt: number;
   sourceActorId: string;
+  targetActorId?: string;
   actorAction: 'attack' | 'skill' | 'none';
   visualActorAction?: 'attack' | 'skill';
   skill?: Partial<Pick<Skill, 'kind' | 'sourceName'>>;
@@ -65,6 +66,8 @@ export interface PresentedActorAction {
   presentationDirection?: number;
   /** False when a reconnect/backlog action was intentionally compressed. */
   presented?: boolean;
+  /** Body pose was superseded; its event, impact, and effects remain authoritative. */
+  bodySuppressed?: boolean;
 }
 /** Place an attack's visible contact no earlier than its decoded ACT completes. */
 export function actorActionImpactAt(
@@ -276,12 +279,59 @@ export function presentLatestActorActions<T extends PresentedActorAction>(
 export function presentedActorActions<T extends PresentedActorAction>(cues: T[], actorId: string): T[] {
   const actions = new Map<string, T>();
   for (const cue of cues) {
-    if (cue.sourceActorId !== actorId || !cue.presented || cue.actorAction === 'none') continue;
+    if (cue.sourceActorId !== actorId || !cue.presented || cue.bodySuppressed || cue.actorAction === 'none') continue;
     const key = JSON.stringify([cue.actionAt, cue.actionId]), existing = actions.get(key);
     if (!existing || existing.presentationDirection === undefined && cue.presentationDirection !== undefined) actions.set(key, cue);
   }
-  return [...actions.values()].sort((a, b) => a.start - b.start || a.id - b.id);
+  return [...actions.values()].sort((a, b) => a.actionAt - b.actionAt || a.id - b.id);
 }
+/** Drop stale body poses when a current source route overtakes a delayed render queue. */
+export function compressStaleActorActionBacklog<T extends PresentedActorAction>(
+  cues: T[], marks: Map<string, ActorActionWatermark>, actorId: string, now: number,
+  routeWalking: boolean, routeStartedAt: number, maxQueueDelay = 1600,
+): Map<number, number> {
+  const moved = new Map<number, number>();
+  const actions = presentedActorActions(cues, actorId);
+  const active = actions.filter(cue => cue.start <= now && now < cue.start + cue.actionDuration)
+    .sort((a, b) => a.start - b.start || a.actionAt - b.actionAt)[0];
+  const activeEnd = active ? active.start + active.actionDuration : now;
+  const queued = actions.filter(cue => cue !== active && cue.start + cue.actionDuration > now);
+  const newestStartedActionAt = actions.reduce((latest, cue) => cue.start <= now ? Math.max(latest, cue.actionAt) : latest, -Infinity);
+  const currentRoute = queued.filter(cue => !routeWalking || cue.actionAt >= routeStartedAt)
+    .sort((a, b) => a.actionAt - b.actionAt || a.id - b.id);
+  for (const cue of queued) if (cue.actionAt < newestStartedActionAt) cue.bodySuppressed = true;
+  const latest = currentRoute.at(-1);
+  const queueDelay = latest ? Math.max(0, latest.start - activeEnd) : 0;
+  const overlapsOutOfOrder = !!latest && queued.some(cue => cue.actionAt < latest.actionAt && cue.start > latest.start);
+  const compressQueue = !!latest && (queueDelay > maxQueueDelay || currentRoute.length > 3 || overlapsOutOfOrder);
+  for (const cue of queued) {
+    if (routeWalking && cue.actionAt < routeStartedAt || compressQueue && cue !== latest) cue.bodySuppressed = true;
+  }
+  // First Aid keeps its heal and impact, while an overlapping weapon swing owns the body.
+  for (const skill of actions) if (skill.actorAction === 'skill' && skill.sourceActorId === actorId &&
+    skill.targetActorId === actorId && skill.skill?.kind === 'heal' && skill.skill.sourceName?.toUpperCase() === 'NV_FIRSTAID') {
+    if (actions.some(attack => attack.actorAction === 'attack' && attack.actionAt > skill.actionAt &&
+      attack.start < skill.start + skill.actionDuration && skill.start < attack.start + attack.actionDuration))
+      skill.bodySuppressed = true;
+  }
+  if (!latest || !compressQueue) return moved;
+  const nextStart = Math.max(activeEnd, Math.min(latest.start, now));
+  if (queueDelay <= maxQueueDelay && latest.start >= activeEnd) return moved;
+  const delta = nextStart - latest.start;
+  if (delta === 0) return moved;
+  for (const sibling of cues) {
+    if (sibling.sourceActorId !== actorId || sibling.actionAt !== latest.actionAt ||
+      sibling.actionId !== latest.actionId || sibling.actorAction === 'none') continue;
+    sibling.start += delta; sibling.effectStart += delta; sibling.impact += delta;
+    moved.set(sibling.id, delta);
+  }
+  const mark = marks.get(actorId);
+  if (mark?.actionAt === latest.actionAt && mark.actionId === latest.actionId) {
+    mark.start += delta; mark.end += delta;
+  }
+  return moved;
+}
+
 export function lockActorDirection<T extends PresentedActorAction>(cues: T[], active: T, direction: number): number {
   const siblings = cues.filter(cue => cue.sourceActorId === active.sourceActorId &&
     cue.actionAt === active.actionAt && cue.actionId === active.actionId && cue.actorAction !== 'none');
@@ -292,8 +342,8 @@ export function lockActorDirection<T extends PresentedActorAction>(cues: T[], ac
 
 /** A later received action cannot replace the body before its visual turn. */
 export function presentedActorActionAt<T extends PresentedActorAction>(cues: T[], actorId: string, time: number): T | undefined {
-  return cues.find(cue => cue.sourceActorId === actorId && cue.actorAction !== 'none' && cue.presented === true &&
-    cue.start <= time && time < cue.start + cue.actionDuration);
+  return presentedActorActions(cues, actorId).filter(cue => cue.start <= time && time < cue.start + cue.actionDuration)
+    .sort((a, b) => a.start - b.start || a.actionAt - b.actionAt)[0];
 }
 
 function shiftQueuedActorActions<T extends PresentedActorAction>(cues: T[], marks: Map<string, ActorActionWatermark>, active: T, delta: number) {

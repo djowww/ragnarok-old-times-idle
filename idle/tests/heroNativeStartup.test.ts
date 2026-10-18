@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { NativeActorsBridge } from '../web/assets/nativeActors';
 import * as actorPresentation from '../web/assets/enemyActionPresentation';
-import { ActionTextureStartup, presentedActorActionAt, presentLatestActorActions, reconcileActorPlayback, soloPostureAt, targetHealthAt } from '../web/assets/combatPresentation';
+import { ActionTextureStartup, compressStaleActorActionBacklog, presentedActorActionAt, presentLatestActorActions, reconcileActorPlayback, soloPostureAt, targetHealthAt } from '../web/assets/combatPresentation';
 import { getActorPose, getActorPlaybackDuration, getCombatActorAction } from '../web/assets/renderer';
 import { shiftCorpsePresentation } from '../web/assets/corpsePresentation';
 
@@ -91,7 +91,7 @@ function fixture(action: 'attack' | 'skill' = 'attack', brandish = false) {
     if(clean)cleanup({combatCues,now,textureStartup,heroPresentation,enemyPresentation});
     const current:any={id:'hero',hp:100,status:'hunting',buffs:{},learnedSkills:{},job:'novice'};
     const catalog:any={skills:{},classes:{},source:{files:[]}};
-    const scope:any={combatCues,actionWatermarks,textureStartup,heroPresentation,enemyPresentation,shiftPresentationAssociates,
+    const scope:any={combatCues,actionWatermarks,textureStartup,heroPresentation,enemyPresentation,shiftPresentationAssociates,compressStaleActorActionBacklog,
       current,catalog,serverNow:now,soloPostureAt,isArriving:false,actorsRef:{current:{hero:actor}},heroActor:actor,
       heroDirection:6,camera,heroPlacement:{world:idle.world},motion:{matches:false},nativeActors:{current:bridge},time:now,
       actorActionCue:(c:any[],m:any,id:string,t:number)=>presentedActorActionAt(c,id,t),
