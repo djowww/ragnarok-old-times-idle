@@ -475,6 +475,16 @@ export interface SenseInspectionResult {
   elementRates: SenseElementRates;
 }
 export interface SkillClockOwnership { readyAt: number; previousReadyAt?: number }
+export interface CannibalizeSummon {
+  id: string;
+  monsterId: number;
+  skillLevel: number;
+  spawnedAt: number;
+  expiresAt: number;
+  nextAttackAt: number;
+  nextHealAt?: number;
+  healCastEndsAt?: number;
+}
 export interface Battle {
   monsterId: number;
   hp: number;
@@ -495,6 +505,8 @@ export interface Battle {
   deadlineAt?: number;
   enemies?: BattleEnemy[];
   targetId?: string;
+  /** Temporary AI_FLORA actors belong to this encounter and never enter reward enemies. */
+  cannibalizeSummons?: CannibalizeSummon[];
   cast?: {
     skillId: string;
     level: number;

@@ -299,6 +299,13 @@ function resumePausedState(s: GameState, now: number) {
     for (const cell of Object.keys(placement.cellExpiresAt ?? {}))
       placement.cellExpiresAt![cell] = shift(placement.cellExpiresAt![cell]);
   }
+  for (const summon of s.battle?.cannibalizeSummons ?? []) {
+    summon.spawnedAt = shift(summon.spawnedAt);
+    summon.expiresAt = shift(summon.expiresAt);
+    summon.nextAttackAt = shift(summon.nextAttackAt);
+    summon.nextHealAt = optional(summon.nextHealAt);
+    summon.healCastEndsAt = optional(summon.healCastEndsAt);
+  }
   for (const buff of Object.values(s.buffs)) {
     buff.expiresAt = shift(buff.expiresAt);
     buff.startsAt = optional(buff.startsAt);

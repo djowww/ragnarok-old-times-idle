@@ -11765,8 +11765,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -15201,8 +15200,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 295,
-    "unsupported": 53,
+    "supported": 296,
+    "unsupported": 52,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15376,13 +15375,13 @@
       },
       "alchemist": {
         "sourceTree": 35,
-        "supported": 16,
-        "unsupported": 19
+        "supported": 17,
+        "unsupported": 18
       },
       "creator": {
         "sourceTree": 39,
-        "supported": 18,
-        "unsupported": 21
+        "supported": 19,
+        "unsupported": 20
       },
       "assassin": {
         "sourceTree": 24,
@@ -15665,6 +15664,7 @@
       "AM_DEMONSTRATION",
       "AM_ACIDTERROR",
       "AM_POTIONPITCHER",
+      "AM_CANNIBALIZE",
       "CR_SLIMPITCHER",
       "CR_ACIDDEMONSTRATION",
       "AS_RIGHT",
@@ -15867,11 +15867,6 @@
         "skillId": "bs_adrenaline2",
         "sourceName": "BS_ADRENALINE2",
         "reason": "Requer estado de Espírito da classe, ainda não implementado."
-      },
-      {
-        "skillId": "am_cannibalize",
-        "sourceName": "AM_CANNIBALIZE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
         "skillId": "am_spheremine",
@@ -16862,6 +16857,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "b786e1ca881c20307fe1a9750d1fb3e6c039db5be0eca82f5f4ee0b105c36f40",
+  "catalogSha256": "23dba476504638975fcb163da5ef399cbccfc8290a7e05348e9d28dd90d8876e",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

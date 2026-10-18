@@ -11,6 +11,7 @@ import { automaticSkillRotation } from '../shared/skillRotation.js';
 import { soloAlchemyAfkUseful, startSoloAlchemyCast } from './soloAlchemy.js';
 import type {
   BattleEnemy,
+  CannibalizeSummon,
   FalconStrike,
   Battle,
   Catalog,
@@ -2494,6 +2495,15 @@ function applyTarotCardEffect(
   }
 }
 
+const cannibalizeSource = {
+  1: { monsterId: 1589, name: 'Mandragora', attack: [26, 35] as const, delayMs: 1768, level: 12, dex: 36, element: 'Earth' },
+  2: { monsterId: 1579, name: 'Hydra', attack: [22, 28] as const, delayMs: 800, level: 14, dex: 40, element: 'Water' },
+  3: { monsterId: 1575, name: 'Flora', attack: [242, 273] as const, delayMs: 1432, level: 26, dex: 43, element: 'Earth' },
+  4: { monsterId: 1555, name: 'Parasite', attack: [215, 430] as const, delayMs: 864, level: 49, dex: 90, element: 'Wind' },
+  5: { monsterId: 1590, name: 'Geographer', attack: [467, 621] as const, delayMs: 1308, level: 56, dex: 68, int: 60, element: 'Earth' },
+} as const;
+const cannibalizeDurationMs = [300000, 240000, 180000, 120000, 60000];
+
 function resolveSkill(
   s: GameState,
   c: Catalog,
@@ -2558,6 +2568,8 @@ function resolveSkill(
   const autoChoice = mechanic === "SA_AUTOSPELL" ? automaticSpellChoices(s, c, level)
     .find(choice => choice.skillId === s.autospellSkillId) : undefined;
   if (!groundTick && mechanic === "SA_AUTOSPELL" && !autoChoice) return false;
+  if (!groundTick && mechanic === 'AM_CANNIBALIZE' &&
+    (s.battle?.cannibalizeSummons?.length ?? 0) >= 6 - level) return false;
   const defensiveGround = ["AL_PNEUMA", "MG_SAFETYWALL"].includes(mechanic ?? "");
   if (!groundTick && defensiveGround && !canPlaceDefenseGround(s, mechanic!, at)) return false;
   const delayedControl = ["BA_FROSTJOKE", "DC_SCREAM"].includes(mechanic ?? "");
@@ -2592,6 +2604,30 @@ function resolveSkill(
       { skillId: skill.id },
     );
     return false;
+  }
+  if (!groundTick && mechanic === 'AM_CANNIBALIZE') {
+    const source = cannibalizeSource[level as keyof typeof cannibalizeSource];
+    const battle = s.battle;
+    if (!source || !battle) return false;
+    const summon: CannibalizeSummon = {
+      id: `${s.id}:cannibalize:${battle.startedAt}:${at}:${level}:${battle.cannibalizeSummons?.length ?? 0}`,
+      monsterId: source.monsterId,
+      skillLevel: level,
+      spawnedAt: at,
+      expiresAt: at + cannibalizeDurationMs[level - 1],
+      nextAttackAt: at + source.delayMs,
+      ...(level === 5 && { nextHealAt: at + 100 }),
+    };
+    (battle.cannibalizeSummons ??= []).push(summon);
+    event(s, at, 'skill', skill.name, undefined, 'player', {
+      skillId: skill.id, skillLevel: level, sourceActorId: s.id,
+      targetActorId: s.id, ...action, castMs: val(skill.castTimeMs, level),
+    });
+    event(s, at, 'status-start', skill.name, undefined, 'player', {
+      skillId: skill.id, skillLevel: level, sourceActorId: s.id,
+      targetActorId: s.id, actionId: action.actionId,
+    });
+    return true;
   }
   if (!groundTick && mechanic === 'CG_TAROTCARD') {
     event(s, at, 'skill', skill.name, undefined, 'enemy', {
@@ -3540,18 +3576,20 @@ function completePlayerSkill(s: GameState, c: Catalog, skill: Skill, level: numb
   if (succeeded && source === "HT_POWER" && s.combatEffects?.combo?.sourceName === "AC_DOUBLE")
     s.combatEffects.combo = undefined;
   if (succeeded) {
-    const effect = b.groundEffects?.find(g => g.skillId === skill.id && !previousEffects.has(g));
-    const unit = b.skillUnits?.find(g => g.skillId === skill.id && !previousUnits.has(g));
-    const defense = s.combatEffects?.defensiveGrounds?.find(g => !previousDefense.has(g));
-    const trap = b.traps?.find(g => g.skillId === skill.id && !previousTraps.has(g));
-    const placement = s.groundPlacements?.find(g => g.skillId === skill.id && !previousPlacements.has(g)) ??
-      captureGroundPlacement(s, c, skill, level, at, unit?.position ?? trap?.position ?? placementCenter, caster, context, true);
-    if (placement && (effect || unit || defense || trap)) {
-      placement.battleStartedAt = b.startedAt;
-      if (effect) { effect.groundPlacementId = placement.id; placement.binding = 'groundEffect'; }
-      else if (unit) { unit.groundPlacementId = placement.id; placement.binding = 'skillUnit'; }
-      else if (defense) { defense.groundPlacementId = placement.id; placement.binding = 'defensiveGround'; }
-      else if (trap) { trap.groundPlacementId = placement.id; placement.binding = 'trap'; }
+    if (source !== 'AM_CANNIBALIZE') {
+      const effect = b.groundEffects?.find(g => g.skillId === skill.id && !previousEffects.has(g));
+      const unit = b.skillUnits?.find(g => g.skillId === skill.id && !previousUnits.has(g));
+      const defense = s.combatEffects?.defensiveGrounds?.find(g => !previousDefense.has(g));
+      const trap = b.traps?.find(g => g.skillId === skill.id && !previousTraps.has(g));
+      const placement = s.groundPlacements?.find(g => g.skillId === skill.id && !previousPlacements.has(g)) ??
+        captureGroundPlacement(s, c, skill, level, at, unit?.position ?? trap?.position ?? placementCenter, caster, context, true);
+      if (placement && (effect || unit || defense || trap)) {
+        placement.battleStartedAt = b.startedAt;
+        if (effect) { effect.groundPlacementId = placement.id; placement.binding = 'groundEffect'; }
+        else if (unit) { unit.groundPlacementId = placement.id; placement.binding = 'skillUnit'; }
+        else if (defense) { defense.groundPlacementId = placement.id; placement.binding = 'defensiveGround'; }
+        else if (trap) { trap.groundPlacementId = placement.id; placement.binding = 'trap'; }
+      }
     }
     if (['MO_FINGEROFFENSIVE', 'MO_INVESTIGATE', 'MO_CHAINCOMBO', 'MO_EXTREMITYFIST'].includes(skill.sourceName ?? '') &&
       s.combatEffects?.bladeStopLink?.partnerActorId === target.id) clearBladeStop(s, at);
@@ -3754,6 +3792,7 @@ function playerCombatAction(s: GameState, c: Catalog, at: number, context?: Simu
 type CombatDeadline = { at: number; priority: number; key: string } & (
   { kind: "cast" | "supportCast" | "player" | "timeout" | "buffs" | "field" | 'sageField' | 'carryReturn' } |
   { kind: "enemy" | "npcCast" | "targetCheck"; enemy: BattleEnemy } |
+  { kind: "cannibalizeAttack" | "cannibalizeHeal" | "cannibalizeExpiry"; summon: CannibalizeSummon } |
   { kind: "sightBlaster"; enemy: BattleEnemy } |
   { kind: "ruwach"; enemy: BattleEnemy } |
   { kind: "playerStatus" } |
@@ -3854,6 +3893,13 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
     if (s.supportCast) add({ kind: 'supportCast', at: Math.max(cursor, s.supportCast.endsAt), priority: -1, key: s.supportCast.actionId });
     for (const [index, delayed] of (b.delayedSkills ?? []).entries())
       add({ kind: "delayed", delayed, at: Math.max(cursor, delayed.endsAt), priority: 1, key: `${index}` });
+    for (const summon of b.cannibalizeSummons ?? []) {
+      add({ kind: 'cannibalizeExpiry', summon, at: Math.max(cursor, summon.expiresAt), priority: -1.8, key: summon.id });
+      if (summon.nextAttackAt < summon.expiresAt)
+        add({ kind: 'cannibalizeAttack', summon, at: Math.max(cursor, summon.nextAttackAt), priority: 4.5, key: summon.id });
+      if (summon.nextHealAt !== undefined && summon.nextHealAt < summon.expiresAt)
+        add({ kind: 'cannibalizeHeal', summon, at: Math.max(cursor, summon.healCastEndsAt ?? summon.nextHealAt), priority: -0.25, key: summon.id });
+    }
     for (const [index, ground] of (b.groundEffects ?? []).entries())
       if ((ground.intervalMs ?? c.skills[ground.skillId]?.groundIntervalMs ?? 0) > 0 &&
         ground.nextTickAt < ground.expiresAt && (ground.remainingHits ?? 1) > 0)
@@ -4118,6 +4164,57 @@ function runCombatTimeline(s: GameState, c: Catalog, until: number, windowStart:
         });
         bleeding.nextTickAt = cursor + 10000;
         if (next.enemy.hp <= 0 && s.battle) awardKill(s, c, next.enemy, cursor, c.skills[bleeding.skillId ?? '']);
+      }
+    } else if (next.kind === 'cannibalizeExpiry') {
+      b.cannibalizeSummons = (b.cannibalizeSummons ?? []).filter(summon => summon.id !== next.summon.id);
+      event(s, cursor, 'status-end', 'Cannibalize encerrada.', undefined, 'player', {
+        skillId: Object.keys(c.skills).find(id => c.skills[id].sourceName === 'AM_CANNIBALIZE'),
+        sourceActorId: s.id, targetActorId: s.id,
+      });
+    } else if (next.kind === 'cannibalizeAttack') {
+      const summon = next.summon;
+      const active = b.cannibalizeSummons?.find(entry => entry.id === summon.id);
+      const target = enemies(s).find(enemy => enemy.id === b.targetId && enemy.hp > 0);
+      const source = cannibalizeSource[summon.skillLevel as keyof typeof cannibalizeSource];
+      if (active && source && cursor < summon.expiresAt) {
+        if (target) {
+          const monster = c.monsters[target.monsterId];
+          const attack = source.attack[0] + Math.floor(random(s) * (source.attack[1] - source.attack[0] + 1));
+          const dealt = classicPhysicalDamage({ attack, magicAttack: [0, 0], baseLevel: source.level,
+            dex: source.dex, elementMultiplier: elementMultiplier(c, source.element, monster) },
+            monster, undefined, 1, () => random(s));
+          const taken = Math.min(target.hp, dealt);
+          const targetHpBefore = target.hp;
+          target.hp -= taken;
+          rememberMonsterAttacker(s, target, taken, cursor);
+          event(s, cursor, 'damage', source.name, taken, 'enemy', {
+            enemyId: target.id, monsterId: target.monsterId, sourceActorId: summon.id,
+            targetActorId: target.id, targetHpBefore,
+            hitMotionMs: monster.damageMotionMs ?? 400,
+          });
+          if (target.hp <= 0 && s.battle) awardKill(s, c, target, cursor);
+        }
+        summon.nextAttackAt = cursor + source.delayMs;
+      }
+    } else if (next.kind === 'cannibalizeHeal') {
+      const summon = next.summon;
+      const active = b.cannibalizeSummons?.find(entry => entry.id === summon.id);
+      if (active && active.skillLevel === 5 && cursor < summon.expiresAt) {
+        if (summon.healCastEndsAt !== undefined) {
+          if (s.hp < derivedStats(s, c).maxHp * 0.9) {
+            const before = s.hp;
+            const amount = Math.min(1064, derivedStats(s, c).maxHp - s.hp);
+            s.hp += amount;
+            event(s, cursor, 'heal', 'Heal', amount, 'player', {
+              sourceActorId: summon.id, targetActorId: s.id, resource: 'hp',
+              targetHpBefore: before,
+            });
+            summon.nextHealAt = cursor + 5000;
+          } else summon.nextHealAt = cursor + 100;
+          delete summon.healCastEndsAt;
+        } else if (s.hp < derivedStats(s, c).maxHp * 0.9) {
+          summon.healCastEndsAt = cursor + 500;
+        } else summon.nextHealAt = cursor + 100;
       }
     } else if (next.kind === "enemy") {
       enemyAttack(s, c, next.enemy, cursor, undefined, undefined, context);
