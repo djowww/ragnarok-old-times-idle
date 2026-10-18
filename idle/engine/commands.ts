@@ -1,3 +1,4 @@
+import {openArrowCraft,answerArrowCraft,cancelArrowCraft,reconcileArrowCraft} from './arrowCraft.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
 import {useDetecting} from './falconDetect.js';
 import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
@@ -110,6 +111,8 @@ export function executeCommand(
     requireRule(!otherSkill || ownToggle, 'CHASEWALK_ACTION_BLOCKED', 'Desative Furtividade antes de usar outras habilidades.');
   }
   switch (command.type) {
+    case 'craftArrows': answerArrowCraft(s,c,command.menuId,command.uid,now);break;
+    case 'cancelArrowCraft': cancelArrowCraft(s,command.menuId);break;
     case 'weaponRefine': answerWeaponRefine(s,c,command.menuId,command.uid,now);break;
     case 'cancelWeaponRefine': cancelWeaponRefine(s,c,command.menuId,now);break;
     case 'consumeItem': {
@@ -153,6 +156,7 @@ export function executeCommand(
       break;
     }
     case 'useSkill': {
+      if(c.skills[command.skillId]?.sourceName==='AC_MAKINGARROW'){openArrowCraft(s,c,now);break;}
       if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
       if (skill?.sourceName === 'HT_DETECTING') {
@@ -1001,6 +1005,7 @@ export function executeCommand(
   }
   if(command.type==='teleport'&&s.weaponRefineMenu){const id=s.weaponRefineMenu.id;cancelWeaponRefine(s,c,id,now);}
   reconcileWeaponRefine(s,c,now);
+  reconcileArrowCraft(s,c,now);
   reconcileFalcon(s,c);
   discardAloeveraUnderAutoBerserk(s,c,now);
   if (s.carryReturnRequestedAt !== undefined && s.carryReturnRequestedAt <= now)

@@ -43,8 +43,9 @@ export default function Build({
   mode = "all",
   onOpenConverters,
   onOpenPharmacy,
+  onOpenArrows,
   onOpenWeaponRefine,
-}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void }) {
+}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenArrows?: (trigger:HTMLElement) => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void }) {
   const { state, stats } = snapshot;
   const openingRefine = useRef(false);
   const [refineOpening, setRefineOpening] = useState(false);
@@ -276,6 +277,7 @@ export default function Build({
                       · 1 pt
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
+                    {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "weaponRefine" && <div className="weapon-refine-launch">
                       <button type="button" disabled={busy || refineOpening || unsupported || level === 0 || !onOpenWeaponRefine ||

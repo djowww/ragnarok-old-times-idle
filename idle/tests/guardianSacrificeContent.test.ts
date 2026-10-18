@@ -1,4 +1,5 @@
 import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import dungeonCurrentCatalog from '../content/catalog.json';
@@ -7,8 +8,8 @@ import baseline from './fixtures/guardianSacrifice230Baseline.json';
 import rules from '../content/rules.json';
 import type { Catalog } from '../shared/types';
 
-const catalog = beforeDungeonExpansionCatalog(dungeonCurrentCatalog);
-const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+const catalog = beforeDungeonExpansionCatalog(beforeArrowCraftingCatalog(dungeonCurrentCatalog));
+const manifest = beforeDungeonExpansionManifest(beforeArrowCraftingManifest(dungeonCurrentManifest));
 
 const candidate = catalog as unknown as Catalog;
 

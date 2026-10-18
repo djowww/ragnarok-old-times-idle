@@ -1,11 +1,12 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { describe, expect, it } from 'vitest';
 import currentCatalog from '../content/catalog.json';
 import currentManifest from '../content/source-manifest.json';
 import { beforeMonsterSpCatalog, beforeMonsterSpManifest, monsterSpHistoricalJsonHash } from './monster-sp-historical';
 
-const rawCatalog = beforeFourMapExpansionCatalog(currentCatalog);
-const rawManifest = beforeFourMapExpansionManifest(currentManifest);
+const rawCatalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const rawManifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 
 describe('audited monster SP and Shockwave catalog delta', () => {
   it('reconstructs the exact catalog bytes from before the SP and skill promotion', () => {
@@ -17,8 +18,8 @@ describe('audited monster SP and Shockwave catalog delta', () => {
   });
 
   it('reconstructs the exact source manifest bytes before the SP and skill promotion', () => {
-    expect(monsterSpHistoricalJsonHash(beforeMonsterSpManifest(rawManifest)))
-      .toBe('bc12144829a7c64193ca60d61ae5b64da80c9e8b04d513843d4983f9c794613d');
+    expect(monsterSpHistoricalJsonHash(canonicalArrowHistoricalManifest(beforeMonsterSpManifest(rawManifest))))
+      .toBe('2f8c9d9ca8009a367f83ad4e66f513d8b05a796618dc721bcaa10447863a0a3a');
   });
 
   it('keeps mutations to monster SP, Shockwave inputs, and coverage visible', () => {

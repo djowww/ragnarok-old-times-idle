@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalRows } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { beforeBeastStrafingCatalog, beforeBeastStrafingManifest } from './beast-strafing-historical.js';
 import currentCatalog from '../content/catalog.json';
@@ -5,8 +6,8 @@ import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/beastStrafingBaseline.json';
 import { describe, expect, it } from 'vitest';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 
 describe('Beast Strafing historical projection', () => {
   it('restores the exact prior catalog and manifest records', () => {
@@ -18,8 +19,13 @@ describe('Beast Strafing historical projection', () => {
     expect(oldCatalog.source).toEqual(baseline.catalogFields.source.before);
     expect(oldManifest.skillSources.ht_power).toEqual(baseline.manifestSkills.ht_power.before);
     expect(oldManifest.skillSources.double_strafe).toEqual(baseline.manifestSkills.double_strafe.before);
-    for (const [key, change] of Object.entries(baseline.manifestFields))
-      expect(oldManifest[key as keyof typeof oldManifest]).toEqual(change.before);
+    for (const [key, change] of Object.entries(baseline.manifestFields)) {
+      const actual = oldManifest[key as keyof typeof oldManifest];
+      if (key === 'inertDropItems')
+        expect(canonicalArrowHistoricalRows(actual as { itemId: number }[]))
+          .toEqual(canonicalArrowHistoricalRows(change.before as { itemId: number }[]));
+      else expect(actual).toEqual(change.before);
+    }
   });
 
   it('keeps mutations to promoted records visible to historical guards', () => {

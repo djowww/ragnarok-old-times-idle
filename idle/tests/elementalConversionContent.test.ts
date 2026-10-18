@@ -1,4 +1,5 @@
 import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import {describe,it,expect} from 'vitest';
 import dungeonCurrentData from '../content/catalog.json';
@@ -6,8 +7,8 @@ import dungeonCurrentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/priestControl225Baseline.json';
 import rules from '../content/rules.json';
 import type {Catalog} from '../shared/types';
-const data = beforeDungeonExpansionCatalog(dungeonCurrentData);
-const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+const data = beforeDungeonExpansionCatalog(beforeArrowCraftingCatalog(dungeonCurrentData));
+const manifest = beforeDungeonExpansionManifest(beforeArrowCraftingManifest(dungeonCurrentManifest));
 
 const c=data as unknown as Catalog;
 describe('exact source-pinned converter package',()=>{

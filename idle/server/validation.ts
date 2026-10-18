@@ -25,6 +25,7 @@ const rules: Record<string, Record<string, Rule>> = {
   useSkill: { skillId: token, expectedCastActionId: value => value === undefined || token(value), expectedEnemyId: value => value === undefined || token(value) },
   setMount: { mounted: boolean },
   rentFalcon: {}, dismissFalcon: {},
+  craftArrows: {menuId:token,uid:token},cancelArrowCraft:{menuId:token},
   weaponRefine: {menuId:token,uid:token},cancelWeaponRefine:{menuId:token},
   setRotation: { skillIds: value => Array.isArray(value) && value.length <= 9 && new Set(value).size === value.length && value.every(token), areaId: value => value === undefined || token(value) },
   buy: { itemId: integer(1, 1_000_000), quantity: integer(1, 9999) },

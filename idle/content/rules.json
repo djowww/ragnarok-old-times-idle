@@ -2613,7 +2613,8 @@
     "db/pre-re/refine_db.conf": "379b165bb1885627a7d0838ace7a9c6c6748e2ef5eb6a02d540aeb5d29c9349e",
     "src/map/refine.c": "f37278ea0f021009c6a5a75983cbc44fed2bcd62c3767f05481c6303005a0bc0",
     "src/map/clif.h": "625470b65d182fc5bdd3f4c62545d6271bcf6fe041eaa773dd24ce9be88476e3",
-    "npc/pre-re/mobs/dungeons/anthell.txt": "34ccf73b437e17082a4492619167f0921b3b79ab10ef1cfd2050995cf3d842ba"
+    "npc/pre-re/mobs/dungeons/anthell.txt": "34ccf73b437e17082a4492619167f0921b3b79ab10ef1cfd2050995cf3d842ba",
+    "db/create_arrow_db.txt": "8b735f3685a18d6fcaa8063b7f8ef9fd1251ac6beba03a56279b24a6b8255eec"
   },
   "referenceHashes": {
     "statusC": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26",

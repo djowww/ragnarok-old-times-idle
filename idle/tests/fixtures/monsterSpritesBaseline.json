@@ -3,29 +3,29 @@
     "monsters": {
       "1032": {
         "beforeSprite": {
-          "spr": "data/sprite/몬스터/verit.spr",
-          "act": "data/sprite/몬스터/verit.act"
+          "spr": "data/sprite/\ubaac\uc2a4\ud130/verit.spr",
+          "act": "data/sprite/\ubaac\uc2a4\ud130/verit.act"
         },
         "afterSha256": "22217db99b735958be083e729c14bb2efaba62b47d7a10b72ebe53e335a3f329"
       },
       "1042": {
         "beforeSprite": {
-          "spr": "data/sprite/몬스터/steel_chonchon.spr",
-          "act": "data/sprite/몬스터/steel_chonchon.act"
+          "spr": "data/sprite/\ubaac\uc2a4\ud130/steel_chonchon.spr",
+          "act": "data/sprite/\ubaac\uc2a4\ud130/steel_chonchon.act"
         },
         "afterSha256": "ea548390593e525b8c2ce08460f962a64a2e6c94c330f51ae69465641751e2f4"
       },
       "1047": {
         "beforeSprite": {
-          "spr": "data/sprite/몬스터/pecopeco_egg.spr",
-          "act": "data/sprite/몬스터/pecopeco_egg.act"
+          "spr": "data/sprite/\ubaac\uc2a4\ud130/pecopeco_egg.spr",
+          "act": "data/sprite/\ubaac\uc2a4\ud130/pecopeco_egg.act"
         },
         "afterSha256": "7ec253a68876b1df6b330dca1c8be95a9123f951ef9ab0950f0d5713a2dfaab7"
       },
       "1785": {
         "beforeSprite": {
-          "spr": "data/sprite/몬스터/atroce.spr",
-          "act": "data/sprite/몬스터/atroce.act"
+          "spr": "data/sprite/\ubaac\uc2a4\ud130/atroce.spr",
+          "act": "data/sprite/\ubaac\uc2a4\ud130/atroce.act"
         },
         "afterSha256": "2032e468f43f03163b7db1e4affe4a03c26934ad60c959aaeaf954799e48066a"
       }
@@ -67,6 +67,6 @@
       "before": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44",
       "after": "31c620d7f1ef8a42bf6c7fac3a4f1ed1a2d6e7bd81911426eec895e1515ee6d4"
     },
-    "beforeFileSha256": "94049aa9ea93816fef25bc27e7cf13ed8966e34eef9d35c6d1dbc6fc84a8a471"
+    "beforeFileSha256": "f4c8bce162dbb0085cea70f7441f1b4096ba8b85176c2a3d4a6aa68b2656eef5"
   }
 }

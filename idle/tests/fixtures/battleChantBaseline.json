@@ -1,6 +1,6 @@
 {
   "beforeCatalogSha256": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
-  "beforeManifestSha256": "792a698a0a4f14e7d59c981fe760e0f2e05f42a74ba1b326b81827065de2ac54",
+  "beforeManifestSha256": "b8c96320ae0a981125fa956cf81cfba0e30f7242049cfefbf35f8842c223ff85",
   "catalogSkill": {
     "before": {
       "id": "pa_gospel",
@@ -11,9 +11,9 @@
       "sourceName": "PA_GOSPEL",
       "mechanic": "PA_GOSPEL",
       "implementation": "unsupported",
-      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
-      "description": "Battle Chant. Aplica GOSPEL. Requer efeitos aleatórios de grupo.",
-      "iconResource": "data/texture/유저인터페이스/item/pa_gospel.bmp",
+      "unsupportedReason": "Requer efeitos aleat\u00f3rios de grupo.",
+      "description": "Battle Chant. Aplica GOSPEL. Requer efeitos aleat\u00f3rios de grupo.",
+      "iconResource": "data/texture/\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4/item/pa_gospel.bmp",
       "spCost": [
         80,
         80,
@@ -248,7 +248,7 @@
     "unavailableEntry": {
       "skillId": "pa_gospel",
       "sourceName": "PA_GOSPEL",
-      "reason": "Requer efeitos aleatórios de grupo."
+      "reason": "Requer efeitos aleat\u00f3rios de grupo."
     }
   },
   "manifestSkill": {
@@ -297,7 +297,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "unsupported",
-      "unsupportedReason": "Requer efeitos aleatórios de grupo.",
+      "unsupportedReason": "Requer efeitos aleat\u00f3rios de grupo.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },

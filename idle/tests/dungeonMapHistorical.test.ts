@@ -1,8 +1,11 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import {beforeConsumablesCatalog} from './consumables-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import raw from '../content/catalog.json';
-import manifest from '../content/source-manifest.json';
+import rawCatalog from '../content/catalog.json';
+const raw = beforeArrowCraftingCatalog(rawCatalog);
+import rawManifest from '../content/source-manifest.json';
+const manifest = beforeArrowCraftingManifest(rawManifest);
 import baseline from './fixtures/dungeonMapExpansionBaseline.json';
 import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
 

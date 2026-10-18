@@ -1,4 +1,5 @@
 import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { beforeSageFieldSkills, beforeSagePropertyItems } from './sage-fields-historical-fixture';
 import chasewalkBaseline from './fixtures/chasewalk389Baseline.json';
@@ -13,8 +14,8 @@ import rogueCopyBaseline from './fixtures/rogueCopyUnsupportedBaseline.json';
 import type { Catalog } from '../shared/types';
 import { beforeHistoricalClassCadence } from './class-cadence-historical';
 
-const catalog = beforeDungeonExpansionCatalog(dungeonCurrentCatalog);
-const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+const catalog = beforeDungeonExpansionCatalog(beforeArrowCraftingCatalog(dungeonCurrentCatalog));
+const manifest = beforeDungeonExpansionManifest(beforeArrowCraftingManifest(dungeonCurrentManifest));
 
 const typedCatalog = catalog as unknown as Catalog;
 

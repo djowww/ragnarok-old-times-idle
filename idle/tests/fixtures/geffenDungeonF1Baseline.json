@@ -9,7 +9,7 @@
         "afterSha256": "0372f36f2993bcd2f446802d1995a8caa2de3214f7679452ab40b074ba344643",
         "before": {
           "id": "geffen_dungeon_first",
-          "name": "Calabouço de Geffen — primeiro nível",
+          "name": "Calabou\u00e7o de Geffen \u2014 primeiro n\u00edvel",
           "map": "gef_dun01",
           "minLevel": 42,
           "monsters": [
@@ -27,7 +27,7 @@
         "afterSha256": "ce18369e69ab34d0e4183bbfe1f4480f791ac34f0667eba488dd22c004892c71",
         "before": {
           "id": "geffen_dungeon",
-          "name": "Calabouço de Geffen",
+          "name": "Calabou\u00e7o de Geffen",
           "map": "gef_dun02",
           "minLevel": 50,
           "monsters": [
@@ -35,7 +35,7 @@
             1061
           ],
           "scene": "cave",
-          "description": "Caçada em Calabouço de Geffen. Acesso definido pelo balanceamento idle."
+          "description": "Ca\u00e7ada em Calabou\u00e7o de Geffen. Acesso definido pelo balanceamento idle."
         }
       }
     },
@@ -45,7 +45,7 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "756f6362c0d152464585197c53a8d805fa013a494c46e197383a60eafe7fa9b5",
+    "beforeFileSha256": "fbb6426c08df107cb639c7c97d9c67cced119907b83fa32990c38d3139cf35a5",
     "catalogSha256": {
       "before": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
       "after": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303"

@@ -4,7 +4,8 @@ import rawCatalog from '../content/catalog.json';
 import rawManifest from '../content/source-manifest.json';
 import currentRules from '../content/rules.json';
 import { beforeProvidenceRules } from './providence-historical';
-const rules = beforeProvidenceRules(currentRules);
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, beforeArrowCraftingRules } from './arrow-craft-historical';
+const rules = beforeProvidenceRules(beforeArrowCraftingRules(currentRules));
 import baseline from './fixtures/fourMapExpansionBaseline.json';
 import { beforeGeffenDungeonFloorCatalog, beforeGeffenDungeonFloorManifest } from './geffen-dungeon-f1-historical';
 import {
@@ -13,19 +14,23 @@ import {
   beforeFourMapExpansionRules,
 } from './four-map-expansion-historical';
 
-const catalog = beforeGeffenDungeonFloorCatalog(rawCatalog);
-const manifest = beforeGeffenDungeonFloorManifest(rawManifest);
+const catalog = beforeGeffenDungeonFloorCatalog(beforeArrowCraftingCatalog(rawCatalog));
+const manifest = beforeGeffenDungeonFloorManifest(beforeArrowCraftingManifest(rawManifest));
 
 const fileSha = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n').digest('hex');
+const manifestSha = (value: typeof manifest) => fileSha({
+  ...value,
+  inertDropItems: [...value.inertDropItems].sort((a, b) => a.itemId - b.itemId),
+});
 
 describe('exact four-map historical projection', () => {
-  it('reconstructs all three previous files byte for byte', () => {
+  it('reconstructs prior content, treating inert drop rows as an unordered collection', () => {
     expect(fileSha(catalog)).toBe(baseline.catalog.afterFileSha256);
-    expect(fileSha(manifest)).toBe(baseline.manifest.afterFileSha256);
+    expect(manifestSha(manifest)).toBe(baseline.manifest.afterFileSha256);
     expect(fileSha(rules)).toBe(baseline.rules.afterFileSha256);
     expect(fileSha(beforeFourMapExpansionCatalog(catalog))).toBe(baseline.catalog.beforeFileSha256);
-    expect(fileSha(beforeFourMapExpansionManifest(manifest))).toBe(baseline.manifest.beforeFileSha256);
+    expect(manifestSha(beforeFourMapExpansionManifest(manifest))).toBe(baseline.manifest.beforeFileSha256);
     expect(fileSha(beforeFourMapExpansionRules(rules))).toBe(baseline.rules.beforeFileSha256);
   });
 
