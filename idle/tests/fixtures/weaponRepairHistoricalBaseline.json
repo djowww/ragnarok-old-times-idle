@@ -1,0 +1,181 @@
+{
+  "beforeSkill": {
+    "id": "bs_repairweapon",
+    "name": "Weapon Repair",
+    "kind": "buff",
+    "maxLevel": 1,
+    "herculesId": 108,
+    "sourceName": "BS_REPAIRWEAPON",
+    "mechanic": "BS_REPAIRWEAPON",
+    "implementation": "unsupported",
+    "unsupportedReason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
+    "description": "Weapon Repair. Habilidade utilitária. O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
+    "iconResource": "data/texture/유저인터페이스/item/bs_repairweapon.bmp",
+    "spCost": [
+      30
+    ],
+    "power": [
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      7500
+    ],
+    "afterCastDelayMs": [
+      0
+    ],
+    "interruptCast": true,
+    "hitCount": [
+      1
+    ],
+    "sourceHitCount": [
+      1
+    ],
+    "aoeRadius": [
+      0
+    ],
+    "range": [
+      2
+    ],
+    "targetType": "support",
+    "damageType": "none",
+    "prerequisites": [
+      {
+        "skillId": "bs_weaponresearch",
+        "level": 1
+      }
+    ],
+    "prerequisitesByClass": {
+      "blacksmith": [
+        {
+          "skillId": "bs_weaponresearch",
+          "level": 1
+        }
+      ],
+      "whitesmith": [
+        {
+          "skillId": "bs_weaponresearch",
+          "level": 1
+        }
+      ]
+    },
+    "minimumJobLevel": 1
+  },
+  "afterSkill": {
+    "id": "bs_repairweapon",
+    "name": "Weapon Repair",
+    "kind": "buff",
+    "maxLevel": 1,
+    "herculesId": 108,
+    "sourceName": "BS_REPAIRWEAPON",
+    "mechanic": "BS_REPAIRWEAPON",
+    "implementation": "supported",
+    "manualUse": "weaponRepair",
+    "description": "Após conjurar por 7,5 segundos e pagar 30 SP, escolha um equipamento quebrado na mochila. Armas consomem 1 Minério de Ferro, Ferro, Aço ou Pedra de Oridecon conforme o nível; armaduras consomem 1 Aço.",
+    "iconResource": "data/texture/유저인터페이스/item/bs_repairweapon.bmp",
+    "spCost": [
+      30
+    ],
+    "power": [
+      0
+    ],
+    "cooldownMs": 0,
+    "castTimeMs": [
+      7500
+    ],
+    "afterCastDelayMs": [
+      0
+    ],
+    "interruptCast": true,
+    "hitCount": [
+      1
+    ],
+    "sourceHitCount": [
+      1
+    ],
+    "aoeRadius": [
+      0
+    ],
+    "range": [
+      2
+    ],
+    "targetType": "support",
+    "damageType": "none",
+    "prerequisites": [
+      {
+        "skillId": "bs_weaponresearch",
+        "level": 1
+      }
+    ],
+    "prerequisitesByClass": {
+      "blacksmith": [
+        {
+          "skillId": "bs_weaponresearch",
+          "level": 1
+        }
+      ],
+      "whitesmith": [
+        {
+          "skillId": "bs_weaponresearch",
+          "level": 1
+        }
+      ]
+    },
+    "minimumJobLevel": 1
+  },
+  "beforeSkillSha256": "9d7e579a9520d48f3826c67924717dae72c4a147adf8bf8cdddbbd84394ef9ea",
+  "afterSkillSha256": "2af5996cd9500be20b2924674213febec6b8a87c0fc3e4ce69b49a334989cab8",
+  "beforeSkillSource": {
+    "id": 108,
+    "name": "BS_REPAIRWEAPON",
+    "sourceMaxLevel": 1,
+    "sourceRequirements": {
+      "SPCost": 30
+    },
+    "sourceDamageType": {
+      "NoDamage": true
+    },
+    "sourceUnit": {},
+    "sourceHitCount": [
+      1
+    ],
+    "sourceSplashRange": 0,
+    "implementation": "unsupported",
+    "unsupportedReason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
+    "ratioSource": "src/map/skill.c and src/map/status.c",
+    "unsupportedRequirements": []
+  },
+  "afterSkillSource": {
+    "id": 108,
+    "name": "BS_REPAIRWEAPON",
+    "sourceMaxLevel": 1,
+    "sourceRequirements": {
+      "SPCost": 30
+    },
+    "sourceDamageType": {
+      "NoDamage": true
+    },
+    "sourceUnit": {},
+    "sourceHitCount": [
+      1
+    ],
+    "sourceSplashRange": 0,
+    "implementation": "supported",
+    "ratioSource": "src/map/skill.c and src/map/status.c",
+    "unsupportedRequirements": []
+  },
+  "beforeSkillSourceSha256": "41b754fbc4fd42fa3f4bbbcdb4920fdd70b37726706a4dc7ea65b03bd40bb633",
+  "afterSkillSourceSha256": "810947ef0b64df75a123abaee4e4c795b5b6660c96a5f76fbf4247fd751f7d39",
+  "beforeSkillCoverageSha256": "46702ab5c714247e730c6e3cc00da42c4e1218287bef9a09f78937d7e43e7967",
+  "afterSkillCoverageSha256": "3f2b92c6c677fb1cdf04a6bb72d4164cfb5eff7636e71205bf0ea48d89649edd",
+  "beforeCatalogSourceHash": "693ef2804367825878182f7125bcbc26c8c2769c5bbf1521a96f196283ba9aaf",
+  "afterCatalogSourceHash": "1102d9f465fe10a4aceee0ec1ce4e22e15e6e3099843132cc994dcf1c475f93e",
+  "beforeCatalogSha256": "553a6bda2c2bc7847f0a763f794175bc886d000b8ddda7a4fc094b21d9e337f0",
+  "afterCatalogSha256": "0e878b8bc79ea80b5f53edfb02e5df3d7abc23a9fa089cf4a82c33e3cac4426f",
+  "beforeUnavailableIndex": 32,
+  "beforeUnavailableEntry": {
+    "skillId": "bs_repairweapon",
+    "sourceName": "BS_REPAIRWEAPON",
+    "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
+  }
+}

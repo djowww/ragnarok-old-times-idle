@@ -1,5 +1,6 @@
 import {reconcileArrowCraft} from './arrowCraft.js';
 import {reconcileWeaponRefine} from './weaponRefine.js';
+import {reconcileWeaponRepair} from './weaponRepair.js';
 import {reconcileFalcon} from './falcon.js';
 import type {
   Catalog,
@@ -143,6 +144,7 @@ function* advanceStateSteps(
   reconcileRemovedSkills(s, catalog);
   reconcileFalcon(s, catalog);
   reconcileWeaponRefine(s,catalog,now);
+  reconcileWeaponRepair(s,catalog,now);
   reconcileArrowCraft(s,catalog,now);
   reconcileHuntFocus(s, catalog);
   if (s.status === "paused") return s;
@@ -172,6 +174,7 @@ function* advanceStateSteps(
       recordAreaActivity(s, s.areaId, s.lastSimulatedAt, { elapsedMs: 250 });
     tick(s, catalog, s.lastSimulatedAt, 250, context);
     reconcileWeaponRefine(s,catalog,s.lastSimulatedAt);
+    reconcileWeaponRepair(s,catalog,s.lastSimulatedAt);
     reconcileArrowCraft(s,catalog,s.lastSimulatedAt);
     yield;
   }

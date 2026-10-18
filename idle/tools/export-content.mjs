@@ -453,6 +453,7 @@ activeSpecial.add('HT_DETECTING');
 activeSpecial.add('HT_REMOVETRAP');
 activeSpecial.add('HT_SPRINGTRAP');
 activeSpecial.add('WS_WEAPONREFINE');
+activeSpecial.add('BS_REPAIRWEAPON');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
@@ -461,7 +462,6 @@ const unsupported = {
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
     CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
     SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.',
-    BS_REPAIRWEAPON: 'O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.',
     PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
     CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.',
@@ -530,6 +530,7 @@ const descriptions = {
     MO_STEELBODY: 'Consome cinco esferas e 200 SP. Fixa DEF e DEFM de equipamentos em 90, reduz a velocidade de ataque e fixa o tempo por célula em 200 ms. Permite ataques normais e impede habilidades durante 30 segundos por nível.',
     LK_BERSERK: 'Frenesi triplica o HP máximo e recupera o HP ao ativar; zera SP e defesas, reduz esquiva e acelera ataques e caminhada. Bloqueia habilidades, itens e troca de equipamentos. Drena 5% do HP máximo a cada 15 segundos, até 5 minutos. Ao terminar, limita HP a 100 e bloqueia recuperação natural por 5 minutos.',
     ASC_EDP: 'Consome uma Garrafa de Veneno. Aumenta dano de arma antes da defesa e permite Veneno Mortal em ataques normais, sem mudar o elemento da arma. Garrafas podem ser compradas na loja do Idle; estudar Criar Veneno Mortal cumpre o pré-requisito, mas sua produção ainda não está disponível.',
+    BS_REPAIRWEAPON: 'Após conjurar por 7,5 segundos e pagar 30 SP, escolha um equipamento quebrado na mochila. Armas consomem 1 Minério de Ferro, Ferro, Aço ou Pedra de Oridecon conforme o nível; armaduras consomem 1 Aço.',
     WS_WEAPONREFINE: 'Abre uma lista de armas identificadas e desequipadas por 5 SP, sujeitos aos modificadores de custo. O nível aprendido limita o refino; o Job atual modifica a chance. Cada tentativa consome Phracon, Emveretarcon ou Oridecon conforme o nível da arma, sem zeny. Na falha, a arma e suas cartas e bônus são destruídos. Cancelar não devolve o SP.',
     HT_SKIDTRAP: 'Coloca uma armadilha no chão, verificada a cada segundo. Empurra o inimigo na direção oposta à que ele está olhando; chefes e monstros imunes não são empurrados. Na rotação, mantém uma cópia armada de cada habilidade.',
     HT_ANKLESNARE: 'Armadilha fixa que prende o movimento de um inimigo sem impedir seus ataques. Duração reduzida por AGI e contra chefes, com mínimo de 5 segundos. Consome 1 Armadilha.',
@@ -568,7 +569,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = name === 'AC_MAKINGARROW' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','BS_REPAIRWEAPON','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -622,6 +623,7 @@ for (const name of skillNames) {
         ...(['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) && { manualUse: 'metalCraft' }),
         ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
+        ...(name === 'BS_REPAIRWEAPON' && { manualUse: 'weaponRepair' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
         ...(name === 'LK_TENSIONRELAX' && { manualUse: 'rest' }),
         ...(name === 'KN_RIDING' && { manualUse: 'mount' }),

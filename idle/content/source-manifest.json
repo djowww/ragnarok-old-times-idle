@@ -11074,8 +11074,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -15188,8 +15187,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 292,
-    "unsupported": 56,
+    "supported": 293,
+    "unsupported": 55,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15353,13 +15352,13 @@
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 31,
-        "unsupported": 8
+        "supported": 32,
+        "unsupported": 7
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 36,
-        "unsupported": 8
+        "supported": 37,
+        "unsupported": 7
       },
       "alchemist": {
         "sourceTree": 35,
@@ -15632,6 +15631,7 @@
       "BS_HILTBINDING",
       "BS_FINDINGORE",
       "BS_WEAPONRESEARCH",
+      "BS_REPAIRWEAPON",
       "BS_SKINTEMPER",
       "BS_HAMMERFALL",
       "BS_ADRENALINE",
@@ -15846,11 +15846,6 @@
         "skillId": "mo_kitranslation",
         "sourceName": "MO_KITRANSLATION",
         "reason": "Requer outro personagem para transferir esferas."
-      },
-      {
-        "skillId": "bs_repairweapon",
-        "sourceName": "BS_REPAIRWEAPON",
-        "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
       },
       {
         "skillId": "bs_greed",
@@ -16861,6 +16856,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "553a6bda2c2bc7847f0a763f794175bc886d000b8ddda7a4fc094b21d9e337f0",
+  "catalogSha256": "0e878b8bc79ea80b5f53edfb02e5df3d7abc23a9fa089cf4a82c33e3cac4426f",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

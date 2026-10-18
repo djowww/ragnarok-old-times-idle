@@ -26,6 +26,7 @@ import { sageFieldCanStart } from '../../engine/sageFieldCasting';
 import { sageFieldSource } from '../../engine/sageFields';
 import { backslidingStatusBlocked } from '../../engine/backsliding';
 import { activePlayerStatus } from '../../engine/playerStatuses';
+import { weaponRepairCanStart, weaponRepairMaterial } from '../../engine/weaponRepair';
 import type { GameCommand } from '../../shared/types';
 import { copiedSpell, effectiveSkillLevel } from '../../shared/copiedSkills';
 import { configurableSkillUseLevel, skillUseLevel } from '../../shared/skillUseLevels';
@@ -294,6 +295,33 @@ export default function Build({
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "weaponCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenWeaponCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenWeaponCraft?.(event.currentTarget)}>Forjar armas</button>}
                     {skill.manualUse === "metalCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenMetalCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenMetalCraft?.(event.currentTarget)}>Produzir metais</button>}
+                    {skill.manualUse === "weaponRepair" && <div className="weapon-repair-launch" data-weapon-repair>
+                      {!state.weaponRepairMenu && <button type="button" disabled={busy || unsupported || level !== 1 || !weaponRepairCanStart(state, catalog, snapshot.serverTime)}
+                        onClick={() => void command({ type: 'useSkill', skillId: skill.id })}>
+                        Consertar equipamento · {skillResourceCosts(state, catalog, skill, 1, snapshot.serverTime)?.sp ?? spCost} SP · 7,5 s
+                      </button>}
+                      {state.supportCast?.skillId === skill.id && <div className="support-cast-progress" role="status" aria-live="polite">
+                        <span>Weapon Repair · {((Math.max(0, state.supportCast.endsAt - snapshot.serverTime)) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} s restantes</span>
+                        <progress aria-label="Conjuração de Weapon Repair" max={Math.max(1, state.supportCast.endsAt - state.supportCast.startedAt)}
+                          value={Math.max(0, Math.min(state.supportCast.endsAt - state.supportCast.startedAt, snapshot.serverTime - state.supportCast.startedAt))} />
+                      </div>}
+                      {state.weaponRepairMenu && <div role="group" aria-label="Equipamentos quebrados para reparar">
+                        <p>Selecione um equipamento quebrado. O material será consumido ao confirmar.</p>
+                        {state.weaponRepairMenu.offeredItems.map(offered => {
+                          const entry = state.inventory.find(item => item.uid === offered.uid && item.itemId === offered.itemId);
+                          const item = catalog.items[offered.itemId];
+                          const materialId = item && weaponRepairMaterial(item);
+                          const material = materialId ? catalog.items[materialId] : undefined;
+                          const owned = materialId ? state.inventory.filter(row => row.itemId === materialId).reduce((sum, row) => sum + row.quantity, 0) : 0;
+                          return <button type="button" key={offered.uid} disabled={busy || !entry || !item || !materialId || owned < 1}
+                            onClick={() => void command({ type: 'weaponRepair', menuId: state.weaponRepairMenu!.id, uid: offered.uid })}>
+                            Reparar {item?.name ?? `Equipamento #${offered.itemId}`} · 1 {material?.name ?? 'material'} ({number(owned)})
+                          </button>;
+                        })}
+                        <button type="button" disabled={busy} onClick={() => void command({ type: 'cancelWeaponRepair', menuId: state.weaponRepairMenu!.id })}>Cancelar seleção</button>
+                      </div>}
+                      {state.weaponRepairResult && <p role="status" aria-live="polite">{state.weaponRepairResult.message}</p>}
+                    </div>}
                     {skill.manualUse === "weaponRefine" && <div className="weapon-refine-launch">
                       <button type="button" disabled={busy || refineOpening || unsupported || level === 0 || !onOpenWeaponRefine ||
                         (!state.weaponRefineMenu && (state.status === 'resting' || state.hp <= 0 || manualSilenced ||

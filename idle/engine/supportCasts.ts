@@ -9,8 +9,11 @@ import { resolveSuffragiumCast } from './suffragium.js';
 import { resolveProvidenceCast } from './providence.js';
 import { resolveHolyWaterCast } from './holyWater.js';
 import { resolveWarpPortalCast } from './warpPortal.js';
+import { resolveWeaponRepairCast } from './weaponRepair.js';
 import type { SimulationContext } from './fieldNavigation.js';
 export function resolveSupportCast(s: GameState, c: Catalog, at: number, context?: SimulationContext): boolean {
+  if (c.skills[s.supportCast?.skillId ?? '']?.sourceName === 'BS_REPAIRWEAPON')
+    return resolveWeaponRepairCast(s, c, at);
   if (c.skills[s.supportCast?.skillId ?? '']?.sourceName === 'AL_WARP')
     return resolveWarpPortalCast(s, c, at, context);
   if (c.skills[s.supportCast?.skillId ?? '']?.sourceName === 'AL_HOLYWATER')
