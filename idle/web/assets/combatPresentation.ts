@@ -297,15 +297,20 @@ export function compressStaleActorActionBacklog<T extends PresentedActorAction>(
   const activeEnd = active ? active.start + active.actionDuration : now;
   const queued = actions.filter(cue => cue !== active && cue.start + cue.actionDuration > now);
   const newestStartedActionAt = actions.reduce((latest, cue) => cue.start <= now ? Math.max(latest, cue.actionAt) : latest, -Infinity);
+  const suppressBody = (action: T) => {
+    for (const sibling of cues) if (sibling.sourceActorId === action.sourceActorId &&
+      sibling.actionAt === action.actionAt && sibling.actionId === action.actionId && sibling.actorAction !== 'none')
+      sibling.bodySuppressed = true;
+  };
   const currentRoute = queued.filter(cue => !routeWalking || cue.actionAt >= routeStartedAt)
     .sort((a, b) => a.actionAt - b.actionAt || a.id - b.id);
-  for (const cue of queued) if (cue.actionAt < newestStartedActionAt) cue.bodySuppressed = true;
+  for (const cue of queued) if (cue.actionAt < newestStartedActionAt) suppressBody(cue);
   const latest = currentRoute.at(-1);
   const queueDelay = latest ? Math.max(0, latest.start - activeEnd) : 0;
   const overlapsOutOfOrder = !!latest && queued.some(cue => cue.actionAt < latest.actionAt && cue.start > latest.start);
   const compressQueue = !!latest && (queueDelay > maxQueueDelay || currentRoute.length > 3 || overlapsOutOfOrder);
   for (const cue of queued) {
-    if (routeWalking && cue.actionAt < routeStartedAt || compressQueue && cue !== latest) cue.bodySuppressed = true;
+    if (routeWalking && cue.actionAt < routeStartedAt || compressQueue && cue !== latest) suppressBody(cue);
   }
   // First Aid keeps its heal and impact, while an overlapping weapon swing owns the body.
   for (const skill of actions) if (skill.actorAction === 'skill' && skill.sourceActorId === actorId &&
@@ -314,7 +319,15 @@ export function compressStaleActorActionBacklog<T extends PresentedActorAction>(
       attack.start < skill.start + skill.actionDuration && skill.start < attack.start + attack.actionDuration))
       skill.bodySuppressed = true;
   }
-  if (!latest || !compressQueue) return moved;
+  if (!latest) {
+    // Retire a future watermark when walking suppresses every queued pre-route pose.
+    if (routeWalking && queued.length > 0 && currentRoute.length === 0) {
+      const mark = marks.get(actorId);
+      if (mark) mark.end = Math.min(mark.end, activeEnd);
+    }
+    return moved;
+  }
+  if (!compressQueue) return moved;
   const nextStart = Math.max(activeEnd, Math.min(latest.start, now));
   if (queueDelay <= maxQueueDelay && latest.start >= activeEnd) return moved;
   const delta = nextStart - latest.start;
@@ -322,8 +335,9 @@ export function compressStaleActorActionBacklog<T extends PresentedActorAction>(
   for (const sibling of cues) {
     if (sibling.sourceActorId !== actorId || sibling.actionAt !== latest.actionAt ||
       sibling.actionId !== latest.actionId || sibling.actorAction === 'none') continue;
-    sibling.start += delta; sibling.effectStart += delta; sibling.impact += delta;
-    moved.set(sibling.id, delta);
+    // Compress only the body pose. Combat events, health, effects and loot stay
+    // on their server-authoritative clocks.
+    sibling.start += delta;
   }
   const mark = marks.get(actorId);
   if (mark?.actionAt === latest.actionAt && mark.actionId === latest.actionId) {

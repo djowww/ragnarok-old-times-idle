@@ -15,20 +15,24 @@ describe('combat presentation backlog', () => {
   it('finishes the visible swing, compresses stale queued poses and retains all impacts', () => {
     const active = cue(1, 'active', 1_000, 900);
     const old = cue(2, 'old', 1_100, 2_000);
+    const oldTargetTwo = { ...old, id: 5, targetActorId: 'mob-second-target' };
     const middle = cue(3, 'middle', 1_500, 4_000);
     const latest = cue(4, 'latest', 2_000, 9_000);
-    const cues = [active, old, middle, latest];
+    const cues = [active, old, oldTargetTwo, middle, latest];
 
-    compressStaleActorActionBacklog(cues, new Map(), 'hero', 1_000, true, 900);
+    const moved = compressStaleActorActionBacklog(cues, new Map(), 'hero', 1_000, true, 900);
 
     expect(active.bodySuppressed).not.toBe(true);
     expect(old.bodySuppressed).toBe(true);
+    expect(oldTargetTwo.bodySuppressed).toBe(true);
     expect(middle.bodySuppressed).toBe(true);
     expect(latest.bodySuppressed).not.toBe(true);
     expect(latest.start).toBe(1_340);
-    expect(latest.impact).toBe(1_560);
-    expect(cues).toHaveLength(4);
-    expect(cues.map(entry => entry.amount)).toEqual([10, 10, 10, 10]);
+    expect(latest.effectStart).toBe(9_000);
+    expect(latest.impact).toBe(9_220);
+    expect(moved.size).toBe(0);
+    expect(cues).toHaveLength(5);
+    expect(cues.map(entry => entry.amount)).toEqual([10, 10, 10, 10, 10]);
     expect(old.presented).toBe(true);
     expect(targetHealthAt(50, 100, cues, 'mob-2', 2_000)).toBe(60);
   });
@@ -73,6 +77,15 @@ describe('combat presentation backlog', () => {
     compressStaleActorActionBacklog(cues, new Map(), 'hero', 1_300, false, 0);
     expect(older.bodySuppressed).toBe(true);
     expect(presentedActorActionAt(cues, 'hero', 1_300)?.actionId).toBe('newer');
+  });
+
+  it('releases the actor watermark when field walking suppresses every queued old pose', () => {
+    const active = cue(1, 'active', 1_000, 900);
+    const stale = cue(2, 'pre-route', 1_100, 2_000);
+    const mark = { actionAt: stale.actionAt, actionId: stale.actionId, id: stale.id, start: stale.start, end: 2_440, presented: true };
+    compressStaleActorActionBacklog([active, stale], new Map([['hero', mark]]), 'hero', 1_000, true, 1_500);
+    expect(stale.bodySuppressed).toBe(true);
+    expect(mark.end).toBe(1_340);
   });
 
   it('does not compress a short queue and supports stationary actors', () => {

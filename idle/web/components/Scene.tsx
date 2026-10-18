@@ -1296,7 +1296,8 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
       const visibleEnemyIds = new Set(groupEnemies.map((entry) => entry.enemy.id));
       const groupMode = !!current.battle?.enemies || groupEnemies.length > 0;
       const soloPosture = soloPostureAt(current, catalog, serverNow);
-      const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && current.status !== "town" && current.status !== "challenge";
+      const fieldPopulation = scene !== "town" && current.fieldPopulation?.areaId === current.areaId &&
+        current.status !== "town" && current.status !== "challenge";
       const sourceRoute = current.fieldHero;
       const authoritativeRouteWalking = !!(fieldPopulation && sourceRoute && current.status !== 'paused' &&
         serverNow >= sourceRoute.startedAt && serverNow < sourceRoute.arrivedAt &&
@@ -1451,8 +1452,13 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
             x: BATTLE_HERO.x + (rendered.x - FIELD_SCENE_ORIGIN.x) * 22 / BATTLE_CELLS_PER_UNIT,
             y: BATTLE_HERO.y + (rendered.y - FIELD_SCENE_ORIGIN.y) * 18 / BATTLE_CELLS_PER_UNIT,
           } : routeHero.from);
+          const hasRenderedAnchor = !!priorPoint || !!rendered;
           const nearest = nearestGridRouteProgress(movementRoute, lastPoint);
-          progress = Math.min(authoritative, nearest.progress);
+          // A fresh/paused scene has no previous visual position to reanchor.
+          // Seed it from the server clock instead of the route's first point.
+          // Retargeted routes resume at the nearest already-rendered point;
+          // advanceGridRouteProgress caps subsequent motion at source speed.
+          progress = hasRenderedAnchor ? nearest.progress : authoritative;
         }
         fieldHeroPoint = gridRoutePoint(movementRoute, progress);
         renderedHeroRoute.current = { key: routeKey!, mapKey, progress, at: time, route: movementRoute };
