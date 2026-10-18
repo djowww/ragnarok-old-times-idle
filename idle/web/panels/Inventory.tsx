@@ -93,6 +93,14 @@ export default function Inventory({
     (!item.allowedClasses.length || item.allowedClasses.includes(state.job)) &&
     (!item.weaponType ||
       catalog.classes[state.job].weapons.includes(item.weaponType));
+  const rightHandMastery = classSkills(catalog, state.job).map(id => catalog.skills[id])
+    .find(skill => skill?.sourceName === 'AS_RIGHT');
+  const mainWeaponEntry = state.inventory.find(candidate => candidate.uid === state.equipment.weapon);
+  const mainWeapon = mainWeaponEntry ? catalog.items[mainWeaponEntry.itemId] : undefined;
+  const canEquipOffhand = !!equipAllowed && !!entry && !equipped.has(entry.uid) && item?.slot === 'weapon' && item.twoHanded !== true &&
+    ['dagger', 'sword', 'axe'].includes(item.weaponType ?? '') &&
+    !!rightHandMastery && (state.learnedSkills[rightHandMastery.id] ?? 0) > 0 &&
+    !!mainWeapon && mainWeapon.twoHanded !== true;
   function select(value: InventoryEntry) {
     setSelected(value.uid);
     setQuantity(1);
@@ -335,15 +343,23 @@ export default function Inventory({
                 {entry.favorite ? "Remover favorito" : "Marcar favorito"}
               </button>
               {item.type === "equipment" && (
-                <button
-                  className="primary"
-                  disabled={busy || equipped.has(entry.uid) || !equipAllowed}
-                  onClick={() =>
-                    void command({ type: "equip", uid: entry.uid })
-                  }
-                >
-                  {equipped.has(entry.uid) ? "Equipado" : "Equipar"}
-                </button>
+                <>
+                  <button
+                    className="primary"
+                    disabled={busy || equipped.has(entry.uid) || !equipAllowed}
+                    onClick={() => void command({ type: "equip", uid: entry.uid })}
+                  >
+                    {equipped.has(entry.uid) ? "Equipado" : "Equipar"}
+                  </button>
+                  {canEquipOffhand && (
+                    <button
+                      disabled={busy}
+                      onClick={() => void command({ type: "equip", uid: entry.uid, slot: "shield" })}
+                    >
+                      Equipar na mão esquerda
+                    </button>
+                  )}
+                </>
               )}
             </div>
             {item.type === "equipment" && identified && item.equipSupported !== false && !equipAllowed && (

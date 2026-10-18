@@ -75,12 +75,15 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
   const effects: Effects = {};
   const field = sageFieldModifiers(s, s.id, s.lastSimulatedAt);
   let equippedWeapon: Item | undefined;
+  let leftWeapon: Item | undefined;
   let weaponAttack = 0;
   let weaponRefineAttack = 0;
+  let leftWeaponAttack = 0;
+  let leftWeaponRefineAttack = 0;
   let armorDef = 0;
   let armorRefineDef = 0;
   let weaponType: import("../shared/types.js").WeaponType | undefined;
-  for (const uid of Object.values(s.equipment)) {
+  for (const [slot, uid] of Object.entries(s.equipment)) {
     const e = s.inventory.find((i) => i.uid === uid);
     if (!e || e.broken || !isItemIdentified(e)) continue;
     const item = c.items[e.itemId];
@@ -90,12 +93,17 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     if (bonus) merge(effects, { [bonus.stat]: bonus.value });
     for (const cardId of e.cards)
       if (c.items[cardId]) merge(effects, c.items[cardId].effects);
-    if (item.slot === "weapon") {
+    if (item.slot === "weapon" && slot === "weapon") {
       equippedWeapon = item;
       weaponAttack += item.attack;
       weaponRefineAttack +=
         e.refine * ([2, 3, 5, 7][(item.weaponLevel ?? 1) - 1] ?? 2);
       weaponType = item.weaponType;
+    } else if (item.slot === "weapon" && slot === "shield") {
+      leftWeapon = item;
+      leftWeaponAttack += item.attack;
+      leftWeaponRefineAttack +=
+        e.refine * ([2, 3, 5, 7][(item.weaponLevel ?? 1) - 1] ?? 2);
     } else {
       armorDef += item.def;
       // refine_db.conf:78 and status.c:1667,1725: aggregate hundredths first.
@@ -183,7 +191,7 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
           (1 + spPercent / 100),
       ),
     ),
-    attack: Math.max(1, baseAttack + weaponAttack + weaponRefineAttack),
+    attack: Math.max(1, baseAttack + weaponAttack + weaponRefineAttack + leftWeaponAttack + leftWeaponRefineAttack),
     magicAttack: [
       a.int + Math.floor(a.int / 7) ** 2 + (effects.matk ?? 0),
       a.int + Math.floor(a.int / 5) ** 2 + (effects.matk ?? 0),
@@ -207,6 +215,10 @@ export function derivedStats(s: GameState, c: Catalog): DerivedStats {
     baseAttack,
     weaponAttack,
     weaponRefineAttack,
+    leftWeaponAttack: leftWeapon ? leftWeaponAttack : undefined,
+    leftWeaponRefineAttack: leftWeapon ? leftWeaponRefineAttack : undefined,
+    leftWeaponLevel: leftWeapon?.weaponLevel,
+    leftWeaponType: leftWeapon?.weaponType,
     softDef: berserk ? 0 : Math.floor(a.vit * sourceDefensePercent / 100),
     hardMdef: berserk ? 0 : steel ? 90 : effects.mdef ?? 0,
     softMdef: berserk ? 0 : softMdef,

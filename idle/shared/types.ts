@@ -880,6 +880,10 @@ export interface DerivedStats {
   weaponAttack?: number;
   weaponRefineAttack?: number;
   weaponLevel?: number;
+  leftWeaponAttack?: number;
+  leftWeaponRefineAttack?: number;
+  leftWeaponLevel?: number;
+  leftWeaponType?: WeaponType;
   softDef?: number;
   hardMdef?: number;
   softMdef?: number;
@@ -917,7 +921,8 @@ export type GameCommand =
   | { type: "craftConverter"; itemId: number; quantity: number }
   | { type: "craftPharmacy"; itemId: number; quantity: number }
   | { type: "sell"; uid: string; quantity: number }
-  | { type: "equip" | "favorite" | "refine"; uid: string }
+  | { type: "equip"; uid: string; slot?: Slot }
+  | { type: "favorite" | "refine"; uid: string }
   | { type: "identify"; uid: string; method?: "magnifier" | "skill" }
   | { type: "unequip"; slot: Slot }
   | { type: "socket"; uid: string; cardUid: string }

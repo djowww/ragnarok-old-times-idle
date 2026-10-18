@@ -12217,8 +12217,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -12237,8 +12236,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -15101,8 +15099,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 275,
-    "unsupported": 73,
+    "supported": 277,
+    "unsupported": 71,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15286,13 +15284,13 @@
       },
       "assassin": {
         "sourceTree": 24,
-        "supported": 21,
-        "unsupported": 3
+        "supported": 23,
+        "unsupported": 1
       },
       "assassin_cross": {
         "sourceTree": 29,
-        "supported": 25,
-        "unsupported": 4
+        "supported": 27,
+        "unsupported": 2
       },
       "rogue": {
         "sourceTree": 33,
@@ -15550,6 +15548,8 @@
       "AM_POTIONPITCHER",
       "CR_SLIMPITCHER",
       "CR_ACIDDEMONSTRATION",
+      "AS_RIGHT",
+      "AS_LEFT",
       "AS_KATAR",
       "AS_CLOAKING",
       "AS_SONICBLOW",
@@ -15914,16 +15914,6 @@
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
-        "skillId": "as_right",
-        "sourceName": "AS_RIGHT",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
-        "skillId": "as_left",
-        "sourceName": "AS_LEFT",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
-      },
-      {
         "skillId": "asc_cdp",
         "sourceName": "ASC_CDP",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
@@ -15988,6 +15978,8 @@
       "SM_AUTOBERSERK",
       "AS_POISONREACT",
       "AS_SPLASHER",
+      "AS_RIGHT",
+      "AS_LEFT",
       "KN_AUTOCOUNTER",
       "BS_UNFAIRLYTRICK",
       "RG_TUNNELDRIVE",
@@ -16005,6 +15997,15 @@
       "MO_BLADESTOP",
       "PR_SUFFRAGIUM"
     ]
+  },
+  "dualWield": {
+    "skills": [
+      "AS_RIGHT",
+      "AS_LEFT"
+    ],
+    "source": "src/map/battle.c:5898..5910",
+    "attack": "Normal attacks calculate each equipped hand separately; right multiplier is 50 + 10% per AS_RIGHT level, left multiplier is 30 + 10% per AS_LEFT level.",
+    "eligibility": "Assassin and Assassin Cross only; requires learned AS_RIGHT and one-handed dagger, sword, or axe in both hands. Weapon skills keep the existing main-hand formulas."
   },
   "senseInspection": {
     "skill": "WZ_ESTIMATION",
@@ -16831,6 +16832,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "09f34fd97591d41d6b1d56ce973633c49d47a01a3183471460bda8f8ace03559",
+  "catalogSha256": "1be6c736c30cecb0c64720b245dd337afdc24a37ffef7d1f168ce575891b759d",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
