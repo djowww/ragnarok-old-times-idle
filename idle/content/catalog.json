@@ -59,7 +59,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "3dc006fa6aa92c0defa5c1d8d5872fd1248b83b29b0fa1f9d65a72bd6636afef"
+    "hash": "e004742c00ea62c946b8168b691f8acf47672e0abef77c24795529cf27c5db9d"
   },
   "rates": {
     "baseExp": 4,
@@ -121658,9 +121658,8 @@
       "herculesId": 232,
       "sourceName": "AM_CANNIBALIZE",
       "mechanic": "AM_CANNIBALIZE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Summon Flora. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "description": "Summon Flora. Habilidade utilitária.",
       "iconResource": "data/texture/유저인터페이스/item/am_cannibalize.bmp",
       "spCost": [
         20,
