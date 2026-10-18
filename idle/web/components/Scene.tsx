@@ -17,6 +17,7 @@ import {
   getActorActionDuration,
   getActorPlaybackDuration,
   getCombatActorAction,
+  isWeaponAttackActorAction,
   getActorPose,
   loadActor,
   type ActorAction,
@@ -928,7 +929,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       const motionMs = Math.max(1, event.actionMotionMs ?? fallbackMotion);
       const sourceActor = sourceActorId === state.id ? actorsRef.current.hero : undefined;
       const visualAction = getCombatActorAction(actorAction, skill?.sourceName);
-      const visualActorAction = visualAction === 'attack' ? 'attack' : actorAction === 'skill' ? 'skill' : undefined;
+      const visualActorAction = isWeaponAttackActorAction(visualAction) ? 'attack' : actorAction === 'skill' ? 'skill' : undefined;
       const actionDuration = sourceActor && actorAction !== 'none'
         ? getActorPlaybackDuration(sourceActor, visualAction, motionMs, HERO_COMBAT_DIRECTION) : motionMs;
       const presentation = combatActionCueFromEvent(event, {
