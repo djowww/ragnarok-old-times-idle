@@ -237,7 +237,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponRefine" | "activate" | "inspect" | "teleport";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "weaponRefine" | "activate" | "inspect" | "teleport";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -919,6 +919,7 @@ export type GameCommand =
   | { type: "rentFalcon" | "dismissFalcon" }
   | { type: "buy"; itemId: number; quantity: number }
   | { type: "craftConverter"; itemId: number; quantity: number }
+  | { type: "craftWeapon"; itemId: number }
   | { type: "craftPharmacy"; itemId: number; quantity: number }
   | { type: "sell"; uid: string; quantity: number }
   | { type: "equip"; uid: string; slot?: Slot }

@@ -108,11 +108,13 @@ describe('native dungeon populations and material routes', () => {
     const initial = createInitialState(c, 0); initial.inventory = []; initial.equipment = {};
     for (const id of [1065, 7049, 713, 970, 1059, 929]) addItem(initial, c, id, 3);
     addItem(initial, c, 909, 5);
+    addItem(initial, c, 907, 5);
     const before = JSON.stringify(initial);
     const sold = applyCommand(initial, c, { type: 'sellLoot' }, 0);
     for (const id of [1065, 7049, 713, 970, 1059, 929]) expect(sold.inventory.find(entry => entry.itemId === id)?.quantity).toBe(3);
-    expect(sold.inventory.some(entry => entry.itemId === 909)).toBe(false);
-    expect(sold.zeny).toBe(initial.zeny + c.items[909].sellPrice * 5);
+    expect(sold.inventory.find(entry => entry.itemId === 909)?.quantity).toBe(5);
+    expect(sold.inventory.some(entry => entry.itemId === 907)).toBe(false);
+    expect(sold.zeny).toBe(initial.zeny + c.items[907].sellPrice * 5);
     expect(JSON.stringify(initial)).toBe(before);
   });
 

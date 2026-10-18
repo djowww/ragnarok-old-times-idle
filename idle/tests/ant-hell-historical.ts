@@ -1,3 +1,4 @@
+import { beforeWeaponCraftingCatalog, beforeWeaponCraftingManifest } from './weapon-craft-historical.js';
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/antHellBaseline.json';
 
@@ -6,7 +7,7 @@ const same = (value: unknown, hash: string) => value !== undefined
 
 /** Reverse only exact Ant Hell export records for older content snapshots. */
 export function beforeAntHellCatalog<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeWeaponCraftingCatalog(input)) as Record<string, any>;
   for (const [id, hash] of Object.entries(baseline.catalog.newItems))
     if (same(result.items?.[id], hash)) delete result.items[id];
   for (const [id, hash] of Object.entries(baseline.catalog.newMonsters))
@@ -22,7 +23,7 @@ export function beforeAntHellCatalog<T>(input: T): T {
 
 /** Reverse exact source-manifest metadata changes while keeping unrelated edits. */
 export function beforeAntHellManifest<T>(input: T): T {
-  const result = structuredClone(input) as Record<string, any>;
+  const result = structuredClone(beforeWeaponCraftingManifest(input)) as Record<string, any>;
   result.sources = result.sources.filter((source: unknown) =>
     !baseline.manifest.addedSources.some(added => JSON.stringify(source) === JSON.stringify(added)));
   for (const [key, change] of Object.entries(baseline.manifest.changedFields)) {

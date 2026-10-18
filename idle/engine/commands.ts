@@ -44,6 +44,7 @@ import { applyBacksliding } from './backsliding.js';
 import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './recovery.js';
 import { consumeItem, discardAloeveraUnderAutoBerserk } from "./consumables.js";
 import { craftPharmacy } from "./pharmacyCraft.js";
+import { craftWeapon } from "./weaponCraft.js";
 import { craftConverter } from "./converterCraft.js";
 import { cancelActorCast, useCastCancel } from './castControl.js';
 import { canPecoMount } from './mountedPeco.js';
@@ -672,6 +673,10 @@ export function executeCommand(
     }
     case "craftConverter": {
       craftConverter(s,c,command.itemId,command.quantity,now);
+      break;
+    }
+    case "craftWeapon": {
+      craftWeapon(s,c,command.itemId,now);
       break;
     }
     case "buy": {

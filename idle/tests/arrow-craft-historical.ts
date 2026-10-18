@@ -1,3 +1,4 @@
+import { beforeWeaponCraftingCatalog, beforeWeaponCraftingManifest } from './weapon-craft-historical.js';
 import { createHash } from 'node:crypto';
 import baseline from './fixtures/arrowCraftHistoricalBaseline.json';
 import type { Catalog } from '../shared/types';
@@ -23,7 +24,7 @@ type HistoricalManifestShape = {
 /** Remove only the pinned Arrow Crafting delta before older frozen projections.
  * Changed rows stay visible so historical hashes continue to catch unrelated drift. */
 export function beforeArrowCraftingCatalog<T extends Record<string, any>>(input: T): T {
-  const result = structuredClone(input) as T & HistoricalCatalogShape;
+  const result = structuredClone(beforeWeaponCraftingCatalog(input)) as T & HistoricalCatalogShape;
   const arrow = result.skills?.ac_makingarrow;
   if (result.skills && arrow && sha(arrow) === baseline.catalog.afterSkillSha256)
     result.skills.ac_makingarrow = structuredClone(baseline.catalog.beforeSkill) as Catalog['skills'][string];
@@ -37,7 +38,7 @@ export function beforeArrowCraftingCatalog<T extends Record<string, any>>(input:
 }
 
 export function beforeArrowCraftingManifest<T extends Record<string, any>>(input: T): T {
-  const result = structuredClone(input) as T & HistoricalManifestShape;
+  const result = structuredClone(beforeWeaponCraftingManifest(input)) as T & HistoricalManifestShape;
   if (Array.isArray(result.sources)) {
     result.sources = result.sources.filter((source: unknown) =>
       JSON.stringify(source) !== JSON.stringify(baseline.manifest.addedSource));

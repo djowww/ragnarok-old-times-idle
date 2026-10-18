@@ -14,6 +14,6 @@ describe('MO_BLADESTOP content promotion', () => {
     expect(manifest.skillCoverage.combatExpansion).toContain('MO_BLADESTOP');
     expect(manifest.skillSources.mo_bladestop.adaptation).toContain('SC_BLADESTOP_WAIT has no NoSave flag');
     expect(manifest.skillSources.mo_bladestop.adaptation).toContain('explicit Idle lifecycle adaptation');
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 275, unsupported: 73 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 284, unsupported: 64 });
   });
 });
