@@ -13902,7 +13902,7 @@
     "behavior": "One paid menu activation consumes one identified unequipped input and grants every listed output. Net inventory capacity is validated before consumption."
   },
   "warpPortal": {
-    "behavior": "A solo traveler enters the selected source Warp Portal destination immediately after a successful cast; memo points store a walkable cell on one of the configured hunt maps.",
+    "behavior": "A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.",
     "memoSlots": "Levels 2, 3, and 4 unlock one, two, and three memo points. A new map memo moves that map to the newest slot.",
     "source": "src/map/skill.c: castend_map AL_WARP; src/map/pc.c: pc_memo; npc/mapflag/nowarp.txt, nomemo.txt, nowarpto.txt",
     "mapFlags": "nowarp prevents casting; nomemo and nowarpto prevent memo; nowarpto prevents a saved destination."

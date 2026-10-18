@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import raw from '../content/catalog.json';
+import currentManifest from '../content/source-manifest.json';
+import currentRules from '../content/rules.json';
+import warpBaseline from './fixtures/warpPortalBaseline.json';
+import { beforeWarpPortalCatalog, beforeWarpPortalManifest, beforeWarpPortalRules } from './warp-portal-historical';
 import { executeCommand } from '../engine/commands';
-import { createInitialState } from '../engine';
+import { advanceState, createInitialState } from '../engine';
 import { createFieldNavigationRuntime } from '../engine/fieldNavigation';
+import { beginBattle } from '../engine/encounters';
+import { interruptSageEnchantCast } from '../engine/sageEnchantments';
+import { warpMemoAvailable, warpPortalAvailable } from '../engine/warpPortal';
 import { parseCommandRequest } from '../server/validation';
 import { BATTLE_HERO } from '../shared/battleSpatial';
 import type { Catalog, GameCommand, GameState } from '../shared/types';
@@ -40,6 +47,25 @@ function enableWarp() {
 }
 
 describe('solo Warp Portal', () => {
+  it('removes only the exact Warp Portal delta from frozen historical projections', () => {
+    const catalogProjection = beforeWarpPortalCatalog(structuredClone(raw) as unknown as Record<string, any>);
+    expect(catalogProjection.skills?.al_warp).toEqual(warpBaseline.catalog.beforeSkill);
+    expect(catalogProjection.source?.hash).toBe(warpBaseline.catalog.beforeSourceHash);
+    expect(catalogProjection.source?.files).not.toEqual(expect.arrayContaining(warpBaseline.catalog.addedSourcePaths));
+    for (const field of Object.keys(warpBaseline.catalog.mapFlags)) expect(catalogProjection[field]).toBeUndefined();
+
+    const manifestProjection = beforeWarpPortalManifest(structuredClone(currentManifest) as unknown as Record<string, any>);
+    expect(manifestProjection.sources.map((source: { path: string }) => source.path))
+      .not.toEqual(expect.arrayContaining(Object.keys(warpBaseline.manifest.addedSourceHashes)));
+    expect(manifestProjection.skillSources.al_warp).toEqual(warpBaseline.manifest.beforeSkillSource);
+    expect(manifestProjection.skillCoverage).toMatchObject(warpBaseline.manifest.beforeSkillCoverage);
+    expect(manifestProjection.catalogSha256).toBe(warpBaseline.manifest.beforeCatalogSha256);
+    expect(manifestProjection.rulesSha256).toBe(warpBaseline.manifest.beforeRulesSha256);
+    expect(manifestProjection.warpPortal).toBeUndefined();
+
+    const rulesProjection = beforeWarpPortalRules(structuredClone(currentRules) as unknown as Record<string, any>);
+    for (const path of Object.keys(warpBaseline.rules.addedSourceHashes)) expect(rulesProjection.sourceHashes[path]).toBeUndefined();
+  });
   it('accepts memo and portal commands with only source destinations', () => {
     expect(parseCommandRequest({ requestId: 'warp_001', command: { type: 'memoWarp' } }).command)
       .toEqual({ type: 'memoWarp' });
@@ -72,21 +98,119 @@ describe('solo Warp Portal', () => {
     ]);
   });
 
+  it('keeps the hero at the origin until the portal cast ends', () => {
+    enableWarp();
+    const s = player(2), point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
+    const target = { areaId: 'sewers', map: 'prt_sewb1', ...point };
+    s.warpMemos = [target];
+    s.stats.dex = 0;
+    const expected = navigation.resolveActorPoint(target.areaId, { x: target.x, y: target.y }, false)!;
+    const origin = structuredClone(s.fieldHero!.position);
+    executeCommand(s, catalog, portal('memo1'), 0, context);
+    expect(s.areaId).toBe('prontera_south');
+    expect(s.fieldHero!.areaId).toBe('prontera_south');
+    expect(s.fieldHero!.position).toEqual(origin);
+    expect(s.supportCast).toMatchObject({ skillId: 'al_warp', level: 2, startedAt: 0, endsAt: 1000 });
+    const castEnd = s.supportCast!.endsAt;
+    expect(s.sp).toBe(100);
+    expect(s.inventory.find(entry => entry.itemId === 717)?.quantity).toBe(4);
+    const beforeEnd = advanceState(s, catalog, castEnd - 1, context);
+    expect(beforeEnd.areaId).toBe('prontera_south');
+    expect(beforeEnd.supportCast?.endsAt).toBe(castEnd);
+    const completed = advanceState(s, catalog, castEnd, context);
+    expect(completed.areaId).toBe('sewers');
+    expect(completed.fieldHero?.areaId).toBe('sewers');
+    expect(completed.fieldHero?.position).toEqual(expected);
+    expect(completed.supportCast).toBeUndefined();
+    expect(completed.sp).toBe(68);
+    expect(completed.inventory.find(entry => entry.itemId === 717)?.quantity).toBe(3);
+  });
+
+  it('respects the skill cooldown and refuses a second cast while one is active', () => {
+    enableWarp();
+    const s = player(2), point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
+    s.warpMemos = [{ areaId: 'sewers', map: 'prt_sewb1', ...point }];
+    s.skillReadyAt.al_warp = 101;
+    const cooling = structuredClone(s);
+    expect(() => executeCommand(s, catalog, portal('memo1'), 100, context)).toThrow();
+    expect(s).toEqual(cooling);
+    s.skillReadyAt.al_warp = 100;
+    executeCommand(s, catalog, portal('memo1'), 100, context);
+    const casting = structuredClone(s);
+    expect(() => executeCommand(s, catalog, portal('memo1'), 200, context)).toThrow();
+    expect(s).toEqual(casting);
+  });
+
+  it('blocks memo and portal actions for silence, weight, Blade Stop, and due carry return', () => {
+    enableWarp();
+    const point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
+    const base = player(2);
+    base.warpMemos = [{ areaId: 'sewers', map: 'prt_sewb1', ...point }];
+    const available = (state: GameState) => ({
+      memo: warpMemoAvailable(state, catalog, 100),
+      portal: warpPortalAvailable(state, catalog, 'memo1', 100),
+    });
+    const silent = structuredClone(base);
+    silent.playerStatuses = { SC_SILENCE: { startsAt: 0, expiresAt: 1000, level: 1 } };
+    expect(available(silent)).toEqual({ memo: false, portal: false });
+    const heavy = structuredClone(base);
+    heavy.inventory.find(entry => entry.itemId === 717)!.quantity = 10000;
+    expect(available(heavy)).toEqual({ memo: false, portal: false });
+    const linked = structuredClone(base);
+    linked.combatEffects = { ...linked.combatEffects,
+      bladeStopLink: { level: 1, partnerActorId: 'enemy', areaId: linked.areaId, expiresAt: 1000 } };
+    expect(available(linked)).toEqual({ memo: false, portal: false });
+    const returning = structuredClone(base);
+    returning.carryReturnRequestedAt = 100;
+    expect(available(returning)).toEqual({ memo: false, portal: false });
+  });
+
+  it('does not expose a memo whose area is above the character level requirement', () => {
+    enableWarp();
+    const s = player(2), point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
+    s.warpMemos = [{ areaId: 'sewers', map: 'prt_sewb1', ...point }];
+    const area = catalog.areas.find(entry => entry.id === 'sewers')!;
+    const previousMinLevel = area.minLevel;
+    try {
+      area.minLevel = 70;
+      expect(warpPortalAvailable(s, catalog, 'memo1', 100)).toBe(false);
+      expect(() => executeCommand(s, catalog, portal('memo1'), 100, context)).toThrow();
+    } finally {
+      area.minLevel = previousMinLevel;
+    }
+  });
+
+  it('cancels a damaged portal cast without charging or traveling', () => {
+    enableWarp();
+    const s = player(2), point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
+    s.warpMemos = [{ areaId: 'sewers', map: 'prt_sewb1', ...point }];
+    s.stats.dex = 0;
+    executeCommand(s, catalog, portal('memo1'), 0, context);
+    expect(interruptSageEnchantCast(s, catalog, 500)).toBe(true);
+    const after = advanceState(s, catalog, 1250, context);
+    expect(after.areaId).toBe('prontera_south');
+    expect(after.supportCast).toBeUndefined();
+    expect(after.sp).toBe(100);
+    expect(after.inventory.find(entry => entry.itemId === 717)?.quantity).toBe(4);
+  });
+
   it('uses a saved memo as an actual destination, pays the pinned SP and gemstone costs, and leaves the old encounter', () => {
     enableWarp();
     const s = player(2), point = navigation.toBattlePoint('sewers', { x: 8, y: 9 });
     const target = { areaId: 'sewers', map: 'prt_sewb1', ...point };
     (s as GameState & { warpMemos?: typeof target[] }).warpMemos = [target];
     const expected = navigation.resolveActorPoint(target.areaId, { x: target.x, y: target.y }, false)!;
-    s.battle = { enemies: [] } as unknown as GameState['battle'];
+    beginBattle(s, catalog, 1002, 100, undefined, context);
     const before = s.baseExp;
     executeCommand(s, catalog, portal('memo1'), 100, context);
-    expect(s.areaId).toBe('sewers'); expect(s.fieldHero?.areaId).toBe('sewers');
-    expect(s.fieldHero?.position).toEqual(expected); expect(s.fieldHero?.phase).toBe('seeking');
-    expect(s.battle).toBeNull(); expect(s.sp).toBe(68);
-    expect(s.inventory.find(entry => entry.itemId === 717)?.quantity).toBe(3);
-    expect(s.baseExp).toBe(before);
-    expect(s.events.at(-1)).toMatchObject({ kind: 'warp', skillId: 'al_warp', areaId: 'sewers' });
+    const castEnd = s.supportCast!.endsAt;
+    const completed = advanceState(s, catalog, castEnd + 250, context);
+    expect(completed.areaId).toBe('sewers'); expect(completed.fieldHero?.areaId).toBe('sewers');
+    expect(completed.fieldHero?.position).toEqual(expected); expect(completed.fieldHero?.phase).toBe('seeking');
+    expect(completed.battle).toBeNull(); expect(completed.sp).toBe(68);
+    expect(completed.inventory.find(entry => entry.itemId === 717)?.quantity).toBe(3);
+    expect(completed.baseExp).toBe(before);
+    expect(completed.events.at(-1)).toMatchObject({ kind: 'warp', skillId: 'al_warp', areaId: 'sewers' });
   });
 
   it('respects no memo and no warp-to restrictions before charging', () => {

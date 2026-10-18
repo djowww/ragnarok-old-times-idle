@@ -1,0 +1,272 @@
+{
+  "catalog": {
+    "beforeSkill": {
+      "id": "al_warp",
+      "name": "Warp Portal",
+      "kind": "buff",
+      "maxLevel": 4,
+      "herculesId": 27,
+      "sourceName": "AL_WARP",
+      "mechanic": "AL_WARP",
+      "implementation": "unsupported",
+      "unsupportedReason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa.",
+      "description": "Warp Portal. Habilidade utilitária. Portais para mapas e memorizações de coordenadas exigem navegação em mapa.",
+      "iconResource": "data/texture/유저인터페이스/item/al_warp.bmp",
+      "spCost": [
+        35,
+        32,
+        29,
+        26
+      ],
+      "power": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "cooldownMs": 0,
+      "castTimeMs": [
+        1000,
+        1000,
+        1000,
+        1000
+      ],
+      "afterCastDelayMs": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "interruptCast": true,
+      "hitCount": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "aoeRadius": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "range": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "targetType": "ground",
+      "damageType": "none",
+      "prerequisites": [
+        {
+          "skillId": "al_teleport",
+          "level": 2
+        }
+      ],
+      "prerequisitesByClass": {
+        "acolyte": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ],
+        "high_acolyte": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ],
+        "priest": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ],
+        "high_priest": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ],
+        "monk": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ],
+        "champion": [
+          {
+            "skillId": "al_teleport",
+            "level": 2
+          }
+        ]
+      },
+      "minimumJobLevel": 1,
+      "groundDurationMs": [
+        5000,
+        10000,
+        15000,
+        20000
+      ],
+      "groundIntervalMs": -1,
+      "durationMs": 5000,
+      "itemCostByLevel": [
+        [
+          {
+            "itemId": 717,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 717,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 717,
+            "quantity": 1
+          }
+        ],
+        [
+          {
+            "itemId": 717,
+            "quantity": 1
+          }
+        ]
+      ]
+    },
+    "afterSkillSha256": "92f84ae1352ea914110df55b55ee47609032c28c5aba70e1662727fcf74ce6ad",
+    "beforeSourceHash": "dafbed2ae560270a1ee785e139d1848180876d2ad9bcc07f71cfdd164207852d",
+    "afterSourceSha256": "8990d447c12a0db517b419d4c58f1100f6455a9174a9f8231935b6ba0301d748",
+    "addedSourcePaths": [
+      "npc/mapflag/nowarp.txt",
+      "npc/mapflag/nomemo.txt",
+      "npc/mapflag/nowarpto.txt"
+    ],
+    "mapFlags": {
+      "warpBlockedMaps": "e35c4091671ae67749c7e20be429b0bec6d60460e6308cc31110cc56a25607fc",
+      "warpMemoBlockedMaps": "274769fce9a6e8aace187f191c3df8f79aa111cbb4a194c4e381b35415d4ab50",
+      "warpDestinationBlockedMaps": "8427ba28775927cfb1501a6f8be35b342dcec8c6002f6122298593b6c597e97c"
+    }
+  },
+  "manifest": {
+    "addedSourceHashes": {
+      "npc/mapflag/nowarp.txt": "7e7d05097b388b54b73189627779cfc9325bc91be156d8806fce3a6884f0a200",
+      "npc/mapflag/nomemo.txt": "89f0fa4717e8c21f9ab6d2aad6ee20319fce9695fa9db68e7f8036b8d91b2856",
+      "npc/mapflag/nowarpto.txt": "90023bc6b5b47a34c167ff984201374e0906b509ce4576e412c87c0ce8f63a7e"
+    },
+    "beforeSkillSource": {
+      "id": 27,
+      "name": "AL_WARP",
+      "sourceMaxLevel": 4,
+      "sourceRequirements": {
+        "SPCost": {
+          "Lv1": 35,
+          "Lv2": 32,
+          "Lv3": 29,
+          "Lv4": 26,
+          "Lv5": 23,
+          "Lv6": 20,
+          "Lv7": 17,
+          "Lv8": 14,
+          "Lv9": 11,
+          "Lv10": 8
+        },
+        "Items": {
+          "Blue_Gemstone": 1
+        }
+      },
+      "sourceDamageType": {
+        "NoDamage": true
+      },
+      "sourceUnit": {
+        "Id": [
+          129,
+          128
+        ],
+        "Interval": -1,
+        "Target": "All",
+        "Flag": {
+          "UF_NOREITERATION": true,
+          "UF_NOFOOTSET": true,
+          "UF_NOOVERLAP": true
+        }
+      },
+      "sourceHitCount": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "sourceSplashRange": 0,
+      "implementation": "unsupported",
+      "unsupportedReason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa.",
+      "ratioSource": "src/map/skill.c and src/map/status.c",
+      "unsupportedRequirements": []
+    },
+    "afterSkillSourceSha256": "531a82938bbf32a33fff62206bfa3def097a69f368accd3f8e3f1eae0edb7946",
+    "beforeSkillCoverage": {
+      "supported": 291,
+      "unsupported": 57,
+      "byClass": {
+        "acolyte": {
+          "sourceTree": 17,
+          "supported": 15,
+          "unsupported": 2
+        },
+        "high_acolyte": {
+          "sourceTree": 17,
+          "supported": 15,
+          "unsupported": 2
+        },
+        "priest": {
+          "sourceTree": 36,
+          "supported": 32,
+          "unsupported": 4
+        },
+        "high_priest": {
+          "sourceTree": 40,
+          "supported": 35,
+          "unsupported": 5
+        },
+        "monk": {
+          "sourceTree": 34,
+          "supported": 31,
+          "unsupported": 3
+        },
+        "champion": {
+          "sourceTree": 38,
+          "supported": 35,
+          "unsupported": 3
+        }
+      }
+    },
+    "afterSkillCoverageSha256": "46702ab5c714247e730c6e3cc00da42c4e1218287bef9a09f78937d7e43e7967",
+    "beforeCatalogSha256": "67ac888f43ce98ba1f58ee0c808972c7ffb096d81e34bbeee5896407caeb14b1",
+    "afterCatalogSha256": "553a6bda2c2bc7847f0a763f794175bc886d000b8ddda7a4fc094b21d9e337f0",
+    "beforeRulesSha256": "9cb8b985bde1d602fce224a5a4321443e2fc7d4320d4dc4962e69a30e058849f",
+    "afterRulesSha256": "291504a19bffd0303146b0670e019a849cc4bd55d7e4fc2e2d725d1228ecd022",
+    "warpPortal": {
+      "behavior": "A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.",
+      "memoSlots": "Levels 2, 3, and 4 unlock one, two, and three memo points. A new map memo moves that map to the newest slot.",
+      "source": "src/map/skill.c: castend_map AL_WARP; src/map/pc.c: pc_memo; npc/mapflag/nowarp.txt, nomemo.txt, nowarpto.txt",
+      "mapFlags": "nowarp prevents casting; nomemo and nowarpto prevent memo; nowarpto prevents a saved destination."
+    }
+  },
+  "rules": {
+    "addedSourceHashes": {
+      "npc/mapflag/nowarp.txt": "fa3b4f839453504b987d843ef3f042f98cbb3ef6be1f11e4b93935b892657893",
+      "npc/mapflag/nomemo.txt": "e6eb9e5af746dcdff15bb12d626940594d847ab4828a60621c870eeb3b7f8c82",
+      "npc/mapflag/nowarpto.txt": "50686c7621b390efc6244879c727da3df213e17a4599d092626abbd8cbea8855"
+    }
+  }
+}

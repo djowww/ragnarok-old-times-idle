@@ -822,7 +822,7 @@ export interface GameState {
   /** Source actor canact; absent in old saves, never inferred from a basic swing. */
   playerCanActAt?: number;
   /** Own self-target skill cast; unlike Battle.cast this also works in Prontera. */
-  supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
+  supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string; warpDestination?: 'memo1' | 'memo2' | 'memo3';
     skillClockOwnership?: SkillClockOwnership;
     /** Ground casts retain the selected map position even when FreeCast moves. */
     position?: { x: number; y: number }; sceneKey?: string;
