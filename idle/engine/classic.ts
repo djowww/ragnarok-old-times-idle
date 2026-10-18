@@ -12,6 +12,10 @@ import { resurrectionBaseDamage, resurrectionMonsterEligible } from './resurrect
 import { sacrificeBaseDamage, sacrificeRatio } from './guardianSacrificeRules.js';
 
 /** Pre-renewal status_calc_mdef2 applies SC_MINDBREAKER to soft MDEF only. */
+export function classicMagicDefenseDamage(raw: number, hardMdef: number, softMdef: number) {
+  return Math.max(1, integer(raw * (100 - hardMdef) / 100) - softMdef);
+}
+
 export function classicSoftMdef(monster: Monster) {
   const softMdef = Math.max(1, monster.stats.int + integer(monster.stats.vit / 2));
   if (monster.mdefPercent === undefined) return softMdef;
@@ -61,6 +65,7 @@ export interface ClassicDamageStats {
   magicPowerPercent?: number;
   targetCount?: number;
   targetHp?: number;
+  targetSp?: number;
   targetIsBoss?: boolean;
   /** Source status_data.def_percent, e.g. 75 while Poison is active. */
   targetDefPercent?: number;
@@ -213,36 +218,37 @@ export function classicMagicDamage(stats: ClassicDamageStats, monster: Monster, 
   if (name === 'ALL_RESURRECTION' && !resurrectionMonsterEligible(monster)) return 0;
   const element = s.ignoreElement ? 1 : stats.elementMultiplier ?? 1;
   if (element <= 0 && name !== 'ALL_RESURRECTION') return 0;
-  let raw = name === 'ALL_RESURRECTION' ? resurrectionBaseDamage({ level,
+  const soulBurn = name === 'PF_SOULBURN';
+  let raw = soulBurn ? Math.max(0, integer(stats.targetSp ?? 0) * 2) : name === 'ALL_RESURRECTION' ? resurrectionBaseDamage({ level,
     baseLevel: stats.baseLevel ?? 1, intelligence: stats.int ?? 1, luck: stats.luk ?? 1,
     targetHp: stats.targetHp ?? monster.hp, targetMaxHp: monster.hp,
     boss: stats.targetIsBoss ?? !!monster.boss }, rng)
     : randomExclusive(stats.magicAttack[0], stats.magicAttack[1], rng);
-  if (element <= 0) return 0;
+  if (element <= 0 || soulBurn && raw <= 0) return 0;
   if (name === 'PR_TURNUNDEAD') {
     if (!undead(monster)) return 0;
     const chance = Math.min(700, 20 * level + (stats.luk ?? 1) + (stats.int ?? 1) + (stats.baseLevel ?? 1) + 200 - integer(200 * (stats.targetHp ?? monster.hp) / monster.hp));
     raw = !stats.targetIsBoss && rng() * 1000 < chance ? stats.targetHp ?? monster.hp : (stats.baseLevel ?? 1) + (stats.int ?? 1) + 10 * level;
   }
   // NK_SPLASHSPLIT is applied to MATK before the ratio (battle.c:4166).
-  if (s.splitDamage && name !== 'ALL_RESURRECTION') raw = integer(raw / Math.max(1, stats.targetCount ?? 1));
-  let ratio = atLevel(s.power, level, 100);
+  if (s.splitDamage && name !== 'ALL_RESURRECTION' && !soulBurn) raw = integer(raw / Math.max(1, stats.targetCount ?? 1));
+  let ratio = soulBurn ? 100 : atLevel(s.power, level, 100);
   if (name === 'MG_SOULSTRIKE' && undead(monster)) ratio += 5 * level;
   if (!['PR_TURNUNDEAD', 'ALL_RESURRECTION'].includes(name)) raw = integer(raw * ratio / 100);
-  if (name !== 'ALL_RESURRECTION') raw = integer(raw * (100 + (stats.magicPowerPercent ?? 0)) / 100);
+  if (name !== 'ALL_RESURRECTION' && !soulBurn) raw = integer(raw * (100 + (stats.magicPowerPercent ?? 0)) / 100);
   if (name === 'WZ_FIREPILLAR') raw += 100 + 50 * level;
   // IgnoreDefense removes hard MDEF only; soft MDEF remains (battle.c:1562).
   const hardMdef = s.ignoreDefense ? 0 : monster.mdef;
   const softMdef = classicSoftMdef(monster);
-  const mitigated = Math.max(1, integer(raw * (100 - hardMdef) / 100) - softMdef);
-  const dragonBonus = monster.race.toLowerCase() === 'dragon' ? 4 * learned(stats, 'SA_DRAGONOLOGY') : 0;
+  const mitigated = classicMagicDefenseDamage(raw, hardMdef, softMdef);
+  const dragonBonus = !soulBurn && monster.race.toLowerCase() === 'dragon' ? 4 * learned(stats, 'SA_DRAGONOLOGY') : 0;
   // Pre-renewal offensive card/race adjustment precedes division fix.
   const elemental = integer(integer(mitigated * element) * (100 + dragonBonus) / 100);
   // Positive NumberOfHits multiplies damage; negative counts only divide the
   // displayed damage into hits (battle.c:3994 and 4310).
   const hits = Math.max(1, atLevel(s.sourceHitCount, level, atLevel((s as Skill & { hitCount?: number[] }).hitCount, level, 1)));
   return idleBalancedDamage(
-    Math.max(0, integer(elemental * hits * (100 + (stats.damagePercent ?? 0)) / 100)),
+    Math.max(0, integer(elemental * hits * (100 + (soulBurn ? 0 : stats.damagePercent ?? 0)) / 100)),
     skill,
     level,
   );

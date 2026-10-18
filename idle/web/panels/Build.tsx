@@ -12,6 +12,7 @@ import SkillIcon from "../components/SkillIcon";
 import SkillWheel, { SKILL_ROTATION_LIMIT } from "../components/SkillWheel";
 import { classSkills } from "../../engine/stats";
 import { skillRotationForArea } from "../../shared/skillRotation";
+import { skillTargetInRange } from '../../shared/combatRange';
 import { classicCastTime } from "../../engine/classic";
 import { automaticSpellChoices } from "../../engine/sageCasting";
 import { classicBuffActive } from "../../engine/classicBuffs";
@@ -147,6 +148,9 @@ export default function Build({
             const range = skill.range?.[costAt] ?? 0;
             const senseTarget = skill.manualUse === 'inspect'
               ? senseManualTarget(state, catalog, snapshot.serverTime)
+              : undefined;
+            const soulBurnTarget = skill.manualUse === 'soulBurn'
+              ? state.battle?.enemies?.find(enemy => enemy.id === state.battle?.targetId && enemy.hp > 0)
               : undefined;
             const senseCanInspect = !!senseTarget && ids.has(skill.id) && level === 1 &&
               !unsupported && canPaySkillResources(state, catalog, skill, level, snapshot.serverTime);
@@ -284,6 +288,19 @@ export default function Build({
                     {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
                     {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}
                     {skill.manualUse === "removeTrap" && <button type="button" disabled={busy || unsupported || level === 0 || state.hp <= 0 || (state.status !== "hunting" && state.status !== "challenge") || !state.battle?.traps?.length} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Remover armadilha</button>}
+                    {skill.manualUse === 'soulBurn' && <>
+                      <button type="button" disabled={busy || unsupported || level === 0 || !ids.has(skill.id) ||
+                        state.hp <= 0 || (state.status !== 'hunting' && state.status !== 'challenge') ||
+                        !!state.battle?.cast || manualSilenced || !soulBurnTarget ||
+                        !skillTargetInRange(state, catalog, skill, level, soulBurnTarget, snapshot.serverTime) ||
+                        !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime) ||
+                        (state.skillReadyAt[skill.id] ?? 0) > snapshot.serverTime ||
+                        (state.playerCanActAt ?? 0) > snapshot.serverTime}
+                        onClick={() => soulBurnTarget && void command({ type: 'useSkill', skillId: skill.id, expectedEnemyId: soulBurnTarget.id })}>
+                        Usar Soul Burn · {skillResourceCosts(state, catalog, skill, level, snapshot.serverTime)?.sp ?? spCost} SP
+                      </button>
+                      <small>Em falha, Soul Burn consome todo seu SP e pode causar dano em você.</small>
+                    </>}
                     {skill.manualUse === "springTrap" && <button type="button"
                       disabled={busy || unsupported || level === 0 || !falconEquipped || state.hp <= 0 ||
                         (state.status !== 'hunting' && state.status !== 'challenge') ||

@@ -66,6 +66,7 @@ import {
 import {
   classicCastTime,
   classicMagicDamage,
+  classicMagicDefenseDamage,
   classicUndeadTargetEligible,
   classicPhysicalDamage,
   classicSkillEffects,
@@ -1805,6 +1806,40 @@ function applyJointBeatStatus(
     sourceActorId: s.id,
   };
 }
+export function resolveManualSoulBurn(
+  s: GameState,
+  c: Catalog,
+  skill: Skill,
+  level: number,
+  target: BattleEnemy,
+  at: number,
+) {
+  const chance = level < 5 ? 30 + level * 10 : 70;
+  const succeeded = Math.floor(random(s) * 100) < chance;
+  if (succeeded) {
+    if (level === 5) damageEnemies(s, c, target, at, skill, level);
+    target.sp = 0;
+  } else {
+    if (level === 5) {
+      const d = derivedStats(s, c), raw = Math.max(0, s.sp * 2);
+      const damage = classicMagicDefenseDamage(raw, d.hardMdef ?? 0, d.softMdef ?? 0);
+      const targetHpBefore = s.hp;
+      s.hp = Math.max(0, s.hp - damage);
+      event(s, at, 'damage', 'Dano mágico de Soul Burn no conjurador', damage, 'player', {
+        skillId: skill.id, skillLevel: level, sourceActorId: s.id, targetActorId: s.id,
+        targetHpBefore, actorAction: 'none', actionMotionMs: 0, hitMotionMs: 0,
+      });
+    }
+    s.sp = 0;
+  }
+  event(s, at, 'skill', succeeded ? 'Soul Burn teve êxito.' : 'Soul Burn falhou.', undefined, 'player', {
+    skillId: skill.id, skillLevel: level, sourceActorId: s.id,
+    targetActorId: succeeded ? target.id : s.id, actorAction: 'none', actionMotionMs: 0, castMs: 0,
+  });
+  if (s.hp <= 0) defeatPlayer(s, c, at, !!s.battle?.challengeId);
+  return succeeded;
+}
+
 function damageEnemies(
   s: GameState,
   c: Catalog,
@@ -1983,6 +2018,7 @@ function damageEnemies(
           : (s.combatEffects?.spiritSpheres ?? 0),
       consumedSpheres: s.combatEffects?.consumedSpheres ?? 0,
       targetHp: enemy.hp,
+      targetSp: enemy.sp ?? 0,
       targetIsBoss: skill?.sourceName === 'ALL_RESURRECTION' ? !!monster.boss : monster.boss ?? !!s.battle?.challengeId,
     };
     let damage = magical

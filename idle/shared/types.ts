@@ -200,6 +200,7 @@ export interface Skill {
   spCost: number[];
   power: number[];
   cooldownMs: number;
+  cooldownMsByLevel?: number[];
   /** Original client BMP from the skill's Hercules source name. */
   iconResource?: string;
   /** Idle-only scaling applied after the complete Hercules damage formula. */
@@ -237,7 +238,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal" | "greed";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal" | "greed" | "soulBurn";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;

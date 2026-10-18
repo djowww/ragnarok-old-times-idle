@@ -403,7 +403,7 @@ const weaponRatios = {
     HT_FREEZINGTRAP: l => 50 + 10 * l, HW_MAGICCRASHER: () => 100, TF_POISON: () => 100,
     KN_CHARGEATK: () => 100, AS_VENOMKNIFE: () => 100,
 };
-const miscSkills = new Set(['HT_LANDMINE', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'HT_BLITZBEAT', 'SN_FALCONASSAULT', 'TF_THROWSTONE', 'PA_PRESSURE', 'CR_ACIDDEMONSTRATION', 'ASC_BREAKER', 'HW_GRAVITATION', 'BA_DISSONANCE', 'MO_EXTREMITYFIST', 'LK_SPIRALPIERCE', 'WS_CARTTERMINATION', 'CR_GRANDCROSS', 'PF_SOULBURN', 'PR_TURNUNDEAD']);
+const miscSkills = new Set(['HT_LANDMINE', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'HT_BLITZBEAT', 'SN_FALCONASSAULT', 'TF_THROWSTONE', 'PA_PRESSURE', 'CR_ACIDDEMONSTRATION', 'ASC_BREAKER', 'HW_GRAVITATION', 'BA_DISSONANCE', 'MO_EXTREMITYFIST', 'LK_SPIRALPIERCE', 'WS_CARTTERMINATION', 'CR_GRANDCROSS', 'PR_TURNUNDEAD']);
 const spellBalanceSources = new Set(['PR_TURNUNDEAD', 'CR_GRANDCROSS', 'HW_GRAVITATION', 'HW_MAGICCRASHER']);
 const healSkills = new Set(['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'AM_POTIONPITCHER', 'CR_SLIMPITCHER']);
 // A source row alone is not an implementation. Every supported non-damage
@@ -467,7 +467,7 @@ const unsupported = {
     PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
     MC_VENDING: 'Requer comércio com outros personagens.', ALL_BUYING_STORE: 'Requer comércio com outros personagens.', MC_CARTDECORATE: 'Decoração de carrinho exige objetos de carrinho.', MC_CHANGECART: 'Aparência do carrinho exige objetos de carrinho.',
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
-    CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
+    CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.',
     SA_ABRACADABRA: 'Requer seleção aleatória de habilidades especiais e transformações.', SA_LANDPROTECTOR: 'Requer células de mapa e cancelamento de campos.',
     PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
@@ -574,13 +574,12 @@ for (const name of skillNames) {
     const targetType = ['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON'].includes(name) ? 'self' : name === 'ALL_RESURRECTION' ? 'enemy' : !src.SkillType ? 'passive' : src.SkillType.Place ? 'ground' : src.SkillType.Enemy ? 'enemy' : src.SkillType.Self ? 'self' : 'support';
     let kind = targetType === 'passive' ? 'passive' : healSkills.has(name) ? 'heal' : ['TF_STEAL', 'RG_STEALCOIN'].includes(name) ? 'steal' : magicRatios[name] ? 'magical' : weaponRatios[name] || miscSkills.has(name) ? 'physical' : 'buff';
     if (name === 'AS_POISONREACT') kind = 'buff';
-    if (name === 'ALL_RESURRECTION') kind = 'magical';
-    let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
-    if (name === 'ALL_RESURRECTION') damageType = 'magic';
-    const supportedMechanic = name === 'AC_MAKINGARROW' || name === 'AM_CANNIBALIZE' || name === 'BS_GREED' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
+    if (name === 'ALL_RESURRECTION' || name === 'PF_SOULBURN') kind = 'magical';
+    let damageType = ['PF_SOULBURN'].includes(name) || magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
+    if (name === 'ALL_RESURRECTION' || name === 'PF_SOULBURN') damageType = 'magic';
+    const supportedMechanic = name === 'AC_MAKINGARROW' || name === 'AM_CANNIBALIZE' || name === 'BS_GREED' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL', 'PF_SOULBURN'].includes(name);
     const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','ASC_CDP','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','BS_REPAIRWEAPON','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP','AM_CANNIBALIZE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
-    if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
     const hitCount = rawHits.map(Math.abs);
     const itemCostByLevel = Array.from({ length: maxLevel }, (_, i) => Object.entries(src.Requirements?.Items ?? {}).flatMap(([itemName, amount]) => { const item = itemByName[itemName]; if (!item) throw new Error('Missing reagent: ' + itemName); const quantity = byLevel(amount, maxLevel)[i]; return quantity > 0 ? [{ itemId: item.Id, quantity }] : []; }));
@@ -636,12 +635,14 @@ for (const name of skillNames) {
         ...(name === 'BS_REPAIRWEAPON' && { manualUse: 'weaponRepair' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
         ...(name === 'LK_TENSIONRELAX' && { manualUse: 'rest' }),
+        ...(name === 'PF_SOULBURN' && { manualUse: 'soulBurn' }),
         ...(name === 'KN_RIDING' && { manualUse: 'mount' }),
         description: descriptions[name] ?? `${src.Description}. ${targetType === 'passive' ? 'Habilidade passiva.' : damageType === 'magic' ? 'Dano mágico conforme Hercules pré-renovação.' : damageType === 'weapon' ? 'Dano de arma conforme Hercules pré-renovação.' : damageType === 'misc' ? 'Fórmula específica de dano conforme Hercules pré-renovação.' : src.StatusChange ? 'Aplica ' + src.StatusChange.replace('SC_', '') + '.' : 'Habilidade utilitária.'}${unsupportedReason ? ' ' + unsupportedReason : ''}`,
         iconResource: 'data/texture/유저인터페이스/item/' + src.Name.toLowerCase() + '.bmp',
         spCost: byLevel(src.Requirements?.SPCost, maxLevel), power,
         ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }),
         cooldownMs: name === 'SA_MAGICROD' ? 0 : byLevel(src.CoolDown, maxLevel)[0],
+        ...(name === 'PF_SOULBURN' && { cooldownMsByLevel: byLevel(src.CoolDown, maxLevel) }),
         castTimeMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.CastTime, maxLevel),
         afterCastDelayMs: name === 'SA_MAGICROD' ? Array(maxLevel).fill(0) : byLevel(src.AfterCastActDelay, maxLevel),
         interruptCast: src.InterruptCast === true,

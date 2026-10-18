@@ -59,7 +59,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "e004742c00ea62c946b8168b691f8acf47672e0abef77c24795529cf27c5db9d"
+    "hash": "8e7116707e6c1a31d63d3ce9145c6e91d5875fd75d6db077a673e6a4b7f487a7"
   },
   "rates": {
     "baseExp": 4,
@@ -106221,14 +106221,14 @@
     "pf_soulburn": {
       "id": "pf_soulburn",
       "name": "Soul Siphon",
-      "kind": "physical",
+      "kind": "magical",
       "maxLevel": 5,
       "herculesId": 375,
       "sourceName": "PF_SOULBURN",
       "mechanic": "PF_SOULBURN",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer SP do alvo; monstros não têm SP no catálogo.",
-      "description": "Soul Siphon. Habilidade utilitária. Requer SP do alvo; monstros não têm SP no catálogo.",
+      "implementation": "supported",
+      "manualUse": "soulBurn",
+      "description": "Soul Siphon. Dano mágico conforme Hercules pré-renovação.",
       "iconResource": "data/texture/유저인터페이스/item/pf_soulburn.bmp",
       "spCost": [
         80,
@@ -106244,7 +106244,21 @@
         0,
         0
       ],
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
       "cooldownMs": 10000,
+      "cooldownMsByLevel": [
+        10000,
+        10000,
+        10000,
+        10000,
+        15000
+      ],
       "castTimeMs": [
         0,
         0,
@@ -106289,7 +106303,7 @@
         9
       ],
       "targetType": "enemy",
-      "damageType": "none",
+      "damageType": "magic",
       "prerequisites": [
         {
           "skillId": "sa_castcancel",
