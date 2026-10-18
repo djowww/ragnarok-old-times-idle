@@ -40,7 +40,7 @@ This is an independent fan project under active development.
 | Hunting areas | 38 |
 | Classes in the progression trees | 40 |
 | Skills imported from Hercules | 348 |
-| Implemented skills | 274 |
+| Implemented skills | 298 |
 
 Unavailable mechanics are identified in the game. Idle progression adapts some rules and rewards; full reproduction of every original system and effect is still in progress. See the [catalog](idle/content/) and [source manifest](idle/content/source-manifest.json).
 

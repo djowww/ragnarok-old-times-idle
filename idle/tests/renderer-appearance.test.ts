@@ -81,3 +81,38 @@ describe('selected hairstyle resources and pose', () => {
         expect(paths).not.toContain('missing-selected-act/1_여.act');
     });
 });
+
+describe('transient actor resource recovery', () => {
+    it.each(['503', 'network', 'stream'])('keeps the equipped weapon after one transient %s failure', async failure => {
+        const asset: SpriteAsset = { spr: `recover-${failure}/body.spr`, act: `recover-${failure}/body.act`,
+            headSpr: `recover-${failure}/1_남.spr`, headAct: `recover-${failure}/1_남.act` };
+        let weaponAttempts = 0;
+        vi.stubGlobal('fetch', async (url: string | URL | Request) => {
+            const path = decodeURIComponent(String(url));
+            if (path.endsWith('/헌터_남_단검.spr') && ++weaponAttempts === 1) {
+                if (failure === '503') return new Response(null, { status: 503 });
+                if (failure === 'network') throw new TypeError('fetch failed');
+                return { ok: true, arrayBuffer: async () => { throw new TypeError('terminated'); } };
+            }
+            return new Response(path.endsWith('.spr') ? sprite() : action(0, 1, 2, 0, 0));
+        });
+        const actor = await loadActor(asset, { type: 'dagger', gender: 'male', job: 'hunter' });
+        expect(actor.fallback).toBe(false);
+        expect(actor.error).toBeUndefined();
+        expect(actor.weapon?.sprite.frames.length).toBeGreaterThan(0);
+        expect(weaponAttempts).toBe(2);
+    });
+
+    it.each([404, 503])('bounds persistent HTTP %s failures instead of hiding them', async status => {
+        const asset: SpriteAsset = { spr: `persistent-${status}/body.spr`, act: `persistent-${status}/body.act` };
+        let attempts = 0;
+        vi.stubGlobal('fetch', async (url: string | URL | Request) => {
+            if (String(url).endsWith('.spr')) { attempts++; return new Response(null, { status }); }
+            return new Response(action(0, 1, 2, 0, 0));
+        });
+        const actor = await loadActor(asset);
+        expect(actor.fallback).toBe(true);
+        expect(actor.error).toContain(`(${status})`);
+        expect(attempts).toBe(status === 404 ? 1 : 2);
+    });
+});

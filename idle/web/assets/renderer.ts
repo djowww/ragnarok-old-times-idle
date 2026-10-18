@@ -34,8 +34,26 @@ class ActorResourceError extends Error {
         super(`Recurso indisponível (${status}): ${path}`);
     }
 }
-async function binary(path: string) { const response = await fetch(assetUrl(path), { signal: AbortSignal.timeout(15000) }); if (!response.ok)
-    throw new ActorResourceError(response.status, path); return response.arrayBuffer(); }
+async function binary(path: string): Promise<ArrayBuffer> {
+    // Recover a transient resource before publishing a partially equipped actor.
+    // Permanent missing files still reach the existing actor fallback immediately.
+    for (let attempt = 0; ; attempt++) {
+        try {
+            const response = await fetch(assetUrl(path), { signal: AbortSignal.timeout(15000) });
+            if (!response.ok) {
+                await response.body?.cancel();
+                throw new ActorResourceError(response.status, path);
+            }
+            return await response.arrayBuffer();
+        } catch (error) {
+            const retryable = error instanceof ActorResourceError
+                ? error.status === 408 || error.status === 429 || error.status >= 500
+                : error instanceof TypeError || error instanceof DOMException && error.name === 'TimeoutError';
+            if (attempt > 0 || !retryable) throw error;
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+    }
+}
 async function loadPart(spr: string, act: string): Promise<ActorPart> { const [s, a] = await Promise.all([binary(spr), binary(act)]); return { sprite: decodeSPR(s), action: decodeACT(a) }; }
 function assetWithAppearance(asset: SpriteAsset, appearance?: Appearance): SpriteAsset {
     if (!appearance || !asset.headSpr) return asset;
