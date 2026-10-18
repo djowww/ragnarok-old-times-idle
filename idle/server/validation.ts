@@ -13,6 +13,7 @@ const oneOf = (...values: unknown[]): Rule => value => values.includes(value);
 const boolean: Rule = value => typeof value === 'boolean';
 const rules: Record<string, Record<string, Rule>> = {
   teleport: { destination: oneOf('random', 'save') },
+  memoWarp: {}, warpPortal: { destination: oneOf('memo1', 'memo2', 'memo3') },
   startHunt: { areaId: token }, setHuntFocus: { areaId: token, focus: huntFocus }, stop: {}, rest: {}, sellLoot: {}, collectPendingLoot: {}, repairAll: {}, rebirth: {}, dismissOffline: {},
   setGender: { gender: oneOf('male', 'female') },
   changeAppearance: { hairStyle: integer(0, 27), hairColor: integer(0, 8), clothesColor: integer(0, 4) },

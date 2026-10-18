@@ -66,6 +66,7 @@ import { isEquipmentBroken } from './equipmentCondition.js';
 import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js';
 import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
 import { applyTeleport } from './teleport.js';
+import { applyWarpMemo, applyWarpPortal } from './warpPortal.js';
 import { cancelSageEnchantCast } from './sageEnchantments.js';
 import { resolveSuffragiumCast, suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
 import { providenceCanStart, resolveProvidenceCast, startProvidenceCast } from './providence.js';
@@ -143,6 +144,8 @@ export function executeCommand(
       applyTeleport(s, c, command.destination, now, context);
       break;
     }
+    case 'memoWarp': { applyWarpMemo(s, c, now, context); break; }
+    case 'warpPortal': { applyWarpPortal(s, c, command.destination, now, context); break; }
     case 'collectPendingLoot': {
       town(s);
       collectPendingLoot(s, c, now);
