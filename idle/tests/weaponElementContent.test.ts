@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import {describe,expect,it} from 'vitest';
 import {createHash} from 'node:crypto';
 import {createElement} from 'react';
@@ -23,9 +24,9 @@ describe('pinned weapon property catalog and historical boundary',()=>{
   expect(html).toContain('Propriedade');expect(html).toContain('Fogo');
  });
  it('reverses only the reviewed export to the exact previous catalog bytes',()=>{
-  const text=JSON.stringify(beforeWeaponElementsCatalog(raw),null,2)+'\n';
+  const text=JSON.stringify(beforeWeaponElementsCatalog(beforeArrowCraftingCatalog(raw)),null,2)+'\n';
   expect(createHash('sha256').update(text).digest('hex')).toBe(baseline.manifest.catalogSha256.before);
-  const old=beforeWeaponElementsManifest(manifest) as Record<string,unknown>;
+  const old=beforeWeaponElementsManifest(beforeArrowCraftingManifest(manifest)) as Record<string,unknown>;
   expect(old.weaponProperties).toBeUndefined();expect(old.catalogSha256).toBe(baseline.manifest.catalogSha256.before);
  });
  it('does not mask unreviewed item or provenance mutations',()=>{

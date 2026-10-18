@@ -9,9 +9,9 @@
       "sourceName": "PR_SUFFRAGIUM",
       "mechanic": "PR_SUFFRAGIUM",
       "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Suffragium. Aplica SUFFRAGIUM. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "iconResource": "data/texture/유저인터페이스/item/pr_suffragium.bmp",
+      "unsupportedReason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito.",
+      "description": "Suffragium. Aplica SUFFRAGIUM. Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito.",
+      "iconResource": "data/texture/\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4/item/pr_suffragium.bmp",
       "spCost": [
         8,
         8,
@@ -109,7 +109,7 @@
       ],
       "sourceSplashRange": 0,
       "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "unsupportedReason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -131,7 +131,7 @@
       "unavailableEntry": {
         "skillId": "pr_suffragium",
         "sourceName": "PR_SUFFRAGIUM",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+        "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
       }
     },
     "afterCoverageSha256": "1be741abd0fe5a479a9d0be477eb19af60490c52e5bf1b3586692372b302d1ee",
@@ -139,7 +139,7 @@
     "afterRulesSha256": "757d727b9b8081601bb43e9874926ab05e19e671eeb172335dbc861f43e910b3",
     "beforeCatalogSha256": "1269241eb2cf94dda9c55ef387e2f97a0fe44cf6cc9dfa7577858164a040d870",
     "afterCatalogSha256": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
-    "beforeFileSha256": "a41a1f950f6efb601dc254c2d901796157ca69e61efadeac0b7abaa266ad72c4",
+    "beforeFileSha256": "716a82d2fdee084c312bcc58d55c9d23b3c3058ebd1b072e2391e65b1f4cde82",
     "afterAdaptationEntry": "PR_SUFFRAGIUM uses its self-target pre-renewal status in solo hunting: 15% cast reduction per learned level for the next skill cast, source duration by level, and no party requirement; normal attacks do not consume it.",
     "afterAdaptationIndex": 39
   }

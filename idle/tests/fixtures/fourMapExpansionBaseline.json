@@ -73,8 +73,8 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "2167ede50fd8cdc12e4cf060575575a28847c2288a3c296d06535780a7f3fa05",
-    "afterFileSha256": "756f6362c0d152464585197c53a8d805fa013a494c46e197383a60eafe7fa9b5",
+    "beforeFileSha256": "1ee98fccb68be289becfc61e926a347600f0e2cbbfcfbde302820f9b168fbc5c",
+    "afterFileSha256": "fbb6426c08df107cb639c7c97d9c67cced119907b83fa32990c38d3139cf35a5",
     "addedInertDrops": {
       "2264": "ddf612d4e57593f65b7ddeee3b4a2a37100e7300b65f9558371aac1d0783e519",
       "609": "8519b7efe967aa90a0f35adaa9116adedcb0a232d67539d9d910ee7e220a9c56",

@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import {createHash} from 'node:crypto';
 import {describe,expect,it} from 'vitest';
@@ -6,8 +7,8 @@ import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/pharmacyBaseline.json';
 import {beforePharmacyCatalog,beforePharmacyManifest} from './pharmacy-historical.js';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 const hash=(x:unknown)=>createHash('sha256').update(JSON.stringify(x,null,2)+'\n').digest('hex');
 describe('strict Pharmacy historical delta',()=>{
  it('reconstructs the complete prior catalog bytes',()=>expect(hash(beforePharmacyCatalog(catalog))).toBe(baseline.beforeCatalogSha256));

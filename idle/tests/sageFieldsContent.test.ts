@@ -1,4 +1,5 @@
 import { beforeDungeonExpansionCatalog, beforeDungeonExpansionManifest } from './dungeon-map-historical';
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeSoloAlchemySkills } from './solo-alchemy-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
@@ -8,8 +9,8 @@ import baseline from './fixtures/sageFields256Baseline.json';
 import { beforeTeleportSkills } from './sage-fields-historical-fixture';
 import type { Catalog } from '../shared/types';
 import { beforeHistoricalClassCadence } from './class-cadence-historical';
-const raw = beforeDungeonExpansionCatalog(dungeonCurrentRaw);
-const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
+const raw = beforeDungeonExpansionCatalog(beforeArrowCraftingCatalog(dungeonCurrentRaw));
+const manifest = beforeDungeonExpansionManifest(beforeArrowCraftingManifest(dungeonCurrentManifest));
 
 const c = raw as unknown as Catalog;
 function canonical(value: unknown): string {

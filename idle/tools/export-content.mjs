@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { parseArrowRecipes } from './arrowRecipes.mjs';
 /** Reproducible selected Hercules catalog. GPL-3.0-or-later. Never evaluates scripts. */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -35,6 +36,13 @@ for (const file of files) {
     if (!file.endsWith('.txt'))
         parsed[file] = parseConfig(buffer.toString('utf8'));
 }
+const arrowPath = 'db/create_arrow_db.txt';
+const arrowUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${arrowPath}`;
+const arrowBuffer = source ? await readFile(resolve(source, arrowPath)) : Buffer.from(await (await fetch(arrowUrl)).arrayBuffer());
+if (sha(arrowBuffer) !== rules.sourceHashes[arrowPath]) throw new Error('Pinned source hash mismatch: ' + arrowPath);
+const arrowRecipes = parseArrowRecipes(arrowBuffer.toString('utf8'));
+manifest.sources.push({path: arrowPath, url: arrowUrl, sha256: sha(arrowBuffer)});
+manifest.arrowCraft = {recipes: arrowRecipes.length, source: arrowPath, behavior: 'One paid menu activation consumes one identified unequipped input and grants every listed output. Net inventory capacity is validated before consumption.'};
 const mapSpawnMonsterIds = new Map();
 const repairPath = 'npc/merchants/refine.txt';
 const repairUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${repairPath}`;
@@ -484,8 +492,8 @@ for (const name of skillNames) {
     if (name === 'ALL_RESURRECTION') kind = 'magical';
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
-    const supportedMechanic = magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const supportedMechanic = name === 'AC_MAKINGARROW' || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE','AC_MAKINGARROW'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -530,6 +538,7 @@ for (const name of skillNames) {
         ...(['SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { manualUse: 'activate' }),
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
+        ...(name === 'AC_MAKINGARROW' && { manualUse: 'arrowCraft' }),
         ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -781,6 +790,8 @@ manifest.bodyElementItems.sort((a, b) => a.itemId - b.itemId);
 // scripts stay inert; presence in a skill cost never enables a script.
 for (const id of new Set(Object.values(catalog.skills).flatMap(s => (s.itemCostByLevel ?? []).flat().map(cost => cost.itemId))))
     includeItem(itemById[id], false, true);
+const arrowItemIds=new Set(arrowRecipes.flatMap(recipe=>[recipe.materialItemId,...recipe.outputs.map(i=>i.itemId)]));
+for(const id of arrowItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing arrow crafting item '+id);
 const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
 for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
 for(const {itemId} of findingOreChain)if(!itemById[itemId]||!includeItem(itemById[itemId],false,true))throw new Error('Missing Ore chain item '+itemId);
@@ -981,5 +992,6 @@ manifest.hashConvention = 'Catalog.source.hash = SHA256 of compact catalog with 
 const output = arg('--output') ? resolve(arg('--output')) : resolve(root, 'content/catalog.json');
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, text);
+await writeFile(resolve(dirname(output), 'arrow-recipes.json'), JSON.stringify(arrowRecipes, null, 2) + '\n');
 await writeFile(resolve(dirname(output), 'source-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 console.log(`Exported ${Object.keys(catalog.monsters).length} monsters, ${Object.keys(catalog.items).length} items, ${Object.keys(catalog.classes).length} classes, ${Object.keys(catalog.skills).length} skills. SHA256 ${manifest.catalogSha256}`);

@@ -82,7 +82,7 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "42eb8c384e98c6af1e148f80af85770f5f699f8e35530a1a8dad30b9a0af47e7",
+    "beforeFileSha256": "baa25de0e636b275e40e4f75584130aea2b04e13c10fb942ff9a797982b229a0",
     "addedSources": [
       {
         "path": "npc/pre-re/mobs/dungeons/anthell.txt",

@@ -1,11 +1,12 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import {describe,it,expect} from 'vitest';
 import currentCatalog from '../content/catalog.json';import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/weaponRefineBaseline.json';
 import {beforeWeaponRefineCatalog,beforeWeaponRefineManifest} from './weapon-refine-historical';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 describe('strict inverse of only reviewed weapon-refine content changes',()=>{
  it('restores only the exact source, two ores and skill to their frozen previous records',()=>{
   const old=beforeWeaponRefineCatalog(catalog);expect(old.skills.ws_weaponrefine).toEqual(baseline.skills.ws_weaponrefine.before);expect(old.items[1010]).toEqual(baseline.items[1010].before);expect(old.items[1011]).toEqual(baseline.items[1011].before);expect(old.source).toEqual(baseline.source.before);

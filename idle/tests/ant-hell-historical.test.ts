@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
@@ -6,8 +7,8 @@ import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/antHellBaseline.json';
 import { beforeAntHellCatalog, beforeAntHellManifest } from './ant-hell-historical';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 
 const fileSha = (value: unknown) => createHash('sha256')
   .update(JSON.stringify(value, null, 2) + '\n').digest('hex');
@@ -15,7 +16,7 @@ const fileSha = (value: unknown) => createHash('sha256')
 describe('Ant Hell historical projection', () => {
   it('reconstructs the exact prior catalog and source manifest', () => {
     expect(fileSha(beforeAntHellCatalog(catalog))).toBe(baseline.catalog.beforeFileSha256);
-    expect(fileSha(beforeAntHellManifest(manifest))).toBe(baseline.manifest.beforeFileSha256);
+    expect(fileSha(canonicalArrowHistoricalManifest(beforeAntHellManifest(manifest)))).toBe(baseline.manifest.beforeFileSha256);
   });
 
   it('reverses only exact new content and preserves edits to added records', () => {

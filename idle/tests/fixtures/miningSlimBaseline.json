@@ -1,6 +1,6 @@
 {
   "beforeCatalogSha256": "44f7af7e8c38906b4716975cfb4af9377237e162472fcb6f7a94a0a7e9911a47",
-  "beforeManifestSha256": "087d5ef5a9052a149ac6b5db5310f382858413ff4d1cc8417f58a0344fb9f177",
+  "beforeManifestSha256": "4ecf3504bfb1e8a573c77cdf3d6a9031acccb3c85c896f61d9800a432b56b94b",
   "skills": {
     "bs_findingore": {
       "before": {
@@ -12,9 +12,9 @@
         "sourceName": "BS_FINDINGORE",
         "mechanic": "BS_FINDINGORE",
         "implementation": "unsupported",
-        "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-        "description": "Ore Discovery. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-        "iconResource": "data/texture/유저인터페이스/item/bs_findingore.bmp",
+        "unsupportedReason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa.",
+        "description": "Ore Discovery. Habilidade passiva. Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa.",
+        "iconResource": "data/texture/\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4/item/bs_findingore.bmp",
         "spCost": [
           0
         ],
@@ -89,9 +89,9 @@
         "sourceName": "CR_SLIMPITCHER",
         "mechanic": "CR_SLIMPITCHER",
         "implementation": "unsupported",
-        "unsupportedReason": "Requer cura específica da poção compacta e seus modificadores.",
-        "description": "Aid Condensed Potion. Habilidade utilitária. Requer cura específica da poção compacta e seus modificadores.",
-        "iconResource": "data/texture/유저인터페이스/item/cr_slimpitcher.bmp",
+        "unsupportedReason": "Requer cura espec\u00edfica da po\u00e7\u00e3o compacta e seus modificadores.",
+        "description": "Aid Condensed Potion. Habilidade utilit\u00e1ria. Requer cura espec\u00edfica da po\u00e7\u00e3o compacta e seus modificadores.",
+        "iconResource": "data/texture/\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4/item/cr_slimpitcher.bmp",
         "spCost": [
           30,
           30,
@@ -337,7 +337,7 @@
         ],
         "sourceSplashRange": 0,
         "implementation": "unsupported",
-        "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+        "unsupportedReason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa.",
         "ratioSource": "src/map/skill.c and src/map/status.c",
         "unsupportedRequirements": []
       },
@@ -388,7 +388,7 @@
         ],
         "sourceSplashRange": 3,
         "implementation": "unsupported",
-        "unsupportedReason": "Requer cura específica da poção compacta e seus modificadores.",
+        "unsupportedReason": "Requer cura espec\u00edfica da po\u00e7\u00e3o compacta e seus modificadores.",
         "ratioSource": "src/map/skill.c and src/map/status.c",
         "unsupportedRequirements": []
       },
@@ -1068,47 +1068,47 @@
           {
             "skillId": "nv_basic",
             "sourceName": "NV_BASIC",
-            "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
+            "reason": "A\u00e7\u00f5es sociais do Aprendiz n\u00e3o existem na simula\u00e7\u00e3o de ca\u00e7a."
           },
           {
             "skillId": "ac_makingarrow",
             "sourceName": "AC_MAKINGARROW",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "al_warp",
             "sourceName": "AL_WARP",
-            "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
+            "reason": "Portais para mapas e memoriza\u00e7\u00f5es de coordenadas exigem navega\u00e7\u00e3o em mapa."
           },
           {
             "skillId": "al_holywater",
             "sourceName": "AL_HOLYWATER",
-            "reason": "Produção de Água Benta exige células de água e Frasco Vazio."
+            "reason": "Produ\u00e7\u00e3o de \u00c1gua Benta exige c\u00e9lulas de \u00e1gua e Frasco Vazio."
           },
           {
             "skillId": "mc_vending",
             "sourceName": "MC_VENDING",
-            "reason": "Requer comércio com outros personagens."
+            "reason": "Requer com\u00e9rcio com outros personagens."
           },
           {
             "skillId": "mc_changecart",
             "sourceName": "MC_CHANGECART",
-            "reason": "Aparência do carrinho exige objetos de carrinho."
+            "reason": "Apar\u00eancia do carrinho exige objetos de carrinho."
           },
           {
             "skillId": "mc_cartdecorate",
             "sourceName": "MC_CARTDECORATE",
-            "reason": "Decoração de carrinho exige objetos de carrinho."
+            "reason": "Decora\u00e7\u00e3o de carrinho exige objetos de carrinho."
           },
           {
             "skillId": "all_buying_store",
             "sourceName": "ALL_BUYING_STORE",
-            "reason": "Requer comércio com outros personagens."
+            "reason": "Requer com\u00e9rcio com outros personagens."
           },
           {
             "skillId": "kn_onehand",
             "sourceName": "KN_ONEHAND",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "cr_devotion",
@@ -1118,127 +1118,127 @@
           {
             "skillId": "cr_providence",
             "sourceName": "CR_PROVIDENCE",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "pa_gospel",
             "sourceName": "PA_GOSPEL",
-            "reason": "Requer efeitos aleatórios de grupo."
+            "reason": "Requer efeitos aleat\u00f3rios de grupo."
           },
           {
             "skillId": "ice_wall",
             "sourceName": "WZ_ICEWALL",
-            "reason": "Requer edição de células bloqueadas do mapa."
+            "reason": "Requer edi\u00e7\u00e3o de c\u00e9lulas bloqueadas do mapa."
           },
           {
             "skillId": "ganbantein",
             "sourceName": "HW_GANBANTEIN",
-            "reason": "Requer remoção de unidades de habilidades em células do mapa."
+            "reason": "Requer remo\u00e7\u00e3o de unidades de habilidades em c\u00e9lulas do mapa."
           },
           {
             "skillId": "sa_landprotector",
             "sourceName": "SA_LANDPROTECTOR",
-            "reason": "Requer células de mapa e cancelamento de campos."
+            "reason": "Requer c\u00e9lulas de mapa e cancelamento de campos."
           },
           {
             "skillId": "sa_dispell",
             "sourceName": "SA_DISPELL",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "sa_abracadabra",
             "sourceName": "SA_ABRACADABRA",
-            "reason": "Requer seleção aleatória de habilidades especiais e transformações."
+            "reason": "Requer sele\u00e7\u00e3o aleat\u00f3ria de habilidades especiais e transforma\u00e7\u00f5es."
           },
           {
             "skillId": "pf_soulburn",
             "sourceName": "PF_SOULBURN",
-            "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
+            "reason": "Requer SP do alvo; monstros n\u00e3o t\u00eam SP no cat\u00e1logo."
           },
           {
             "skillId": "ht_shockwave",
             "sourceName": "HT_SHOCKWAVE",
-            "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
+            "reason": "Requer SP do alvo; monstros n\u00e3o t\u00eam SP no cat\u00e1logo."
           },
           {
             "skillId": "ht_removetrap",
             "sourceName": "HT_REMOVETRAP",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "ht_talkiebox",
             "sourceName": "HT_TALKIEBOX",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "ht_detecting",
             "sourceName": "HT_DETECTING",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "ht_springtrap",
             "sourceName": "HT_SPRINGTRAP",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "ht_power",
             "sourceName": "HT_POWER",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "bd_adaptation",
             "sourceName": "BD_ADAPTATION",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_encore",
             "sourceName": "BD_ENCORE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_lullaby",
             "sourceName": "BD_LULLABY",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_richmankim",
             "sourceName": "BD_RICHMANKIM",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_eternalchaos",
             "sourceName": "BD_ETERNALCHAOS",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_drumbattlefield",
             "sourceName": "BD_DRUMBATTLEFIELD",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_ringnibelungen",
             "sourceName": "BD_RINGNIBELUNGEN",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_rokisweil",
             "sourceName": "BD_ROKISWEIL",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_intoabyss",
             "sourceName": "BD_INTOABYSS",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bd_siegfried",
             "sourceName": "BD_SIEGFRIED",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "cg_moonlit",
             "sourceName": "CG_MOONLIT",
-            "reason": "Requer parceiro e interação espacial de grupo."
+            "reason": "Requer parceiro e intera\u00e7\u00e3o espacial de grupo."
           },
           {
             "skillId": "cg_marionette",
@@ -1253,37 +1253,37 @@
           {
             "skillId": "cg_hermode",
             "sourceName": "CG_HERMODE",
-            "reason": "Requer guilda e área de combate entre personagens."
+            "reason": "Requer guilda e \u00e1rea de combate entre personagens."
           },
           {
             "skillId": "cg_tarotcard",
             "sourceName": "CG_TAROTCARD",
-            "reason": "Requer baralho aleatório com efeitos de combate entre personagens."
+            "reason": "Requer baralho aleat\u00f3rio com efeitos de combate entre personagens."
           },
           {
             "skillId": "dc_uglydance",
             "sourceName": "DC_UGLYDANCE",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "pr_suffragium",
             "sourceName": "PR_SUFFRAGIUM",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "pr_benedictio",
             "sourceName": "PR_BENEDICTIO",
-            "reason": "Requer dois Noviços e células de mapa."
+            "reason": "Requer dois Novi\u00e7os e c\u00e9lulas de mapa."
           },
           {
             "skillId": "pr_redemptio",
             "sourceName": "PR_REDEMPTIO",
-            "reason": "Ressurreição de grupo exige outros personagens."
+            "reason": "Ressurrei\u00e7\u00e3o de grupo exige outros personagens."
           },
           {
             "skillId": "hp_basilica",
             "sourceName": "HP_BASILICA",
-            "reason": "Requer área protegida e interação com vários personagens."
+            "reason": "Requer \u00e1rea protegida e intera\u00e7\u00e3o com v\u00e1rios personagens."
           },
           {
             "skillId": "mo_kitranslation",
@@ -1293,187 +1293,187 @@
           {
             "skillId": "bs_iron",
             "sourceName": "BS_IRON",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_steel",
             "sourceName": "BS_STEEL",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_enchantedstone",
             "sourceName": "BS_ENCHANTEDSTONE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_orideocon",
             "sourceName": "BS_ORIDEOCON",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_dagger",
             "sourceName": "BS_DAGGER",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_sword",
             "sourceName": "BS_SWORD",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_twohandsword",
             "sourceName": "BS_TWOHANDSWORD",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_axe",
             "sourceName": "BS_AXE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_mace",
             "sourceName": "BS_MACE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_knuckle",
             "sourceName": "BS_KNUCKLE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_spear",
             "sourceName": "BS_SPEAR",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_findingore",
             "sourceName": "BS_FINDINGORE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "bs_repairweapon",
             "sourceName": "BS_REPAIRWEAPON",
-            "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
+            "reason": "O reparo por NPC usa o servi\u00e7o Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indispon\u00edvel."
           },
           {
             "skillId": "bs_greed",
             "sourceName": "BS_GREED",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "bs_adrenaline2",
             "sourceName": "BS_ADRENALINE2",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "ws_weaponrefine",
             "sourceName": "WS_WEAPONREFINE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_cannibalize",
             "sourceName": "AM_CANNIBALIZE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_spheremine",
             "sourceName": "AM_SPHEREMINE",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_cp_weapon",
             "sourceName": "AM_CP_WEAPON",
-            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+            "reason": "Prote\u00e7\u00e3o contra quebra e remo\u00e7\u00e3o exige estado de equipamento quebrado ou removido do personagem."
           },
           {
             "skillId": "am_cp_shield",
             "sourceName": "AM_CP_SHIELD",
-            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+            "reason": "Prote\u00e7\u00e3o contra quebra e remo\u00e7\u00e3o exige estado de equipamento quebrado ou removido do personagem."
           },
           {
             "skillId": "am_cp_armor",
             "sourceName": "AM_CP_ARMOR",
-            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+            "reason": "Prote\u00e7\u00e3o contra quebra e remo\u00e7\u00e3o exige estado de equipamento quebrado ou removido do personagem."
           },
           {
             "skillId": "am_cp_helm",
             "sourceName": "AM_CP_HELM",
-            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+            "reason": "Prote\u00e7\u00e3o contra quebra e remo\u00e7\u00e3o exige estado de equipamento quebrado ou removido do personagem."
           },
           {
             "skillId": "am_bioethics",
             "sourceName": "AM_BIOETHICS",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_callhomun",
             "sourceName": "AM_CALLHOMUN",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_rest",
             "sourceName": "AM_REST",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_resurrecthomun",
             "sourceName": "AM_RESURRECTHOMUN",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "am_berserkpitcher",
             "sourceName": "AM_BERSERKPITCHER",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "am_twilight1",
             "sourceName": "AM_TWILIGHT1",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "am_twilight2",
             "sourceName": "AM_TWILIGHT2",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "am_twilight3",
             "sourceName": "AM_TWILIGHT3",
-            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+            "reason": "Requer estado de Esp\u00edrito da classe, ainda n\u00e3o implementado."
           },
           {
             "skillId": "cr_slimpitcher",
             "sourceName": "CR_SLIMPITCHER",
-            "reason": "Requer cura específica da poção compacta e seus modificadores."
+            "reason": "Requer cura espec\u00edfica da po\u00e7\u00e3o compacta e seus modificadores."
           },
           {
             "skillId": "cr_fullprotection",
             "sourceName": "CR_FULLPROTECTION",
-            "reason": "Proteção completa exige estado de equipamento quebrado ou removido do personagem."
+            "reason": "Prote\u00e7\u00e3o completa exige estado de equipamento quebrado ou removido do personagem."
           },
           {
             "skillId": "cr_cultivation",
             "sourceName": "CR_CULTIVATION",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "as_right",
             "sourceName": "AS_RIGHT",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "as_left",
             "sourceName": "AS_LEFT",
-            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+            "reason": "Mec\u00e2nica Hercules importada; a simula\u00e7\u00e3o atual ainda n\u00e3o executa este efeito."
           },
           {
             "skillId": "asc_cdp",
             "sourceName": "ASC_CDP",
-            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+            "reason": "Requer produ\u00e7\u00e3o, objetos persistentes, parceiros ou edi\u00e7\u00e3o de c\u00e9lulas do mapa."
           },
           {
             "skillId": "rg_graffiti",
             "sourceName": "RG_GRAFFITI",
-            "reason": "Requer inscrições em células do mapa."
+            "reason": "Requer inscri\u00e7\u00f5es em c\u00e9lulas do mapa."
           },
           {
             "skillId": "rg_flaggraffiti",
@@ -1483,7 +1483,7 @@
           {
             "skillId": "rg_cleaner",
             "sourceName": "RG_CLEANER",
-            "reason": "Requer inscrições em células do mapa."
+            "reason": "Requer inscri\u00e7\u00f5es em c\u00e9lulas do mapa."
           },
           {
             "skillId": "rg_gangster",

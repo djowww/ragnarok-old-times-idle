@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, beforeArrowCraftingRules, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import catalog from '../content/catalog.json';
@@ -11,9 +12,9 @@ const fileSha = (value: unknown) => createHash('sha256')
 
 describe('Providence and Geffen source synchronization historical projection', () => {
   it('reconstructs all three preceding files exactly', () => {
-    expect(fileSha(beforeProvidenceCatalog(catalog))).toBe(baseline.catalog.beforeFileSha256);
-    expect(fileSha(beforeProvidenceRules(rules))).toBe(baseline.rules.beforeFileSha256);
-    expect(fileSha(beforeProvidenceManifest(manifest))).toBe(baseline.manifest.beforeFileSha256);
+    expect(fileSha(beforeProvidenceCatalog(beforeArrowCraftingCatalog(catalog)))).toBe(baseline.catalog.beforeFileSha256);
+    expect(fileSha(beforeProvidenceRules(beforeArrowCraftingRules(rules)))).toBe(baseline.rules.beforeFileSha256);
+    expect(fileSha(canonicalArrowHistoricalManifest(beforeProvidenceManifest(beforeArrowCraftingManifest(manifest))))).toBe(baseline.manifest.beforeFileSha256);
   });
 
   it('keeps unreviewed skill, area and coverage mutations visible', () => {

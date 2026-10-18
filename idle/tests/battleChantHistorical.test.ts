@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
@@ -6,15 +7,15 @@ import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/battleChantBaseline.json';
 import { beforeBattleChantCatalog, beforeBattleChantManifest } from './battle-chant-historical.js';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value, null, 2) + '\n').digest('hex');
 
 describe('strict Battle Chant historical delta', () => {
   it('reconstructs the exact pinned package from before Battle Chant', () => {
     expect(hash(beforeBattleChantCatalog(catalog))).toBe(baseline.beforeCatalogSha256);
-    expect(hash(beforeBattleChantManifest(manifest))).toBe(baseline.beforeManifestSha256);
+    expect(hash(canonicalArrowHistoricalManifest(beforeBattleChantManifest(manifest)))).toBe(baseline.beforeManifestSha256);
   });
 
   it('does not conceal changed Battle Chant catalog or coverage records', () => {

@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import catalog from '../content/catalog.json';
@@ -10,11 +11,11 @@ const fileSha = (value: unknown) => createHash('sha256')
 
 describe('Geffen Dungeon first-floor catalog projection', () => {
   it('reconstructs the exact catalog before the new floor and corrected labels', () => {
-    expect(fileSha(beforeGeffenDungeonFloorCatalog(catalog))).toBe(baseline.catalog.beforeFileSha256);
+    expect(fileSha(beforeGeffenDungeonFloorCatalog(beforeArrowCraftingCatalog(catalog)))).toBe(baseline.catalog.beforeFileSha256);
   });
 
   it('reconstructs the manifest checksum before the new floor', () => {
-    expect(fileSha(beforeGeffenDungeonFloorManifest(manifest))).toBe(baseline.manifest.beforeFileSha256);
+    expect(fileSha(canonicalArrowHistoricalManifest(beforeGeffenDungeonFloorManifest(beforeArrowCraftingManifest(manifest))))).toBe(baseline.manifest.beforeFileSha256);
   });
 
   it('keeps edits to the new area and renamed legacy areas visible', () => {

@@ -237,7 +237,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "weaponRefine" | "activate" | "inspect" | "teleport";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponRefine" | "activate" | "inspect" | "teleport";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -681,6 +681,7 @@ export interface WeaponRefineResult {
  uid?:string;itemId?:number;fromRefine?:number;toRefine?:number;reasonCode?:string;message?:string;
 }
 export interface GameState {
+ arrowCraftMenu?: {id:string;openedAt:number;sceneKey:string;catalogHash:string;deaths:number;offered:{uid:string;itemId:number;signature:string}[]};
  weaponRefineMenu?:WeaponRefineMenu;
  weaponRefineResult?:WeaponRefineResult;
   /** Final Falcon damage waits for native amotion independently of the current battle. */
@@ -894,6 +895,8 @@ export interface GameSnapshot {
 export type GameCommand =
   | { type: 'weaponRefine'; menuId: string; uid: string }
   | { type: 'cancelWeaponRefine'; menuId: string }
+  | { type: 'craftArrows'; menuId: string; uid: string }
+  | { type: 'cancelArrowCraft'; menuId: string }
   | { type: 'teleport'; destination: 'random' | 'save' }
   | { type: "startHunt"; areaId: string }
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }

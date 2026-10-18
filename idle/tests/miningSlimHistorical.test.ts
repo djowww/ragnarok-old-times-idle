@@ -1,3 +1,4 @@
+import { beforeArrowCraftingCatalog, beforeArrowCraftingManifest, canonicalArrowHistoricalManifest } from './arrow-craft-historical';
 import { beforeFourMapExpansionCatalog, beforeFourMapExpansionManifest } from './four-map-expansion-historical';
 import {createHash} from 'node:crypto';
 import {describe,expect,it} from 'vitest';
@@ -6,13 +7,13 @@ import currentManifest from '../content/source-manifest.json';
 import baseline from './fixtures/miningSlimBaseline.json';
 import {beforeMiningSlimCatalog,beforeMiningSlimManifest} from './mining-slim-historical';
 
-const catalog = beforeFourMapExpansionCatalog(currentCatalog);
-const manifest = beforeFourMapExpansionManifest(currentManifest);
+const catalog = beforeFourMapExpansionCatalog(beforeArrowCraftingCatalog(currentCatalog));
+const manifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(currentManifest));
 const hash=(x:unknown)=>createHash('sha256').update(JSON.stringify(x,null,2)+'\n').digest('hex');
 describe('strict mining and compact pitcher delta',()=>{
  it('reconstructs complete prior catalog and manifest bytes',()=>{
   expect(hash(beforeMiningSlimCatalog(catalog))).toBe(baseline.beforeCatalogSha256);
-  expect(hash(beforeMiningSlimManifest(manifest))).toBe(baseline.beforeManifestSha256);
+  expect(hash(canonicalArrowHistoricalManifest(beforeMiningSlimManifest(manifest)))).toBe(baseline.beforeManifestSha256);
  });
  it('never normalizes a mutated new item or skill',()=>{
   const c=structuredClone(catalog);c.items['997'].weight++;c.skills.cr_slimpitcher.spCost[0]++;

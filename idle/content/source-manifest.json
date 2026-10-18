@@ -58,6 +58,11 @@
       "sha256": "de683b673442a71bd642d042620bd45db849ab6650a4ea81544525bb07abf792"
     },
     {
+      "path": "db/create_arrow_db.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/db/create_arrow_db.txt",
+      "sha256": "8b735f3685a18d6fcaa8063b7f8ef9fd1251ac6beba03a56279b24a6b8255eec"
+    },
+    {
       "path": "npc/merchants/refine.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/merchants/refine.txt",
       "sha256": "3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1"
@@ -338,6 +343,136 @@
       "sourceType": "IT_USABLE"
     },
     {
+      "itemId": 603,
+      "aegisName": "Old_Blue_Box",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1764,
+      "aegisName": "Incisive_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1768,
+      "aegisName": "Sleep_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 604,
+      "aegisName": "Branch_Of_Dead_Tree",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1769,
+      "aegisName": "Silence_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 609,
+      "aegisName": "Amulet",
+      "sourceType": "IT_USABLE"
+    },
+    {
+      "itemId": 1761,
+      "aegisName": "Curse_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1770,
+      "aegisName": "Iron_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1757,
+      "aegisName": "Immatrial_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1765,
+      "aegisName": "Oridecon_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1756,
+      "aegisName": "Stone_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1762,
+      "aegisName": "Rusty_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1763,
+      "aegisName": "Poison_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1754,
+      "aegisName": "Crystal_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1759,
+      "aegisName": "Freezing_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1753,
+      "aegisName": "Steel_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1758,
+      "aegisName": "Stun_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1751,
+      "aegisName": "Silver_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1767,
+      "aegisName": "Arrow_Of_Shadow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1760,
+      "aegisName": "Flash_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1752,
+      "aegisName": "Fire_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 1755,
+      "aegisName": "Arrow_Of_Wind",
+      "sourceType": "IT_AMMO"
+    },
+    {
+      "itemId": 2292,
+      "aegisName": "Welding_Mask",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2319,
+      "aegisName": "Glittering_Clothes",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 2618,
+      "aegisName": "Matyrs_Flea_Guard",
+      "sourceType": "IT_ARMOR"
+    },
+    {
+      "itemId": 1772,
+      "aegisName": "Holy_Arrow",
+      "sourceType": "IT_AMMO"
+    },
+    {
       "itemId": 619,
       "aegisName": "Unripe_Apple",
       "sourceType": "IT_USABLE"
@@ -488,11 +623,6 @@
       "sourceType": "IT_ARMOR"
     },
     {
-      "itemId": 1752,
-      "aegisName": "Fire_Arrow",
-      "sourceType": "IT_AMMO"
-    },
-    {
       "itemId": 4094,
       "aegisName": "Archer_Skeleton_Card",
       "sourceType": "IT_CARD"
@@ -521,11 +651,6 @@
       "itemId": 2608,
       "aegisName": "Rosary",
       "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 603,
-      "aegisName": "Old_Blue_Box",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 1261,
@@ -733,11 +858,6 @@
       "sourceType": "IT_WEAPON"
     },
     {
-      "itemId": 1765,
-      "aegisName": "Oridecon_Arrow",
-      "sourceType": "IT_AMMO"
-    },
-    {
       "itemId": 4157,
       "aegisName": "Goblin_Archer_Card",
       "sourceType": "IT_CARD"
@@ -936,11 +1056,6 @@
       "itemId": 2264,
       "aegisName": "Munak_Turban",
       "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 609,
-      "aegisName": "Amulet",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 2337,
@@ -1326,11 +1441,6 @@
       "itemId": 2336,
       "aegisName": "Thief_Clothes_",
       "sourceType": "IT_ARMOR"
-    },
-    {
-      "itemId": 604,
-      "aegisName": "Branch_Of_Dead_Tree",
-      "sourceType": "IT_USABLE"
     },
     {
       "itemId": 695,
@@ -1811,11 +1921,6 @@
       "itemId": 4357,
       "aegisName": "B_Seyren_Card",
       "sourceType": "IT_CARD"
-    },
-    {
-      "itemId": 2319,
-      "aegisName": "Glittering_Clothes",
-      "sourceType": "IT_ARMOR"
     },
     {
       "itemId": 1233,
@@ -3420,8 +3525,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13765,6 +13869,11 @@
       "EVENT_"
     ]
   },
+  "arrowCraft": {
+    "recipes": 136,
+    "source": "db/create_arrow_db.txt",
+    "behavior": "One paid menu activation consumes one identified unequipped input and grants every listed output. Net inventory capacity is validated before consumption."
+  },
   "npcRepair": {
     "source": "npc/merchants/refine.txt:1145..1229",
     "pricePerEquipment": 5000,
@@ -14992,8 +15101,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 274,
-    "unsupported": 74,
+    "supported": 275,
+    "unsupported": 73,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15027,13 +15136,13 @@
       },
       "archer": {
         "sourceTree": 9,
-        "supported": 7,
-        "unsupported": 2
+        "supported": 8,
+        "unsupported": 1
       },
       "high_archer": {
         "sourceTree": 9,
-        "supported": 7,
-        "unsupported": 2
+        "supported": 8,
+        "unsupported": 1
       },
       "acolyte": {
         "sourceTree": 17,
@@ -15107,33 +15216,33 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 23,
-        "unsupported": 5
+        "supported": 24,
+        "unsupported": 4
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 27,
-        "unsupported": 5
+        "supported": 28,
+        "unsupported": 4
       },
       "bard": {
+        "sourceTree": 28,
+        "supported": 17,
+        "unsupported": 11
+      },
+      "clown": {
+        "sourceTree": 34,
+        "supported": 19,
+        "unsupported": 15
+      },
+      "dancer": {
         "sourceTree": 28,
         "supported": 16,
         "unsupported": 12
       },
-      "clown": {
+      "gypsy": {
         "sourceTree": 34,
         "supported": 18,
         "unsupported": 16
-      },
-      "dancer": {
-        "sourceTree": 28,
-        "supported": 15,
-        "unsupported": 13
-      },
-      "gypsy": {
-        "sourceTree": 34,
-        "supported": 17,
-        "unsupported": 17
       },
       "priest": {
         "sourceTree": 36,
@@ -15228,6 +15337,7 @@
       "AC_CONCENTRATION",
       "AC_DOUBLE",
       "AC_SHOWER",
+      "AC_MAKINGARROW",
       "AC_CHARGEARROW",
       "AL_DP",
       "AL_DEMONBANE",
@@ -15477,11 +15587,6 @@
         "skillId": "nv_basic",
         "sourceName": "NV_BASIC",
         "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
-      },
-      {
-        "skillId": "ac_makingarrow",
-        "sourceName": "AC_MAKINGARROW",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
         "skillId": "al_warp",
@@ -16504,7 +16609,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "31c620d7f1ef8a42bf6c7fac3a4f1ed1a2d6e7bd81911426eec895e1515ee6d4",
+  "rulesSha256": "9cb8b985bde1d602fce224a5a4321443e2fc7d4320d4dc4962e69a30e058849f",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16726,6 +16831,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "a629a7164a41a8451b5e325b0c6e13019a6f0f0d6ff66c584c3d92acfcb973a6",
+  "catalogSha256": "09f34fd97591d41d6b1d56ce973633c49d47a01a3183471460bda8f8ace03559",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
