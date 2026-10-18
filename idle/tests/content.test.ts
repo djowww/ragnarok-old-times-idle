@@ -16,6 +16,16 @@ describe('Hercules import', () => {
             ['MG_FIREBOLT', expect.objectContaining({ SkillState: 'MSS_RUSH', SkillLevel: 3, Rate: 500, CastTime: 1500, Delay: 5000 })],
         ]);
     });
+    it('exports manual Soul Burn with pinned costs, range, and level-five cooldown', () => {
+        const data = catalog as unknown as Catalog;
+        const skill = Object.values(data.skills).find(candidate => candidate.sourceName === 'PF_SOULBURN')!;
+        expect(skill).toMatchObject({ implementation: 'supported', kind: 'magical', manualUse: 'soulBurn',
+            targetType: 'enemy', damageType: 'magic', range: Array(5).fill(9),
+            spCost: [80, 90, 100, 110, 120], cooldownMsByLevel: [10000, 10000, 10000, 10000, 15000] });
+        expect(skill.unsupportedReason).toBeUndefined();
+        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
+        expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({ implementation: 'supported' });
+    });
     it('enables executed Venom Dust and Spider Web with purchasable source reagents', () => {
         const data = catalog as unknown as Catalog;
         for (const source of ['AS_VENOMDUST', 'PF_SPIDERWEB']) {
@@ -79,7 +89,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_removetrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Hercules range 2'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 295, unsupported: 53 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
@@ -109,7 +119,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_springtrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Ankle Snare'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 295, unsupported: 53 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
@@ -123,12 +133,12 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 295, unsupported: 53 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 297, unsupported: 51 });
         expect(data.skills.al_holywater).toMatchObject({ sourceName: 'AL_HOLYWATER', implementation: 'supported', manualUse: 'holyWaterCraft',
             spCost: [10], castTimeMs: [1000], afterCastDelayMs: [500] });
         expect(manifest.skillSources.al_holywater.adaptation).toContain('GAT type 3 water');
         expect(manifest.holyWaterCraft).toMatchObject({ source: 'db/produce_db.txt', outputItemId: 523, inputItemId: 713, quantity: 1, chance: '100000 (guaranteed)' });
-        expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 45, unsupported: 4 });
+        expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 46, unsupported: 3 });
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_MINDBREAKER');
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_FOGWALL');
     });
@@ -163,7 +173,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 295, unsupported: 53 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 297, unsupported: 51 });
         expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 32, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 36, unsupported: 2 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
@@ -332,7 +342,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(955);
         expect(data.areas).toHaveLength(38);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 295, unsupported: 53 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
         expect(manifest.sources).toHaveLength(55);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',
@@ -340,7 +350,7 @@ describe('generated source manifest', () => {
         expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nowarp.txt', sha256: 'fa3b4f839453504b987d843ef3f042f98cbb3ef6be1f11e4b93935b892657893' }));
         expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nomemo.txt', sha256: 'e6eb9e5af746dcdff15bb12d626940594d847ab4828a60621c870eeb3b7f8c82' }));
         expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nowarpto.txt', sha256: '50686c7621b390efc6244879c727da3df213e17a4599d092626abbd8cbea8855' }));
-        expect(offensiveSpells).toHaveLength(29);
+        expect(offensiveSpells).toHaveLength(30);
         for (const spell of offensiveSpells)
             expect(manifest.skillSources[spell.id as keyof typeof manifest.skillSources])
                 .toMatchObject({ idleDamageMultiplierPct: spell.idleDamageMultiplierPct });

@@ -7317,9 +7317,15 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer SP do alvo; monstros não têm SP no catálogo.",
-      "ratioSource": "src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack",
+      "implementation": "supported",
+      "idleDamageMultiplierPct": [
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
     "pf_mindbreaker": {
@@ -15200,8 +15206,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 296,
-    "unsupported": 52,
+    "supported": 297,
+    "unsupported": 51,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15310,8 +15316,8 @@
       },
       "professor": {
         "sourceTree": 49,
-        "supported": 45,
-        "unsupported": 4
+        "supported": 46,
+        "unsupported": 3
       },
       "hunter": {
         "sourceTree": 28,
@@ -15546,6 +15552,7 @@
       "SA_ELEMENTWIND",
       "PF_HPCONVERSION",
       "PF_SOULCHANGE",
+      "PF_SOULBURN",
       "PF_MINDBREAKER",
       "PF_MEMORIZE",
       "PF_FOGWALL",
@@ -15757,11 +15764,6 @@
         "skillId": "sa_abracadabra",
         "sourceName": "SA_ABRACADABRA",
         "reason": "Requer seleção aleatória de habilidades especiais e transformações."
-      },
-      {
-        "skillId": "pf_soulburn",
-        "sourceName": "PF_SOULBURN",
-        "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
       },
       {
         "skillId": "ht_talkiebox",
@@ -16857,6 +16859,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "23dba476504638975fcb163da5ef399cbccfc8290a7e05348e9d28dd90d8876e",
+  "catalogSha256": "58b7b21dad414164187176103d334f0cdc056114e862cd166def9168d22c0859",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -220,7 +220,7 @@ describe('Hercules integer arithmetic golden cases', () => {
       ((s.kind === 'magical' && s.damageType === 'magic') || extraSpellSources.has(s.sourceName ?? '')) &&
       s.implementation === 'supported',
     );
-    expect(offensiveSpells).toHaveLength(29);
+    expect(offensiveSpells).toHaveLength(30);
     for (const spell of offensiveSpells)
       expect(spell.idleDamageMultiplierPct, spell.sourceName).toHaveLength(spell.maxLevel);
     expect(skill('WZ_STORMGUST').idleDamageMultiplierPct)

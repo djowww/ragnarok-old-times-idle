@@ -69,6 +69,8 @@ import { sageEnchantCanStart, startSageEnchantCast } from './sageEnchantments.js
 import { chasewalkCanStart, startChasewalkCast } from './chasewalk.js';
 import { applyTeleport } from './teleport.js';
 import { applyWarpMemo, applyWarpPortal } from './warpPortal.js';
+import { resolveManualSoulBurn } from './encounters.js';
+import { skillTargetInRange } from '../shared/combatRange.js';
 import { cancelSageEnchantCast } from './sageEnchantments.js';
 import { resolveSuffragiumCast, suffragiumCanStart, startSuffragiumCast } from './suffragium.js';
 import { providenceCanStart, resolveProvidenceCast, startProvidenceCast } from './providence.js';
@@ -333,6 +335,26 @@ export function executeCommand(
       }
       if (skill?.sourceName === 'SA_CASTCANCEL' && skill.manualUse === 'castCancel') {
         useCastCancel(s,c,skill,level,now,command.expectedCastActionId);
+        break;
+      }
+      if (skill?.sourceName === 'PF_SOULBURN' && skill.manualUse === 'soulBurn') {
+        requireRule(skill.implementation === 'supported' && level > 0 && level <= skill.maxLevel &&
+          classSkills(c, s.job).includes(skill.id), 'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule((s.status === 'hunting' || s.status === 'challenge') && !!s.battle && s.hp > 0 &&
+          !s.battle.cast, 'FIELD_REQUIRED', 'Use Soul Burn durante uma luta no campo.');
+        requireRule(!activePlayerStatus(s, 'SC_SILENCE', now), 'SKILL_STATUS_BLOCKED', 'Silêncio impede usar Soul Burn.');
+        requireRule((s.playerCanActAt ?? 0) <= now, 'ACTION_DELAY', 'Aguarde o tempo de ação antes de usar Soul Burn.');
+        requireRule((s.skillReadyAt[skill.id] ?? 0) <= now, 'SKILL_COOLDOWN', 'Aguarde o recarregamento de Soul Burn.');
+        const target = s.battle.enemies?.find(enemy => enemy.id === command.expectedEnemyId && enemy.hp > 0);
+        requireRule(!!target && skillTargetInRange(s, c, skill, level, target, now), 'SKILL_TARGET_INVALID',
+          'Selecione um inimigo vivo dentro do alcance de Soul Burn.');
+        requireRule(paySkillResources(s, c, skill, level, now), 'SP_REQUIRED', 'Tenha SP suficiente para usar Soul Burn.');
+        beginSkillAction(s, now, skill.castTimeMs?.[level - 1] ?? 0, 0);
+        const cooldown = skill.cooldownMsByLevel?.[level - 1] ?? skill.cooldownMs;
+        s.skillReadyAt[skill.id] = now + Math.max(0, cooldown);
+        resolveManualSoulBurn(s, c, skill, level, target, now);
+        finishSkillAction(s, now, sourceAfterCastDelay(s, c, skill, level));
+        if (s.battle) s.battle.playerNextSkillAt = Math.max(s.battle.playerNextSkillAt ?? now, s.playerCanActAt ?? now);
         break;
       }
       if (skill?.sourceName === 'BS_GREED' && skill.manualUse === 'greed') {
