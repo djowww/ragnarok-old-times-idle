@@ -1,3 +1,4 @@
+import { FrameCadence } from '../assets/frameCadence';
 import {falconSounds} from '../assets/falconSounds';
 import {falconAsset,FalconPresentation,alignFalconCues,falconDestinationWorld,falconAirborneWorld} from '../assets/falconPresentation';
 import {isFalconEquipped} from '../../engine/falcon';
@@ -1256,7 +1257,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     const ctx = element.getContext("2d");
     if (!ctx) return;
     let raf = 0;
-    let previous = 0;
+    const frameCadence = new FrameCadence();
     let width = 640;
     let height = 350;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1272,9 +1273,11 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
     resize.observe(element);
     const render = (time: number) => {
       raf = requestAnimationFrame(render);
-      if (time - previous < (motion.matches ? 250 : 16) || document.hidden)
+      if (document.hidden) {
+        frameCadence.reset();
         return;
-      previous = time;
+      }
+      if (!frameCadence.shouldRender(time, motion.matches ? 250 : 1000 / 60)) return;
       ctx.clearRect(0, 0, width, height);
       ctx.imageSmoothingEnabled = false;
       if (!mapReady) return;
