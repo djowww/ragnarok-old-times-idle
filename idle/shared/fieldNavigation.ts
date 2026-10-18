@@ -240,13 +240,16 @@ function octileToGoal(x: number, y: number, targetX: number, targetY: number, ra
 }
 
 /** Deterministic A* over eight neighbors with diagonal corner cutting forbidden. */
-export function findGridRoute(grid: FieldNavigationGrid, from: GridPoint, to: GridPoint, stopRange = 0): GridPoint[] | null {
+export function findGridRoute(grid: FieldNavigationGrid, from: GridPoint, to: GridPoint, stopRange = 0, blockedCells?: ReadonlySet<string>): GridPoint[] | null {
     assertGridShape(grid);
     const startId = cellAt(grid, from), targetId = cellAt(grid, to);
+    const isBlocked = (id: number) => blockedCells?.has(`${id % grid.width},${Math.floor(id / grid.width)}`) ?? false;
     if (startId === null || targetId === null || !isWalkableCell(grid, startId) ||
-        !Number.isInteger(stopRange) || stopRange < 0 || (stopRange === 0 && !isWalkableCell(grid, targetId))) return null;
+        !Number.isInteger(stopRange) || stopRange < 0 ||
+        (stopRange === 0 && (!isWalkableCell(grid, targetId) || isBlocked(targetId)))) return null;
     const startX = startId % grid.width, startY = Math.floor(startId / grid.width);
     const targetX = targetId % grid.width, targetY = Math.floor(targetId / grid.width);
+    if (isBlocked(startId)) return null;
     const isGoal = (id: number) => Math.max(Math.abs(id % grid.width - targetX), Math.abs(Math.floor(id / grid.width) - targetY)) <= stopRange;
     if (isGoal(startId)) return startId === targetId ? [from, ...(from.x === to.x && from.y === to.y ? [] : [to])] : [from];
 
@@ -262,8 +265,12 @@ export function findGridRoute(grid: FieldNavigationGrid, from: GridPoint, to: Gr
         if (isGoal(current.id)) { goal = current.id; break; }
         closedAt[current.id] = generation;
         for (const next of neighbors(grid, current.id, adjacent)) {
-            if (closedAt[next] === generation) continue;
-            const g = current.g + (next % grid.width !== current.id % grid.width && Math.floor(next / grid.width) !== Math.floor(current.id / grid.width) ? Math.SQRT2 : 1);
+            if (closedAt[next] === generation || isBlocked(next)) continue;
+            const currentX = current.id % grid.width, currentY = Math.floor(current.id / grid.width);
+            const nextX = next % grid.width, nextY = Math.floor(next / grid.width);
+            const diagonal = nextX !== currentX && nextY !== currentY;
+            if (diagonal && (isBlocked(currentY * grid.width + nextX) || isBlocked(nextY * grid.width + currentX))) continue;
+            const g = current.g + (diagonal ? Math.SQRT2 : 1);
             if (seenAt[next] === generation && g >= costs[next]) continue;
             seenAt[next] = generation;
             costs[next] = g; previous[next] = current.id;

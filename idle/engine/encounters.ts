@@ -4,6 +4,7 @@ import {detectingCanStart,detectingAfkUseful,useDetecting} from './falconDetect.
 import {isFalconEquipped} from './falcon.js';
 import { findingOreItem } from './findingOre.js';
 import { itemElementResistance } from '../shared/consumables.js';
+import { activeIceWallCells } from './iceWall.js';
 import { consumeItem, consumeItemBlockReason, discardAloeveraUnderAutoBerserk, clearConsumableStatusesOnDeath } from "./consumables.js";
 import { applyMeltdownHit } from './meltdown.js';
 import { configurableSkillUseLevel, skillUseLevel } from '../shared/skillUseLevels.js';
@@ -303,11 +304,12 @@ interface RoutedActor {
 /** Persist one legal graph segment; unchanged targets keep the active route. */
 function moveOnFieldRoute(actor: RoutedActor, context: SimulationContext | undefined, areaId: string,
   from: { x: number; y: number }, target: { x: number; y: number }, targetId: string,
-  range: number, metric: 'player' | 'square', speedMs: number, at: number): { available: boolean; withinRange: boolean; moving: boolean } {
+  range: number, metric: 'player' | 'square', speedMs: number, at: number, blockedCells?: ReadonlySet<string>): { available: boolean; withinRange: boolean; moving: boolean } {
   const navigation = context?.navigation;
   if (!navigation) return { available: false, withinRange: false, moving: false };
   const gridTarget = navigation.toGridPoint(areaId, target);
-  const key = `${targetId}:${Math.floor(gridTarget.x)},${Math.floor(gridTarget.y)}:${range}:${metric}`;
+  const blockedKey = blockedCells?.size ? [...blockedCells].sort().join(';') : '';
+  const key = `${targetId}:${Math.floor(gridTarget.x)},${Math.floor(gridTarget.y)}:${range}:${metric}:${blockedKey}`;
   if (actor.movementTargetKey === key && at < actor.arrivedAt) {
     if (actor.movementSpeedMs !== speedMs && actor.movementRoute?.length) {
       const gridRoute = actor.movementRoute.map(point => navigation.toGridPoint(areaId, point));
@@ -331,7 +333,7 @@ function moveOnFieldRoute(actor: RoutedActor, context: SimulationContext | undef
     }
     return { available: true, withinRange: actor.movementTargetWithinRange ?? false, moving: true };
   }
-  const approach = navigation.routeToRange(areaId, from, target, range, metric);
+  const approach = navigation.routeToRange(areaId, from, target, range, metric, blockedCells);
   actor.movementTargetKey = key;
   if (!approach) {
     actor.from = { ...from }; actor.approachFrom = { ...from }; actor.position = { ...from };
@@ -743,7 +745,8 @@ function updateFieldActors(s: GameState, c: Catalog, at: number, context?: Simul
     const slow = Math.max((enemy.statuses?.quagmire?.expiresAt ?? 0) > at ? 50 : 0,
       (enemy.statuses?.SC_DEC_AGI?.expiresAt ?? 0) > at ? 25 : 0, status.moveSlowPct);
     const speed = Math.floor((monster.moveSpeedMs ?? 400) * (100 + slow) / 100);
-    const routed = moveOnFieldRoute(enemy, context, s.areaId!, point, heroPoint, `hero:${s.id}`, range, 'square', speed, at);
+    const routed = moveOnFieldRoute(enemy, context, s.areaId!, point, heroPoint, `hero:${s.id}`, range, 'square', speed, at,
+      context?.navigation && s.battle ? activeIceWallCells(context.navigation, s.areaId!, s.battle.skillUnits ?? [], c.skills, at) : undefined);
     if (!routed.available) {
       const position = stopAtRange(point, heroPoint, range * 0.9);
       Object.assign(enemy, { approachFrom: point, position, startedAt: at,
@@ -786,7 +789,8 @@ function updateFieldActors(s: GameState, c: Catalog, at: number, context?: Simul
     const range = offensive ? skillAttackRange(s, c, offensive, skillUseLevel(s, c, offensive.id)) : basicAttackRange(s, c);
     const enemyPoint = enemyPositionAt(movementTarget, at);
     const routed = moveOnFieldRoute(hero, context, s.areaId!, heroPoint, enemyPoint, `enemy:${movementTarget.id}`,
-      range, 'player', playerWalkSpeed(s, c, at), at);
+      range, 'player', playerWalkSpeed(s, c, at), at,
+      context?.navigation && s.battle ? activeIceWallCells(context.navigation, s.areaId!, s.battle.skillUnits ?? [], c.skills, at) : undefined);
     if (routed.available) {
       if (routed.moving && hero.movementRoute?.length) faceHeroTowards(s, hero.position, at);
       if (routed.withinRange && !routed.moving) { freezeFieldHero(s, at); hero.phase = 'fighting'; }

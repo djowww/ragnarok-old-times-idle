@@ -238,7 +238,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal" | "greed" | "soulBurn";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal" | "greed" | "soulBurn" | "groundTarget";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -943,7 +943,7 @@ export type GameCommand =
   | { type: "setAutospell"; skillId: string | null }
   | { type: "cancelBuff"; skillId: string }
   | { type: "toggleBuff"; skillId: string }
-  | { type: "useSkill"; skillId: string; expectedCastActionId?: string; expectedEnemyId?: string }
+  | { type: "useSkill"; skillId: string; expectedCastActionId?: string; expectedEnemyId?: string; groundCell?: { x: number; y: number } }
   | { type: "setMount"; mounted: boolean }
   | { type: "rentFalcon" | "dismissFalcon" }
   | { type: "buy"; itemId: number; quantity: number }

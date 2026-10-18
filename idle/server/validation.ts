@@ -23,7 +23,7 @@ const rules: Record<string, Record<string, Rule>> = {
   setAutospell: { skillId: value => value === null || token(value) },
   cancelBuff: { skillId: token },
   toggleBuff: { skillId: token },
-  useSkill: { skillId: token, expectedCastActionId: value => value === undefined || token(value), expectedEnemyId: value => value === undefined || token(value) },
+  useSkill: { skillId: token, expectedCastActionId: value => value === undefined || token(value), expectedEnemyId: value => value === undefined || token(value), groundCell: value => value === undefined || (typeof value === 'object' && value !== null && !Array.isArray(value) && typeof (value as { x?: unknown }).x === 'number' && Number.isFinite((value as { x: number }).x) && typeof (value as { y?: unknown }).y === 'number' && Number.isFinite((value as { y: number }).y)) },
   setMount: { mounted: boolean },
   rentFalcon: {}, dismissFalcon: {},
   craftArrows: {menuId:token,uid:token},cancelArrowCraft:{menuId:token},

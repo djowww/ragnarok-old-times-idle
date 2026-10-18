@@ -73,6 +73,11 @@
       "sha256": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
     },
     {
+      "path": "npc/mapflag/noicewall.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/noicewall.txt",
+      "sha256": "3f504ea979f3aec97cbe2e1138944794c5ef5b13b5818b851b5ef9db1bdafac7"
+    },
+    {
       "path": "npc/mapflag/nowarp.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/nowarp.txt",
       "sha256": "fa3b4f839453504b987d843ef3f042f98cbb3ef6be1f11e4b93935b892657893"
@@ -6105,8 +6110,7 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer edição de células bloqueadas do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13904,6 +13908,47 @@
     "source": "db/create_arrow_db.txt",
     "behavior": "One paid menu activation consumes one identified unequipped input and grants every listed output. Net inventory capacity is validated before consumption."
   },
+  "iceWall": {
+    "restrictedMaps": [
+      "aldeg_cas01",
+      "aldeg_cas02",
+      "aldeg_cas03",
+      "aldeg_cas04",
+      "aldeg_cas05",
+      "arug_cas01",
+      "arug_cas02",
+      "arug_cas03",
+      "arug_cas04",
+      "arug_cas05",
+      "gefg_cas01",
+      "gefg_cas02",
+      "gefg_cas03",
+      "gefg_cas04",
+      "gefg_cas05",
+      "nguild_alde",
+      "nguild_gef",
+      "nguild_pay",
+      "nguild_prt",
+      "payg_cas01",
+      "payg_cas02",
+      "payg_cas03",
+      "payg_cas04",
+      "payg_cas05",
+      "poring_w01",
+      "poring_w02",
+      "prtg_cas01",
+      "prtg_cas02",
+      "prtg_cas03",
+      "prtg_cas04",
+      "prtg_cas05",
+      "schg_cas01",
+      "schg_cas02",
+      "schg_cas03",
+      "schg_cas04",
+      "schg_cas05"
+    ],
+    "source": "npc/mapflag/noicewall.txt; active noicewall map flags reject placement"
+  },
   "warpPortal": {
     "behavior": "A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.",
     "memoSlots": "Levels 2, 3, and 4 unlock one, two, and three memo points. A new map memo moves that map to the newest slot.",
@@ -15206,8 +15251,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 297,
-    "unsupported": 51,
+    "supported": 298,
+    "unsupported": 50,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15301,13 +15346,13 @@
       },
       "wizard": {
         "sourceTree": 30,
-        "supported": 28,
-        "unsupported": 2
+        "supported": 29,
+        "unsupported": 1
       },
       "high_wizard": {
         "sourceTree": 36,
-        "supported": 33,
-        "unsupported": 3
+        "supported": 34,
+        "unsupported": 2
       },
       "sage": {
         "sourceTree": 41,
@@ -15518,6 +15563,7 @@
       "WZ_JUPITEL",
       "WZ_VERMILION",
       "WZ_WATERBALL",
+      "WZ_ICEWALL",
       "WZ_FROSTNOVA",
       "WZ_STORMGUST",
       "WZ_EARTHSPIKE",
@@ -15744,11 +15790,6 @@
         "skillId": "cr_devotion",
         "sourceName": "CR_DEVOTION",
         "reason": "Requer outro personagem para transferir dano."
-      },
-      {
-        "skillId": "ice_wall",
-        "sourceName": "WZ_ICEWALL",
-        "reason": "Requer edição de células bloqueadas do mapa."
       },
       {
         "skillId": "ganbantein",
@@ -16637,7 +16678,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "81de314866d03453b1e729f542b832f0663a8069148083ae2baf920da49d786e",
+  "rulesSha256": "e4164b88587ee483b136e936082cbc2899625789792a2dcfb8adfa9ff277b843",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16859,6 +16900,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "58b7b21dad414164187176103d334f0cdc056114e862cd166def9168d22c0859",
+  "catalogSha256": "97d6e6ac1aee65d6ab0dd54490a3850d8ad8f8297e9d74b542e4e788294ed648",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

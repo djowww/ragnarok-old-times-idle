@@ -40,7 +40,7 @@ import {
 } from "../assets/sceneEffects";
 import { loadGroundLoot, type GroundLootVisual } from "../assets/groundLoot";
 import { groundTrapVisualState, loadGroundTrap, spentGroundTrap, hasSceneAction, trapCueAction } from "../assets/groundTraps";
-import { battleRouteTangent, ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectBattlePoint, projectMapArea, projectMapPoint, sceneGroundPoint, screenGroundPoint, walkableSceneGroundPoint, type FieldMapOrigin, type MapProjection, type WorldPoint } from "../assets/mapProjection";
+import { battleRouteTangent, ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectBattlePoint, projectMapArea, projectMapPoint, sceneGroundPoint, screenBattleCell, screenGroundPoint, walkableSceneGroundPoint, type FieldMapOrigin, type MapProjection, type WorldPoint } from "../assets/mapProjection";
 import { getMapLife, mapLifeCanWalk, mapLifePoseAt, mapLifeSpeechAt, prepareMapLife } from "../assets/mapLife";
 import { POST_WAVE_SEARCH_MS } from "../../shared/hunt";
 import { isTownScene } from "../../shared/worldScene";
@@ -634,8 +634,10 @@ function sceneEnemies(state: GameState): BattleEnemy[] {
   for (const enemy of state.battle?.enemies ?? []) actors.set(enemy.id, enemy);
   return [...actors.values()];
 }
-export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: PanelProps & {
+export default function Scene({ catalog, snapshot, busy, command, onMapStatusChange, groundAimSkillId, onGroundAimResult }: PanelProps & {
   onMapStatusChange?: (status: MapStatus) => void;
+  groundAimSkillId?: string | null;
+  onGroundAimResult?: (skillId: string, cell: { x: number; y: number }) => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const groundLootElements = useRef(new Map<number, HTMLSpanElement>());
@@ -2136,9 +2138,19 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
       <OriginalMap map={mapName} fieldOrigin={mapOrigin} followTarget={mapFollow} nativeActors={nativeActors} onStatusChange={setMapStatus} onProjection={(value) => { projection.current = value; }} />
       <canvas
         ref={canvas}
+        style={{ pointerEvents: groundAimSkillId && mapReady ? "auto" : "none", cursor: groundAimSkillId ? "crosshair" : undefined }}
+        onClick={event => {
+          if (!groundAimSkillId || !mapReady) return;
+          const rect = event.currentTarget.getBoundingClientRect();
+          const camera = projection.current?.map === mapName ? projection.current : null;
+          if (!camera || rect.width <= 0 || rect.height <= 0) return;
+          if (!mapOrigin) return;
+          const target = screenBattleCell(camera, { x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height }, mapOrigin);
+          onGroundAimResult?.(groundAimSkillId, target);
+        }}
         aria-hidden={!mapReady}
         aria-label={
-          isArriving
+          groundAimSkillId ? "Modo mira: clique no mapa para posicionar Barreira de Gelo. Escape cancela sem custo." : isArriving
             ? `${state.name} chegando a ${area?.name ?? "Rune-Midgard"}`
             : state.status === "hunting" && state.fieldHero?.phase === "chasing"
             ? `${state.name} caminhando até ${monster?.name ?? "um monstro"}`
@@ -2150,6 +2162,7 @@ export default function Scene({ catalog, snapshot, busy, onMapStatusChange }: Pa
               : `${state.name} enfrenta ${monster.name}`
             : `${state.name} em ${scene === "town" ? "Prontera" : (area?.name ?? "Rune-Midgard")}`
         }
+        title={groundAimSkillId ? "Clique para posicionar; Escape cancela sem custo" : undefined}
         role="img"
       />
       <div className="scene-ground-loot-layer">
