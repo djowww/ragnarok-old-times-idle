@@ -3,6 +3,7 @@ import { startHolyWaterCast } from './holyWater.js';
 import { removeHunterTrap, removeTrapCanStart } from './trapRemoval.js';
 import { springTrapCanStart, springHunterTrap } from './springTrap.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
+import {startWeaponRepairCast,answerWeaponRepair,cancelWeaponRepair,reconcileWeaponRepair,resolveWeaponRepairCast} from './weaponRepair.js';
 import {useDetecting} from './falconDetect.js';
 import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
 import type { Catalog, GameCommand, GameState, Item } from "../shared/types.js";
@@ -136,6 +137,8 @@ export function executeCommand(
     case 'cancelArrowCraft': cancelArrowCraft(s,command.menuId);break;
     case 'weaponRefine': answerWeaponRefine(s,c,command.menuId,command.uid,now);break;
     case 'cancelWeaponRefine': cancelWeaponRefine(s,c,command.menuId,now);break;
+    case 'weaponRepair': answerWeaponRepair(s,c,command.menuId,command.uid,now);break;
+    case 'cancelWeaponRepair': cancelWeaponRepair(s,c,command.menuId,now);break;
     case 'consumeItem': {
       consumeItem(s,c,command.uid,now);
       break;
@@ -186,6 +189,7 @@ export function executeCommand(
         break;
       }
       if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
+      if(c.skills[command.skillId]?.sourceName==='BS_REPAIRWEAPON'){startWeaponRepairCast(s,c,now);if(s.supportCast&&s.supportCast.endsAt<=now)resolveWeaponRepairCast(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
       if (skill?.sourceName === 'HT_REMOVETRAP') {
         requireRule(removeTrapCanStart(s, c, skill, level, now), 'TRAP_UNAVAILABLE',
@@ -1068,7 +1072,9 @@ export function executeCommand(
       throw new GameError("UNKNOWN_COMMAND", "Comando desconhecido.");
   }
   if(command.type==='teleport'&&s.weaponRefineMenu){const id=s.weaponRefineMenu.id;cancelWeaponRefine(s,c,id,now);}
+  if(command.type==='teleport'&&s.weaponRepairMenu){const id=s.weaponRepairMenu.id;cancelWeaponRepair(s,c,id,now);}
   reconcileWeaponRefine(s,c,now);
+  reconcileWeaponRepair(s,c,now);
   reconcileArrowCraft(s,c,now);
   reconcileFalcon(s,c);
   discardAloeveraUnderAutoBerserk(s,c,now);

@@ -237,7 +237,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -683,11 +683,15 @@ export interface WeaponRefineResult {
  menuId:string; outcome:'success'|'failed'|'cancelled'|'rejected'|'empty';
  uid?:string;itemId?:number;fromRefine?:number;toRefine?:number;reasonCode?:string;message?:string;
 }
+export interface WeaponRepairMenu { id: string; openedAt: number; catalogVersion: string; sceneKey: string; deaths: number; level: number; offeredItems: { uid: string; itemId: number; signature: string }[] }
+export interface WeaponRepairResult { menuId: string; outcome: 'success' | 'cancelled' | 'rejected' | 'empty'; uid?: string; itemId?: number; materialItemId?: number; reasonCode?: string; message?: string }
 export interface WarpMemo { areaId: string; map: string; x: number; y: number }
 export interface GameState {
  arrowCraftMenu?: {id:string;openedAt:number;sceneKey:string;catalogHash:string;deaths:number;offered:{uid:string;itemId:number;signature:string}[]};
  weaponRefineMenu?:WeaponRefineMenu;
  weaponRefineResult?:WeaponRefineResult;
+ weaponRepairMenu?: WeaponRepairMenu;
+ weaponRepairResult?: WeaponRepairResult;
   /** Final Falcon damage waits for native amotion independently of the current battle. */
   falconStrikes?: FalconStrike[];
   /** Fixed source footprints of successful casts; separate from damage/status adaptations. */
@@ -905,6 +909,8 @@ export interface GameSnapshot {
 export type GameCommand =
   | { type: 'weaponRefine'; menuId: string; uid: string }
   | { type: 'cancelWeaponRefine'; menuId: string }
+  | { type: 'weaponRepair'; menuId: string; uid: string }
+  | { type: 'cancelWeaponRepair'; menuId: string }
   | { type: 'craftArrows'; menuId: string; uid: string }
   | { type: 'cancelArrowCraft'; menuId: string }
   | { type: 'teleport'; destination: 'random' | 'save' }
