@@ -1,7 +1,8 @@
 /** Hercules410b9738, db/produce_db.txt329..380. No scripts are evaluated. */
 export interface PharmacyRecipe {
   outputItemId: number;
-  guideItemId: number;
+  guideItemId?: number;
+  skillSourceName?: string;
   ingredients: { itemId: number; quantity: number }[];
   category: string;
 }
@@ -373,7 +374,18 @@ const recipes: PharmacyRecipe[] = [
       }
     ],
     "category": "Preparações"
-  }
+  },
+  {
+    outputItemId: 678,
+    skillSourceName: 'ASC_CDP',
+    ingredients: [
+      { itemId: 937, quantity: 1 }, { itemId: 952, quantity: 1 },
+      { itemId: 939, quantity: 1 }, { itemId: 7033, quantity: 1 },
+      { itemId: 972, quantity: 1 }, { itemId: 657, quantity: 1 },
+      { itemId: 713, quantity: 1 },
+    ],
+    category: 'Veneno Mortal',
+  },
 ];
 /** Each caller gets independent objects; a UI cannot change the recipe authority. */
 export function pharmacyRecipes(): PharmacyRecipe[] { return structuredClone(recipes); }

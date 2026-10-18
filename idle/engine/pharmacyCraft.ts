@@ -8,6 +8,10 @@ import { skillResourceCosts, paySkillResources } from './skillResources.js';
 import { addItem, consume, event, random, requireRule } from './state.js';
 export { pharmacyRecipes } from '../shared/pharmacyRecipes.js';
 
+export function deadlyPoisonChance(attributes: { dex: number; luk: number }): number {
+  return 2000 + 40 * attributes.dex + 20 * attributes.luk;
+}
+
 export function pharmacyBaseChance(research: number, pharmacy: number, job: number,
   attributes: { int: number; dex: number; luk: number }): number {
   return 50 * research + 300 * pharmacy + 20 * job + 10 * Math.floor(attributes.int / 2) +
@@ -39,7 +43,7 @@ export interface PharmacyCraftPreview {
 export function pharmacyCraftPreview(s: GameState, c: Catalog, itemId: number, quantity: number,
   at = s.lastSimulatedAt): PharmacyCraftPreview {
   const recipe = pharmacyRecipes().find(r => r.outputItemId === itemId);
-  const tree = classSkills(c, s.job), skill = tree.map(id => c.skills[id]).find(v => v?.sourceName === 'AM_PHARMACY');
+  const tree = classSkills(c, s.job), skill = tree.map(id => c.skills[id]).find(v => v?.sourceName === (recipe?.skillSourceName ?? 'AM_PHARMACY'));
   const level = skill ? s.learnedSkills[skill.id] ?? 0 : 0;
   const learned = !!skill && skill.implementation === 'supported' && Number.isSafeInteger(level) && level > 0 && level <= skill.maxLevel;
   const validQuantity = Number.isSafeInteger(quantity) && quantity >= 1 && quantity <= 1000;
@@ -57,19 +61,19 @@ export function pharmacyCraftPreview(s: GameState, c: Catalog, itemId: number, q
   const d = derivedStats(at === s.lastSimulatedAt ? s : { ...s, lastSimulatedAt: at }, c);
   const research = tree.map(id => c.skills[id]).find(v => v?.sourceName === 'AM_LEARNINGPOTION');
   const researchLevel = research ? s.learnedSkills[research.id] ?? 0 : 0;
-  const base = pharmacyBaseChance(Number.isSafeInteger(researchLevel) ? Math.max(0, Math.min(research?.maxLevel ?? 0, researchLevel)) : 0,
+  const base = recipe?.skillSourceName === 'ASC_CDP' ? 10000 : pharmacyBaseChance(Number.isSafeInteger(researchLevel) ? Math.max(0, Math.min(research?.maxLevel ?? 0, researchLevel)) : 0,
     learned ? level : 0, s.jobLevel, d.attributes ?? s.stats);
   const a = adjustment(itemId), bounds = [base + a.fixed + a.sign * 10, base + a.fixed + a.sign * a.modulus * 10];
   const preview: PharmacyCraftPreview = { recipe, quantity, skillId: skill?.id, learned, available: false,
     spPerAttempt: costs?.sp ?? 0, spTotal: (costs?.sp ?? 0) * (validQuantity ? quantity : 0),
-    ingredients, guide: recipe ? { itemId: recipe.guideItemId, owned: count(recipe.guideItemId) } : undefined,
+    ingredients, guide: recipe?.guideItemId !== undefined ? { itemId: recipe.guideItemId, owned: count(recipe.guideItemId) } : undefined,
     chanceMin: Math.max(1, a.modulus ? Math.min(...bounds) : base), chanceMax: Math.max(1, a.modulus ? Math.max(...bounds) : base),
     weight: weight / 10, maxWeight: max / 10, resultWeight: resultWeight / 10 };
   const reject = (code: string, message: string) => ({ ...preview, reason: { code, message } });
   if (!recipe) return reject('INVALID_PHARMACY_RECIPE', 'Escolha uma receita de Preparar Poção.');
   if (!validQuantity) return reject('INVALID_QUANTITY', 'Escolha de 1 a 1000 tentativas.');
   if (!Number.isFinite(at) || !c.items[itemId] || !['consumable', 'material'].includes(c.items[itemId].type) ||
-    !c.items[recipe.guideItemId] || ingredients.some(i => !c.items[i.itemId]))
+    (recipe.guideItemId !== undefined && !c.items[recipe.guideItemId]) || ingredients.some(i => !c.items[i.itemId]))
     return reject('PHARMACY_CONTENT_UNAVAILABLE', 'Esta receita ainda não está disponível.');
   if (!learned) return reject('PHARMACY_SKILL_REQUIRED', 'Aprenda Preparar Poção como Alquimista ou Criador.');
   if (s.status !== 'town') return reject('TOWN_REQUIRED', 'Volte à cidade para preparar poções.');
@@ -79,11 +83,14 @@ export function pharmacyCraftPreview(s: GameState, c: Catalog, itemId: number, q
       .some(source => classicBuffActive(s, c, source, at)))
     return reject('SKILL_STATUS_BLOCKED', 'Seu estado atual impede preparar poções.');
   if (weight * 10 >= max * 9) return reject('SKILL_WEIGHT_BLOCKED', 'Alivie o peso para ficar abaixo de 90%.');
-  if (!costs || !Number.isFinite(costs.sp) || costs.sp < 0 || costs.zeny !== 0 || costs.hp !== 0 || costs.spheres !== 0 ||
-    costs.quantities.size !== 1 || costs.quantities.get(7134) !== 1)
+  const validSkillCosts = recipe.skillSourceName === 'ASC_CDP'
+    ? costs?.quantities.size === 0
+    : costs?.quantities.size === 1 && costs.quantities.get(7134) === 1;
+  if (!costs || !Number.isFinite(costs.sp) || costs.sp < 0 || costs.zeny !== 0 ||
+    costs.hp !== 0 || costs.spheres !== 0 || !validSkillCosts)
     return reject('PHARMACY_CONTENT_UNAVAILABLE', 'Os custos desta habilidade estão indisponíveis.');
   if (s.sp < preview.spTotal) return reject('SP_REQUIRED', 'SP insuficiente para todas as tentativas.');
-  if (!preview.guide?.owned) return reject('PHARMACY_GUIDE_REQUIRED', recipe.guideItemId === 7434 ?
+  if (recipe.guideItemId !== undefined && !preview.guide?.owned) return reject('PHARMACY_GUIDE_REQUIRED', recipe.guideItemId === 7434 ?
     'Esta receita exige o manual da pesquisa de Pisruik; essa aquisição por quest ainda será disponibilizada.' : 'Tenha o manual desta receita na mochila.');
   if (ingredients.some(i => i.missing > 0)) return reject('PHARMACY_MATERIALS_REQUIRED', 'Reúna os materiais de todas as tentativas.');
   // Atomic batches admit the worst case of every attempt succeeding, including intermediate activations.
@@ -100,7 +107,7 @@ export function craftPharmacy(s: GameState, c: Catalog, itemId: number, quantity
   const skill = c.skills[preview.skillId!], level = s.learnedSkills[skill.id];
   const tree = classSkills(c, s.job), research = tree.map(id => c.skills[id]).find(v => v?.sourceName === 'AM_LEARNINGPOTION');
   const d = derivedStats(at === s.lastSimulatedAt ? s : { ...s, lastSimulatedAt: at }, c);
-  const base = pharmacyBaseChance(research ? Math.max(0, Math.min(research.maxLevel, s.learnedSkills[research.id] ?? 0)) : 0,
+  const base = skill.sourceName === 'ASC_CDP' ? 10000 : pharmacyBaseChance(research ? Math.max(0, Math.min(research.maxLevel, s.learnedSkills[research.id] ?? 0)) : 0,
     level, s.jobLevel, d.attributes ?? s.stats);
   let successes = 0;
   const draw = (modulus: number) => { random(s); return s.rngState % modulus; };
@@ -112,7 +119,12 @@ export function craftPharmacy(s: GameState, c: Catalog, itemId: number, quantity
         const used = Math.min(left, entry.quantity); consume(s, entry, used); left -= used;
       }
     }
-    if (pharmacyRoll(base, itemId, draw).success) { addItem(s, c, itemId, 1); successes++; }
+    const success = skill.sourceName === 'ASC_CDP' ? (draw(10000), true) : pharmacyRoll(base, itemId, draw).success;
+    if (success) { addItem(s, c, itemId, 1); successes++; }
+  }
+  if (skill.sourceName === 'ASC_CDP') {
+    const delay = skill.afterCastDelayMs?.[level - 1] ?? 0;
+    s.playerCanActAt = Math.max(s.playerCanActAt ?? 0, at + delay * quantity);
   }
   event(s, at, 'craft', `${c.items[itemId].name}: ${successes} produzidos, ${quantity - successes} falhas em ${quantity} tentativas.`,
     undefined, 'player', { itemId, quantity: successes, attempts: quantity, failures: quantity - successes,

@@ -59,7 +59,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "1102d9f465fe10a4aceee0ec1ce4e22e15e6e3099843132cc994dcf1c475f93e"
+    "hash": "2e0246424609bea890e3f0b6d3a88c5b08eaa5c02abe9bb0ec3e8eb0ecad50a6"
   },
   "rates": {
     "baseExp": 4,
@@ -125722,9 +125722,9 @@
       "herculesId": 407,
       "sourceName": "ASC_CDP",
       "mechanic": "ASC_CDP",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Create Deadly Poison. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "pharmacyCraft",
+      "description": "Criar Veneno Mortal. Em cidade, gasta 50 SP e os sete materiais da receita Hercules para produzir uma Garrafa de Veneno. O Hercules pinned consome um sorteio interno por uso; a guarda qty igual a 1 garante a produção individual, então o ramo de falha com dano de 25% do HP máximo não é alcançável nesta chamada. A Garrafa permite usar Encantar com Veneno Mortal durante a caça solo.",
       "iconResource": "data/texture/유저인터페이스/item/asc_cdp.bmp",
       "spCost": [
         50

@@ -228,6 +228,12 @@ const pharmacyRecipes = pharmacyRows.map(line => {
 const pharmacySource=skillByName.AM_PHARMACY;
 if(pharmacySource?.Id!==228||pharmacySource.MaxLevel!==10||pharmacySource.Requirements?.SPCost!==5||
  JSON.stringify(pharmacySource.Requirements?.Items)!==JSON.stringify({Medicine_Bowl:1}))throw new Error('Pinned Pharmacy activation differs');
+const deadlyPoisonRows = buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/).filter(line => /^678,22,407,/.test(line));
+const expectedDeadlyPoisonRow = '678,22,407,1,937,1,952,1,939,1,7033,1,972,1,657,1,713,1';
+if (JSON.stringify(deadlyPoisonRows) !== JSON.stringify([expectedDeadlyPoisonRow])) throw new Error('Pinned Deadly Poison production recipe differs');
+const deadlyPoisonSource = skillByName.ASC_CDP;
+if (deadlyPoisonSource?.Id !== 407 || deadlyPoisonSource.MaxLevel !== 1 || deadlyPoisonSource.Requirements?.SPCost !== 50 || deadlyPoisonSource.AfterCastActDelay !== 500 || deadlyPoisonSource.CastTime !== undefined || deadlyPoisonSource.CoolDown !== 0) throw new Error('Pinned Create Deadly Poison activation differs');
+manifest.deadlyPoisonCraft = { recipeSource: 'db/produce_db.txt:347..348', recipe: expectedDeadlyPoisonRow, skillSource: 'db/pre-re/skill_db.conf ASC_CDP', skillId: 407, spPerAttempt: 50, castTimeMs: 0, afterCastDelayMs: 500, chanceSource: 'src/map/skill.c:20235..20237 sets nominal 2000 + 40*DEX + 20*LUK; src/map/skill.c:20553 with qty==1 makes one-bottle invocations succeed after one RNG draw', effectiveSingleOutputChance: 10000, rngDrawsPerAttempt: 1, failureReachableForQuantityOne: false, sourceFailureDamagePercentMaxHp: 25, soloCombatUse: 'Poison Bottle 678 supplies supported Assassin Cross Deadly Poison (ASC_EDP).'};
 const pharmacyNpcStock=[
  {itemId:7134,price:8,discount:false,source:'npc/merchants/alchemist.txt'},
  ...[7144,7127,7128,7129,7130,7131,7132].map(itemId=>({itemId,price:100000,discount:false,source:'npc/merchants/alchemist.txt'})),
@@ -449,6 +455,7 @@ for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.
 activeSpecial.add('AL_TELEPORT');
 activeSpecial.add('AL_WARP');
 activeSpecial.add('AL_HOLYWATER');
+activeSpecial.add('ASC_CDP');
 activeSpecial.add('HT_DETECTING');
 activeSpecial.add('HT_REMOVETRAP');
 activeSpecial.add('HT_SPRINGTRAP');
@@ -483,6 +490,7 @@ function backslidingSourceMatchesSourceContract(source) {
 }
 const descriptions = {
     HT_REMOVETRAP: 'Remover Armadilha: uso manual durante a caça; desarma a armadilha própria mais próxima até duas células, custa 5 SP, devolve um Booby Trap se ainda não disparou e libera uma captura de Ankle Snare.',
+    ASC_CDP: 'Criar Veneno Mortal. Em cidade, gasta 50 SP e os sete materiais da receita Hercules para produzir uma Garrafa de Veneno. O Hercules pinned consome um sorteio interno por uso; a guarda qty igual a 1 garante a produção individual, então o ramo de falha com dano de 25% do HP máximo não é alcançável nesta chamada. A Garrafa permite usar Encantar com Veneno Mortal durante a caça solo.',
     HT_SPRINGTRAP: 'Desarma uma armadilha própria ativa dentro do alcance do nível aprendido. Custa 10 SP e requer Falcão equipado; a armadilha acionada desaparece após 1,5 s sem devolver o reagente.',
     AL_HOLYWATER: 'Aqua Benedicta. Conjura por 1 s sobre uma célula de água durante a caça; ao concluir, consome 10 SP e um Frasco Vazio para produzir Água Benta, sem chance de falha.',
     BS_DAGGER: 'Passiva: libera a forja de adagas. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
@@ -569,7 +577,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = name === 'AC_MAKINGARROW' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','BS_REPAIRWEAPON','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','ASC_CDP','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','BS_REPAIRWEAPON','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -621,7 +629,7 @@ for (const name of skillNames) {
         ...(name === 'AC_MAKINGARROW' && { manualUse: 'arrowCraft' }),
         ...(['BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && { manualUse: 'weaponCraft' }),
         ...(['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) && { manualUse: 'metalCraft' }),
-        ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
+        ...(['AM_PHARMACY', 'ASC_CDP'].includes(name) && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
         ...(name === 'BS_REPAIRWEAPON' && { manualUse: 'weaponRepair' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),

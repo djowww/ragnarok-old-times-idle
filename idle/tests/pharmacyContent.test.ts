@@ -8,11 +8,13 @@ import { itemPurchasePrice } from '../shared/prices.js';
 import type { Catalog } from '../shared/types.js';
 const c=catalog as unknown as Catalog;
 describe('pinned Pharmacy content and normal paid acquisition',()=>{
- it('exports a supported manual handler and all20literal source recipes',()=>{
+ it('exports a supported manual handler and Pharmacy recipes and source-pinned Deadly Poison',()=>{
   expect(c.skills.am_pharmacy).toMatchObject({implementation:'supported',manualUse:'pharmacyCraft'});
+  expect(c.skills.asc_cdp).toMatchObject({implementation:'supported',sourceName:'ASC_CDP',manualUse:'pharmacyCraft',spCost:[50],afterCastDelayMs:[500]});
   const production=(manifest as unknown as {pharmacyCraft:{recipes:{outputItemId:number;ingredients:{itemId:number;quantity:number}[]}[]}}).pharmacyCraft;
   expect(production.recipes.map(r=>({outputItemId:r.outputItemId,guideItemId:r.ingredients.find(i=>i.quantity===0)!.itemId,ingredients:r.ingredients.filter(i=>i.quantity>0)})))
-   .toEqual(pharmacyRecipes().map(({category,...recipe})=>recipe));
+   .toEqual(pharmacyRecipes().filter(r=>r.skillSourceName!=='ASC_CDP').map(({category,skillSourceName,...recipe})=>recipe));
+  expect((manifest as unknown as {deadlyPoisonCraft:{recipe:string;skillId:number;spPerAttempt:number;castTimeMs:number;afterCastDelayMs:number;soloCombatUse:string;effectiveSingleOutputChance:number;rngDrawsPerAttempt:number;failureReachableForQuantityOne:boolean;sourceFailureDamagePercentMaxHp:number}}).deadlyPoisonCraft).toMatchObject({recipe:'678,22,407,1,937,1,952,1,939,1,7033,1,972,1,657,1,713,1',skillId:407,spPerAttempt:50,castTimeMs:0,afterCastDelayMs:500,effectiveSingleOutputChance:10000,rngDrawsPerAttempt:1,failureReachableForQuantityOne:false,sourceFailureDamagePercentMaxHp:25,soloCombatUse:expect.stringContaining('ASC_EDP')});
  });
  it('keeps NPCscript fixed prices and normal trader prices separate',()=>{
   const s=createInitialState(c,0);s.job='alchemist';s.learnedSkills.mc_discount=10;
