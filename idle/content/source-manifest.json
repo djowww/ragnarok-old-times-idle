@@ -7963,8 +7963,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "adaptation": "Uso manual solo, requer Falcon equipado e desarma a armadilha própria ativa mais próxima dentro do alcance 4–8 do nível. Custa 10 SP; armadilha Ankle Snare que já prendeu um alvo não pode ser desarmada; unidade acionada some após 1,5 s e não devolve reagente.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -15167,8 +15167,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 289,
-    "unsupported": 59,
+    "supported": 290,
+    "unsupported": 58,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15282,13 +15282,13 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 24,
-        "unsupported": 4
+        "supported": 25,
+        "unsupported": 3
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 28,
-        "unsupported": 4
+        "supported": 29,
+        "unsupported": 3
       },
       "bard": {
         "sourceTree": 28,
@@ -15531,6 +15531,7 @@
       "HT_STEELCROW",
       "HT_BLITZBEAT",
       "HT_DETECTING",
+      "HT_SPRINGTRAP",
       "HT_PHANTASMIC",
       "HT_POWER",
       "SN_SIGHT",
@@ -15736,11 +15737,6 @@
       {
         "skillId": "ht_talkiebox",
         "sourceName": "HT_TALKIEBOX",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "ht_springtrap",
-        "sourceName": "HT_SPRINGTRAP",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
@@ -16852,6 +16848,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "8f19a1443e13ab669f30fa0cac1888c8cf8cbdda8d74679b214eeb3228f11349",
+  "catalogSha256": "15d9738b7799a58d5065bdb47c65f6fc48411909a518c4acd3bb17b5ca4143e1",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

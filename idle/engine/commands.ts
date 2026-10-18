@@ -1,5 +1,6 @@
 import {openArrowCraft,answerArrowCraft,cancelArrowCraft,reconcileArrowCraft} from './arrowCraft.js';
 import { startHolyWaterCast } from './holyWater.js';
+import { springTrapCanStart, springHunterTrap } from './springTrap.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
 import {useDetecting} from './falconDetect.js';
 import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
@@ -182,6 +183,12 @@ export function executeCommand(
       }
       if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
+      if (skill?.sourceName === 'HT_SPRINGTRAP') {
+        requireRule(springTrapCanStart(s, c, skill, level, now), 'TRAP_UNAVAILABLE',
+          'Aprenda Spring Trap, equipe seu falcão e tenha SP suficiente e uma armadilha ativa em alcance.');
+        springHunterTrap(s, c, skill, level, now);
+        break;
+      }
       if (skill?.sourceName === 'HT_DETECTING') {
         requireRule(useDetecting(s,c,skill,level,now),'SKILL_UNAVAILABLE',
           'Aprenda Detectar, equipe seu falcão, tenha 8 SP e esteja livre para usar a habilidade.');
