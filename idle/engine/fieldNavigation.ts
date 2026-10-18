@@ -4,6 +4,7 @@ import {
   gridDisplacement,
   gridRouteLength,
   gridWalkable,
+  gridWater,
   nextRouteSearchGeneration,
   nearestConnectedCell,
   type FieldNavigationGrid,
@@ -372,6 +373,7 @@ export interface FieldNavigationRuntime {
   toGridPoint(areaId: string, point: BattlePoint): GridPoint;
   toBattlePoint(areaId: string, point: GridPoint): BattlePoint;
   isWalkableBattlePoint(areaId: string, point: BattlePoint): boolean;
+  isWaterBattlePoint(areaId: string, point: BattlePoint): boolean;
   resolveActorPoint(areaId: string, point: BattlePoint, repairBlocked: boolean): BattlePoint | null;
   home(areaId: string, slot: number): BattlePoint;
   route(areaId: string, from: BattlePoint, to: BattlePoint): FieldNavigationRoute | null;
@@ -475,6 +477,9 @@ export function createFieldNavigationRuntime(
     },
     isWalkableBattlePoint(areaId: string, point: BattlePoint): boolean {
       return gridWalkable(area(areaId).grid, this.toGridPoint(areaId, point));
+    },
+    isWaterBattlePoint(areaId: string, point: BattlePoint): boolean {
+      return gridWater(area(areaId).grid, this.toGridPoint(areaId, point));
     },
     resolveActorPoint(areaId: string, point: BattlePoint, repairBlocked: boolean): BattlePoint | null {
       const selected = area(areaId), gridPoint = this.toGridPoint(areaId, point);

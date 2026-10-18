@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     connectedCells, decodeGat, findGridRoute, gridDisplacement, gridRouteLength,
-    gridRoutePoint, gridWalkable, nearestConnectedCell, nextRouteSearchGeneration,
+    gridRoutePoint, gridWalkable, gridWater, nearestConnectedCell, nextRouteSearchGeneration,
     type FieldNavigationGrid, type GridPoint,
 } from '../shared/fieldNavigation';
 
@@ -33,6 +33,8 @@ describe('GAT field navigation', () => {
             1, 0, 1, 1, 0, 1, 1, 0, 0, 0];
         const decoded = decodeGat('prt_fild08', gat(raw), 'b'.repeat(64));
         expect(raw.map((_, i) => gridWalkable(decoded, point(i + 0.5, 0.5)) ? 1 : 0)).toEqual(expected);
+        expect(raw.map((_, i) => gridWater(decoded, point(i + 0.5, 0.5)) ? 1 : 0))
+            .toEqual(raw.map(type => type === 3 ? 1 : 0));
         expect(() => decodeGat('fixture', gat([7]), 'b'.repeat(64))).toThrow(/unknown.*type|type.*unknown/i);
     });
 
@@ -45,6 +47,10 @@ describe('GAT field navigation', () => {
         for (const bytes of [wrongMagic, wrongVersion, tooLarge, truncated, extra]) {
             expect(() => decodeGat('fixture', bytes, 'b'.repeat(64))).toThrow();
         }
+    });
+
+    it('fails closed when a legacy grid has no source water mask', () => {
+        expect(() => gridWater(grid([[1]]), point(0.5, 0.5))).toThrow(/water mask is unavailable/i);
     });
 
     it('builds a connected component without cutting diagonal corners', () => {

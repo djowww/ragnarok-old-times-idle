@@ -88,28 +88,30 @@ describe('private field navigation asset loader', () => {
     }, 10_000);
 
     it('writes an atomic cache entry with source and mask checksums and decoder metadata', async () => {
-        const cacheDir = await tempCache(), bytes = gat();
+        const cacheDir = await tempCache(), bytes = gat(3);
         const result = await loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir, fetchImpl: async () => response(bytes) });
         const metadata = JSON.parse(await readFile(join(cacheDir, 'prt_fild08.navigation.json'), 'utf8'));
         expect(metadata).toMatchObject({ map: 'prt_fild08', width: 1, height: 1, decoderRevision: expect.any(String),
             sourceSha256: createHash('sha256').update(bytes).digest('hex'), maskSha256: expect.any(String) });
         expect(metadata.maskSha256).toBe(createHash('sha256').update(Buffer.from(metadata.walkable, 'base64')).digest('hex'));
-        expect(metadata.formatVersion).toBe(2);
+        expect(metadata.formatVersion).toBe(3);
+        expect(metadata.waterSha256).toBe(createHash('sha256').update(Buffer.from(metadata.water, 'base64')).digest('hex'));
         expect(metadata.wallSha256).toBe(createHash('sha256').update(Buffer.from(metadata.wall, 'base64')).digest('hex'));
         expect(result.cacheFallbackMaps).toEqual([]);
     });
 
     it('uses only a validated private cache after upstream failure and reports the fallback map', async () => {
-        const cacheDir = await tempCache(), bytes = gat();
+        const cacheDir = await tempCache(), bytes = gat(3);
         await loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir, fetchImpl: async () => response(bytes) });
         const fallback = await loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir,
             fetchImpl: async () => { throw new Error('offline'); } });
         expect(fallback.cacheFallbackMaps).toEqual(['prt_fild08']);
         expect(fallback.grids.get('prt_fild08')?.sourceSha256).toBe(createHash('sha256').update(bytes).digest('hex'));
         expect(Array.from(fallback.grids.get('prt_fild08')?.wall ?? [])).toEqual([0]);
+        expect(Array.from(fallback.grids.get('prt_fild08')?.water ?? [])).toEqual([1]);
     });
 
-    it.each(['old-version', 'missing-wall', 'wall-checksum', 'wall-base64', 'wall-length'])(
+    it.each(['old-version', 'missing-wall', 'wall-checksum', 'wall-base64', 'wall-length', 'missing-water', 'water-checksum', 'water-base64', 'water-length'])(
       'fails closed on %s cache after upstream loss', async defect => {
         const cacheDir = await tempCache(), path = join(cacheDir, 'prt_fild08.navigation.json');
         await loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir,
@@ -120,6 +122,10 @@ describe('private field navigation asset loader', () => {
         if (defect === 'wall-checksum') record.wallSha256 = '0'.repeat(64);
         if (defect === 'wall-base64') record.wall += '!';
         if (defect === 'wall-length') { record.wall = 'AAAA'; record.wallSha256 = createHash('sha256').update(Buffer.from(record.wall, 'base64')).digest('hex'); }
+        if (defect === 'missing-water') delete record.water;
+        if (defect === 'water-checksum') record.waterSha256 = '0'.repeat(64);
+        if (defect === 'water-base64') record.water += '!';
+        if (defect === 'water-length') { record.water = 'AAAA'; record.waterSha256 = createHash('sha256').update(Buffer.from(record.water, 'base64')).digest('hex'); }
         await writeFile(path, JSON.stringify(record));
         await expect(loadFieldNavigationGrids({ maps: ['prt_fild08'], assetOrigin: 'https://assets.test', cacheDir,
           fetchImpl: async () => response(gat(), 404) })).rejects.toThrow(/field navigation unavailable/i);
