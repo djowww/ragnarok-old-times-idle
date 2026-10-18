@@ -1,5 +1,6 @@
 import {openArrowCraft,answerArrowCraft,cancelArrowCraft,reconcileArrowCraft} from './arrowCraft.js';
 import { startHolyWaterCast } from './holyWater.js';
+import { ICE_WALL_RESTRICTED_MAPS, iceWallFootprint } from './iceWall.js';
 import { removeHunterTrap, removeTrapCanStart } from './trapRemoval.js';
 import { springTrapCanStart, springHunterTrap } from './springTrap.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
@@ -185,6 +186,48 @@ export function executeCommand(
       break;
     }
     case 'useSkill': {
+      const selectedSkill = c.skills[command.skillId];
+      if (selectedSkill?.sourceName === 'WZ_ICEWALL') {
+        const level = s.learnedSkills[command.skillId] ?? 0;
+        requireRule(selectedSkill.implementation === 'supported' && level > 0 &&
+          classSkills(c, s.job).includes(command.skillId), 'SKILL_UNAVAILABLE', 'Aprenda Barreira de Gelo para usar a habilidade.');
+        requireRule(s.status === 'hunting' && !!s.battle && !!s.areaId && !!s.fieldHero && s.hp > 0 &&
+          !s.battle.cast, 'FIELD_REQUIRED', 'Use Barreira de Gelo durante a caça no campo.');
+        requireRule(!!command.groundCell && Number.isFinite(command.groundCell.x) && Number.isFinite(command.groundCell.y),
+          'GROUND_TARGET_REQUIRED', 'Selecione uma célula válida no mapa.');
+        requireRule((s.playerCanActAt ?? 0) <= now, 'ACTION_DELAY', 'Aguarde o tempo de ação antes de usar Barreira de Gelo.');
+        requireRule((s.skillReadyAt[command.skillId] ?? 0) <= now, 'SKILL_COOLDOWN', 'Aguarde o recarregamento de Barreira de Gelo.');
+        const navigation = context?.navigation, area = navigation?.publicAreas[s.areaId];
+        requireRule(!!navigation && !!area, 'FIELD_REQUIRED', 'O mapa ainda não está pronto para receber o alvo.');
+        requireRule(!ICE_WALL_RESTRICTED_MAPS.has(area!.map), 'ICE_WALL_RESTRICTED', 'Barreira de Gelo não pode ser usada neste mapa.');
+        const heroBattle = s.fieldHero!.position;
+        const targetCell = command.groundCell!;
+        const heroGrid = navigation!.toGridPoint(s.areaId!, heroBattle);
+        const targetGrid = navigation!.toGridPoint(s.areaId!, targetCell);
+        requireRule(Math.max(Math.abs(targetGrid.x - heroGrid.x), Math.abs(targetGrid.y - heroGrid.y)) <= 9,
+          'GROUND_TARGET_RANGE', 'Escolha um ponto a até 9 células.');
+        const points = iceWallFootprint(heroBattle, targetCell);
+        requireRule(points.every(point => navigation!.isWalkableBattlePoint(s.areaId!, point)), 'GROUND_TARGET_BLOCKED', 'A parede não cabe nas células selecionadas.');
+        const key = (point: { x: number; y: number }) => { const cell = navigation!.toGridPoint(s.areaId!, point); return `${Math.floor(cell.x)},${Math.floor(cell.y)}`; };
+        const footprintKeys = new Set(points.map(key));
+        const occupied = new Set<string>([key(heroBattle)]);
+        for (const enemy of s.battle!.enemies ?? []) if (enemy.hp > 0) occupied.add(key(enemy.position));
+        for (const unit of s.battle!.skillUnits ?? []) if (unit.expiresAt > now) for (const cell of unit.cells) occupied.add(key(cell));
+        requireRule([...footprintKeys].every(cell => !occupied.has(cell)), 'GROUND_TARGET_OCCUPIED', 'Uma criatura ou unidade já ocupa parte desse espaço.');
+        requireRule(paySkillResources(s, c, selectedSkill, level, now), 'SP_REQUIRED', 'Tenha SP suficiente para usar Barreira de Gelo.');
+        beginSkillAction(s, now, selectedSkill.castTimeMs?.[level - 1] ?? 0, 0);
+        const expiresAt = now + (selectedSkill.groundDurationMs?.[level - 1] ?? 5000 * level);
+        const unitId = `ice-wall-${s.id}-${now}-${s.nextEventId}`;
+        (s.battle!.skillUnits ??= []).push({ id: unitId, skillId: selectedSkill.id, level,
+          position: points[2], cells: points, placedAt: now, nextTickAt: expiresAt, expiresAt });
+        event(s, now, 'ground-placed', selectedSkill.name, undefined, 'player', { skillId: selectedSkill.id,
+          skillLevel: level, sourceActorId: s.id, targetActorId: s.id, actorAction: 'none', actionMotionMs: 0 });
+        s.battle!.fieldDecisionAt = now;
+        s.skillReadyAt[selectedSkill.id] = now + (selectedSkill.cooldownMsByLevel?.[level - 1] ?? selectedSkill.cooldownMs ?? 0);
+        finishSkillAction(s, now, sourceAfterCastDelay(s, c, selectedSkill, level));
+        s.battle!.playerNextSkillAt = Math.max(s.battle!.playerNextSkillAt ?? now, s.playerCanActAt ?? now);
+        break;
+      }
       if(c.skills[command.skillId]?.sourceName==='AC_MAKINGARROW'){openArrowCraft(s,c,now);break;}
       if (c.skills[command.skillId]?.sourceName === 'AL_HOLYWATER') {
         const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;

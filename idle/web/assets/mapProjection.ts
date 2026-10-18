@@ -255,6 +255,19 @@ export class ConnectedMapMovement {
 }
 
 /** Intersect a viewport ray with the GAT surface near the camera focus. */
+/** Convert a native world position to the battle-space center of its map cell. */
+export function battleCellFromWorldPoint(world: WorldPoint, origin: FieldMapOrigin): { x: number; y: number } {
+  return {
+    x: BATTLE_HERO.x + (Math.floor(world[0]) - origin.x) / BATTLE_CELLS_PER_UNIT,
+    y: BATTLE_HERO.y + (Math.floor(world[2]) - origin.y) / BATTLE_CELLS_PER_UNIT,
+  };
+}
+
+/** Convert a screen click to the battle-space center of its native map cell. */
+export function screenBattleCell(camera: MapProjection, point: { x: number; y: number }, origin: FieldMapOrigin): { x: number; y: number } {
+  return battleCellFromWorldPoint(screenGroundPoint(camera, point), origin);
+}
+
 export function screenGroundPoint(camera: MapProjection, point: { x: number; y: number }): WorldPoint {
   const combined = Array.from({ length: 16 }, (_, index) => {
     const row = index % 4;

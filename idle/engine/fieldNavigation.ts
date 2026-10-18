@@ -290,10 +290,12 @@ function landmarkRangeHeuristic(area: FieldNavigationAreaRuntime, target: GridPo
 
 function routeToGoalCell(area: FieldNavigationAreaRuntime, from: GridPoint,
   goal: (point: GridPoint) => boolean,
-  heuristic: (point: GridPoint) => number, goalIds?: ReadonlySet<number>): { points: GridPoint[]; distance: number } | null {
+  heuristic: (point: GridPoint) => number, goalIds?: ReadonlySet<number>, blockedCells?: ReadonlySet<string>): { points: GridPoint[]; distance: number } | null {
   const { grid } = area;
   if (!gridWalkable(grid, from)) return null;
   const start = Math.floor(from.y) * grid.width + Math.floor(from.x);
+  const isBlocked = (id: number) => blockedCells?.has(`${id % grid.width},${Math.floor(id / grid.width)}`) ?? false;
+  if (isBlocked(start)) return null;
   const scratch = goalRouteScratch(grid.width * grid.height), { costs, previous, seenAt, settledAt, open } = scratch;
   const generation = scratch.generation;
   const startCenter = { x: start % grid.width + 0.5, y: Math.floor(start / grid.width) + 0.5 };
@@ -324,7 +326,7 @@ function routeToGoalCell(area: FieldNavigationAreaRuntime, from: GridPoint,
       if (nx < 0 || ny < 0 || nx >= grid.width || ny >= grid.height) continue;
       const next = ny * grid.width + nx;
       walkPoint.x = nx + 0.5; walkPoint.y = ny + 0.5;
-      if (!gridWalkable(grid, walkPoint)) continue;
+      if (isBlocked(next) || !gridWalkable(grid, walkPoint)) continue;
       if (dx && dy) {
         walkPoint.x = nx + 0.5; walkPoint.y = y + 0.5;
         if (!gridWalkable(grid, walkPoint)) continue;
@@ -378,7 +380,7 @@ export interface FieldNavigationRuntime {
   home(areaId: string, slot: number): BattlePoint;
   route(areaId: string, from: BattlePoint, to: BattlePoint): FieldNavigationRoute | null;
   routeToRange(areaId: string, from: BattlePoint, target: BattlePoint, range: number,
-    metric: 'player' | 'square'): FieldApproachRoute | null;
+    metric: 'player' | 'square', blockedCells?: ReadonlySet<string>): FieldApproachRoute | null;
   displace(areaId: string, from: BattlePoint, dxCells: number, dyCells: number): BattlePoint;
 }
 
@@ -496,13 +498,13 @@ export function createFieldNavigationRuntime(
       const selected = area(areaId), index = ((Math.trunc(slot) % selected.homes.length) + selected.homes.length) % selected.homes.length;
       return this.toBattlePoint(areaId, selected.homes[index]);
     },
-    route(areaId: string, from: BattlePoint, to: BattlePoint): FieldNavigationRoute | null {
+    route(areaId: string, from: BattlePoint, to: BattlePoint, blockedCells?: ReadonlySet<string>): FieldNavigationRoute | null {
       const selected = area(areaId), gridFrom = this.toGridPoint(areaId, from), gridTo = this.toGridPoint(areaId, to);
-      const points = findGridRoute(selected.grid, gridFrom, gridTo);
+      const points = findGridRoute(selected.grid, gridFrom, gridTo, 0, blockedCells);
       return points ? { points: points.map(point => this.toBattlePoint(areaId, point)), distanceCells: gridRouteLength(points) } : null;
     },
     routeToRange(areaId: string, from: BattlePoint, target: BattlePoint, range: number,
-      metric: 'player' | 'square'): FieldApproachRoute | null {
+      metric: 'player' | 'square', blockedCells?: ReadonlySet<string>): FieldApproachRoute | null {
       if (!Number.isFinite(range) || range < 0) return null;
       const selected = area(areaId), gridFrom = this.toGridPoint(areaId, from), gridTarget = this.toGridPoint(areaId, target);
       const inRange = (point: GridPoint) => {
@@ -514,19 +516,19 @@ export function createFieldNavigationRuntime(
         || canSearchExactSquareRangeZeroGoal(gridWalkable(selected.grid, gridTarget), target,
           this.toBattlePoint(areaId, { x: Math.floor(gridTarget.x) + 0.5, y: Math.floor(gridTarget.y) + 0.5 }));
       const startId = Math.floor(gridFrom.y) * selected.grid.width + Math.floor(gridFrom.x);
-      const canUseLandmarks = exactSquareGoalCanMatch && componentHas(selected.component, startId) &&
+      const canUseLandmarks = !blockedCells?.size && exactSquareGoalCanMatch && componentHas(selected.component, startId) &&
         gridWalkable(selected.grid, gridFrom);
       const geometricHeuristic = createRouteGoalOctileHeuristic(gridTarget, range, metric);
       // Landmark preprocessing uses the route workspace, so finish it before the goal search starts.
       const fields = canUseLandmarks ? landmarkFields(selected) : undefined;
       const prepared = fields ? landmarkRangeHeuristic(selected, gridTarget, range, metric, geometricHeuristic, inRange, fields) : undefined;
       const heuristic = prepared?.heuristic ?? geometricHeuristic;
-      const approach = exactSquareGoalCanMatch ? routeToGoalCell(selected, gridFrom, inRange, heuristic, prepared?.goalIds) : null;
+      const approach = exactSquareGoalCanMatch ? routeToGoalCell(selected, gridFrom, inRange, heuristic, prepared?.goalIds, blockedCells) : null;
       if (approach) return { route: { points: approach.points.map(point => this.toBattlePoint(areaId, point)),
         distanceCells: approach.distance }, withinRange: true };
       const closest = nearest(selected, gridTarget);
       if (!closest) return null;
-      const route = this.route(areaId, from, this.toBattlePoint(areaId, closest));
+      const route = this.route(areaId, from, this.toBattlePoint(areaId, closest), blockedCells);
       return route ? { route, withinRange: false } : null;
     },
     displace(areaId: string, from: BattlePoint, dxCells: number, dyCells: number): BattlePoint {

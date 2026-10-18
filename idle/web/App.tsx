@@ -405,6 +405,13 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
   const game = useGame(identity, onAuthRequired);
   const auth = useAuth();
   const [activeWindow, setActiveWindow] = useState<GameWindow | null>(null);
+  const [groundAimSkillId, setGroundAimSkillId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!groundAimSkillId) return;
+    const cancel = (event: KeyboardEvent) => { if (event.key === 'Escape') setGroundAimSkillId(null); };
+    window.addEventListener('keydown', cancel);
+    return () => window.removeEventListener('keydown', cancel);
+  }, [groundAimSkillId]);
   const heroMovable = useDraggableWindow<HTMLElement>("hero-hud", "informações do personagem");
   const windowMovable = useDraggableWindow<HTMLElement>(`window-${activeWindow ?? "closed"}`, activeWindow ? windowTitles[activeWindow] : "janela");
   const [mapStatus, setMapStatus] = useState<MapStatus>({ map: "", phase: "loading", progress: 0 });
@@ -894,7 +901,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                     <div className="classic-map-stage">
                       {enteredWorld && <>
                         {activeWindow === "shop" ? <ShopScene key={`shop-${mapReload}`} onMapStatusChange={setMapStatus} />
-                          : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} />}
+                          : <Scene key={`world-${mapReload}`} {...props} onMapStatusChange={setMapStatus} groundAimSkillId={groundAimSkillId} onGroundAimResult={(skillId, cell) => { void game.command({ type: 'useSkill', skillId, groundCell: cell }).then(ok => { if (ok) setGroundAimSkillId(null); }); }} />}
                         <ClassicMinimap mapName={activeWindow === "shop" ? "prontera" : mapName}
                           mapLabel={activeWindow === "shop" ? "Prontera · loja" : mapLabel} />
                         <SenseInspection catalog={catalog} snapshot={snapshot} />
@@ -958,7 +965,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         {activeWindow === "equipment" &&
                           <ClassicEquipment {...props} onInventory={() => setActiveWindow("inventory")} />}
                         {activeWindow === "inventory" && <Inventory {...props} />}
-                        {activeWindow === "skills" && <Build {...props} mode="skills" onOpenConverters={() => setActiveWindow("converters")} onOpenArrows={trigger => openWindow("arrows", trigger)} onOpenPharmacy={trigger => openWindow("pharmacy", trigger)}
+                        {activeWindow === "skills" && <Build {...props} mode="skills" onAimGroundSkill={setGroundAimSkillId} onOpenConverters={() => setActiveWindow("converters")} onOpenArrows={trigger => openWindow("arrows", trigger)} onOpenPharmacy={trigger => openWindow("pharmacy", trigger)}
                           onOpenWeaponRefine={trigger => openWindow("weaponRefine", trigger)} onOpenWeaponCraft={trigger => openWindow("weaponCraft", trigger)} onOpenMetalCraft={trigger => openWindow("metalCraft", trigger)} />}
                         {activeWindow === "world" && <>
                           <div className="ro-journey-summary" role="group" aria-label="Sua jornada">

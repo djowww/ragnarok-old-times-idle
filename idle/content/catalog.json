@@ -17,6 +17,7 @@
       "db/create_arrow_db.txt",
       "npc/merchants/refine.txt",
       "npc/mapflag/noteleport.txt",
+      "npc/mapflag/noicewall.txt",
       "npc/mapflag/nowarp.txt",
       "npc/mapflag/nomemo.txt",
       "npc/mapflag/nowarpto.txt",
@@ -59,7 +60,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "8e7116707e6c1a31d63d3ce9145c6e91d5875fd75d6db077a673e6a4b7f487a7"
+    "hash": "2e897362f829d1b856297dd4d7807a00cd1ed7ff4c3b2c993a8adbcba89ac3fa"
   },
   "rates": {
     "baseExp": 4,
@@ -101777,8 +101778,8 @@
       "herculesId": 87,
       "sourceName": "WZ_ICEWALL",
       "mechanic": "WZ_ICEWALL",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer edição de células bloqueadas do mapa.",
+      "implementation": "supported",
+      "manualUse": "groundTarget",
       "description": "Cria uma barreira física de gelo por 5 segundos por nível. Bloqueia passagem; não causa dano mágico.",
       "iconResource": "data/texture/유저인터페이스/item/wz_icewall.bmp",
       "spCost": [

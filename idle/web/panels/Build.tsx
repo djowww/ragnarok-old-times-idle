@@ -50,7 +50,8 @@ export default function Build({
   onOpenWeaponRefine,
   onOpenWeaponCraft,
   onOpenMetalCraft,
-}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenArrows?: (trigger:HTMLElement) => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void; onOpenWeaponCraft?: (trigger: HTMLElement) => void; onOpenMetalCraft?: (trigger: HTMLElement) => void }) {
+  onAimGroundSkill,
+}: PanelProps & { onAimGroundSkill?: (skillId: string) => void; mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenArrows?: (trigger:HTMLElement) => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void; onOpenWeaponCraft?: (trigger: HTMLElement) => void; onOpenMetalCraft?: (trigger: HTMLElement) => void }) {
   const { state, stats } = snapshot;
   const openingRefine = useRef(false);
   const [refineOpening, setRefineOpening] = useState(false);
@@ -286,6 +287,7 @@ export default function Build({
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
+                    {skill.manualUse === "groundTarget" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting" || state.hp <= 0 || !!state.battle?.cast || !onAimGroundSkill} onClick={() => onAimGroundSkill?.(skill.id)}>Mirar Barreira de Gelo</button>}
                     {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}
                     {skill.manualUse === "removeTrap" && <button type="button" disabled={busy || unsupported || level === 0 || state.hp <= 0 || (state.status !== "hunting" && state.status !== "challenge") || !state.battle?.traps?.length} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Remover armadilha</button>}
                     {skill.manualUse === 'soulBurn' && <>

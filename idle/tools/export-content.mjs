@@ -59,6 +59,14 @@ if (sha(teleportFlagBuffer) !== rules.sourceHashes[teleportFlagPath]) throw new 
 const teleportBlockedMaps = parseTeleportMapFlags(teleportFlagBuffer.toString('utf8'));
 if (!teleportBlockedMaps.length) throw new Error('Empty source noteleport list');
 manifest.sources.push({ path: teleportFlagPath, url: teleportFlagUrl, sha256: sha(teleportFlagBuffer) });
+const iceWallFlagPath = 'npc/mapflag/noicewall.txt';
+const iceWallFlagUrl = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${iceWallFlagPath}`;
+const iceWallFlagBuffer = source ? await readFile(resolve(source, iceWallFlagPath)) : Buffer.from(await (await fetch(iceWallFlagUrl)).arrayBuffer());
+if (sha(iceWallFlagBuffer) !== rules.sourceHashes[iceWallFlagPath]) throw new Error('Pinned source hash mismatch: ' + iceWallFlagPath);
+const iceWallFlagMaps = [...iceWallFlagBuffer.toString('utf8').matchAll(/^\s*([a-z0-9_]+)\s+mapflag\s+noicewall\s*(?:\/\/.*)?$/gim)].map(match => match[1]).sort();
+if (JSON.stringify(iceWallFlagMaps) !== JSON.stringify([...(rules.iceWallRestrictedMaps ?? [])].sort())) throw new Error('Pinned Ice Wall map flags differ from configured restricted maps');
+manifest.sources.push({ path: iceWallFlagPath, url: iceWallFlagUrl, sha256: sha(iceWallFlagBuffer) });
+manifest.iceWall = { restrictedMaps: iceWallFlagMaps, source: 'npc/mapflag/noicewall.txt; active noicewall map flags reject placement' };
 const warpMapFlags = {};
 for (const flag of ['nowarp', 'nomemo', 'nowarpto']) {
     const path = `npc/mapflag/${flag}.txt`;
@@ -472,7 +480,7 @@ const unsupported = {
     PF_SPIDERWEB: 'Requer imobilização ligada a uma unidade de solo e consumo da teia por dano de Fogo.',
     AM_CP_WEAPON: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_SHIELD: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_ARMOR: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', AM_CP_HELM: 'Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem.', CR_FULLPROTECTION: 'Proteção completa exige estado de equipamento quebrado ou removido do personagem.',
     CG_MARIONETTE: 'Requer outro personagem para transferir atributos.', CG_MOONLIT: 'Requer parceiro e interação espacial de grupo.', CG_LONGINGFREEDOM: 'Requer parceiro durante dueto.', CG_HERMODE: 'Requer guilda e área de combate entre personagens.',
-    WZ_ICEWALL: 'Requer edição de células bloqueadas do mapa.', HW_GANBANTEIN: 'Requer remoção de unidades de habilidades em células do mapa.',
+    HW_GANBANTEIN: 'Requer remoção de unidades de habilidades em células do mapa.',
 };
 const townPatterns = /^(BS_(IRON|STEEL|ENCHANTEDSTONE|ORIDEOCON|DAGGER|SWORD|TWOHANDSWORD|AXE|MACE|KNUCKLE|SPEAR|REPAIRWEAPON|FINDINGORE)|AM_(PHARMACY|CANNIBALIZE|SPHEREMINE|BIOETHICS|CALLHOMUN|REST|RESURRECTHOMUN|TWILIGHT\d)|CR_CULTIVATION|ASC_CDP|SA_CREATECON|AC_MAKINGARROW|WS_WEAPONREFINE|HT_(REMOVETRAP|SPRINGTRAP|TALKIEBOX)|BD_)/;
 function backslidingSourceMatchesSourceContract(source) {
@@ -577,7 +585,7 @@ for (const name of skillNames) {
     if (name === 'ALL_RESURRECTION' || name === 'PF_SOULBURN') kind = 'magical';
     let damageType = ['PF_SOULBURN'].includes(name) || magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION' || name === 'PF_SOULBURN') damageType = 'magic';
-    const supportedMechanic = name === 'AC_MAKINGARROW' || name === 'AM_CANNIBALIZE' || name === 'BS_GREED' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL', 'PF_SOULBURN'].includes(name);
+    const supportedMechanic = name === 'WZ_ICEWALL' || name === 'AC_MAKINGARROW' || name === 'AM_CANNIBALIZE' || name === 'BS_GREED' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL', 'PF_SOULBURN'].includes(name);
     const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','ASC_CDP','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','BS_REPAIRWEAPON','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP','AM_CANNIBALIZE'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -613,6 +621,7 @@ for (const name of skillNames) {
         ...(name === 'BS_GREED' && { manualUse: 'greed' }),
         ...(name === 'AL_WARP' && { manualUse: 'warpPortal' }),
         ...(name === 'HT_SPRINGTRAP' && { manualUse: 'springTrap' }),
+        ...(name === 'WZ_ICEWALL' && { manualUse: 'groundTarget' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
