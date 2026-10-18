@@ -1,0 +1,822 @@
+[
+  {
+    "outputItemId": 1101,
+    "weaponLevel": 1,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "outputItemId": 1104,
+    "weaponLevel": 1,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 30
+      }
+    ]
+  },
+  {
+    "outputItemId": 1107,
+    "weaponLevel": 1,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 45
+      },
+      {
+        "itemId": 913,
+        "quantity": 25
+      }
+    ]
+  },
+  {
+    "outputItemId": 1110,
+    "weaponLevel": 2,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 20
+      }
+    ]
+  },
+  {
+    "outputItemId": 1113,
+    "weaponLevel": 2,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 35
+      }
+    ]
+  },
+  {
+    "outputItemId": 1122,
+    "weaponLevel": 2,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 40
+      },
+      {
+        "itemId": 920,
+        "quantity": 50
+      }
+    ]
+  },
+  {
+    "outputItemId": 1126,
+    "weaponLevel": 3,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 5
+      },
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 727,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1123,
+    "weaponLevel": 3,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 999,
+        "quantity": 10
+      },
+      {
+        "itemId": 728,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1119,
+    "weaponLevel": 3,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 999,
+        "quantity": 15
+      },
+      {
+        "itemId": 718,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1129,
+    "weaponLevel": 3,
+    "skillId": 99,
+    "skillName": "BS_SWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 16
+      },
+      {
+        "itemId": 724,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1201,
+    "weaponLevel": 1,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 1
+      },
+      {
+        "itemId": 909,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1204,
+    "weaponLevel": 1,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 25
+      }
+    ]
+  },
+  {
+    "outputItemId": 1207,
+    "weaponLevel": 1,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 50
+      }
+    ]
+  },
+  {
+    "outputItemId": 1210,
+    "weaponLevel": 2,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 17
+      }
+    ]
+  },
+  {
+    "outputItemId": 1213,
+    "weaponLevel": 2,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 30
+      }
+    ]
+  },
+  {
+    "outputItemId": 1216,
+    "weaponLevel": 2,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 40
+      }
+    ]
+  },
+  {
+    "outputItemId": 1219,
+    "weaponLevel": 3,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 4
+      },
+      {
+        "itemId": 999,
+        "quantity": 40
+      },
+      {
+        "itemId": 726,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1222,
+    "weaponLevel": 3,
+    "skillId": 98,
+    "skillName": "BS_DAGGER",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 4
+      },
+      {
+        "itemId": 999,
+        "quantity": 60
+      },
+      {
+        "itemId": 729,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1116,
+    "weaponLevel": 1,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 35
+      },
+      {
+        "itemId": 958,
+        "quantity": 15
+      }
+    ]
+  },
+  {
+    "outputItemId": 1151,
+    "weaponLevel": 2,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 25
+      },
+      {
+        "itemId": 957,
+        "quantity": 20
+      }
+    ]
+  },
+  {
+    "outputItemId": 1154,
+    "weaponLevel": 2,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 45
+      }
+    ]
+  },
+  {
+    "outputItemId": 1157,
+    "weaponLevel": 3,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 12
+      },
+      {
+        "itemId": 999,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1160,
+    "weaponLevel": 3,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 12
+      },
+      {
+        "itemId": 999,
+        "quantity": 20
+      }
+    ]
+  },
+  {
+    "outputItemId": 1163,
+    "weaponLevel": 3,
+    "skillId": 100,
+    "skillName": "BS_TWOHANDSWORD",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 16
+      },
+      {
+        "itemId": 999,
+        "quantity": 20
+      },
+      {
+        "itemId": 733,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1301,
+    "weaponLevel": 1,
+    "skillId": 101,
+    "skillName": "BS_AXE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1351,
+    "weaponLevel": 1,
+    "skillId": 101,
+    "skillName": "BS_AXE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 110
+      }
+    ]
+  },
+  {
+    "outputItemId": 1354,
+    "weaponLevel": 2,
+    "skillId": 101,
+    "skillName": "BS_AXE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 30
+      }
+    ]
+  },
+  {
+    "outputItemId": 1357,
+    "weaponLevel": 3,
+    "skillId": 101,
+    "skillName": "BS_AXE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 4
+      },
+      {
+        "itemId": 999,
+        "quantity": 20
+      },
+      {
+        "itemId": 922,
+        "quantity": 30
+      }
+    ]
+  },
+  {
+    "outputItemId": 1360,
+    "weaponLevel": 3,
+    "skillId": 101,
+    "skillName": "BS_AXE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 999,
+        "quantity": 10
+      },
+      {
+        "itemId": 719,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1501,
+    "weaponLevel": 1,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "outputItemId": 1504,
+    "weaponLevel": 1,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 30
+      }
+    ]
+  },
+  {
+    "outputItemId": 1507,
+    "weaponLevel": 2,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 20
+      }
+    ]
+  },
+  {
+    "outputItemId": 1510,
+    "weaponLevel": 2,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 33
+      }
+    ]
+  },
+  {
+    "outputItemId": 1519,
+    "weaponLevel": 2,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 45
+      }
+    ]
+  },
+  {
+    "outputItemId": 1513,
+    "weaponLevel": 3,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 85
+      },
+      {
+        "itemId": 730,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1516,
+    "weaponLevel": 3,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 100
+      },
+      {
+        "itemId": 963,
+        "quantity": 20
+      }
+    ]
+  },
+  {
+    "outputItemId": 1522,
+    "weaponLevel": 3,
+    "skillId": 102,
+    "skillName": "BS_MACE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 120
+      },
+      {
+        "itemId": 968,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1801,
+    "weaponLevel": 1,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 160
+      },
+      {
+        "itemId": 722,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1803,
+    "weaponLevel": 2,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 50
+      }
+    ]
+  },
+  {
+    "outputItemId": 1805,
+    "weaponLevel": 2,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 65
+      }
+    ]
+  },
+  {
+    "outputItemId": 1807,
+    "weaponLevel": 3,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 4
+      },
+      {
+        "itemId": 723,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1809,
+    "weaponLevel": 3,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 728,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1811,
+    "weaponLevel": 3,
+    "skillId": 103,
+    "skillName": "BS_KNUCKLE",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 4
+      },
+      {
+        "itemId": 727,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1401,
+    "weaponLevel": 1,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "outputItemId": 1404,
+    "weaponLevel": 1,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 35
+      }
+    ]
+  },
+  {
+    "outputItemId": 1407,
+    "weaponLevel": 1,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 70
+      }
+    ]
+  },
+  {
+    "outputItemId": 1451,
+    "weaponLevel": 2,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 25
+      }
+    ]
+  },
+  {
+    "outputItemId": 1454,
+    "weaponLevel": 2,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 40
+      }
+    ]
+  },
+  {
+    "outputItemId": 1457,
+    "weaponLevel": 2,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 2,
+    "ingredients": [
+      {
+        "itemId": 999,
+        "quantity": 55
+      }
+    ]
+  },
+  {
+    "outputItemId": 1460,
+    "weaponLevel": 3,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 8
+      },
+      {
+        "itemId": 999,
+        "quantity": 10
+      },
+      {
+        "itemId": 720,
+        "quantity": 5
+      }
+    ]
+  },
+  {
+    "outputItemId": 1463,
+    "weaponLevel": 3,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 12
+      },
+      {
+        "itemId": 999,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 1410,
+    "weaponLevel": 3,
+    "skillId": 104,
+    "skillName": "BS_SPEAR",
+    "skillLevel": 3,
+    "ingredients": [
+      {
+        "itemId": 984,
+        "quantity": 12
+      },
+      {
+        "itemId": 723,
+        "quantity": 3
+      },
+      {
+        "itemId": 923,
+        "quantity": 2
+      }
+    ]
+  }
+]

@@ -28,7 +28,7 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
     expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AC_MAKINGARROW', 'AL_RUWACH', 'AL_TELEPORT', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 275, unsupported: 73, classes: 40, skills: 348 });
+    expect(manifest.skillCoverage).toMatchObject({ supported: 284, unsupported: 64, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();

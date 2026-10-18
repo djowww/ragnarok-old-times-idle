@@ -473,6 +473,31 @@
       "sourceType": "IT_AMMO"
     },
     {
+      "itemId": 1123,
+      "aegisName": "Haedonggum",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1222,
+      "aegisName": "Damascus",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1160,
+      "aegisName": "Broad_Sword",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1522,
+      "aegisName": "Stunner",
+      "sourceType": "IT_WEAPON"
+    },
+    {
+      "itemId": 1809,
+      "aegisName": "Claw",
+      "sourceType": "IT_WEAPON"
+    },
+    {
       "itemId": 619,
       "aegisName": "Unripe_Apple",
       "sourceType": "IT_USABLE"
@@ -10862,8 +10887,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10880,8 +10904,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10898,8 +10921,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10916,8 +10938,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10934,8 +10955,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10952,8 +10972,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10970,8 +10989,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13927,6 +13945,32 @@
     "sha256": "5328704d976039daf8220917efa0afef0fa8f073071acf0073cf0fe402523b40",
     "redistributed": false
   },
+  "weaponCraft": {
+    "source": "db/produce_db.txt",
+    "recipes": 52,
+    "skillFamilies": [
+      "BS_SWORD",
+      "BS_DAGGER",
+      "BS_TWOHANDSWORD",
+      "BS_AXE",
+      "BS_MACE",
+      "BS_KNUCKLE",
+      "BS_SPEAR"
+    ],
+    "chance": "5000 + jobLevel*20 + DEX*10 + LUK*10 + craftSkillLevel*500 + WeaponResearch*100 + (weaponLevel>=3 ? OrideconResearch*100 : 0) - (weaponLevel>1 ? weaponLevel*1000 : 0) + carriedAnvilBonus; minimum 1/10000; chance above 10000 guarantees success.",
+    "anvilItems": {
+      "986": 0,
+      "987": 300,
+      "988": 500,
+      "989": 1000
+    },
+    "failure": "All required materials are consumed before one chance roll; failure grants no weapon.",
+    "adaptations": [
+      "Solo profile uses the learned passive craft level to open the recipe list.",
+      "Forged elemental and star-crumb slots are not offered; output is an identified plain weapon. Creator metadata has no profile-safe equivalent in the inventory schema.",
+      "Idle validates net weight capacity before consuming materials."
+    ]
+  },
   "weaponRefine": {
     "source": "db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011",
     "normalRates": [
@@ -15099,8 +15143,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 277,
-    "unsupported": 71,
+    "supported": 284,
+    "unsupported": 64,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15264,13 +15308,13 @@
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 20,
-        "unsupported": 19
+        "supported": 27,
+        "unsupported": 12
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 25,
-        "unsupported": 19
+        "supported": 32,
+        "unsupported": 12
       },
       "alchemist": {
         "sourceTree": 35,
@@ -15525,6 +15569,13 @@
       "CH_TIGERFIST",
       "CH_CHAINCRUSH",
       "CH_SOULCOLLECT",
+      "BS_DAGGER",
+      "BS_SWORD",
+      "BS_TWOHANDSWORD",
+      "BS_AXE",
+      "BS_MACE",
+      "BS_KNUCKLE",
+      "BS_SPEAR",
       "BS_HILTBINDING",
       "BS_FINDINGORE",
       "BS_WEAPONRESEARCH",
@@ -15781,41 +15832,6 @@
       {
         "skillId": "bs_orideocon",
         "sourceName": "BS_ORIDEOCON",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_dagger",
-        "sourceName": "BS_DAGGER",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_sword",
-        "sourceName": "BS_SWORD",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_twohandsword",
-        "sourceName": "BS_TWOHANDSWORD",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_axe",
-        "sourceName": "BS_AXE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_mace",
-        "sourceName": "BS_MACE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_knuckle",
-        "sourceName": "BS_KNUCKLE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_spear",
-        "sourceName": "BS_SPEAR",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
@@ -16832,6 +16848,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "1be6c736c30cecb0c64720b245dd337afdc24a37ffef7d1f168ce575891b759d",
+  "catalogSha256": "3585f83a01936f12a90a8fad5f871cca464356daa70c38e14adbc1e17d276aca",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

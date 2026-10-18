@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { parseArrowRecipes } from './arrowRecipes.mjs';
+import { parseWeaponRecipes } from './weaponRecipes.mjs';
 /** Reproducible selected Hercules catalog. GPL-3.0-or-later. Never evaluates scripts. */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -98,6 +99,17 @@ for (const path of ['db/job_db2.txt', 'db/pre-re/sc_config.conf', 'src/map/battl
     buffers[path] = buffer;
     manifest.sources.push({ path, url, sha256: sha(buffer) });
 }
+const weaponRecipes = parseWeaponRecipes(buffers['db/produce_db.txt'].toString('utf8'));
+const weaponCraftSkills = ['BS_SWORD','BS_DAGGER','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'];
+if (weaponRecipes.length !== 52 || JSON.stringify([...new Set(weaponRecipes.map(recipe => recipe.skillName))]) !== JSON.stringify(weaponCraftSkills))
+    throw new Error('Pinned weapon-forging recipes differ');
+manifest.weaponCraft = {
+    source: 'db/produce_db.txt', recipes: weaponRecipes.length, skillFamilies: weaponCraftSkills,
+    chance: '5000 + jobLevel*20 + DEX*10 + LUK*10 + craftSkillLevel*500 + WeaponResearch*100 + (weaponLevel>=3 ? OrideconResearch*100 : 0) - (weaponLevel>1 ? weaponLevel*1000 : 0) + carriedAnvilBonus; minimum 1/10000; chance above 10000 guarantees success.',
+    anvilItems: { 989: 1000, 988: 500, 987: 300, 986: 0 },
+    failure: 'All required materials are consumed before one chance roll; failure grants no weapon.',
+    adaptations: ['Solo profile uses the learned passive craft level to open the recipe list.', 'Forged elemental and star-crumb slots are not offered; output is an identified plain weapon. Creator metadata has no profile-safe equivalent in the inventory schema.', 'Idle validates net weight capacity before consuming materials.']
+};
 const refineSource = parseConfig(buffers['db/pre-re/refine_db.conf'].toString('utf8'));
 const normalRefineRates = [1,2,3,4].map(level => {
     const rates = refineSource['WeaponLevel'+level]?.Rates;
@@ -376,6 +388,7 @@ passiveSkills.add('RG_COMPULSION');
 passiveSkills.add('RG_PLAGIARISM');
 passiveSkills.add('SA_FREECAST');
 passiveSkills.add('BS_FINDINGORE');
+for (const name of ['BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR']) passiveSkills.add(name);
 activeSpecial.add('WZ_ESTIMATION');
 activeSpecial.add('AL_RUWACH');
 activeSpecial.add('DC_WINKCHARM');
@@ -420,6 +433,13 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    BS_DAGGER: 'Passiva: libera a forja de adagas. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_SWORD: 'Passiva: libera a forja de espadas de uma mão. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_TWOHANDSWORD: 'Passiva: libera a forja de espadas de duas mãos. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_AXE: 'Passiva: libera a forja de machados. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_MACE: 'Passiva: libera a forja de maças. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_KNUCKLE: 'Passiva: libera a forja de soqueiras. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
+    BS_SPEAR: 'Passiva: libera a forja de lanças. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
     AS_RIGHT: 'Righthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão direita em ataques normais com duas armas.',
     AS_LEFT: 'Lefthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão esquerda em ataques normais com duas armas.',
     HT_POWER: 'Atinge Brutos e Insetos com dois golpes de arco após Rajada de Flechas. Consome 12 SP e uma Flecha.',
@@ -496,7 +516,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = name === 'AC_MAKINGARROW' || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE','AC_MAKINGARROW'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -542,6 +562,7 @@ for (const name of skillNames) {
         ...(name === 'SA_CASTCANCEL' && { manualUse: 'castCancel' }),
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'AC_MAKINGARROW' && { manualUse: 'arrowCraft' }),
+        ...(['BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && { manualUse: 'weaponCraft' }),
         ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -711,6 +732,7 @@ for (const line of buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/))
         if (Number.isSafeInteger(values[i]) && values[i] > 0) protectedReagentIds.add(values[i]);
 }
 for(const recipe of pharmacyRecipes)protectedReagentIds.add(recipe.outputItemId);
+for(const recipe of weaponRecipes)for(const ingredient of recipe.ingredients)protectedReagentIds.add(ingredient.itemId);
 for(const id of [1010,1011,984])protectedReagentIds.add(id);
 manifest.materialProtection = { sources: ['db/pre-re/skill_db.conf ItemCost', 'db/produce_db.txt AM_PHARMACY', 'src/map/skill.c WS_WEAPONREFINE material array'],
     behavior: 'Skill reagents and potion recipe materials/manuals are excluded from the bulk common-loot sale; individual sale remains available.' };
@@ -799,6 +821,8 @@ const arrowItemIds=new Set(arrowRecipes.flatMap(recipe=>[recipe.materialItemId,.
 for(const id of arrowItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing arrow crafting item '+id);
 const pharmacyItemIds=new Set(pharmacyRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(i=>i.itemId)]));
 for(const id of pharmacyItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing Pharmacy item '+id);
+const weaponItemIds=new Set(weaponRecipes.flatMap(recipe=>[recipe.outputItemId,...recipe.ingredients.map(ingredient=>ingredient.itemId),986,987,988,989]));
+for(const id of weaponItemIds)if(!itemById[id]||!includeItem(itemById[id],false,true))throw new Error('Missing weapon forging item '+id);
 for(const {itemId} of findingOreChain)if(!itemById[itemId]||!includeItem(itemById[itemId],false,true))throw new Error('Missing Ore chain item '+itemId);
 for(const [id,script] of supportedPotionScripts){
  const source=inheritedItem(itemById[id]);
@@ -998,5 +1022,6 @@ const output = arg('--output') ? resolve(arg('--output')) : resolve(root, 'conte
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, text);
 await writeFile(resolve(dirname(output), 'arrow-recipes.json'), JSON.stringify(arrowRecipes, null, 2) + '\n');
+await writeFile(resolve(dirname(output), 'weapon-recipes.json'), JSON.stringify(weaponRecipes, null, 2) + '\n');
 await writeFile(resolve(dirname(output), 'source-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 console.log(`Exported ${Object.keys(catalog.monsters).length} monsters, ${Object.keys(catalog.items).length} items, ${Object.keys(catalog.classes).length} classes, ${Object.keys(catalog.skills).length} skills. SHA256 ${manifest.catalogSha256}`);

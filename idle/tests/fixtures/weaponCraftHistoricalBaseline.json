@@ -1,0 +1,3022 @@
+{
+  "catalog": {
+    "beforeJsonSha256": "5ee141f2e2b8c4feb967cdb7ef33a073cb0649aa855226c9900701582dd0c9de",
+    "afterJsonSha256": "8966602297a37a577c7d69c3e26d3021097c75ed65c1d25ee17660b71a218611",
+    "source": {
+      "before": {
+        "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
+        "files": [
+          "db/pre-re/mob_skill_db.conf",
+          "db/pre-re/mob_db.conf",
+          "db/pre-re/item_db.conf",
+          "db/pre-re/job_db.conf",
+          "db/pre-re/exp_group_db.conf",
+          "db/pre-re/skill_db.conf",
+          "db/pre-re/skill_tree.conf",
+          "db/pre-re/attr_fix.conf",
+          "db/pre-re/size_fix.txt",
+          "db/pre-re/autospell_db.conf",
+          "db/pre-re/unit_parameters_db.conf",
+          "db/create_arrow_db.txt",
+          "npc/merchants/refine.txt",
+          "npc/mapflag/noteleport.txt",
+          "npc/pre-re/mobs/fields/geffen.txt",
+          "npc/pre-re/mobs/fields/payon.txt",
+          "npc/pre-re/mobs/fields/prontera.txt",
+          "npc/pre-re/mobs/dungeons/prt_sew.txt",
+          "npc/pre-re/mobs/dungeons/pay_dun.txt",
+          "npc/pre-re/mobs/dungeons/iz_dun.txt",
+          "npc/pre-re/mobs/dungeons/orcsdun.txt",
+          "npc/pre-re/mobs/dungeons/moc_pryd.txt",
+          "npc/pre-re/mobs/dungeons/gef_dun.txt",
+          "npc/pre-re/mobs/dungeons/glastheim.txt",
+          "npc/pre-re/mobs/dungeons/anthell.txt",
+          "db/job_db2.txt",
+          "db/pre-re/sc_config.conf",
+          "src/map/battle.c",
+          "src/map/status.c",
+          "src/map/skill.c",
+          "src/map/pc.c",
+          "src/map/pc.h",
+          "src/map/unit.c",
+          "src/map/mob.c",
+          "src/map/mob.h",
+          "db/produce_db.txt",
+          "npc/merchants/shops.txt",
+          "npc/merchants/alchemist.txt",
+          "npc/pre-re/merchants/shops.txt",
+          "src/map/clif.c",
+          "db/pre-re/refine_db.conf",
+          "src/map/refine.c",
+          "src/map/clif.h",
+          "db/pre-re/item_chain.conf",
+          "src/map/itemdb.c",
+          "src/map/script.c",
+          "conf/map/battle/drops.conf",
+          "npc/merchants/renters.txt",
+          "src/map/map.h",
+          "conf/map/battle/player.conf",
+          "conf/map/battle/skill.conf",
+          "conf/map/battle/battle.conf"
+        ],
+        "hash": "6166830d103de8cf6eaf12114c911d1832059fa8c7d94421376087cd10e23dc9"
+      },
+      "afterHash": "21b87dd429e68dfdd08f3627425c3195a15f64de9f68d948fa2214a3423398c3"
+    },
+    "addedItems": {
+      "723": "bad963f0849caa265a190c8ef15a0e20886453f98e2c5bae566c9358ab645f26",
+      "726": "98b78c418b10abf8c7164580e473049fbf995d861018b424f8cf51fea58fc793",
+      "986": "cc19be4dfc5e030e2aaad101d5242dc23e44e3ff60b6fd07baeab7d90386a708",
+      "987": "7c7ca8cc8ae1c79556176dbf72b54cdea3f169d23393697d7f13c4f5e39bae84",
+      "988": "5244b32f7326e1af46c1fd98b7b236e73c24fd497ad90f9bd75018767aa16bd5",
+      "989": "9995bf8a8b99b01acc7c48bb0f87b1a609570b36d958582c8ed6555cd3d03550",
+      "1107": "ab4bf598d4799f534e1530462cd9a7315ec692b0872601e612b4b7b99e472d7d",
+      "1110": "b86cf9c88f4a76b9c2bc132d972c73b8a4148f7738dc8d09c8fdd6eb156473ad",
+      "1113": "a9efa2feab4ba9aa1cb96f4e8f3c72e77c134b07fac5534e05c6c3db870f7875",
+      "1122": "9c805b341f77587a91d56ef78cdd108ef76aeb9960bfd081264340faf266652a",
+      "1123": "75dd6f6fd28da532dd518d696e9f02ad89daefcc97142502c65c6218226e68b6",
+      "1126": "cacca3d04ebaec5334055b00f8b220e9fa50569d753f7a11284019e3f1245265",
+      "1129": "67ed5186069d7968f67cb3a60f82fa639f741db24afa32602c6f02d829c55136",
+      "1151": "0da1a88ae48384f665415891f1845d55e6058bcd59c884d73b98273acd7b5568",
+      "1154": "1c1b5373bcc5844e181f4cc57decc89790cdda27929832e5e2675fda43b3e7e9",
+      "1157": "5228dd5c65b4bd87a949fe8a0577a5ce794983b5848fae8359d0f7817043a181",
+      "1160": "fb6550ace70dacde8d76f456a4c5c9c81902debcdaf142af3fc5092598770f34",
+      "1210": "0496dfdd9702059da21a4c541531a777310a4c349360df0a6f93174016bf8508",
+      "1213": "c05092453015c1b0547476b4eaa7e8648779c1510b7274efa2cc8bd667174fd0",
+      "1222": "b555083571f702bdc24c912e9cdde90c28874833f429b3e93ae0667c4ae1bcc4",
+      "1354": "adf8187069126edb37eedda34a59db646685c3567cee8d0efb2bc429340f940c",
+      "1357": "449c1bd31332afbf3a6eef5bf346a9cad41e388b9a3a5b820ffa64cfd6e6c27e",
+      "1360": "f76a754e1baba5f7b29d850471ddf8f15c1a2912264eb2eae0519a1679d564b8",
+      "1407": "5aafefc713286da97531a46f00917bb4b198b81e2f63596105e9dcb0dd8cff1f",
+      "1410": "91304a260fd03fd1ee889c041a690ff6d37a0746e6176180de3213ae3a665fa4",
+      "1451": "281e8f3d3635c73b8f26e37e667aeb755853853804770522235edf8de878e130",
+      "1454": "14e97faad73518f8040352a1016297c31eff6cd648022b8393d56b62b448160f",
+      "1457": "ffcacf67d165789dcca3b72068a73f80b30e32aa5882575307b6388f7afa07ab",
+      "1460": "a6204f81d556b6983b737e285c88634b4f2de328de85b891d52dcfd51f92bb1a",
+      "1463": "20054dda030c8ecb5be4623d531f3f9327ef0b89ce54c618acd3953559075456",
+      "1507": "a1fa684b13e77eee8723b1f826798657ca374b50c0a92ee6f02c519346546b35",
+      "1510": "74f470375866f90ea6a7016f39be86d7f2e06f383377bb38aea229491ee8a32e",
+      "1513": "507fc578c6da67215433726493645bf06e52e8839e2b2f22c2b038d85a1ac0da",
+      "1516": "c10a2ba11803c1661ca35ecc86a05dbe21bf1a914f773b063cbd3c61cbfa40ae",
+      "1519": "cac6e7c57e914d322bb77b8b806fbec434c622d7a2aecf70a26b7075dc093d62",
+      "1522": "3edaab1016d2e0390d19a2458b21562e3e7385187645c44a31980336cb4fcfad",
+      "1801": "84d577d127cd211f23162e5e7f1ca73a96303eef9949975eab8b7cd5e19f0c06",
+      "1803": "100842bc51ced28bfcff746fa3781b3f59f413677d69c57eb9fff7e1b827431c",
+      "1805": "e9930cfb80a277bc105260e7f8f6f6d5cb4b2327a4fa067e3e72d6604e960f68",
+      "1807": "57031d9dcc8293a83a4bea1e9d2c3a701db4ea8ef6ca09fd6c48e36b34d365ba",
+      "1809": "2fe1bcbef2a3e9f0b12ea9a6b3306a703d37f61bef3f59f4152f82322b77c180",
+      "1811": "42a6cfe9b2ea9dd2b4b05f991b9285155afff0bc3e0d7138b51a2324174e2964"
+    },
+    "changedItems": {
+      "718": {
+        "before": {
+          "id": 718,
+          "name": "Garnet",
+          "aegisName": "Dark_Red_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/검붉은보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "2458b1d2003c7c860521783ba378e917d971cf88fd49d372810d2c7876c313e0"
+      },
+      "719": {
+        "before": {
+          "id": 719,
+          "name": "Amethyst",
+          "aegisName": "Violet_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/보라색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "beacd1c6cb6be1346b9b5659daad8abeb5a1cce6361eb55666ff0f8e207f5e24"
+      },
+      "720": {
+        "before": {
+          "id": 720,
+          "name": "Aquamarine",
+          "aegisName": "Skyblue_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/하늘색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "18e26e867c1bbe3d586fa21ad9204c684e322f8026fc23e6139b978971d701d3"
+      },
+      "722": {
+        "before": {
+          "id": 722,
+          "name": "Pearl",
+          "aegisName": "Scarlet_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/분홍색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "98a4d502789b2c5a70f9013958c30926a234b68dcfd43db8222d05e93aa2679e"
+      },
+      "724": {
+        "before": {
+          "id": 724,
+          "name": "Cursed Ruby",
+          "aegisName": "Cardinal_Jewel_",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 600,
+          "sellPrice": 300,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/진홍색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "d89373604e8789537f86681ff295a1fb2938eaf32a0ba5ca875c6e29949c9376"
+      },
+      "727": {
+        "before": {
+          "id": 727,
+          "name": "Opal",
+          "aegisName": "White_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/하얀색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "65fe1f9d509699752e9ded45ed960ad7d8aac8f3b3c4146b4f54de953114d54f"
+      },
+      "728": {
+        "before": {
+          "id": 728,
+          "name": "Topaz",
+          "aegisName": "Golden_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/노란색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "aa7edd805a030b34d405b7f3de5275d561e9ef7488927cb1c975350d271f72bb"
+      },
+      "729": {
+        "before": {
+          "id": 729,
+          "name": "Zircon",
+          "aegisName": "Bluish_Green_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6000,
+          "sellPrice": 3000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/청록색보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "c92b02bd8fbf2ccef2f6d8d248c6762bba07f2a6786fac8ca0c3b917d854d090"
+      },
+      "730": {
+        "before": {
+          "id": 730,
+          "name": "1carat Diamond",
+          "aegisName": "Crystal_Jewel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 10000,
+          "sellPrice": 5000,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/투명한보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "22d0267c50716317259a96725db3a279eda865038fa044515ad0ccdf58d1df6e"
+      },
+      "733": {
+        "before": {
+          "id": 733,
+          "name": "Cracked Diamond",
+          "aegisName": "Crystal_Jewel___",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 10,
+          "sellPrice": 5,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/투명한보석.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "7db32f7bccbbc411d01cf27e47e063bf10ff3ab12a55a60d8b3d78dbe074fc59"
+      },
+      "909": {
+        "before": {
+          "id": 909,
+          "name": "Jellopy",
+          "aegisName": "Jellopy",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 6,
+          "sellPrice": 3,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/젤로피.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "feed3d5fb4269d556bce80b444f05ef933f965d8916fd7850ec3920a48d35216"
+      },
+      "913": {
+        "before": {
+          "id": 913,
+          "name": "Tooth of Bat",
+          "aegisName": "Tooth_Of_Bat",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 34,
+          "sellPrice": 17,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/박쥐의이빨.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "753fa673a789d9e313eddd95915aa42b4c69ef70559baaf60ed08be4176f3def"
+      },
+      "920": {
+        "before": {
+          "id": 920,
+          "name": "Wolf Claw",
+          "aegisName": "Claw_Of_Wolves",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 58,
+          "sellPrice": 29,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/늑대의발톱.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "80f63f0f90e2b14206ec316cb923cf04034692b365bd0f491035d3b3b966c446"
+      },
+      "922": {
+        "before": {
+          "id": 922,
+          "name": "Orc's Fang",
+          "aegisName": "Orcish_Cuspid",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 220,
+          "sellPrice": 110,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/오크의송곳니.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "e7063c97a3f73287618b1e1672f8a7fc55293b66b5c6254e548bad86f2a603e4"
+      },
+      "923": {
+        "before": {
+          "id": 923,
+          "name": "Evil Horn",
+          "aegisName": "Evil_Horn",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 1200,
+          "sellPrice": 600,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/악마의뿔.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "c87ce9c73ba15bb815d47bc1f912e596fe824f57283b9113c36bcd558e8dce5b"
+      },
+      "957": {
+        "before": {
+          "id": 957,
+          "name": "Decayed Nail",
+          "aegisName": "Decayed_Nail",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 82,
+          "sellPrice": 41,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/망자의손톱.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "44eeae5a4e7a6288b153db01863ce925a240a5e96b09859ffe7198f0ff2980ea"
+      },
+      "958": {
+        "before": {
+          "id": 958,
+          "name": "Horrendous Mouth",
+          "aegisName": "Horrendous_Mouth",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 390,
+          "sellPrice": 195,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/망자의이빨.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "85cd1bd034fed6de8acbc6ce1b63566a687bfb0cfcac4927d62fd3df50f6c61e"
+      },
+      "963": {
+        "before": {
+          "id": 963,
+          "name": "Sharp Scale",
+          "aegisName": "Sharp_Scale",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 250,
+          "sellPrice": 125,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/날카로운비늘.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "c0c863651fc19f063e291c168025a63f3b49edf868a83ba65a594347405a2817"
+      },
+      "968": {
+        "before": {
+          "id": 968,
+          "name": "Heroic Emblem",
+          "aegisName": "Voucher_Of_Orcish_Hero",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 3000,
+          "sellPrice": 1500,
+          "weight": 1,
+          "resource": "data/texture/유저인터페이스/item/오크용자의증표.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "a2c99eebf7ad3777f4b40e9f76dfefbc9cf4479d368636809a0edb937d019277"
+      },
+      "998": {
+        "before": {
+          "id": 998,
+          "name": "Iron",
+          "aegisName": "Iron",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 100,
+          "sellPrice": 50,
+          "weight": 5,
+          "resource": "data/texture/유저인터페이스/item/철.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "1630d7ae02a6765520b60a08b7d939767f0302f3c39549b9363c16e1948fe4b4"
+      },
+      "999": {
+        "before": {
+          "id": 999,
+          "name": "Steel",
+          "aegisName": "Steel",
+          "type": "loot",
+          "attack": 0,
+          "def": 0,
+          "slots": 0,
+          "minLevel": 1,
+          "allowedClasses": [
+            "novice",
+            "high_novice",
+            "swordsman",
+            "high_swordsman",
+            "mage",
+            "high_mage",
+            "archer",
+            "high_archer",
+            "acolyte",
+            "high_acolyte",
+            "merchant",
+            "high_merchant",
+            "thief",
+            "high_thief",
+            "knight",
+            "lord_knight",
+            "crusader",
+            "paladin",
+            "wizard",
+            "high_wizard",
+            "sage",
+            "professor",
+            "hunter",
+            "sniper",
+            "bard",
+            "clown",
+            "dancer",
+            "gypsy",
+            "priest",
+            "high_priest",
+            "monk",
+            "champion",
+            "blacksmith",
+            "whitesmith",
+            "alchemist",
+            "creator",
+            "assassin",
+            "assassin_cross",
+            "rogue",
+            "stalker"
+          ],
+          "buyPrice": 1000,
+          "sellPrice": 500,
+          "weight": 10,
+          "resource": "data/texture/유저인터페이스/item/강철.bmp",
+          "effects": {},
+          "shop": false
+        },
+        "afterHash": "6a74dba5a8b6292ec69013ab844c760479a3f4a4d3c66883a74d0ac220c92b7d"
+      }
+    },
+    "changedSkills": {
+      "bs_axe": {
+        "before": {
+          "id": "bs_axe",
+          "name": "Smith Axe",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 101,
+          "sourceName": "BS_AXE",
+          "mechanic": "BS_AXE",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Axe. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_axe.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_sword",
+              "level": 2
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_sword",
+                "level": 2
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_sword",
+                "level": 2
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "b21ed102ee32a8306ad4a8314c1c454596d97230ac38165fe017036f1e4de6bd"
+      },
+      "bs_dagger": {
+        "before": {
+          "id": "bs_dagger",
+          "name": "Smith Dagger",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 98,
+          "sourceName": "BS_DAGGER",
+          "mechanic": "BS_DAGGER",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Dagger. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_dagger.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [],
+          "prerequisitesByClass": {
+            "blacksmith": [],
+            "whitesmith": []
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "10435c0115efc37eb8df37c3f3f32c2e19e12a02a4bf0985524412f4e655b00b"
+      },
+      "bs_knuckle": {
+        "before": {
+          "id": "bs_knuckle",
+          "name": "Smith Knucklebrace",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 103,
+          "sourceName": "BS_KNUCKLE",
+          "mechanic": "BS_KNUCKLE",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Knucklebrace. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_knuckle.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_dagger",
+              "level": 1
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 1
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 1
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "ef40ce27ba25c8f7606e76f697df8ab77c386d8fb307db24fb5022e29bb4ab92"
+      },
+      "bs_mace": {
+        "before": {
+          "id": "bs_mace",
+          "name": "Smith Mace",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 102,
+          "sourceName": "BS_MACE",
+          "mechanic": "BS_MACE",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Mace. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_mace.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_knuckle",
+              "level": 1
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_knuckle",
+                "level": 1
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_knuckle",
+                "level": 1
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "b100576c1bc029c2001165751bd8076bbc53585aedda061887398c5ea55cdbb3"
+      },
+      "bs_spear": {
+        "before": {
+          "id": "bs_spear",
+          "name": "Smith Spear",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 104,
+          "sourceName": "BS_SPEAR",
+          "mechanic": "BS_SPEAR",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Spear. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_spear.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_dagger",
+              "level": 2
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 2
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 2
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "ab55e91df1431c64e478c4a73943e5bff12d0ffc6d6836c758d26a2dcdb2f112"
+      },
+      "bs_sword": {
+        "before": {
+          "id": "bs_sword",
+          "name": "Smith Sword",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 99,
+          "sourceName": "BS_SWORD",
+          "mechanic": "BS_SWORD",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Sword. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_sword.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_dagger",
+              "level": 1
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 1
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_dagger",
+                "level": 1
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "6a95afe845cb7e296e311eb7755a15014a62c7c54ebf3322b87a6a256140648a"
+      },
+      "bs_twohandsword": {
+        "before": {
+          "id": "bs_twohandsword",
+          "name": "Smith Two-handed Sword",
+          "kind": "passive",
+          "maxLevel": 3,
+          "herculesId": 100,
+          "sourceName": "BS_TWOHANDSWORD",
+          "mechanic": "BS_TWOHANDSWORD",
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "description": "Smith Two-handed Sword. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "iconResource": "data/texture/유저인터페이스/item/bs_twohandsword.bmp",
+          "spCost": [
+            0,
+            0,
+            0
+          ],
+          "power": [
+            0,
+            0,
+            0
+          ],
+          "cooldownMs": 0,
+          "castTimeMs": [
+            0,
+            0,
+            0
+          ],
+          "afterCastDelayMs": [
+            0,
+            0,
+            0
+          ],
+          "interruptCast": false,
+          "hitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "aoeRadius": [
+            0,
+            0,
+            0
+          ],
+          "range": [
+            0,
+            0,
+            0
+          ],
+          "targetType": "passive",
+          "damageType": "none",
+          "prerequisites": [
+            {
+              "skillId": "bs_sword",
+              "level": 1
+            }
+          ],
+          "prerequisitesByClass": {
+            "blacksmith": [
+              {
+                "skillId": "bs_sword",
+                "level": 1
+              }
+            ],
+            "whitesmith": [
+              {
+                "skillId": "bs_sword",
+                "level": 1
+              }
+            ]
+          },
+          "minimumJobLevel": 1
+        },
+        "afterHash": "ce71b9f110d15db9150197ca28b648daa46e4350211946eff384ccaf423e2f9d"
+      }
+    }
+  },
+  "manifest": {
+    "beforeJsonSha256": "82c735827bd6c054fe092ef7e4ee4b3a847793c7014bed0f5c6815e02e6b73e1",
+    "afterJsonSha256": "aee096299dc73c20612e8975bbcd01769d2aa3eeac007f3ab19bb6bbcd2b2578",
+    "addedInertItems": {
+      "1123": "669bc057f59c4b98d99411a8f41c10da40fb3e6af85910713d917a814675e122",
+      "1160": "7efd277557ab9badd5eb79672ccd9293e5627e82d5ba18b63b7967fc59e6f82f",
+      "1222": "a3e9951c3f5b07fb17c0454871f5a0c94c037013f3f168552e7d597bf037a40a",
+      "1522": "66dec2244fa43e6a3cfba49d27c92303925b010243be1b106136d63963d2ed93",
+      "1809": "e64d31199f2e5b061127be52ba8e9b7d60831a303549d6c2ae4f49a53df31d8f"
+    },
+    "inertDropItemsBeforeHash": "142b5aa0000e70255be7c38a439c3eb3c78b5de9bf278168a36a20cb152c15e1",
+    "inertDropItemsAfterHash": "18f769e763e46a181400002f14c4840321ff436e15b578faa479599c9c7c207e",
+    "changedSkills": {
+      "bs_axe": {
+        "before": {
+          "id": 101,
+          "name": "BS_AXE",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "aa7afee7e35955edf53f996c7ca134501030752dca3ff1d69cdb998f99b97fc4"
+      },
+      "bs_dagger": {
+        "before": {
+          "id": 98,
+          "name": "BS_DAGGER",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "e5dd297cc99c8d8f9ac44fe1bd0c8b009fe064b97c0c09aced7e1c3376d45351"
+      },
+      "bs_knuckle": {
+        "before": {
+          "id": 103,
+          "name": "BS_KNUCKLE",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "9c1c8a2a8293dd603648549fe43f85580fb8b832942e559dc874247573bafaff"
+      },
+      "bs_mace": {
+        "before": {
+          "id": 102,
+          "name": "BS_MACE",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "4da0b1254a98b987934b1f6b715d173edabe6a48b7a1980c80f17abbc61259f0"
+      },
+      "bs_spear": {
+        "before": {
+          "id": 104,
+          "name": "BS_SPEAR",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "602a7ed4ded778b5337823d13b4de62af95fbae95396b5a95016d49efe81f2d8"
+      },
+      "bs_sword": {
+        "before": {
+          "id": 99,
+          "name": "BS_SWORD",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "fa197e545b2c1f46fcb51ae7572b8bdea211a08ecb1add28e097473b6e9495b3"
+      },
+      "bs_twohandsword": {
+        "before": {
+          "id": 100,
+          "name": "BS_TWOHANDSWORD",
+          "sourceMaxLevel": 3,
+          "sourceRequirements": {},
+          "sourceDamageType": {},
+          "sourceUnit": {},
+          "sourceHitCount": [
+            0,
+            0,
+            0
+          ],
+          "sourceSplashRange": 0,
+          "implementation": "unsupported",
+          "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+          "ratioSource": "src/map/skill.c and src/map/status.c",
+          "unsupportedRequirements": []
+        },
+        "afterHash": "4cff82211ff741bb7e97bce62679703472f44cd7e5c16667a3f8f1fde6d6e9b0"
+      }
+    },
+    "skillCoverage": {
+      "before": {
+        "classes": 40,
+        "skills": 348,
+        "supported": 277,
+        "unsupported": 71,
+        "byClass": {
+          "novice": {
+            "sourceTree": 3,
+            "supported": 2,
+            "unsupported": 1
+          },
+          "high_novice": {
+            "sourceTree": 3,
+            "supported": 2,
+            "unsupported": 1
+          },
+          "swordsman": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "high_swordsman": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "mage": {
+            "sourceTree": 16,
+            "supported": 15,
+            "unsupported": 1
+          },
+          "high_mage": {
+            "sourceTree": 16,
+            "supported": 15,
+            "unsupported": 1
+          },
+          "archer": {
+            "sourceTree": 9,
+            "supported": 8,
+            "unsupported": 1
+          },
+          "high_archer": {
+            "sourceTree": 9,
+            "supported": 8,
+            "unsupported": 1
+          },
+          "acolyte": {
+            "sourceTree": 17,
+            "supported": 14,
+            "unsupported": 3
+          },
+          "high_acolyte": {
+            "sourceTree": 17,
+            "supported": 14,
+            "unsupported": 3
+          },
+          "merchant": {
+            "sourceTree": 15,
+            "supported": 10,
+            "unsupported": 5
+          },
+          "high_merchant": {
+            "sourceTree": 15,
+            "supported": 10,
+            "unsupported": 5
+          },
+          "thief": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "high_thief": {
+            "sourceTree": 12,
+            "supported": 11,
+            "unsupported": 1
+          },
+          "knight": {
+            "sourceTree": 24,
+            "supported": 22,
+            "unsupported": 2
+          },
+          "lord_knight": {
+            "sourceTree": 32,
+            "supported": 30,
+            "unsupported": 2
+          },
+          "crusader": {
+            "sourceTree": 31,
+            "supported": 29,
+            "unsupported": 2
+          },
+          "paladin": {
+            "sourceTree": 35,
+            "supported": 33,
+            "unsupported": 2
+          },
+          "wizard": {
+            "sourceTree": 30,
+            "supported": 28,
+            "unsupported": 2
+          },
+          "high_wizard": {
+            "sourceTree": 36,
+            "supported": 33,
+            "unsupported": 3
+          },
+          "sage": {
+            "sourceTree": 41,
+            "supported": 38,
+            "unsupported": 3
+          },
+          "professor": {
+            "sourceTree": 49,
+            "supported": 45,
+            "unsupported": 4
+          },
+          "hunter": {
+            "sourceTree": 28,
+            "supported": 24,
+            "unsupported": 4
+          },
+          "sniper": {
+            "sourceTree": 32,
+            "supported": 28,
+            "unsupported": 4
+          },
+          "bard": {
+            "sourceTree": 28,
+            "supported": 17,
+            "unsupported": 11
+          },
+          "clown": {
+            "sourceTree": 34,
+            "supported": 19,
+            "unsupported": 15
+          },
+          "dancer": {
+            "sourceTree": 28,
+            "supported": 16,
+            "unsupported": 12
+          },
+          "gypsy": {
+            "sourceTree": 34,
+            "supported": 18,
+            "unsupported": 16
+          },
+          "priest": {
+            "sourceTree": 36,
+            "supported": 31,
+            "unsupported": 5
+          },
+          "high_priest": {
+            "sourceTree": 40,
+            "supported": 34,
+            "unsupported": 6
+          },
+          "monk": {
+            "sourceTree": 34,
+            "supported": 30,
+            "unsupported": 4
+          },
+          "champion": {
+            "sourceTree": 38,
+            "supported": 34,
+            "unsupported": 4
+          },
+          "blacksmith": {
+            "sourceTree": 39,
+            "supported": 20,
+            "unsupported": 19
+          },
+          "whitesmith": {
+            "sourceTree": 44,
+            "supported": 25,
+            "unsupported": 19
+          },
+          "alchemist": {
+            "sourceTree": 35,
+            "supported": 16,
+            "unsupported": 19
+          },
+          "creator": {
+            "sourceTree": 39,
+            "supported": 18,
+            "unsupported": 21
+          },
+          "assassin": {
+            "sourceTree": 24,
+            "supported": 23,
+            "unsupported": 1
+          },
+          "assassin_cross": {
+            "sourceTree": 29,
+            "supported": 27,
+            "unsupported": 2
+          },
+          "rogue": {
+            "sourceTree": 33,
+            "supported": 27,
+            "unsupported": 6
+          },
+          "stalker": {
+            "sourceTree": 37,
+            "supported": 31,
+            "unsupported": 6
+          }
+        },
+        "supportedSourceNames": [
+          "NV_FIRSTAID",
+          "NV_TRICKDEAD",
+          "SM_SWORD",
+          "SM_TWOHAND",
+          "SM_RECOVERY",
+          "SM_BASH",
+          "SM_PROVOKE",
+          "SM_MAGNUM",
+          "SM_ENDURE",
+          "SM_MOVINGRECOVERY",
+          "SM_FATALBLOW",
+          "SM_AUTOBERSERK",
+          "MG_SRECOVERY",
+          "MG_SIGHT",
+          "MG_NAPALMBEAT",
+          "MG_SAFETYWALL",
+          "MG_SOULSTRIKE",
+          "MG_COLDBOLT",
+          "MG_FROSTDIVER",
+          "MG_STONECURSE",
+          "MG_FIREBALL",
+          "MG_FIREWALL",
+          "MG_FIREBOLT",
+          "MG_LIGHTNINGBOLT",
+          "MG_THUNDERSTORM",
+          "MG_ENERGYCOAT",
+          "AC_OWL",
+          "AC_VULTURE",
+          "AC_CONCENTRATION",
+          "AC_DOUBLE",
+          "AC_SHOWER",
+          "AC_MAKINGARROW",
+          "AC_CHARGEARROW",
+          "AL_DP",
+          "AL_DEMONBANE",
+          "AL_RUWACH",
+          "AL_PNEUMA",
+          "AL_TELEPORT",
+          "AL_HEAL",
+          "AL_INCAGI",
+          "AL_DECAGI",
+          "AL_CRUCIS",
+          "AL_ANGELUS",
+          "AL_BLESSING",
+          "AL_CURE",
+          "AL_HOLYLIGHT",
+          "ALL_INCCARRY",
+          "MC_INCCARRY",
+          "MC_DISCOUNT",
+          "MC_OVERCHARGE",
+          "MC_PUSHCART",
+          "MC_IDENTIFY",
+          "MC_MAMMONITE",
+          "MC_CARTREVOLUTION",
+          "MC_LOUD",
+          "TF_DOUBLE",
+          "TF_MISS",
+          "TF_STEAL",
+          "TF_HIDING",
+          "TF_POISON",
+          "TF_DETOXIFY",
+          "TF_SPRINKLESAND",
+          "TF_BACKSLIDING",
+          "TF_PICKSTONE",
+          "TF_THROWSTONE",
+          "KN_SPEARMASTERY",
+          "KN_PIERCE",
+          "KN_BRANDISHSPEAR",
+          "KN_SPEARSTAB",
+          "KN_SPEARBOOMERANG",
+          "KN_TWOHANDQUICKEN",
+          "KN_AUTOCOUNTER",
+          "KN_BOWLINGBASH",
+          "KN_RIDING",
+          "KN_CAVALIERMASTERY",
+          "KN_CHARGEATK",
+          "LK_AURABLADE",
+          "LK_PARRYING",
+          "LK_CONCENTRATION",
+          "LK_TENSIONRELAX",
+          "LK_BERSERK",
+          "LK_SPIRALPIERCE",
+          "LK_HEADCRUSH",
+          "LK_JOINTBEAT",
+          "CR_TRUST",
+          "CR_AUTOGUARD",
+          "CR_SHIELDCHARGE",
+          "CR_SHIELDBOOMERANG",
+          "CR_REFLECTSHIELD",
+          "CR_HOLYCROSS",
+          "CR_GRANDCROSS",
+          "CR_PROVIDENCE",
+          "CR_DEFENDER",
+          "CR_SPEARQUICKEN",
+          "CR_SHRINK",
+          "PA_PRESSURE",
+          "PA_SACRIFICE",
+          "PA_GOSPEL",
+          "PA_SHIELDCHAIN",
+          "WZ_FIREPILLAR",
+          "WZ_SIGHTRASHER",
+          "WZ_METEOR",
+          "WZ_JUPITEL",
+          "WZ_VERMILION",
+          "WZ_WATERBALL",
+          "WZ_FROSTNOVA",
+          "WZ_STORMGUST",
+          "WZ_EARTHSPIKE",
+          "WZ_HEAVENDRIVE",
+          "WZ_QUAGMIRE",
+          "WZ_ESTIMATION",
+          "WZ_SIGHTBLASTER",
+          "HW_SOULDRAIN",
+          "HW_MAGICCRASHER",
+          "HW_MAGICPOWER",
+          "HW_NAPALMVULCAN",
+          "HW_GRAVITATION",
+          "SA_ADVANCEDBOOK",
+          "SA_CASTCANCEL",
+          "SA_MAGICROD",
+          "SA_SPELLBREAKER",
+          "SA_FREECAST",
+          "SA_AUTOSPELL",
+          "SA_FLAMELAUNCHER",
+          "SA_FROSTWEAPON",
+          "SA_LIGHTNINGLOADER",
+          "SA_SEISMICWEAPON",
+          "SA_DRAGONOLOGY",
+          "SA_VOLCANO",
+          "SA_DELUGE",
+          "SA_VIOLENTGALE",
+          "SA_DISPELL",
+          "SA_CREATECON",
+          "SA_ELEMENTWATER",
+          "SA_ELEMENTGROUND",
+          "SA_ELEMENTFIRE",
+          "SA_ELEMENTWIND",
+          "PF_HPCONVERSION",
+          "PF_SOULCHANGE",
+          "PF_MINDBREAKER",
+          "PF_MEMORIZE",
+          "PF_FOGWALL",
+          "PF_SPIDERWEB",
+          "PF_DOUBLECASTING",
+          "HT_SKIDTRAP",
+          "HT_LANDMINE",
+          "HT_ANKLESNARE",
+          "HT_SHOCKWAVE",
+          "HT_SANDMAN",
+          "HT_FLASHER",
+          "HT_FREEZINGTRAP",
+          "HT_BLASTMINE",
+          "HT_CLAYMORETRAP",
+          "HT_BEASTBANE",
+          "HT_FALCON",
+          "HT_STEELCROW",
+          "HT_BLITZBEAT",
+          "HT_DETECTING",
+          "HT_PHANTASMIC",
+          "HT_POWER",
+          "SN_SIGHT",
+          "SN_FALCONASSAULT",
+          "SN_SHARPSHOOTING",
+          "SN_WINDWALK",
+          "BA_MUSICALLESSON",
+          "BA_MUSICALSTRIKE",
+          "BA_DISSONANCE",
+          "BA_FROSTJOKE",
+          "BA_WHISTLE",
+          "BA_ASSASSINCROSS",
+          "BA_POEMBRAGI",
+          "BA_APPLEIDUN",
+          "BA_PANGVOICE",
+          "CG_ARROWVULCAN",
+          "CG_TAROTCARD",
+          "DC_DANCINGLESSON",
+          "DC_THROWARROW",
+          "DC_SCREAM",
+          "DC_HUMMING",
+          "DC_DONTFORGETME",
+          "DC_FORTUNEKISS",
+          "DC_SERVICEFORYOU",
+          "DC_WINKCHARM",
+          "ALL_RESURRECTION",
+          "PR_MACEMASTERY",
+          "PR_IMPOSITIO",
+          "PR_SUFFRAGIUM",
+          "PR_ASPERSIO",
+          "PR_SANCTUARY",
+          "PR_SLOWPOISON",
+          "PR_STRECOVERY",
+          "PR_KYRIE",
+          "PR_MAGNIFICAT",
+          "PR_GLORIA",
+          "PR_LEXDIVINA",
+          "PR_TURNUNDEAD",
+          "PR_LEXAETERNA",
+          "PR_MAGNUS",
+          "HP_ASSUMPTIO",
+          "HP_MEDITATIO",
+          "HP_MANARECHARGE",
+          "MO_IRONHAND",
+          "MO_SPIRITSRECOVERY",
+          "MO_CALLSPIRITS",
+          "MO_ABSORBSPIRITS",
+          "MO_TRIPLEATTACK",
+          "MO_BODYRELOCATION",
+          "MO_DODGE",
+          "MO_INVESTIGATE",
+          "MO_FINGEROFFENSIVE",
+          "MO_STEELBODY",
+          "MO_BLADESTOP",
+          "MO_EXPLOSIONSPIRITS",
+          "MO_EXTREMITYFIST",
+          "MO_CHAINCOMBO",
+          "MO_COMBOFINISH",
+          "MO_BALKYOUNG",
+          "CH_PALMSTRIKE",
+          "CH_TIGERFIST",
+          "CH_CHAINCRUSH",
+          "CH_SOULCOLLECT",
+          "BS_HILTBINDING",
+          "BS_FINDINGORE",
+          "BS_WEAPONRESEARCH",
+          "BS_SKINTEMPER",
+          "BS_HAMMERFALL",
+          "BS_ADRENALINE",
+          "BS_WEAPONPERFECT",
+          "BS_OVERTHRUST",
+          "BS_MAXIMIZE",
+          "BS_UNFAIRLYTRICK",
+          "WS_MELTDOWN",
+          "WS_CARTBOOST",
+          "WS_WEAPONREFINE",
+          "WS_CARTTERMINATION",
+          "WS_OVERTHRUSTMAX",
+          "AM_AXEMASTERY",
+          "AM_LEARNINGPOTION",
+          "AM_PHARMACY",
+          "AM_DEMONSTRATION",
+          "AM_ACIDTERROR",
+          "AM_POTIONPITCHER",
+          "CR_SLIMPITCHER",
+          "CR_ACIDDEMONSTRATION",
+          "AS_RIGHT",
+          "AS_LEFT",
+          "AS_KATAR",
+          "AS_CLOAKING",
+          "AS_SONICBLOW",
+          "AS_GRIMTOOTH",
+          "AS_ENCHANTPOISON",
+          "AS_POISONREACT",
+          "AS_VENOMDUST",
+          "AS_SPLASHER",
+          "AS_SONICACCEL",
+          "AS_VENOMKNIFE",
+          "ASC_KATAR",
+          "ASC_EDP",
+          "ASC_BREAKER",
+          "ASC_METEORASSAULT",
+          "RG_SNATCHER",
+          "RG_STEALCOIN",
+          "RG_BACKSTAP",
+          "RG_TUNNELDRIVE",
+          "RG_RAID",
+          "RG_STRIPWEAPON",
+          "RG_STRIPSHIELD",
+          "RG_STRIPARMOR",
+          "RG_STRIPHELM",
+          "RG_INTIMIDATE",
+          "RG_COMPULSION",
+          "RG_PLAGIARISM",
+          "RG_CLOSECONFINE",
+          "ST_CHASEWALK",
+          "ST_REJECTSWORD",
+          "ST_PRESERVE",
+          "ST_FULLSTRIP"
+        ],
+        "unavailable": [
+          {
+            "skillId": "nv_basic",
+            "sourceName": "NV_BASIC",
+            "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
+          },
+          {
+            "skillId": "al_warp",
+            "sourceName": "AL_WARP",
+            "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
+          },
+          {
+            "skillId": "al_holywater",
+            "sourceName": "AL_HOLYWATER",
+            "reason": "Produção de Água Benta exige células de água e Frasco Vazio."
+          },
+          {
+            "skillId": "mc_vending",
+            "sourceName": "MC_VENDING",
+            "reason": "Requer comércio com outros personagens."
+          },
+          {
+            "skillId": "mc_changecart",
+            "sourceName": "MC_CHANGECART",
+            "reason": "Aparência do carrinho exige objetos de carrinho."
+          },
+          {
+            "skillId": "mc_cartdecorate",
+            "sourceName": "MC_CARTDECORATE",
+            "reason": "Decoração de carrinho exige objetos de carrinho."
+          },
+          {
+            "skillId": "all_buying_store",
+            "sourceName": "ALL_BUYING_STORE",
+            "reason": "Requer comércio com outros personagens."
+          },
+          {
+            "skillId": "kn_onehand",
+            "sourceName": "KN_ONEHAND",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "cr_devotion",
+            "sourceName": "CR_DEVOTION",
+            "reason": "Requer outro personagem para transferir dano."
+          },
+          {
+            "skillId": "ice_wall",
+            "sourceName": "WZ_ICEWALL",
+            "reason": "Requer edição de células bloqueadas do mapa."
+          },
+          {
+            "skillId": "ganbantein",
+            "sourceName": "HW_GANBANTEIN",
+            "reason": "Requer remoção de unidades de habilidades em células do mapa."
+          },
+          {
+            "skillId": "sa_landprotector",
+            "sourceName": "SA_LANDPROTECTOR",
+            "reason": "Requer células de mapa e cancelamento de campos."
+          },
+          {
+            "skillId": "sa_abracadabra",
+            "sourceName": "SA_ABRACADABRA",
+            "reason": "Requer seleção aleatória de habilidades especiais e transformações."
+          },
+          {
+            "skillId": "pf_soulburn",
+            "sourceName": "PF_SOULBURN",
+            "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
+          },
+          {
+            "skillId": "ht_removetrap",
+            "sourceName": "HT_REMOVETRAP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "ht_talkiebox",
+            "sourceName": "HT_TALKIEBOX",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "ht_springtrap",
+            "sourceName": "HT_SPRINGTRAP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_adaptation",
+            "sourceName": "BD_ADAPTATION",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_encore",
+            "sourceName": "BD_ENCORE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_lullaby",
+            "sourceName": "BD_LULLABY",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_richmankim",
+            "sourceName": "BD_RICHMANKIM",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_eternalchaos",
+            "sourceName": "BD_ETERNALCHAOS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_drumbattlefield",
+            "sourceName": "BD_DRUMBATTLEFIELD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_ringnibelungen",
+            "sourceName": "BD_RINGNIBELUNGEN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_rokisweil",
+            "sourceName": "BD_ROKISWEIL",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_intoabyss",
+            "sourceName": "BD_INTOABYSS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bd_siegfried",
+            "sourceName": "BD_SIEGFRIED",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "cg_moonlit",
+            "sourceName": "CG_MOONLIT",
+            "reason": "Requer parceiro e interação espacial de grupo."
+          },
+          {
+            "skillId": "cg_marionette",
+            "sourceName": "CG_MARIONETTE",
+            "reason": "Requer outro personagem para transferir atributos."
+          },
+          {
+            "skillId": "cg_longingfreedom",
+            "sourceName": "CG_LONGINGFREEDOM",
+            "reason": "Requer parceiro durante dueto."
+          },
+          {
+            "skillId": "cg_hermode",
+            "sourceName": "CG_HERMODE",
+            "reason": "Requer guilda e área de combate entre personagens."
+          },
+          {
+            "skillId": "dc_uglydance",
+            "sourceName": "DC_UGLYDANCE",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "pr_benedictio",
+            "sourceName": "PR_BENEDICTIO",
+            "reason": "Requer dois Noviços e células de mapa."
+          },
+          {
+            "skillId": "pr_redemptio",
+            "sourceName": "PR_REDEMPTIO",
+            "reason": "Ressurreição de grupo exige outros personagens."
+          },
+          {
+            "skillId": "hp_basilica",
+            "sourceName": "HP_BASILICA",
+            "reason": "Requer área protegida e interação com vários personagens."
+          },
+          {
+            "skillId": "mo_kitranslation",
+            "sourceName": "MO_KITRANSLATION",
+            "reason": "Requer outro personagem para transferir esferas."
+          },
+          {
+            "skillId": "bs_iron",
+            "sourceName": "BS_IRON",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_steel",
+            "sourceName": "BS_STEEL",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_enchantedstone",
+            "sourceName": "BS_ENCHANTEDSTONE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_orideocon",
+            "sourceName": "BS_ORIDEOCON",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_dagger",
+            "sourceName": "BS_DAGGER",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_sword",
+            "sourceName": "BS_SWORD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_twohandsword",
+            "sourceName": "BS_TWOHANDSWORD",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_axe",
+            "sourceName": "BS_AXE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_mace",
+            "sourceName": "BS_MACE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_knuckle",
+            "sourceName": "BS_KNUCKLE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_spear",
+            "sourceName": "BS_SPEAR",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "bs_repairweapon",
+            "sourceName": "BS_REPAIRWEAPON",
+            "reason": "O reparo por NPC usa o serviço Reparo Geral da Oficina; esta habilidade exige selecionar um jogador e equipamento por um fluxo de alvo distinto, ainda indisponível."
+          },
+          {
+            "skillId": "bs_greed",
+            "sourceName": "BS_GREED",
+            "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
+          },
+          {
+            "skillId": "bs_adrenaline2",
+            "sourceName": "BS_ADRENALINE2",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_cannibalize",
+            "sourceName": "AM_CANNIBALIZE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_spheremine",
+            "sourceName": "AM_SPHEREMINE",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_cp_weapon",
+            "sourceName": "AM_CP_WEAPON",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_shield",
+            "sourceName": "AM_CP_SHIELD",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_armor",
+            "sourceName": "AM_CP_ARMOR",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_cp_helm",
+            "sourceName": "AM_CP_HELM",
+            "reason": "Proteção contra quebra e remoção exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "am_bioethics",
+            "sourceName": "AM_BIOETHICS",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_callhomun",
+            "sourceName": "AM_CALLHOMUN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_rest",
+            "sourceName": "AM_REST",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_resurrecthomun",
+            "sourceName": "AM_RESURRECTHOMUN",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "am_berserkpitcher",
+            "sourceName": "AM_BERSERKPITCHER",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight1",
+            "sourceName": "AM_TWILIGHT1",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight2",
+            "sourceName": "AM_TWILIGHT2",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "am_twilight3",
+            "sourceName": "AM_TWILIGHT3",
+            "reason": "Requer estado de Espírito da classe, ainda não implementado."
+          },
+          {
+            "skillId": "cr_fullprotection",
+            "sourceName": "CR_FULLPROTECTION",
+            "reason": "Proteção completa exige estado de equipamento quebrado ou removido do personagem."
+          },
+          {
+            "skillId": "cr_cultivation",
+            "sourceName": "CR_CULTIVATION",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "asc_cdp",
+            "sourceName": "ASC_CDP",
+            "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
+          },
+          {
+            "skillId": "rg_graffiti",
+            "sourceName": "RG_GRAFFITI",
+            "reason": "Requer inscrições em células do mapa."
+          },
+          {
+            "skillId": "rg_flaggraffiti",
+            "sourceName": "RG_FLAGGRAFFITI",
+            "reason": "Requer bandeiras de guilda no mapa."
+          },
+          {
+            "skillId": "rg_cleaner",
+            "sourceName": "RG_CLEANER",
+            "reason": "Requer inscrições em células do mapa."
+          },
+          {
+            "skillId": "rg_gangster",
+            "sourceName": "RG_GANGSTER",
+            "reason": "Requer aliados da mesma classe."
+          }
+        ],
+        "combatExpansion": [
+          "AM_LEARNINGPOTION",
+          "BS_SKINTEMPER",
+          "BS_WEAPONPERFECT",
+          "BS_MAXIMIZE",
+          "SA_DRAGONOLOGY",
+          "AL_DP",
+          "PR_ASPERSIO",
+          "RG_STRIPWEAPON",
+          "RG_STRIPARMOR",
+          "RG_STRIPHELM",
+          "PF_HPCONVERSION",
+          "HT_LANDMINE",
+          "HT_BLASTMINE",
+          "HT_CLAYMORETRAP",
+          "HT_FREEZINGTRAP",
+          "RG_SNATCHER",
+          "RG_STRIPSHIELD",
+          "AS_ENCHANTPOISON",
+          "MC_IDENTIFY",
+          "SA_AUTOSPELL",
+          "PF_DOUBLECASTING",
+          "PF_MEMORIZE",
+          "AL_PNEUMA",
+          "SM_ENDURE",
+          "CR_DEFENDER",
+          "HT_SKIDTRAP",
+          "HT_ANKLESNARE",
+          "HT_SANDMAN",
+          "HT_FLASHER",
+          "HT_SHOCKWAVE",
+          "MO_STEELBODY",
+          "LK_BERSERK",
+          "ASC_EDP",
+          "ST_FULLSTRIP",
+          "ST_REJECTSWORD",
+          "SM_AUTOBERSERK",
+          "AS_POISONREACT",
+          "AS_SPLASHER",
+          "AS_RIGHT",
+          "AS_LEFT",
+          "KN_AUTOCOUNTER",
+          "BS_UNFAIRLYTRICK",
+          "RG_TUNNELDRIVE",
+          "AL_RUWACH",
+          "DC_DONTFORGETME",
+          "BA_PANGVOICE",
+          "DC_WINKCHARM",
+          "RG_CLOSECONFINE",
+          "PF_MINDBREAKER",
+          "PF_FOGWALL",
+          "SA_VOLCANO",
+          "SA_DELUGE",
+          "SA_VIOLENTGALE",
+          "MO_BODYRELOCATION",
+          "MO_BLADESTOP",
+          "PR_SUFFRAGIUM"
+        ]
+      },
+      "afterHash": "b8ff652a428bbc28fdee7a3320ac96ae889bf85055b294ee0edeeaeff32e7cb0"
+    },
+    "catalogSha256": {
+      "before": "1be6c736c30cecb0c64720b245dd337afdc24a37ffef7d1f168ce575891b759d",
+      "afterHash": "77b66ed6be4b8c3da42999c364293fd92b1fccab67fd36dc80749a293fe5fb8d"
+    },
+    "addedFields": {
+      "weaponCraft": "f86c0166fffb479e70b095a04c83241f6a1ffe40bedcbb8bfae6385ec84beb50"
+    }
+  }
+}
