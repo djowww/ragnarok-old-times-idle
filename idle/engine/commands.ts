@@ -60,7 +60,7 @@ import { clearCloseConfine } from './rgCloseConfine.js';
 import { bladeStopRules, clearBladeStop, startBladeStopWait } from './bladeStop.js';
 import { magicRodWindow } from './monsterMagic.js';
 import { activePlayerStatus } from './playerStatuses.js';
-import { collectPendingLoot } from './lootPickup.js';
+import { collectGreedLoot, collectPendingLoot } from './lootPickup.js';
 import { canReceiveItem, overweightForCombat } from './itemCapacity.js';
 import { returnForCarry } from './carryReturn.js';
 import { isEquipmentBroken } from './equipmentCondition.js';
@@ -332,6 +332,18 @@ export function executeCommand(
       }
       if (skill?.sourceName === 'SA_CASTCANCEL' && skill.manualUse === 'castCancel') {
         useCastCancel(s,c,skill,level,now,command.expectedCastActionId);
+        break;
+      }
+      if (skill?.sourceName === 'BS_GREED' && skill.manualUse === 'greed') {
+        requireRule(skill.implementation === 'supported' && level > 0 && classSkills(c, s.job).includes(skill.id),
+          'SKILL_UNAVAILABLE', 'Esta habilidade manual não está disponível.');
+        requireRule(s.status === 'hunting' && !!s.areaId && s.fieldHero?.areaId === s.areaId && s.hp > 0,
+          'FIELD_REQUIRED', 'Use Ganância durante a caça no campo.');
+        requireRule(!s.battle?.cast, 'SKILL_CASTING', 'Aguarde o fim da conjuração atual.');
+        requireRule(paySkillResources(s, c, skill, 1, now), 'SP_REQUIRED', 'Tenha 10 SP para usar Ganância.');
+        collectGreedLoot(s, c, now, s.areaId!, battleHeroAt(s, now));
+        event(s, now, 'skill', skill.name, undefined, 'player', { skillId: skill.id, skillLevel: 1,
+          sourceActorId: s.id, actorAction: 'none' });
         break;
       }
       requireRule(skill?.sourceName === 'LK_TENSIONRELAX' && skill.manualUse === 'rest' &&

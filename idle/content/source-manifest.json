@@ -11303,10 +11303,10 @@
         0
       ],
       "sourceSplashRange": 2,
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Self-use in a field area for 10 SP with no cast time; collects pending floor drops whose saved field cell is within the source two-cell splash range and only when they fit the backpack. Source skill.c: BS_GREED iterates floor items in range; solo model retains overweight drops as pending loot and uses the live field actor cell as their floor position."
     },
     "bs_adrenaline2": {
       "id": 459,
@@ -15201,8 +15201,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 294,
-    "unsupported": 54,
+    "supported": 295,
+    "unsupported": 53,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15366,13 +15366,13 @@
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 32,
-        "unsupported": 7
+        "supported": 33,
+        "unsupported": 6
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 37,
-        "unsupported": 7
+        "supported": 38,
+        "unsupported": 6
       },
       "alchemist": {
         "sourceTree": 35,
@@ -15653,6 +15653,7 @@
       "BS_OVERTHRUST",
       "BS_MAXIMIZE",
       "BS_UNFAIRLYTRICK",
+      "BS_GREED",
       "WS_MELTDOWN",
       "WS_CARTBOOST",
       "WS_WEAPONREFINE",
@@ -15861,11 +15862,6 @@
         "skillId": "mo_kitranslation",
         "sourceName": "MO_KITRANSLATION",
         "reason": "Requer outro personagem para transferir esferas."
-      },
-      {
-        "skillId": "bs_greed",
-        "sourceName": "BS_GREED",
-        "reason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito."
       },
       {
         "skillId": "bs_adrenaline2",
@@ -16866,6 +16862,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "59cd58bc6933bc362b413ae51de82ce51a716f83890dc2c556ccdc86f1036272",
+  "catalogSha256": "b786e1ca881c20307fe1a9750d1fb3e6c039db5be0eca82f5f4ee0b105c36f40",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

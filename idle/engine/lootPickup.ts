@@ -29,6 +29,18 @@ export function pickupItem(s: GameState, c: Catalog, itemId: number, quantity: n
 
 /** Move pending entries as-is, atomically selecting the entries that fit first. */
 export function collectPendingLoot(s: GameState, c: Catalog, at: number) {
+  return collectPendingLootMatching(s, c, at, () => true, false);
+}
+
+export function collectGreedLoot(s: GameState, c: Catalog, at: number, areaId: string,
+  position: { x: number; y: number }) {
+  return collectPendingLootMatching(s, c, at, row => row.areaId === areaId &&
+    !!row.fieldPosition && Math.max(Math.abs(row.fieldPosition.x - position.x),
+      Math.abs(row.fieldPosition.y - position.y)) <= 2, true);
+}
+
+function collectPendingLootMatching(s: GameState, c: Catalog, at: number,
+  matches: (row: NonNullable<GameState['pendingLoot']>[number]) => boolean, allowEmpty: boolean) {
   const queue = s.pendingLoot ?? [];
   if (!queue.length) return { collected: 0, pending: 0 };
   const uids = new Set(s.inventory.map(entry => entry.uid));
@@ -39,12 +51,13 @@ export function collectPendingLoot(s: GameState, c: Catalog, at: number) {
   let weight = inventoryWeightUnits(s, c);
   const max = maxWeightUnits(s, c), accepted = [], remaining = [];
   for (const row of queue) {
+    if (!matches(row)) { remaining.push(row); continue; }
     const next = weight + itemWeightUnits(c, row.entry.itemId, row.entry.quantity);
     if (c.items[row.entry.itemId] && Number.isSafeInteger(row.entry.quantity) && row.entry.quantity > 0 && next <= max) {
       accepted.push(row); weight = next;
     } else remaining.push(row);
   }
-  requireRule(accepted.length, 'WEIGHT_LIMIT', 'Libere espaço na mochila antes de recolher os itens.');
+  if (!allowEmpty) requireRule(accepted.length, 'WEIGHT_LIMIT', 'Libere espaço na mochila antes de recolher os itens.');
   for (const row of accepted) {
     s.inventory.push(row.entry);
     event(s, at, 'pickup', 'Item recolhido para a mochila.', undefined, undefined,

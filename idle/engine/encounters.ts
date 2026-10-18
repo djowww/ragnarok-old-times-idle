@@ -1479,7 +1479,7 @@ function removeKilledFieldActor(s: GameState, enemy: BattleEnemy, at: number): b
   s.fieldPopulation.respawns.push({ slot: enemy.fieldSlot, at: at + POST_WAVE_SEARCH_MS });
   return true;
 }
-function awardKill(
+export function awardKill(
   s: GameState,
   c: Catalog,
   enemy: BattleEnemy,
@@ -1532,8 +1532,11 @@ function awardKill(
       c.items[drop.itemId] &&
       random(s) * 10000 < Math.min(10000, drop.chance * c.rates.drop)
     ) {
+      const isFieldEnemy = !!s.fieldPopulation && s.fieldPopulation.areaId === areaId &&
+        s.fieldPopulation.enemies.some(actor => actor.id === enemy.id);
       pickupItem(s, c, drop.itemId, 1, at, { source: 'monster', areaId, enemyId: enemy.id,
-        monsterId: monster.id, position: { ...enemyPosition } });
+        monsterId: monster.id, position: { ...enemyPosition },
+        ...(isFieldEnemy && { fieldPosition: { ...enemyPosition } }) });
       if (!b?.challengeId && s.areaId)
         recordAreaActivity(s, s.areaId, at, {
           lootZeny: c.items[drop.itemId].sellPrice,
