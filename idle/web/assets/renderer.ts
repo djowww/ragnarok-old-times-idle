@@ -191,7 +191,8 @@ function facingFrames(part: ActorPart, preferred: number): { index: number; fram
     return undefined;
 }
 
-export type ActorAction = number | 'idle' | 'attack' | 'cast' | 'skill' | 'hurt' | 'dead';
+// Numeric groups keep legacy looping poses; named skill groups are one-shots.
+export type ActorAction = number | 'idle' | 'attack' | 'attack1' | 'attack2' | 'attack3' | 'pickup' | 'cast' | 'skill' | 'hurt' | 'dead';
 
 // roBrowserLegacy d88a3cd4, src/DB/Skills/SkillAction.js: the two regular
 // makeAttackSkillAction('ATTACK') chains for imported pre-renewal skills.
@@ -206,10 +207,23 @@ const WEAPON_SKILL_ACTIONS = new Set([
     'HT_PHANTASMIC', 'SN_SHARPSHOOTING',
 ]);
 
+// Fixed ACT groups in the same pinned SkillAction.js. They bypass the
+// equipped-weapon selector; equipment visibility comes from the matching ACT.
+const FIXED_SKILL_ACTIONS = new Map<string, ActorAction>([
+    ...['KN_SPEARBOOMERANG', 'CR_SHIELDBOOMERANG', 'AM_DEMONSTRATION', 'AM_ACIDTERROR',
+        'AM_POTIONPITCHER', 'TF_SPRINKLESAND', 'TF_THROWSTONE', 'AS_VENOMKNIFE',
+        'PA_SHIELDCHAIN'].map(source => [source, 'attack1'] as const),
+    ...['TF_POISON', 'MC_MAMMONITE', 'MC_CARTREVOLUTION'].map(source => [source, 'attack2'] as const),
+    ['ASC_BREAKER', 'attack3'],
+    ...['HT_LANDMINE', 'HT_ANKLESNARE', 'HT_SHOCKWAVE', 'HT_SANDMAN', 'HT_FLASHER',
+        'HT_FREEZINGTRAP', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'TF_PICKSTONE']
+        .map(source => [source, 'pickup'] as const),
+]);
+
 export function getCombatActorAction(actorAction: 'attack' | 'skill' | 'none', skillSourceName?: string): ActorAction {
     if (actorAction === 'none') return 'idle';
     if (actorAction === 'attack' || skillSourceName !== undefined && WEAPON_SKILL_ACTIONS.has(skillSourceName)) return 'attack';
-    return 'skill';
+    return FIXED_SKILL_ACTIONS.get(skillSourceName ?? '') ?? 'skill';
 }
 
 function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: number) {
@@ -218,8 +232,8 @@ function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: nu
     // EntityAction.js: each ACT group has eight directions. SKILL is group 12
     // (96..103) for PCs. Monsters do not share the PC skill action layout.
     const actions = actor.kind === 'character'
-        ? { idle: 0, attack: getAttackAction(actor), cast: 96, skill: 96, hurt: 48, dead: 64 }
-        : { idle: 0, attack: 16, cast: 0, skill: 0, hurt: 24, dead: 32 };
+        ? { idle: 0, attack: getAttackAction(actor), attack1: 40, attack2: 80, attack3: 88, pickup: 24, cast: 96, skill: 96, hurt: 48, dead: 64 }
+        : { idle: 0, attack: 16, attack1: 16, attack2: 16, attack3: 16, pickup: 0, cast: 0, skill: 0, hurt: 24, dead: 32 };
     const base = typeof action === 'number' ? action : actions[action];
     const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
     // Keep the requested body direction whenever its ACT provides it. Optional
