@@ -266,7 +266,11 @@ export function findGridRoute(grid: FieldNavigationGrid, from: GridPoint, to: Gr
         closedAt[current.id] = generation;
         for (const next of neighbors(grid, current.id, adjacent)) {
             if (closedAt[next] === generation || isBlocked(next)) continue;
-            const g = current.g + (next % grid.width !== current.id % grid.width && Math.floor(next / grid.width) !== Math.floor(current.id / grid.width) ? Math.SQRT2 : 1);
+            const currentX = current.id % grid.width, currentY = Math.floor(current.id / grid.width);
+            const nextX = next % grid.width, nextY = Math.floor(next / grid.width);
+            const diagonal = nextX !== currentX && nextY !== currentY;
+            if (diagonal && (isBlocked(currentY * grid.width + nextX) || isBlocked(nextY * grid.width + currentX))) continue;
+            const g = current.g + (diagonal ? Math.SQRT2 : 1);
             if (seenAt[next] === generation && g >= costs[next]) continue;
             seenAt[next] = generation;
             costs[next] = g; previous[next] = current.id;

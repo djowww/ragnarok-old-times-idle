@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createFieldNavigationRuntime, type FieldNavigationAreaSpec } from '../engine/fieldNavigation.js';
 import { BATTLE_CELLS_PER_UNIT, BATTLE_HERO } from '../shared/battleSpatial.js';
+import { findGridRoute } from '../shared/fieldNavigation.js';
 import type { FieldNavigationGrid } from '../shared/fieldNavigation.js';
 
 const area: FieldNavigationAreaSpec = {
@@ -30,4 +31,23 @@ describe('Ice Wall path obstruction', () => {
     const blockers = new Set(['3,2']);
     expect(nav.routeToRange(area.areaId, at(1, 2), at(5, 2), 0, 'square', blockers)).toBeNull();
   });
+});
+
+
+it('does not cut a diagonal corner through dynamic Ice Wall blockers in either router', () => {
+  const walkable = new Uint8Array(5);
+  for (const id of [8, 9, 15, 16, 10, 11, 12, 18]) walkable[id >> 3] |= 1 << (id & 7);
+  const sparse = grid(walkable);
+  const blockers = new Set(['2,1', '1,2']);
+  const from = { x: 1.5, y: 1.5 }, to = { x: 2.5, y: 2.5 };
+
+  expect(findGridRoute(sparse, from, to, 0, blockers)).toBeNull();
+  const sparseArea = { ...area, origin: { x: 4, y: 1 }, homeOffsets: [{ x: -1, y: 0 }, { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] };
+  const atSparse = (x: number, y: number) => ({
+    x: BATTLE_HERO.x + (x + 0.5 - (sparseArea.origin.x + 0.5)) / BATTLE_CELLS_PER_UNIT,
+    y: BATTLE_HERO.y + (y + 0.5 - (sparseArea.origin.y + 0.5)) / BATTLE_CELLS_PER_UNIT,
+  });
+  const nav = createFieldNavigationRuntime([sparseArea], new Map([[area.map, sparse]]));
+  expect(nav.route(area.areaId, atSparse(1, 1), atSparse(2, 2), blockers)).toBeNull();
+  expect(nav.routeToRange(area.areaId, atSparse(1, 1), atSparse(2, 2), 0, 'square', blockers)).toBeNull();
 });

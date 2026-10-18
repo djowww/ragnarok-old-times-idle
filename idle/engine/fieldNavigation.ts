@@ -329,9 +329,9 @@ function routeToGoalCell(area: FieldNavigationAreaRuntime, from: GridPoint,
       if (isBlocked(next) || !gridWalkable(grid, walkPoint)) continue;
       if (dx && dy) {
         walkPoint.x = nx + 0.5; walkPoint.y = y + 0.5;
-        if (!gridWalkable(grid, walkPoint)) continue;
+        if (!gridWalkable(grid, walkPoint) || isBlocked(y * grid.width + nx)) continue;
         walkPoint.x = x + 0.5; walkPoint.y = ny + 0.5;
-        if (!gridWalkable(grid, walkPoint)) continue;
+        if (!gridWalkable(grid, walkPoint) || isBlocked(ny * grid.width + x)) continue;
       }
       const candidate = currentDistance + (dx && dy ? Math.SQRT2 : 1);
       if (seenAt[next] === generation && candidate > costs[next]) continue;
@@ -378,7 +378,7 @@ export interface FieldNavigationRuntime {
   isWaterBattlePoint(areaId: string, point: BattlePoint): boolean;
   resolveActorPoint(areaId: string, point: BattlePoint, repairBlocked: boolean): BattlePoint | null;
   home(areaId: string, slot: number): BattlePoint;
-  route(areaId: string, from: BattlePoint, to: BattlePoint): FieldNavigationRoute | null;
+  route(areaId: string, from: BattlePoint, to: BattlePoint, blockedCells?: ReadonlySet<string>): FieldNavigationRoute | null;
   routeToRange(areaId: string, from: BattlePoint, target: BattlePoint, range: number,
     metric: 'player' | 'square', blockedCells?: ReadonlySet<string>): FieldApproachRoute | null;
   displace(areaId: string, from: BattlePoint, dxCells: number, dyCells: number): BattlePoint;
