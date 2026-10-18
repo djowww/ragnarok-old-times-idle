@@ -1,5 +1,6 @@
 import {openArrowCraft,answerArrowCraft,cancelArrowCraft,reconcileArrowCraft} from './arrowCraft.js';
 import { startHolyWaterCast } from './holyWater.js';
+import { removeHunterTrap, removeTrapCanStart } from './trapRemoval.js';
 import { springTrapCanStart, springHunterTrap } from './springTrap.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
 import {useDetecting} from './falconDetect.js';
@@ -183,6 +184,12 @@ export function executeCommand(
       }
       if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
+      if (skill?.sourceName === 'HT_REMOVETRAP') {
+        requireRule(removeTrapCanStart(s, c, skill, level, now), 'TRAP_UNAVAILABLE',
+          'Aprenda Remover Armadilha, tenha 5 SP e uma armadilha própria ativa a até duas células.');
+        removeHunterTrap(s, c, skill, level, now);
+        break;
+      }
       if (skill?.sourceName === 'HT_SPRINGTRAP') {
         requireRule(springTrapCanStart(s, c, skill, level, now), 'TRAP_UNAVAILABLE',
           'Aprenda Spring Trap, equipe seu falcão e tenha SP suficiente e uma armadilha ativa em alcance.');

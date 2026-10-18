@@ -427,6 +427,7 @@ for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.
 activeSpecial.add('AL_TELEPORT');
 activeSpecial.add('AL_HOLYWATER');
 activeSpecial.add('HT_DETECTING');
+activeSpecial.add('HT_REMOVETRAP');
 activeSpecial.add('HT_SPRINGTRAP');
 activeSpecial.add('WS_WEAPONREFINE');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
@@ -458,6 +459,7 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    HT_REMOVETRAP: 'Remover Armadilha: uso manual durante a caça; desarma a armadilha própria mais próxima até duas células, custa 5 SP, devolve um Booby Trap se ainda não disparou e libera uma captura de Ankle Snare.',
     HT_SPRINGTRAP: 'Desarma uma armadilha própria ativa dentro do alcance do nível aprendido. Custa 10 SP e requer Falcão equipado; a armadilha acionada desaparece após 1,5 s sem devolver o reagente.',
     AL_HOLYWATER: 'Aqua Benedicta. Conjura por 1 s sobre uma célula de água durante a caça; ao concluir, consome 10 SP e um Frasco Vazio para produzir Água Benta, sem chance de falha.',
     BS_DAGGER: 'Passiva: libera a forja de adagas. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
@@ -543,7 +545,7 @@ for (const name of skillNames) {
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
     const supportedMechanic = name === 'AC_MAKINGARROW' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR','HT_REMOVETRAP','HT_SPRINGTRAP'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -575,6 +577,7 @@ for (const name of skillNames) {
         ...(name === 'MC_IDENTIFY' && { manualUse: 'inventory' }),
         ...(name === 'AL_TELEPORT' && { manualUse: 'teleport' }),
         ...(name === 'AL_HOLYWATER' && { manualUse: 'holyWaterCraft' }),
+        ...(name === 'HT_REMOVETRAP' && { manualUse: 'removeTrap' }),
         ...(name === 'HT_SPRINGTRAP' && { manualUse: 'springTrap' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
@@ -1018,6 +1021,7 @@ manifest.spriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLeg
 manifest.monsterSpriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Monsters/MonsterTable.js', license: 'GPL-3.0-or-later', sha256: rules.referenceHashes.monsterTable, verifiedAliases: Object.fromEntries([1032,1042,1047,1785].map(id => [id, rules.monsterAliases[id]])) };
 manifest.skillSources.pr_suffragium.adaptation = 'Self cast available to Priest and High Priest without party: costs 8 SP, is instant, lasts 30/20/10 s by level and reduces the next skill cast by 15/30/45 percent. Cast reduction is consumed at the next eligible cast start, including instant skills; normal attacks do not consume it. NoSave status clears on a new connection.';
 manifest.skillSources.al_teleport.adaptation = 'Manual field-hunting only: current learned-level SP cost for either menu choice; Random uses interior passable cells in the existing navigation component to keep AFK routes reachable. Level2 offers the sole Idle save-point Prontera. Town, sitting and challenge use are excluded; source noteleport flags gate both choices. Warp cancels encounter targeting/casts and owned ground groups, preserving population HP/IDs/respawns and ordinary progression. No AFK automatic teleport.';
+manifest.skillSources.ht_removetrap.adaptation = 'Remove Trap: manual solo use in the field; targets the nearest own Hunter trap within Hercules range 2 and costs 5 SP. Returns one Booby Trap only when the unit has not triggered; removing an Ankle Snare capture releases the monster and does not return the consumed trap item.';
 manifest.skillSources.al_holywater.adaptation = 'Aqua Benedicta: 1 s cast, 10 SP paid at completion, requires the caster on GAT type 3 water while field hunting, consumes one unprotected Empty Bottle and creates one Holy Water with guaranteed success. Water terrain is retained from the pinned Hercules map_gat2cell type.';
 manifest.mountedPecoEvidence = {
     mechanics: ['pc.c:695..700,8985..8988,9220..9227,9391..9398', 'status.c:1857..1861,2140..2148,2173..2174,5421..5441,5534..5599', 'battle.c:764..770,2145..2156', 'skill.c:7971..7973,17857..18012'],

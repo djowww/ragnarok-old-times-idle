@@ -280,7 +280,9 @@ export default function Build({
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
-                    {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}\n                    {skill.manualUse === "springTrap" && <button type="button"
+                    {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}
+                    {skill.manualUse === "removeTrap" && <button type="button" disabled={busy || unsupported || level === 0 || state.hp <= 0 || (state.status !== "hunting" && state.status !== "challenge") || !state.battle?.traps?.length} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Remover armadilha</button>}
+                    {skill.manualUse === "springTrap" && <button type="button"
                       disabled={busy || unsupported || level === 0 || !falconEquipped || state.hp <= 0 ||
                         (state.status !== 'hunting' && state.status !== 'challenge') ||
                         !state.battle?.traps?.some(trap => trap.expiresAt > snapshot.serverTime && trap.triggeredAt === undefined) ||

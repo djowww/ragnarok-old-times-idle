@@ -56,7 +56,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "1184c8194c02e6dd9d44266347fbb73fcf184a857c06bca2341e9d6b39657584"
+    "hash": "dafbed2ae560270a1ee785e139d1848180876d2ad9bcc07f71cfdd164207852d"
   },
   "rates": {
     "baseExp": 4,
@@ -108038,9 +108038,9 @@
       "herculesId": 124,
       "sourceName": "HT_REMOVETRAP",
       "mechanic": "HT_REMOVETRAP",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Remove Trap. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "removeTrap",
+      "description": "Remover Armadilha: uso manual durante a caça; desarma a armadilha própria mais próxima até duas células, custa 5 SP, devolve um Booby Trap se ainda não disparou e libera uma captura de Ankle Snare.",
       "iconResource": "data/texture/유저인터페이스/item/ht_removetrap.bmp",
       "spCost": [
         5
