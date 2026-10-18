@@ -4,6 +4,7 @@ import { fixture } from './engine-fixture.js';
 import type { GameCommand, GameState } from '../shared/types.js';
 import catalogJson from '../content/catalog.json';
 import type { Catalog } from '../shared/types.js';
+import { parseCommandRequest } from '../server/validation.js';
 const run = (s: GameState, command: GameCommand) => applyCommand(s, fixture(), command, 0);
 describe('validated inventory and character commands', () => {
   it('buys real quantities, charges zeny and rejects invalid amounts without changing input', () => {
@@ -74,6 +75,41 @@ describe('validated inventory and character commands', () => {
     s = run(s, { type: 'startHunt', areaId: 'prontera' }); s = run(s, { type: 'stop' }); expect(s.battle).toBeNull(); expect(s.status).toBe('town');
     s = run(s, { type: 'rest' }); expect(s.status).toBe('resting'); s = run(s, { type: 'dismissOffline' }); expect(s.offlineSummary).toBeNull();
   });
+  it('accepts only a recognized optional equipment destination slot', () => {
+    expect(parseCommandRequest({ requestId: 'equip-slot-1', command: { type: 'equip', uid: 'dagger-1', slot: 'shield' } }).command)
+      .toEqual({ type: 'equip', uid: 'dagger-1', slot: 'shield' });
+    expect(() => parseCommandRequest({ requestId: 'equip-slot-1', command: { type: 'equip', uid: 'dagger-1', slot: 'offhand' } })).toThrow();
+  });
+
+  it('allows a learned Assassin to equip a one-handed offhand weapon while preserving shield and two-hand rules', () => {
+    const c = structuredClone(catalogJson) as unknown as Catalog;
+    const dualWieldSkill = Object.values(c.skills).find(skill => skill.sourceName === 'AS_RIGHT')!;
+    if (!c.classes.assassin.weapons.includes('sword')) c.classes.assassin.weapons.push('sword');
+    c.items[2401] = { ...c.items[1701], id: 2401, slot: 'weapon', twoHanded: false,
+      weaponType: 'dagger', allowedClasses: ['assassin'], minLevel: 1, buyPrice: 1, shopPrice: 1, name: 'Offhand Dagger' };
+    c.items[2402] = { ...c.items[2401], id: 2402, name: 'Main Dagger' };
+    c.items[2403] = { ...c.items[2401], id: 2403, twoHanded: true, weaponType: 'sword', name: 'Two-handed Sword' };
+    let s = createInitialState(c, 0); s.job = 'assassin'; s.baseLevel = 99; s.zeny = 1000; s.learnedSkills[dualWieldSkill.id] = 1;
+    s = applyCommand(s, c, { type: 'buy', itemId: 2401, quantity: 1 }, 0);
+    s = applyCommand(s, c, { type: 'buy', itemId: 2402, quantity: 1 }, 0);
+    s = applyCommand(s, c, { type: 'buy', itemId: 2403, quantity: 1 }, 0);
+    const main = s.inventory.find(e => e.itemId === 2402)!;
+    const twoHanded = s.inventory.find(e => e.itemId === 2403)!;
+    s = applyCommand(s, c, { type: 'equip', uid: main.uid }, 0);
+    const dagger = s.inventory.find(e => e.itemId === 2401)!;
+    s = applyCommand(s, c, { type: 'equip', uid: dagger.uid, slot: 'shield' }, 0);
+    expect(s.equipment.shield).toBe(dagger.uid);
+    expect(() => applyCommand(s, c, { type: 'equip', uid: dagger.uid, slot: 'shield' }, 0)).not.toThrow();
+    s = applyCommand(s, c, { type: 'unequip', slot: 'weapon' }, 0);
+    expect(s.equipment.shield).toBeUndefined();
+    s = applyCommand(s, c, { type: 'equip', uid: main.uid }, 0);
+    s = applyCommand(s, c, { type: 'equip', uid: dagger.uid, slot: 'shield' }, 0);
+    s = applyCommand(s, c, { type: 'equip', uid: twoHanded.uid }, 0);
+    expect(s.equipment.shield).toBeUndefined();
+    s.learnedSkills[dualWieldSkill.id] = 0;
+    expect(() => applyCommand(s, c, { type: 'equip', uid: dagger.uid, slot: 'shield' }, 0)).toThrow(GameError);
+  });
+
   it('keeps shield and two handed weapons mutually exclusive and rejects class-restricted gear', () => {
     const c = fixture(); c.items[1701].twoHanded = true; c.items[2400] = { ...c.items[2301], id: 2400, slot: 'shield' };
     let s = createInitialState(c, 0); s.job = 'archer'; s.zeny = 1000;

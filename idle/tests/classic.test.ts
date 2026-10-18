@@ -68,6 +68,24 @@ describe('pinned pre-renewal skill export', () => {
   });
 });
 
+describe('Assassin dual-wield source arithmetic', () => {
+  it('applies the pinned right and left hand percentages only to basic attacks', () => {
+    const dual = {
+      ...attacker, baseAttack: 10, dex: 100,
+      weaponAttack: 100, weaponLevel: 1, weaponType: 'dagger' as const,
+      leftWeaponAttack: 50, leftWeaponLevel: 1, leftWeaponType: 'dagger' as const,
+      skillLevelsBySource: { AS_RIGHT: 5, AS_LEFT: 5 },
+    };
+    expect(classicPhysicalDamage(dual, monster, undefined, 1, fixedRng)).toBe(156);
+    expect(classicPhysicalDamage({ ...dual, leftWeaponAttack: undefined }, monster, undefined, 1, fixedRng)).toBe(109);
+    expect(classicPhysicalDamage({ ...dual, sizeMultiplier: 0.5, leftSizeMultiplier: 0.25 }, monster, undefined, 1, fixedRng)).toBe(75);
+    for (const source of ['AS_SONICBLOW', 'KN_BRANDISHSPEAR']) {
+      expect(classicPhysicalDamage(dual, monster, skill(source), 1, fixedRng))
+        .toBe(classicPhysicalDamage({ ...dual, leftWeaponAttack: undefined }, monster, skill(source), 1, fixedRng));
+    }
+  });
+});
+
 describe('Hercules integer arithmetic golden cases', () => {
   it('applies Advanced Book only to books and only when the passive is supported', () => {
     for (let level = 1; level <= 10; level++) {

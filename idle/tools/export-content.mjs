@@ -349,6 +349,7 @@ const healSkills = new Set(['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'AM_POTION
 const effectSkills = new Set(['AL_BLESSING', 'AL_INCAGI', 'MC_LOUD', 'PR_IMPOSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN', 'BS_ADRENALINE', 'CR_SPEARQUICKEN', 'BS_OVERTHRUST', 'WS_OVERTHRUSTMAX', 'LK_CONCENTRATION', 'SN_SIGHT', 'SN_WINDWALK', 'MO_EXPLOSIONSPIRITS', 'BA_WHISTLE', 'BA_ASSASSINCROSS', 'BA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISS', 'DC_SERVICEFORYOU', 'AL_ANGELUS', 'CR_AUTOGUARD', 'CR_REFLECTSHIELD', 'LK_PARRYING', 'HP_ASSUMPTIO', 'SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'PR_SUFFRAGIUM', 'CR_PROVIDENCE']);
 const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER', 'SA_ADVANCEDBOOK']);
 for (const name of ['BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE', 'MO_SPIRITSRECOVERY']) passiveSkills.add(name);
+for (const name of ['AS_RIGHT', 'AS_LEFT']) passiveSkills.add(name);
 for (const name of ['KN_RIDING', 'KN_CAVALIERMASTERY']) passiveSkills.add(name);
 const activeSpecial = new Set(['MG_SIGHT', 'MG_SAFETYWALL', 'MG_STONECURSE', 'MG_ENERGYCOAT', 'WZ_QUAGMIRE', 'HW_MAGICPOWER', 'TF_STEAL', 'RG_STEALCOIN', 'TF_HIDING', 'AS_CLOAKING', 'BS_HAMMERFALL', 'BA_FROSTJOKE', 'BA_PANGVOICE', 'DC_SCREAM', 'MO_CALLSPIRITS', 'MO_ABSORBSPIRITS', 'MO_BLADESTOP', 'CH_SOULCOLLECT', 'PR_KYRIE', 'PR_MAGNIFICAT', 'WS_CARTBOOST', 'SM_PROVOKE', 'AL_DECAGI', 'AL_CRUCIS', 'LK_AURABLADE', 'LK_JOINTBEAT', 'PR_LEXDIVINA', 'PR_LEXAETERNA', 'BS_WEAPONPERFECT', 'BS_MAXIMIZE', 'PR_ASPERSIO', 'RG_STRIPWEAPON', 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', 'RG_STRIPSHIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY']);
 activeSpecial.add('DC_DONTFORGETME');
@@ -419,6 +420,8 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    AS_RIGHT: 'Righthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão direita em ataques normais com duas armas.',
+    AS_LEFT: 'Lefthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão esquerda em ataques normais com duas armas.',
     HT_POWER: 'Atinge Brutos e Insetos com dois golpes de arco após Rajada de Flechas. Consome 12 SP e uma Flecha.',
     BS_FINDINGORE: 'Chance passiva de encontrar um minério adicional ao derrotar um monstro. Usa a cadeia original do Hercules, sem multiplicadores de drop; o minério segue a coleta normal da caça.',
     CR_SLIMPITCHER: 'Arremessa uma poção compacta para recuperar seu HP. Níveis 1–5 usam a vermelha, 6–9 a amarela e 10 a branca. Consome 30 SP e uma poção, com conjuração base de 1s e pós-conjuração de 1s. Os níveis aprendidos de Arremessar Poção e Preparar Poção aumentam a cura.',
@@ -629,6 +632,7 @@ manifest.npcMagicProduction = { source: 'db/pre-re/mob_skill_db.conf + db/pre-re
 manifest.skillCoverage = { classes: rules.classes.length, skills: skillNames.length, supported: Object.values(catalog.skills).filter(s => s.implementation === 'supported').length, unsupported: Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').length };
 manifest.skillCoverage.byClass = Object.fromEntries(Object.values(catalog.classes).map(job => [job.id, { sourceTree: job.skills.length, supported: job.skills.filter(id => catalog.skills[id].implementation === 'supported').length, unsupported: job.skills.filter(id => catalog.skills[id].implementation === 'unsupported').length }]));
 manifest.skillCoverage.supportedSourceNames = Object.values(catalog.skills).filter(s => s.implementation === 'supported').map(s => s.sourceName);
+manifest.dualWield = { skills: ['AS_RIGHT', 'AS_LEFT'], source: 'src/map/battle.c:5898..5910', attack: 'Normal attacks calculate each equipped hand separately; right multiplier is 50 + 10% per AS_RIGHT level, left multiplier is 30 + 10% per AS_LEFT level.', eligibility: 'Assassin and Assassin Cross only; requires learned AS_RIGHT and one-handed dagger, sword, or axe in both hands. Weapon skills keep the existing main-hand formulas.' };
 manifest.skillCoverage.unavailable = Object.values(catalog.skills).filter(s => s.implementation === 'unsupported').map(s => ({ skillId: s.id, sourceName: s.sourceName, reason: s.unsupportedReason }));
 manifest.senseInspection = {
     skill: 'WZ_ESTIMATION', packet: 'ZC_MONSTER_INFO', packetId: '0x18c',
@@ -652,6 +656,7 @@ manifest.skillCoverage.combatExpansion.push(...controlTraps);
 manifest.skillCoverage.combatExpansion.push('MO_STEELBODY', 'LK_BERSERK', 'ASC_EDP');
 manifest.skillCoverage.combatExpansion.push('ST_FULLSTRIP', 'ST_REJECTSWORD', 'SM_AUTOBERSERK');
 manifest.skillCoverage.combatExpansion.push('AS_POISONREACT', 'AS_SPLASHER');
+manifest.skillCoverage.combatExpansion.push('AS_RIGHT', 'AS_LEFT');
 manifest.skillCoverage.combatExpansion.push('KN_AUTOCOUNTER', 'BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE');
 manifest.skillCoverage.combatExpansion.push('AL_RUWACH');
 manifest.skillCoverage.combatExpansion.push('DC_DONTFORGETME');

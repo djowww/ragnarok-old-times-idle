@@ -81,12 +81,27 @@ function equipAllowed(s: GameState, c: Catalog, i: Item) {
     (!i.weaponType || c.classes[s.job].weapons.includes(i.weaponType))
   );
 }
+function offhandWeaponAllowed(s: GameState, c: Catalog, item: Item) {
+  const mastery = classSkills(c, s.job).map(id => c.skills[id])
+    .find(skill => skill?.sourceName === 'AS_RIGHT');
+  const mainEntry = s.inventory.find(entry => entry.uid === s.equipment.weapon);
+  const main = mainEntry && c.items[mainEntry.itemId];
+  return item.slot === 'weapon' && item.twoHanded !== true &&
+    ['dagger', 'sword', 'axe'].includes(item.weaponType ?? '') &&
+    !!mastery && (s.learnedSkills[mastery.id] ?? 0) > 0 &&
+    !!main && main.twoHanded !== true;
+}
 export function removeIneligible(s: GameState, c: Catalog) {
   for (const [slot, uid] of Object.entries(s.equipment)) {
     const e = s.inventory.find((e) => e.uid === uid);
-    if (!e || e.broken || !isItemIdentified(e) || !equipAllowed(s, c, c.items[e.itemId]))
-      delete s.equipment[slot as keyof typeof s.equipment];
+    const item = e && c.items[e.itemId];
+    const valid = slot === 'shield' && item?.slot === 'weapon'
+      ? !!e && !e.broken && isItemIdentified(e) && offhandWeaponAllowed(s, c, item)
+      : !!item && item.slot === slot && !!e && !e.broken && isItemIdentified(e) && equipAllowed(s, c, item);
+    if (!valid) delete s.equipment[slot as keyof typeof s.equipment];
   }
+  const mainEntry = s.inventory.find(entry => entry.uid === s.equipment.weapon);
+  if (mainEntry && c.items[mainEntry.itemId]?.twoHanded === true) delete s.equipment.shield;
 }
 export function executeCommand(
   s: GameState,
@@ -766,13 +781,24 @@ export function executeCommand(
         "EQUIPMENT_REQUIREMENTS",
         "Classe, nível ou posição não permite equipar este item.",
       );
-      if (item.twoHanded) delete s.equipment.shield;
-      if (item.slot === "shield") {
+      const targetSlot = command.slot ?? item.slot!;
+      requireRule(targetSlot === item.slot ||
+        targetSlot === 'shield' && offhandWeaponAllowed(s, c, item),
+        "EQUIPMENT_REQUIREMENTS",
+        "Classe, nível ou posição não permite equipar este item.",
+      );
+      if (targetSlot === "weapon" && item.twoHanded) delete s.equipment.shield;
+      if (targetSlot === "shield" && item.slot === "shield") {
         const weapon = s.inventory.find((e) => e.uid === s.equipment.weapon);
         if (weapon && c.items[weapon.itemId].twoHanded)
           delete s.equipment.weapon;
       }
-      s.equipment[item.slot!] = e.uid;
+      if (targetSlot === "shield" && item.slot === "weapon") {
+        const main = s.inventory.find((entry) => entry.uid === s.equipment.weapon);
+        requireRule(!main || c.items[main.itemId].twoHanded !== true,
+          "EQUIPMENT_REQUIREMENTS", "Uma arma de duas mãos ocupa as duas mãos.");
+      }
+      s.equipment[targetSlot] = e.uid;
       clearShieldDependentStatuses(s, c);
       break;
     }
@@ -792,6 +818,11 @@ export function executeCommand(
         "Posição inválida.",
       );
       delete s.equipment[command.slot];
+      if (command.slot === "weapon") {
+        const left = s.inventory.find((entry) => entry.uid === s.equipment.shield);
+        if (left && c.items[left.itemId]?.slot === "weapon")
+          delete s.equipment.shield;
+      }
       clearShieldDependentStatuses(s, c);
       break;
     case "favorite": {

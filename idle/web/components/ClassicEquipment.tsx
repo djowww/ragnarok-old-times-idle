@@ -50,13 +50,14 @@ export default function ClassicEquipment({ catalog, snapshot, busy, command, onI
           const entry = slot ? state.inventory.find(item => item.uid === state.equipment[slot]) : undefined;
           const item = entry ? catalog.items[entry.itemId] : undefined;
           const name = item ? itemName(item, entry) : "Vazio";
-          const detail = [label, name, entry ? itemRarityLabel(entry) : "", itemRarityBonus(entry)].filter(Boolean).join(" · ");
+          const displayLabel = slot === 'shield' && item?.slot === 'weapon' ? 'Mão esquerda' : label;
+          const detail = [displayLabel, name, entry ? itemRarityLabel(entry) : "", itemRarityBonus(entry)].filter(Boolean).join(" · ");
           return (
             <div key={key} className={`equipment-slot classic-equipment-slot ${side} ${entry ? itemRarityClass(entry) : "is-empty"}`}
               style={{ gridRow: row, gridColumn: side === "left" ? 1 : 3 }} title={detail}>
               {entry && item && slot ? <>
                 <button type="button" className="classic-equipment-item" disabled={busy}
-                  aria-label={`Desequipar ${label}: ${name}`} title={`${detail} · Clique para desequipar`}
+                  aria-label={`Desequipar ${displayLabel}: ${name}`} title={`${detail} · Clique para desequipar`}
                   onClick={() => void command({ type: "unequip", slot })}>
                   {isItemIdentified(entry) ? <ItemIcon item={item} /> : <span className="classic-equipment-unknown" aria-hidden="true">?</span>}
                 </button>

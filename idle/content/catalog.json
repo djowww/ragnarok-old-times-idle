@@ -56,7 +56,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "8300569abd6bd300bb5067bad70de1bc66d582604baacc9af6c6aec6c12436c7"
+    "hash": "6166830d103de8cf6eaf12114c911d1832059fa8c7d94421376087cd10e23dc9"
   },
   "rates": {
     "baseExp": 4,
@@ -122018,9 +122018,8 @@
       "herculesId": 132,
       "sourceName": "AS_RIGHT",
       "mechanic": "AS_RIGHT",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Righthand Mastery. Habilidade passiva. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "description": "Righthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão direita em ataques normais com duas armas.",
       "iconResource": "data/texture/유저인터페이스/item/as_right.bmp",
       "spCost": [
         0,
@@ -122097,9 +122096,8 @@
       "herculesId": 133,
       "sourceName": "AS_LEFT",
       "mechanic": "AS_LEFT",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Lefthand Mastery. Habilidade passiva. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "description": "Lefthand Mastery. Aumenta em 10% por nível o multiplicador do dano da mão esquerda em ataques normais com duas armas.",
       "iconResource": "data/texture/유저인터페이스/item/as_left.bmp",
       "spCost": [
         0,

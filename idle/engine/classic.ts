@@ -37,6 +37,12 @@ export interface ClassicDamageStats {
   shieldWeight?: number;
   shieldRefine?: number;
   weaponType?: WeaponType;
+  leftWeaponAttack?: number;
+  leftWeaponLevel?: number;
+  leftWeaponRefineAttack?: number;
+  leftWeaponType?: WeaponType;
+  leftElementMultiplier?: number;
+  leftSizeMultiplier?: number;
   twoHanded?: boolean;
   mounted?: boolean;
   brandishArea?: BrandishFlag;
@@ -290,6 +296,22 @@ function weaponDefense(raw: number, stats: ClassicDamageStats, monster: Monster,
 /** Weapon and specific miscellaneous skill arithmetic; no generic magic fallback. */
 export function classicPhysicalDamage(stats: ClassicDamageStats, monster: Monster, skill: Skill | undefined, level: number, rng: () => number): number {
   const s = skill as ClassicSkill | undefined;
+  // Hercules battle.c:5898-5910 applies the Assassin masteries to the two normal-attack hands.
+  // Skill attacks continue through the established main-hand formulas below.
+  if (!s && stats.leftWeaponAttack !== undefined) {
+    const right = classicPhysicalDamage({ ...stats, leftWeaponAttack: undefined,
+      leftWeaponRefineAttack: undefined, leftWeaponLevel: undefined, leftWeaponType: undefined }, monster, undefined, level, rng);
+    const left = classicPhysicalDamage({ ...stats,
+      weaponAttack: stats.leftWeaponAttack, weaponLevel: stats.leftWeaponLevel,
+      weaponRefineAttack: stats.leftWeaponRefineAttack, weaponType: stats.leftWeaponType,
+      elementMultiplier: stats.leftElementMultiplier ?? stats.elementMultiplier,
+      sizeMultiplier: stats.leftSizeMultiplier ?? stats.sizeMultiplier,
+      twoHanded: false, leftWeaponAttack: undefined,
+      leftWeaponRefineAttack: undefined, leftWeaponLevel: undefined, leftWeaponType: undefined }, monster, undefined, level, rng);
+    const rightRate = 50 + 10 * learned(stats, 'AS_RIGHT');
+    const leftRate = 30 + 10 * learned(stats, 'AS_LEFT');
+    return Math.max(0, integer(right * rightRate / 100) + integer(left * leftRate / 100));
+  }
   if (s?.implementation === 'unsupported' || s?.damageType === 'none') return 0;
   const name = s ? sourceOf(s) : '';
   if (name === 'PR_TURNUNDEAD') return classicMagicDamage(stats, monster, skill!, level, rng);

@@ -33,7 +33,7 @@ const rules: Record<string, Record<string, Rule>> = {
   craftConverter: { itemId: oneOf(12114,12115,12116,12117), quantity: integer(1,1000) },
   consumeItem: { uid: token },
   sell: { uid: token, quantity: integer(1, 9999) },
-  equip: { uid: token }, favorite: { uid: token }, refine: { uid: token }, identify: { uid: token, method: value => value === undefined || value === 'magnifier' || value === 'skill' },
+  equip: { uid: token, slot: value => value === undefined || ['weapon', 'armor', 'shield', 'head', 'garment', 'shoes', 'accessory'].some(slot => slot === value) }, favorite: { uid: token }, refine: { uid: token }, identify: { uid: token, method: value => value === undefined || value === 'magnifier' || value === 'skill' },
   unequip: { slot: oneOf('weapon', 'armor', 'shield', 'head', 'garment', 'shoes', 'accessory') },
   socket: { uid: token, cardUid: token }, changeClass: { classId: token },
   setPotions: { hpThreshold: integer(0, 100), spThreshold: integer(0, 100) },

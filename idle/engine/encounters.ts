@@ -1912,8 +1912,21 @@ function damageEnemies(
           c.sizeModifiers?.[weapon.weaponType]?.[sizeName] ??
           100) / 100
       : 1;
-    const shieldEntry = s.inventory.find((e) => e.uid === s.equipment.shield),
-      shield = shieldEntry ? c.items[shieldEntry.itemId] : undefined;
+    const shieldEntry = s.inventory.find((e) => e.uid === s.equipment.shield);
+    const shieldItem = shieldEntry ? c.items[shieldEntry.itemId] : undefined;
+    const shield = shieldItem?.slot === 'shield' ? shieldItem : undefined;
+    const leftWeaponEntry = shieldItem?.slot === 'weapon' && shieldEntry &&
+      !shieldEntry.broken && isItemIdentified(shieldEntry) ? shieldEntry : undefined;
+    const leftWeapon = leftWeaponEntry ? shieldItem : undefined;
+    const leftElementName = classicWeaponElement(active,
+      leftWeaponEntry && leftWeaponEntry.quantity > 0 && !leftWeaponEntry.broken && isItemIdentified(leftWeaponEntry)
+        ? leftWeapon?.attackElement ?? 'neutral' : 'neutral');
+    const leftElement = sageFieldElementRate(elementMultiplier(c, leftElementName, monster),
+      sageFieldModifiers(s, s.id, at), leftElementName, false) * webFire.multiplier;
+    const leftSize = leftWeapon?.weaponType
+      ? (c.sizeModifiers?.[leftWeapon.weaponType]?.[monster.size.toLowerCase()] ??
+          c.sizeModifiers?.[leftWeapon.weaponType]?.[monster.size] ?? 100) / 100
+      : 1;
     const stats = {
       ...d,
       ...d.attributes,
@@ -1921,14 +1934,21 @@ function damageEnemies(
       baseAttack:
         d.baseAttack ?? d.attack -
         (d.weaponAttack ?? weapon?.attack ?? 0) -
-        (d.weaponRefineAttack ?? 0),
+        (d.weaponRefineAttack ?? 0) -
+        (d.leftWeaponAttack ?? 0) - (d.leftWeaponRefineAttack ?? 0),
       weaponType: weapon?.weaponType,
       weaponAttack: d.weaponAttack ?? weapon?.attack ?? 0,
       weaponLevel: weapon?.weaponLevel ?? 1,
       weaponWeight: weapon?.weight,
       weaponRefineAttack: d.weaponRefineAttack ?? 0,
+      leftWeaponAttack: leftWeapon ? d.leftWeaponAttack ?? leftWeapon.attack : undefined,
+      leftWeaponRefineAttack: leftWeapon ? d.leftWeaponRefineAttack ?? 0 : undefined,
+      leftWeaponLevel: leftWeapon?.weaponLevel,
+      leftWeaponType: leftWeapon?.weaponType,
+      leftElementMultiplier: leftElement,
+      leftSizeMultiplier: leftSize,
       shieldWeight: shield?.weight,
-      shieldRefine: shieldEntry?.refine,
+      shieldRefine: shield ? shieldEntry?.refine : undefined,
       twoHanded: weapon?.twoHanded,
       mounted,
       brandishArea: brandishAreas?.get(enemy.id),
