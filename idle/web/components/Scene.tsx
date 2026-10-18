@@ -4,7 +4,7 @@ import {falconAsset,FalconPresentation,alignFalconCues,falconDestinationWorld,fa
 import {isFalconEquipped} from '../../engine/falcon';
 import { selectSceneEventBatch, type SceneEventCursor } from '../assets/sceneEventBootstrap';
 import { classicBuffActive } from '../../engine/classicBuffs';
-import { HERO_COMBAT_DIRECTION, isSoloPotionPitcher, skillCueCastDuration, skillVisualEffectAt, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt } from '../assets/combatPresentation';
+import { HERO_COMBAT_DIRECTION, isSoloPotionPitcher, skillCueCastDuration, skillVisualEffectAt, resolveEffectActors, retireInterruptedCastCues, retireTrickDeadPoses, sceneEventSkill, soloPostureAt, compressStaleActorActionBacklog } from '../assets/combatPresentation';
 import { currentPlayerCast } from '../../engine/playerCast';
 import { isNpcStatusAction, npcStatusCastProgress } from '../../shared/playerStatusView';
 import {monsterControlLabel} from '../../shared/monsterControlView';
@@ -40,10 +40,11 @@ import {
 } from "../assets/sceneEffects";
 import { loadGroundLoot, type GroundLootVisual } from "../assets/groundLoot";
 import { groundTrapVisualState, loadGroundTrap, spentGroundTrap, hasSceneAction, trapCueAction } from "../assets/groundTraps";
-import { battleRouteTangent, ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectBattlePoint, projectMapArea, projectMapPoint, sceneGroundPoint, screenBattleCell, screenGroundPoint, walkableSceneGroundPoint, type FieldMapOrigin, type MapProjection, type WorldPoint } from "../assets/mapProjection";
+import { advanceGridRouteProgress, nearestGridRouteProgress, battleRouteTangent, ConnectedMapMovement, mapGroundHeight, mapGroundWalkable, projectBattlePoint, projectMapArea, projectMapPoint, sceneGroundPoint, screenBattleCell, screenGroundPoint, walkableSceneGroundPoint, type FieldMapOrigin, type MapProjection, type WorldPoint } from "../assets/mapProjection";
 import { getMapLife, mapLifeCanWalk, mapLifePoseAt, mapLifeSpeechAt, prepareMapLife } from "../assets/mapLife";
 import { POST_WAVE_SEARCH_MS } from "../../shared/hunt";
 import { isTownScene } from "../../shared/worldScene";
+import { gridRoutePoint } from "../../shared/fieldNavigation";
 import { isPecoMounted } from "../../engine/mountedPeco";
 import { number, type PanelProps } from "./common";
 import OriginalMap, { type MapStatus } from "./OriginalMap";
@@ -661,6 +662,7 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
   const enemyPositions = useRef(new Map<string, GroundPosition>());
   const connectedMovement = useRef(new ConnectedMapMovement());
   const renderedHeroGround = useRef<{ map: string; areaId: string | null; ground: GroundPosition } | null>(null);
+  const renderedHeroRoute = useRef<{ key: string; mapKey: string; progress: number; at: number; route: readonly { x: number; y: number }[] } | null>(null);
   const offensiveTargets = useRef(new Set<string>());
   const legacyOpponentPosition = useRef<GroundPosition | null>(null);
   const legacyOpponentId = useRef("enemy");
@@ -881,6 +883,7 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
     const now = performance.now();
     if (previous.areaId !== state.areaId || isTownScene(state) || state.status === "resting") {
       renderedHeroGround.current = null;
+      renderedHeroRoute.current = null;
     }
     const holdHeroStrike = () => {
       const rendered = renderedHeroGround.current;
@@ -1293,6 +1296,15 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
       const visibleEnemyIds = new Set(groupEnemies.map((entry) => entry.enemy.id));
       const groupMode = !!current.battle?.enemies || groupEnemies.length > 0;
       const soloPosture = soloPostureAt(current, catalog, serverNow);
+      const fieldPopulation = scene !== "town" && current.fieldPopulation?.areaId === current.areaId &&
+        current.status !== "town" && current.status !== "challenge";
+      const sourceRoute = current.fieldHero;
+      const authoritativeRouteWalking = !!(fieldPopulation && sourceRoute && current.status !== 'paused' &&
+        serverNow >= sourceRoute.startedAt && serverNow < sourceRoute.arrivedAt &&
+        (sourceRoute.movementRoute?.length ?? 0) > 1);
+      if (fieldPopulation && sourceRoute && current.status !== 'paused') shiftPresentationAssociates(compressStaleActorActionBacklog(
+        combatCues.current.filter(cue => !cue.blocked), actionWatermarks.current, current.id, time,
+        authoritativeRouteWalking, sourceRoute.startedAt));
       const groupHeroCue = isArriving || soloPosture.playDead ? undefined : heroPresentation.current.actionAt(combatCues.current.filter(cue => !cue.blocked), current.id, time);
       const backslidingCue = groupHeroCue?.skill?.sourceName === 'TF_BACKSLIDING' &&
         groupHeroCue.sourcePosition && groupHeroCue.movementDestination ? groupHeroCue : undefined;
@@ -1332,7 +1344,6 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
       }, time) : undefined;
       // The scene origin stays stable through roaming and combat.
       const formationAnchor = { x: current.status === "challenge" ? 0.38 : 0.48, y: 0.76 };
-      const fieldPopulation = current.fieldPopulation?.areaId === current.areaId && scene !== "town" && current.status !== "challenge";
       // A source cast may already have begun while the previous swing is still
       // being presented. Its body and facing wait for the current visual turn.
       const casting = !soloPosture.playDead && !groupHeroCue ? currentPlayerCast(current, serverNow) : undefined;
@@ -1419,17 +1430,55 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
       const enemyPoint = primaryEnemy?.ground?.point ?? primaryArrival?.point ?? encounter?.enemy ?? { x: 0.66, y: 0.76 };
       const heroFromWorld = camera ? sceneGroundPoint(camera, motionState.from, formationAnchor) : null;
       const heroToWorld = camera ? sceneGroundPoint(camera, motionState.target, formationAnchor) : null;
-      const fieldHeroPoint = fieldPopulation && current.fieldHero ? backslidingPoint ?? battleHeroAt(current, serverNow) : undefined;
+      let fieldHeroPoint = fieldPopulation && current.fieldHero ? backslidingPoint ?? battleHeroAt(current, serverNow) : undefined;
+      const routeHero = current.fieldHero;
+      const movementRoute = routeHero?.movementRoute;
+      const routeKey = routeHero && movementRoute?.length
+        ? JSON.stringify([mapName, current.areaId, routeHero.startedAt, routeHero.arrivedAt, movementRoute]) : undefined;
+      const mapKey = JSON.stringify([mapName, current.areaId]);
+      const prior = renderedHeroRoute.current;
+      if (fieldPopulation && routeHero && movementRoute && movementRoute.length > 1 && fieldHeroPoint && !backslidingPoint) {
+        const duration = Math.max(1, routeHero.arrivedAt - routeHero.startedAt);
+        const authoritative = Math.max(0, Math.min(1, (serverNow - routeHero.startedAt) / duration));
+        let progress: number;
+        if (prior && prior.key === routeKey) {
+          progress = advanceGridRouteProgress(prior.progress, authoritative,
+            current.status === 'paused' || !!strikePose ? 0 : Math.max(0, time - prior.at), duration);
+        } else {
+          const priorPoint = prior && prior.mapKey === mapKey ? gridRoutePoint(prior.route, prior.progress) : undefined;
+          const rendered = renderedHeroGround.current?.map === mapName && renderedHeroGround.current.areaId === current.areaId
+            ? renderedHeroGround.current.ground.point : undefined;
+          const lastPoint = priorPoint ?? (rendered ? {
+            x: BATTLE_HERO.x + (rendered.x - FIELD_SCENE_ORIGIN.x) * 22 / BATTLE_CELLS_PER_UNIT,
+            y: BATTLE_HERO.y + (rendered.y - FIELD_SCENE_ORIGIN.y) * 18 / BATTLE_CELLS_PER_UNIT,
+          } : routeHero.from);
+          const hasRenderedAnchor = !!priorPoint || !!rendered;
+          const nearest = nearestGridRouteProgress(movementRoute, lastPoint);
+          // A fresh/paused scene has no previous visual position to reanchor.
+          // Seed it from the server clock instead of the route's first point.
+          // Retargeted routes resume at the nearest already-rendered point;
+          // advanceGridRouteProgress caps subsequent motion at source speed.
+          progress = hasRenderedAnchor ? nearest.progress : authoritative;
+        }
+        fieldHeroPoint = gridRoutePoint(movementRoute, progress);
+        renderedHeroRoute.current = { key: routeKey!, mapKey, progress, at: time, route: movementRoute };
+      } else if (routeHero && movementRoute && movementRoute.length > 1 && prior) {
+        // Skills such as Backsliding temporarily own the visible position; freeze the route clock while they do.
+        renderedHeroRoute.current = { ...prior, at: time };
+      } else if (!strikePose && !backslidingPoint) renderedHeroRoute.current = null;
       const fieldHeroWorld = camera && fieldOrigin && fieldHeroPoint ? projectBattlePoint(camera, fieldHeroPoint, fieldOrigin) : undefined;
-      const fieldHeroTangent = camera && fieldOrigin && current.fieldHero
-        ? current.fieldHero.movementRoute?.length
-          ? battleRouteTangent(camera, current.fieldHero.movementRoute,
-            Math.max(0, Math.min(1, (serverNow - current.fieldHero.startedAt) / Math.max(1, current.fieldHero.arrivedAt - current.fieldHero.startedAt))), fieldOrigin)
-          : projectBattlePoint(camera, current.fieldHero.position, fieldOrigin)
+      const routeProgress = routeKey && renderedHeroRoute.current?.key === routeKey
+        ? renderedHeroRoute.current.progress
+        : routeHero ? Math.max(0, Math.min(1, (serverNow - routeHero.startedAt) /
+          Math.max(1, routeHero.arrivedAt - routeHero.startedAt))) : 0;
+      const fieldHeroTangent = camera && fieldOrigin && routeHero && !backslidingPoint
+        ? movementRoute?.length
+          ? battleRouteTangent(camera, movementRoute, routeProgress, fieldOrigin)
+          : projectBattlePoint(camera, routeHero.position, fieldOrigin)
         : undefined;
-      const heroMovement = camera && !strikePose && fieldPopulation && current.fieldHero && fieldOrigin && fieldHeroWorld && fieldHeroTangent
+      const heroMovement = camera && !backslidingPoint && !strikePose && fieldPopulation && current.fieldHero && fieldOrigin && fieldHeroWorld && fieldHeroTangent
         ? { world: fieldHeroWorld, tangent: fieldHeroTangent }
-        : camera && !strikePose && fieldPopulation && current.fieldHero && !fieldOrigin
+        : camera && !backslidingPoint && !strikePose && fieldPopulation && current.fieldHero && !fieldOrigin
         ? connectedMovement.current.project(camera, current.id,
           JSON.stringify([current.fieldHero.startedAt, current.fieldHero.arrivedAt, current.fieldHero.from, current.fieldHero.position]),
           heroFromWorld!, heroToWorld!,

@@ -35,3 +35,5 @@ id_ed25519*
 
 __pycache__/
 *.py[cod]
+
+/idle/.pnpm-store/

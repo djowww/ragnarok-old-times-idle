@@ -83,6 +83,35 @@ export function projectBattlePoint(camera: MapProjection, point: { x: number; y:
   return [x, mapGroundHeight(camera, x - 0.5, y - 0.5), y];
 }
 
+/** Nearest progress on the authoritative source route; used to resume from a rendered point without cutting across bends. */
+export function nearestGridRouteProgress(route: readonly GridPoint[], point: GridPoint): { progress: number; distance: number } {
+  if (!route.length || !Number.isFinite(point.x) || !Number.isFinite(point.y))
+    return { progress: 0, distance: Infinity };
+  if (route.length === 1) return { progress: 0, distance: Math.hypot(point.x - route[0].x, point.y - route[0].y) };
+  const total = gridRouteLength(route);
+  if (total <= 0) return { progress: 0, distance: Math.hypot(point.x - route[0].x, point.y - route[0].y) };
+  let traversed = 0, bestDistance = Infinity, bestProgress = 0;
+  for (let index = 1; index < route.length; index++) {
+    const a = route[index - 1], b = route[index], dx = b.x - a.x, dy = b.y - a.y;
+    const lengthSquared = dx * dx + dy * dy, length = Math.sqrt(lengthSquared);
+    if (lengthSquared > 0) {
+      const t = Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSquared));
+      const distance = Math.hypot(point.x - (a.x + dx * t), point.y - (a.y + dy * t));
+      if (distance < bestDistance) { bestDistance = distance; bestProgress = (traversed + length * t) / total; }
+    }
+    traversed += length;
+  }
+  return { progress: bestProgress, distance: bestDistance };
+}
+
+/** Cap visual route catch-up at the source route's own progress rate. */
+export function advanceGridRouteProgress(progress: number, authoritative: number, elapsedMs: number, sourceDurationMs: number): number {
+  const from = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
+  const target = Math.max(from, Math.max(0, Math.min(1, Number.isFinite(authoritative) ? authoritative : from)));
+  const advance = Math.max(0, elapsedMs) / Math.max(1, sourceDurationMs);
+  return Math.min(target, from + advance);
+}
+
 /** Return the next shared route waypoint for tangent facing, with terrain height sampled by the viewer. */
 export function battleRouteTangent(camera: MapProjection, route: readonly GridPoint[], fraction: number, origin: FieldMapOrigin): WorldPoint {
   if (!route.length) return camera.focus as WorldPoint;

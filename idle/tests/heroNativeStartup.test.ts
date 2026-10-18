@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { NativeActorsBridge } from '../web/assets/nativeActors';
 import * as actorPresentation from '../web/assets/enemyActionPresentation';
-import { ActionTextureStartup, presentedActorActionAt, presentLatestActorActions, reconcileActorPlayback, soloPostureAt, targetHealthAt } from '../web/assets/combatPresentation';
+import { ActionTextureStartup, compressStaleActorActionBacklog, presentedActorActionAt, presentLatestActorActions, reconcileActorPlayback, soloPostureAt, targetHealthAt } from '../web/assets/combatPresentation';
 import { getActorPose, getActorPlaybackDuration, getCombatActorAction } from '../web/assets/renderer';
 import { shiftCorpsePresentation } from '../web/assets/corpsePresentation';
 
@@ -91,8 +91,8 @@ function fixture(action: 'attack' | 'skill' = 'attack', brandish = false) {
     if(clean)cleanup({combatCues,now,textureStartup,heroPresentation,enemyPresentation});
     const current:any={id:'hero',hp:100,status:'hunting',buffs:{},learnedSkills:{},job:'novice'};
     const catalog:any={skills:{},classes:{},source:{files:[]}};
-    const scope:any={combatCues,actionWatermarks,textureStartup,heroPresentation,enemyPresentation,shiftPresentationAssociates,
-      current,catalog,serverNow:now,soloPostureAt,isArriving:false,actorsRef:{current:{hero:actor}},heroActor:actor,
+    const scope:any={combatCues,actionWatermarks,textureStartup,heroPresentation,enemyPresentation,shiftPresentationAssociates,compressStaleActorActionBacklog,
+      current,catalog,serverNow:now,soloPostureAt,scene:'field',isArriving:false,actorsRef:{current:{hero:actor}},heroActor:actor,
       heroDirection:6,camera,heroPlacement:{world:idle.world},motion:{matches:false},nativeActors:{current:bridge},time:now,
       actorActionCue:(c:any[],m:any,id:string,t:number)=>presentedActorActionAt(c,id,t),
       getActorPose,getActorPlaybackDuration,getCombatActorAction,reconcileActorPlayback};
@@ -115,6 +115,7 @@ describe('hero startup through actual Scene seams and native retained-pose proto
   it('exports the proven actor gate for Scene and preserves the enemy contract',()=>{
     expect((actorPresentation as any).ActorActionPresentation).toBe(actorPresentation.EnemyActionPresentation);
     expect(scene).toContain('heroPresentation.current.frame(');
+    expect(scene).toMatch(/const fieldPopulation = scene !== \"town\" &&/);
   });
   it.each(['attack','skill'] as const)('pins cold %s to frame-zero Canvas after450ms with fresh idle ACKs',action=>{
     const f=fixture(action);
