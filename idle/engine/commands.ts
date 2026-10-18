@@ -45,6 +45,7 @@ import { isFieldSitting, sitInField, endFieldRest, startTensionRelax } from './r
 import { consumeItem, discardAloeveraUnderAutoBerserk } from "./consumables.js";
 import { craftPharmacy } from "./pharmacyCraft.js";
 import { craftWeapon } from "./weaponCraft.js";
+import { craftMetal } from "./metalCraft.js";
 import { craftConverter } from "./converterCraft.js";
 import { cancelActorCast, useCastCancel } from './castControl.js';
 import { canPecoMount } from './mountedPeco.js';
@@ -677,6 +678,10 @@ export function executeCommand(
     }
     case "craftWeapon": {
       craftWeapon(s,c,command.itemId,now);
+      break;
+    }
+    case "craftMetal": {
+      craftMetal(s,c,command.itemId,now);
       break;
     }
     case "buy": {
