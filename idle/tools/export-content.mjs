@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseArrowRecipes } from './arrowRecipes.mjs';
 import { parseWeaponRecipes } from './weaponRecipes.mjs';
+import { parseMetalRecipes } from './metalRecipes.mjs';
 /** Reproducible selected Hercules catalog. GPL-3.0-or-later. Never evaluates scripts. */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -109,6 +110,19 @@ manifest.weaponCraft = {
     anvilItems: { 989: 1000, 988: 500, 987: 300, 986: 0 },
     failure: 'All required materials are consumed before one chance roll; failure grants no weapon.',
     adaptations: ['Solo profile uses the learned passive craft level to open the recipe list.', 'Forged elemental and star-crumb slots are not offered; output is an identified plain weapon. Creator metadata has no profile-safe equivalent in the inventory schema.', 'Idle validates net weight capacity before consuming materials.']
+};
+const metalRecipes = parseMetalRecipes(buffers['db/produce_db.txt'].toString('utf8'));
+const metalCraftSkills = ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'];
+const metalOutputIds = [998,999,1000,994,995,997,996];
+if (metalRecipes.length !== 7 ||
+    JSON.stringify(metalRecipes.map(recipe => recipe.outputItemId)) !== JSON.stringify(metalOutputIds) ||
+    JSON.stringify([...new Set(metalRecipes.map(recipe => recipe.skillName))]) !== JSON.stringify(metalCraftSkills))
+    throw new Error('Pinned metal and enchanted-stone recipes differ');
+manifest.metalCraft = {
+    source: 'db/produce_db.txt', recipes: metalRecipes.length, skillFamilies: metalCraftSkills,
+    chance: 'jobLevel*20 + DEX*10 + LUK*10; Iron +4000 + skillLevel*500; Steel +3000 + skillLevel*500; enchanted stones +1000 + skillLevel*500; Star Crumb make_per=100000 (guaranteed).',
+    failure: 'All recipe materials are consumed before one RNG roll; failure grants no output. Star Crumb still consumes one RNG roll.',
+    adaptations: ['Solo profile crafts one output per attempt.', 'Inventory net weight is checked before consuming materials.']
 };
 const refineSource = parseConfig(buffers['db/pre-re/refine_db.conf'].toString('utf8'));
 const normalRefineRates = [1,2,3,4].map(level => {
@@ -359,7 +373,7 @@ const healSkills = new Set(['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'AM_POTION
 // A source row alone is not an implementation. Every supported non-damage
 // skill must have an Effects translation or an explicit engine dispatcher.
 const effectSkills = new Set(['AL_BLESSING', 'AL_INCAGI', 'MC_LOUD', 'PR_IMPOSITIO', 'PR_GLORIA', 'AC_CONCENTRATION', 'KN_TWOHANDQUICKEN', 'BS_ADRENALINE', 'CR_SPEARQUICKEN', 'BS_OVERTHRUST', 'WS_OVERTHRUSTMAX', 'LK_CONCENTRATION', 'SN_SIGHT', 'SN_WINDWALK', 'MO_EXPLOSIONSPIRITS', 'BA_WHISTLE', 'BA_ASSASSINCROSS', 'BA_POEMBRAGI', 'BA_APPLEIDUN', 'DC_HUMMING', 'DC_FORTUNEKISS', 'DC_SERVICEFORYOU', 'AL_ANGELUS', 'CR_AUTOGUARD', 'CR_REFLECTSHIELD', 'LK_PARRYING', 'HP_ASSUMPTIO', 'SA_FLAMELAUNCHER', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_SEISMICWEAPON', 'PR_SUFFRAGIUM', 'CR_PROVIDENCE']);
-const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER', 'SA_ADVANCEDBOOK']);
+const passiveSkills = new Set(['SM_SWORD', 'SM_TWOHAND', 'SM_RECOVERY', 'SM_MOVINGRECOVERY', 'SM_FATALBLOW', 'KN_SPEARMASTERY', 'MG_SRECOVERY', 'AC_OWL', 'AC_VULTURE', 'AL_DEMONBANE', 'TF_DOUBLE', 'TF_MISS', 'MO_IRONHAND', 'MO_DODGE', 'MO_TRIPLEATTACK', 'PR_MACEMASTERY', 'HT_BEASTBANE', 'HT_STEELCROW', 'HT_FALCON', 'BA_MUSICALLESSON', 'DC_DANCINGLESSON', 'BS_HILTBINDING', 'BS_WEAPONRESEARCH', 'BS_ORIDEOCON', 'MC_DISCOUNT', 'MC_OVERCHARGE', 'MC_INCCARRY', 'ALL_INCCARRY', 'MC_PUSHCART', 'AM_AXEMASTERY', 'AS_KATAR', 'AS_SONICACCEL', 'ASC_KATAR', 'CR_TRUST', 'HW_SOULDRAIN', 'HP_MEDITATIO', 'HP_MANARECHARGE', 'AM_LEARNINGPOTION', 'BS_SKINTEMPER', 'SA_DRAGONOLOGY', 'AL_DP', 'RG_SNATCHER', 'SA_ADVANCEDBOOK']);
 for (const name of ['BS_UNFAIRLYTRICK', 'RG_TUNNELDRIVE', 'MO_SPIRITSRECOVERY']) passiveSkills.add(name);
 for (const name of ['AS_RIGHT', 'AS_LEFT']) passiveSkills.add(name);
 for (const name of ['KN_RIDING', 'KN_CAVALIERMASTERY']) passiveSkills.add(name);
@@ -515,8 +529,8 @@ for (const name of skillNames) {
     if (name === 'ALL_RESURRECTION') kind = 'magical';
     let damageType = magicRatios[name] ? 'magic' : weaponRatios[name] ? 'weapon' : miscSkills.has(name) ? 'misc' : 'none';
     if (name === 'ALL_RESURRECTION') damageType = 'magic';
-    const supportedMechanic = name === 'AC_MAKINGARROW' || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
-    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
+    const supportedMechanic = name === 'AC_MAKINGARROW' || ['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) || magicRatios[name] || weaponRatios[name] || miscSkills.has(name) || effectSkills.has(name) || passiveSkills.has(name) || activeSpecial.has(name) || backslidingSupported || ['NV_FIRSTAID', 'AL_HEAL', 'PR_SANCTUARY', 'PA_GOSPEL'].includes(name);
+    const unsupportedReason = (['AS_VENOMDUST', 'PF_SPIDERWEB'].includes(name) ? undefined : unsupported[name]) ?? (src.SkillInfo?.Spirit && rule?.requiredState !== 'combo' ? 'Requer estado de Espírito da classe, ainda não implementado.' : (!['SA_CREATECON','AM_PHARMACY','BS_FINDINGORE','BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE','BS_ORIDEOCON','WS_WEAPONREFINE','AC_MAKINGARROW','BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && townPatterns.test(name)) ? 'Requer produção, objetos persistentes, parceiros ou edição de células do mapa.' : !supportedMechanic ? 'Mecânica Hercules importada; a simulação atual ainda não executa este efeito.' : undefined);
     const implementation = unsupportedReason ? 'unsupported' : 'supported';
     if (name === 'PF_SOULBURN') damageType = 'none';
     const rawHits = byLevel(src.NumberOfHits, maxLevel, 1);
@@ -563,6 +577,7 @@ for (const name of skillNames) {
         ...(name === 'SA_CREATECON' && { manualUse: 'converterCraft' }),
         ...(name === 'AC_MAKINGARROW' && { manualUse: 'arrowCraft' }),
         ...(['BS_DAGGER','BS_SWORD','BS_TWOHANDSWORD','BS_AXE','BS_MACE','BS_KNUCKLE','BS_SPEAR'].includes(name) && { manualUse: 'weaponCraft' }),
+        ...(['BS_IRON','BS_STEEL','BS_ENCHANTEDSTONE'].includes(name) && { manualUse: 'metalCraft' }),
         ...(name === 'AM_PHARMACY' && { manualUse: 'pharmacyCraft' }),
         ...(name === 'WS_WEAPONREFINE' && { manualUse: 'weaponRefine' }),
         ...(name === 'WZ_ESTIMATION' && { manualUse: 'inspect' }),
@@ -1023,5 +1038,6 @@ await mkdir(dirname(output), { recursive: true });
 await writeFile(output, text);
 await writeFile(resolve(dirname(output), 'arrow-recipes.json'), JSON.stringify(arrowRecipes, null, 2) + '\n');
 await writeFile(resolve(dirname(output), 'weapon-recipes.json'), JSON.stringify(weaponRecipes, null, 2) + '\n');
+await writeFile(resolve(dirname(output), 'metal-recipes.json'), JSON.stringify(metalRecipes, null, 2) + '\n');
 await writeFile(resolve(dirname(output), 'source-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 console.log(`Exported ${Object.keys(catalog.monsters).length} monsters, ${Object.keys(catalog.items).length} items, ${Object.keys(catalog.classes).length} classes, ${Object.keys(catalog.skills).length} skills. SHA256 ${manifest.catalogSha256}`);

@@ -14,6 +14,15 @@ const catalog = beforeDungeonExpansionCatalog(dungeonCurrentCatalog);
 const manifest = beforeDungeonExpansionManifest(dungeonCurrentManifest);
 
 const candidate = catalog as unknown as Catalog;
+const metalProductionSources = ['BS_IRON', 'BS_STEEL', 'BS_ENCHANTEDSTONE', 'BS_ORIDEOCON'];
+function beforeMetalProductionSources(names: string[]) {
+  const projected = [...names];
+  for (const source of metalProductionSources) {
+    const matches = projected.filter(name => name === source);
+    if (matches.length !== 1) throw new Error(`Expected one current metal-production source ${source}`);
+  }
+  return projected.filter(name => !metalProductionSources.includes(name));
+}
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
   if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map(key =>
@@ -24,11 +33,11 @@ const digest = (value: unknown) => createHash('sha256').update(canonical(value))
 
 describe('source-closed Trick Dead and Free Cast catalog', () => {
   it('preserves the 232-skill baseline plus both postures and the later manual Sense feature', () => {
-    const names = Object.values(beforeSoloAlchemySkills(candidate.skills)).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!).sort();
+    const names = beforeMetalProductionSources(Object.values(beforeSoloAlchemySkills(candidate.skills)).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!)).sort();
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
-    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AC_MAKINGARROW', 'AL_RUWACH', 'AL_TELEPORT', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 284, unsupported: 64, classes: 40, skills: 348 });
+    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AC_MAKINGARROW', 'AL_RUWACH', 'AL_TELEPORT', 'AS_LEFT', 'AS_RIGHT', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
+    expect(manifest.skillCoverage).toMatchObject({ supported: 288, unsupported: 60, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();

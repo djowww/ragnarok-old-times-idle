@@ -1,0 +1,97 @@
+[
+  {
+    "outputItemId": 998,
+    "itemLevel": 21,
+    "skillId": 94,
+    "skillName": "BS_IRON",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 1002,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 999,
+    "itemLevel": 21,
+    "skillId": 95,
+    "skillName": "BS_STEEL",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 998,
+        "quantity": 5
+      },
+      {
+        "itemId": 1003,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "outputItemId": 1000,
+    "itemLevel": 21,
+    "skillId": 96,
+    "skillName": "BS_ENCHANTEDSTONE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 1001,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 994,
+    "itemLevel": 21,
+    "skillId": 96,
+    "skillName": "BS_ENCHANTEDSTONE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 990,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 995,
+    "itemLevel": 21,
+    "skillId": 96,
+    "skillName": "BS_ENCHANTEDSTONE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 991,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 997,
+    "itemLevel": 21,
+    "skillId": 96,
+    "skillName": "BS_ENCHANTEDSTONE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 993,
+        "quantity": 10
+      }
+    ]
+  },
+  {
+    "outputItemId": 996,
+    "itemLevel": 21,
+    "skillId": 96,
+    "skillName": "BS_ENCHANTEDSTONE",
+    "skillLevel": 1,
+    "ingredients": [
+      {
+        "itemId": 992,
+        "quantity": 10
+      }
+    ]
+  }
+]

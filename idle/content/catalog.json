@@ -56,7 +56,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "d8460d6f5d3409f2ac4e50b4e5d3c3ddf78d497caf517aec797981a5e8c52ea7"
+    "hash": "a5e20cc24c96e82237ce6cfe207171d4b3d4ddddc4d45e203d796d3c837fd81b"
   },
   "rates": {
     "baseExp": 4,
@@ -118186,9 +118186,9 @@
       "herculesId": 94,
       "sourceName": "BS_IRON",
       "mechanic": "BS_IRON",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Iron Tempering. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "metalCraft",
+      "description": "Iron Tempering. Habilidade passiva.",
       "iconResource": "data/texture/유저인터페이스/item/bs_iron.bmp",
       "spCost": [
         0,
@@ -118265,9 +118265,9 @@
       "herculesId": 95,
       "sourceName": "BS_STEEL",
       "mechanic": "BS_STEEL",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Steel Tempering. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "metalCraft",
+      "description": "Steel Tempering. Habilidade passiva.",
       "iconResource": "data/texture/유저인터페이스/item/bs_steel.bmp",
       "spCost": [
         0,
@@ -118359,9 +118359,9 @@
       "herculesId": 96,
       "sourceName": "BS_ENCHANTEDSTONE",
       "mechanic": "BS_ENCHANTEDSTONE",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Enchanted Stone Craft. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "metalCraft",
+      "description": "Enchanted Stone Craft. Habilidade passiva.",
       "iconResource": "data/texture/유저인터페이스/item/bs_enchantedstone.bmp",
       "spCost": [
         0,
@@ -118453,9 +118453,8 @@
       "herculesId": 97,
       "sourceName": "BS_ORIDEOCON",
       "mechanic": "BS_ORIDEOCON",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Oridecon Research. Habilidade passiva. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "description": "Oridecon Research. Habilidade passiva.",
       "iconResource": "data/texture/유저인터페이스/item/bs_orideocon.bmp",
       "spCost": [
         0,

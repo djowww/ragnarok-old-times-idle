@@ -46,7 +46,8 @@ export default function Build({
   onOpenArrows,
   onOpenWeaponRefine,
   onOpenWeaponCraft,
-}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenArrows?: (trigger:HTMLElement) => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void; onOpenWeaponCraft?: (trigger: HTMLElement) => void }) {
+  onOpenMetalCraft,
+}: PanelProps & { mode?: "all" | "stats" | "skills"; onOpenConverters?: () => void; onOpenArrows?: (trigger:HTMLElement) => void; onOpenPharmacy?: (trigger: HTMLElement) => void; onOpenWeaponRefine?: (trigger: HTMLElement) => void; onOpenWeaponCraft?: (trigger: HTMLElement) => void; onOpenMetalCraft?: (trigger: HTMLElement) => void }) {
   const { state, stats } = snapshot;
   const openingRefine = useRef(false);
   const [refineOpening, setRefineOpening] = useState(false);
@@ -281,6 +282,7 @@ export default function Build({
                     {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "weaponCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenWeaponCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenWeaponCraft?.(event.currentTarget)}>Forjar armas</button>}
+                    {skill.manualUse === "metalCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenMetalCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenMetalCraft?.(event.currentTarget)}>Produzir metais</button>}
                     {skill.manualUse === "weaponRefine" && <div className="weapon-refine-launch">
                       <button type="button" disabled={busy || refineOpening || unsupported || level === 0 || !onOpenWeaponRefine ||
                         (!state.weaponRefineMenu && (state.status === 'resting' || state.hp <= 0 || manualSilenced ||

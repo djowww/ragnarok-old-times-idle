@@ -10809,8 +10809,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10829,8 +10828,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10849,8 +10847,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -10869,8 +10866,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13971,6 +13967,21 @@
       "Idle validates net weight capacity before consuming materials."
     ]
   },
+  "metalCraft": {
+    "source": "db/produce_db.txt",
+    "recipes": 7,
+    "skillFamilies": [
+      "BS_IRON",
+      "BS_STEEL",
+      "BS_ENCHANTEDSTONE"
+    ],
+    "chance": "jobLevel*20 + DEX*10 + LUK*10; Iron +4000 + skillLevel*500; Steel +3000 + skillLevel*500; enchanted stones +1000 + skillLevel*500; Star Crumb make_per=100000 (guaranteed).",
+    "failure": "All recipe materials are consumed before one RNG roll; failure grants no output. Star Crumb still consumes one RNG roll.",
+    "adaptations": [
+      "Solo profile crafts one output per attempt.",
+      "Inventory net weight is checked before consuming materials."
+    ]
+  },
   "weaponRefine": {
     "source": "db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011",
     "normalRates": [
@@ -15143,8 +15154,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 284,
-    "unsupported": 64,
+    "supported": 288,
+    "unsupported": 60,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15308,13 +15319,13 @@
       },
       "blacksmith": {
         "sourceTree": 39,
-        "supported": 27,
-        "unsupported": 12
+        "supported": 31,
+        "unsupported": 8
       },
       "whitesmith": {
         "sourceTree": 44,
-        "supported": 32,
-        "unsupported": 12
+        "supported": 36,
+        "unsupported": 8
       },
       "alchemist": {
         "sourceTree": 35,
@@ -15569,6 +15580,10 @@
       "CH_TIGERFIST",
       "CH_CHAINCRUSH",
       "CH_SOULCOLLECT",
+      "BS_IRON",
+      "BS_STEEL",
+      "BS_ENCHANTEDSTONE",
+      "BS_ORIDEOCON",
       "BS_DAGGER",
       "BS_SWORD",
       "BS_TWOHANDSWORD",
@@ -15813,26 +15828,6 @@
         "skillId": "mo_kitranslation",
         "sourceName": "MO_KITRANSLATION",
         "reason": "Requer outro personagem para transferir esferas."
-      },
-      {
-        "skillId": "bs_iron",
-        "sourceName": "BS_IRON",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_steel",
-        "sourceName": "BS_STEEL",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_enchantedstone",
-        "sourceName": "BS_ENCHANTEDSTONE",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "bs_orideocon",
-        "sourceName": "BS_ORIDEOCON",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
         "skillId": "bs_repairweapon",
@@ -16848,6 +16843,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "3585f83a01936f12a90a8fad5f871cca464356daa70c38e14adbc1e17d276aca",
+  "catalogSha256": "46a1a5e0a5303f870a7faa9115a0479c2ed1822ad5f7ebaef66f189f872ea2c8",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
