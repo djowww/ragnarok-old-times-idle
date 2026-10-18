@@ -20,10 +20,12 @@ function setup(itemId=7135, quantity=2) {
   const s=createInitialState(c,0);s.job='alchemist';s.jobLevel=10;s.hp=100;s.sp=100;s.stats={str:1,agi:1,vit:1,int:5,dex:20,luk:30};
   s.learnedSkills={am_pharmacy:3,am_learningpotion:5};s.inventory=[];s.equipment={};s.rngState=1;
   const recipe=pharmacyRecipes().find(r=>r.outputItemId===itemId)!;
-  for(const id of new Set([itemId,7134,recipe.guideItemId,...recipe.ingredients.map(i=>i.itemId)]))
-    c.items[id]={...c.items[909],id,type:'material',weight:1,shop:false};
-  for(const [id,n] of [[7134,quantity],[recipe.guideItemId,1],...recipe.ingredients.map(i=>[i.itemId,i.quantity*quantity])])
-    s.inventory.push({uid:'item-'+id,itemId:id,quantity:n,refine:0,cards:[],favorite:false});
+  const itemIds=[itemId,7134,...recipe.ingredients.map(i=>i.itemId)];
+  if(recipe.guideItemId!==undefined)itemIds.push(recipe.guideItemId);
+  for(const id of new Set(itemIds)) c.items[id]={...c.items[909],id,type:'material',weight:1,shop:false};
+  const required: [number,number][]=[[7134,quantity],...recipe.ingredients.map(i=>[i.itemId,i.quantity*quantity] as [number,number])];
+  if(recipe.guideItemId!==undefined)required.push([recipe.guideItemId,1]);
+  for(const [id,n] of required) s.inventory.push({uid:'item-'+id,itemId:id,quantity:n,refine:0,cards:[],favorite:false});
   return {s,c};
 }
 const count=(s:GameState,id:number)=>s.inventory.filter(e=>e.itemId===id).reduce((n,e)=>n+e.quantity,0);
@@ -31,7 +33,7 @@ const advance=(seed:number,n:number)=>{for(let i=0;i<n;i++)seed=(Math.imul(seed,
 
 describe('Pharmacy source recipes and independent chance oracle',()=>{
  it('contains exactly20native recipes; guides are separate and never consumed',()=>{
-  expect(pharmacyRecipes().map(r=>r.outputItemId)).toEqual([501,503,504,505,545,546,547,7135,7136,7137,7138,7139,12118,12119,12120,12121,605,606,970,7142]);
+  expect(pharmacyRecipes().map(r=>r.outputItemId)).toEqual([501,503,504,505,545,546,547,7135,7136,7137,7138,7139,12118,12119,12120,12121,605,606,970,7142,678]);
   expect(pharmacyRecipes().find(r=>r.outputItemId===7135)).toMatchObject({guideItemId:7128,ingredients:[{itemId:970,quantity:1},{itemId:1059,quantity:1},{itemId:713,quantity:1}]});
   expect(pharmacyRecipes().find(r=>r.outputItemId===505)).toMatchObject({guideItemId:7144,ingredients:[{itemId:510,quantity:1},{itemId:911,quantity:1},{itemId:1093,quantity:1}]});
   const recipes=pharmacyRecipes();recipes[0].ingredients[0].quantity=99;expect(pharmacyRecipes()[0].ingredients[0].quantity).toBe(1);
@@ -106,7 +108,7 @@ describe('manual authoritative Pharmacy production',()=>{
 describe('Pharmacy boundary and persistent receipt',()=>{
  it('validates the recipe allowlist and strict integer quantity',()=>{
   for(const id of pharmacyRecipes().map(r=>r.outputItemId)) expect(parseCommandRequest({requestId:'pharmacy-test',command:{type:'craftPharmacy',itemId:id,quantity:1}}).command.type).toBe('craftPharmacy');
-  for(const id of [502,523,678,12114,0]) expect(()=>parseCommandRequest({requestId:'pharmacy-test',command:{type:'craftPharmacy',itemId:id,quantity:1}})).toThrow();
+  for(const id of [502,523,12114,0]) expect(()=>parseCommandRequest({requestId:'pharmacy-test',command:{type:'craftPharmacy',itemId:id,quantity:1}})).toThrow();
   for(const q of [0,-1,1.1,1001,NaN,Infinity,'2'])expect(()=>parseCommandRequest({requestId:'pharmacy-test',command:{type:'craftPharmacy',itemId:501,quantity:q}})).toThrow();
  });
  it('revalidates materials after a preview and blocks action lock',()=>{

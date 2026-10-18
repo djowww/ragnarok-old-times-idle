@@ -300,7 +300,7 @@
     "Snap relocates the selected field-hunt character to a one-cell offset from a living target at up to 18 cells for 14 SP and one spirit sphere, waived by Explosion Spirits; it deals no damage, excludes challenges and blocks Extremity Fist for 2 seconds. Exact GAT collision and cell occupancy are outside the normalized formation.",
     "Automatic healing yields an offensive action before another heal. This is an idle automation policy; First Aid retains source healing of 5 HP, cost of 3 SP and zero cast time. Basic ASPD, action motion, after-cast delay and individual cooldown have independent clocks.",
     "Hunt fields use regular monster spawns from the pinned Hercules pre-renewal scripts; plant spawns and long-respawn bosses stay outside the repeating AFK encounter pool.",
-    "Poison Bottle 678 is sold by the Idle shop at its source item price to supply EDP. Create Deadly Poison remains study-only for the original prerequisite; production is not implemented. Berserk follows normal expiry without Bloodylust or enemy dispel, using the pinned default that preserves other buffs.",
+    "Poison Bottle 678 remains sold by the Idle shop at its source item price and Create Deadly Poison now crafts it from the pinned Hercules recipe for 50 SP. Each invocation consumes one RNG draw, but the source quantity-one guard guarantees one bottle, so the 25% HP failure branch cannot occur in this single-item call. The bottle supplies supported solo Deadly Poison (ASC_EDP). Berserk follows normal expiry without Bloodylust or enemy dispel, using the pinned default that preserves other buffs.",
     "Venom Dust uses five source units with range one and a 100 ms unit timer; the Idle timer phase is anchored to epoch multiples of 100 ms, with per-group/per-target one-second eligibility. Spider Web binds its unit and eight-second status to the captured enemy; fire releases movement and consumes a weakness charge. Units use normalized encounter cells, not server GAT walls. AFK avoids duplicate poison fields and webs on already-held targets. Web clocks persist across reconnects without extension, unlike Hercules NoSave. Original particle3 and spiderweb pixels are used; Venom Dust choreography is approximated by ACT playback rather than the original STR/3D particle simulation. Red Gemstones and Cobweb are sold at source prices as an Idle supply adaptation.",
     "Selected NPC actions only: Tarou NPC_POISON1 and Nightmare NPC_BLINDATTACK3, using existing engaged/hostile attack opportunities. First attack remains normal; later successful NPC attempts replace an attack. This is not full monster AI. Player Cure, Detoxify and Slow Poison treat the own character during solo hunting.",
     "Cast Cancel is manual and releases only cast-owned locks, preserving basic ASPD and independent effects. Spell Breaker selects a real engaged NPC caster in range9 only with a strict finish-before-NPC window; passive2% zap does not trigger attack hooks or break controls. NPC base SP is zero; Magic Rod and PvP branches are not simulated.",
@@ -12726,8 +12726,7 @@
         0
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -14191,6 +14190,21 @@
     "acquisitionAdaptation": "Prontera aggregate paid NPC shop:7433/904/947 source prices;946/1013 existing drops",
     "netWeight": true
   },
+  "deadlyPoisonCraft": {
+    "recipeSource": "db/produce_db.txt:347..348",
+    "recipe": "678,22,407,1,937,1,952,1,939,1,7033,1,972,1,657,1,713,1",
+    "skillSource": "db/pre-re/skill_db.conf ASC_CDP",
+    "skillId": 407,
+    "spPerAttempt": 50,
+    "castTimeMs": 0,
+    "afterCastDelayMs": 500,
+    "chanceSource": "src/map/skill.c:20235..20237 sets nominal 2000 + 40*DEX + 20*LUK; src/map/skill.c:20553 with qty==1 makes one-bottle invocations succeed after one RNG draw",
+    "effectiveSingleOutputChance": 10000,
+    "rngDrawsPerAttempt": 1,
+    "failureReachableForQuantityOne": false,
+    "sourceFailureDamagePercentMaxHp": 25,
+    "soloCombatUse": "Poison Bottle 678 supplies supported Assassin Cross Deadly Poison (ASC_EDP)."
+  },
   "pharmacyCraft": {
     "recipeSource": "db/produce_db.txt:329..380",
     "recipes": [
@@ -15187,8 +15201,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 293,
-    "unsupported": 55,
+    "supported": 294,
+    "unsupported": 54,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15377,8 +15391,8 @@
       },
       "assassin_cross": {
         "sourceTree": 29,
-        "supported": 27,
-        "unsupported": 2
+        "supported": 28,
+        "unsupported": 1
       },
       "rogue": {
         "sourceTree": 33,
@@ -15668,6 +15682,7 @@
       "ASC_EDP",
       "ASC_BREAKER",
       "ASC_METEORASSAULT",
+      "ASC_CDP",
       "RG_SNATCHER",
       "RG_STEALCOIN",
       "RG_BACKSTAP",
@@ -15935,11 +15950,6 @@
       {
         "skillId": "cr_cultivation",
         "sourceName": "CR_CULTIVATION",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
-      },
-      {
-        "skillId": "asc_cdp",
-        "sourceName": "ASC_CDP",
         "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
@@ -16634,7 +16644,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "291504a19bffd0303146b0670e019a849cc4bd55d7e4fc2e2d725d1228ecd022",
+  "rulesSha256": "81de314866d03453b1e729f542b832f0663a8069148083ae2baf920da49d786e",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16856,6 +16866,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "0e878b8bc79ea80b5f53edfb02e5df3d7abc23a9fa089cf4a82c33e3cac4426f",
+  "catalogSha256": "59cd58bc6933bc362b413ae51de82ce51a716f83890dc2c556ccdc86f1036272",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

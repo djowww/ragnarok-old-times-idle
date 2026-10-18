@@ -19,7 +19,7 @@ describe('pinned solo mining and compact pitcher content',()=>{
   expect(m.findingOre.chain).toEqual(findingOreChain);
   expect(m.findingOre).toMatchObject({selection:'uniform-entry-then-strict-chance',drawsPerEligibleKill:2,dropRateMultiplier:false});
   expect(catalog.items['997']).toMatchObject({id:997,name:'Great Nature',type:'loot',buyPrice:3000,sellPrice:1500,weight:30,shop:false,effects:{}});
-  expect(m.skillCoverage).toMatchObject({skills:348,supported: 293,unsupported: 55});
+  expect(m.skillCoverage).toMatchObject({skills:348,supported: 294,unsupported: 54});
   expect(Object.keys(catalog.items)).toHaveLength(955);expect(m.sources).toHaveLength(55);
  });
 });

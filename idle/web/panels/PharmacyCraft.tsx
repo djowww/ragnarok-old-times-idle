@@ -21,7 +21,7 @@ export default function PharmacyCraft({catalog,snapshot,busy,command}:PanelProps
   const name=(id:number)=>catalog.items[id]?itemName(catalog.items[id]):`Item ${id}`;
   const icon=(id:number)=>catalog.items[id]?<ItemIcon item={catalog.items[id]}/>:null;
   return <div className="pharmacy-craft">
-    <header className="pharmacy-intro">{icon(7134)}<div><h3>Preparar poções</h3><p>Receitas e materiais do Alquimista</p></div></header>
+    <header className="pharmacy-intro">{icon(7134)}<div><h3>Produção e veneno</h3><p>Receitas do Alquimista e Veneno Mortal</p></div></header>
     <div className="pharmacy-workbench">
       <section className="pharmacy-recipes" aria-label="Receitas de Preparar Poção">
         <label className="pharmacy-recipe-select">Receita<select value={itemId} disabled={busy} onChange={e=>{setItemId(Number(e.currentTarget.value));setQuantity(1);}}>
@@ -45,7 +45,7 @@ export default function PharmacyCraft({catalog,snapshot,busy,command}:PanelProps
           <label className="pharmacy-quantity" htmlFor="pharmacy-quantity">Tentativas <small>1 a 1000</small><input id="pharmacy-quantity" type="number" min={1} max={1000} step={1} disabled={busy} value={Number.isNaN(quantity)?'':quantity} onChange={e=>setQuantity(e.currentTarget.valueAsNumber)}/></label>
           <p className="pharmacy-cost">{format(p.spPerAttempt)} SP por tentativa · Total: <b>{valid?format(p.spTotal):'—'} SP</b> · Disponível: {format(state.sp)}</p>
           <p className="pharmacy-weight">Peso se todas derem certo: {valid?format(p.resultWeight):'—'} / {format(p.maxWeight)}</p>
-          <p className="pharmacy-warning">Cada tentativa consome os materiais, mesmo quando falha. O manual permanece na mochila.</p>
+          <p className="pharmacy-warning">Cada tentativa consome os materiais, mesmo quando falha.{p.guide&&" O manual permanece na mochila."}{itemId===678&&" A produção individual segue a guarda do Hercules: o sorteio interno é consumido, mas a unidade é garantida."}</p>
           {p.reason&&<p className="pharmacy-reason" role="status">{p.reason.message}</p>}
           <button type="button" className="primary" disabled={busy||!p.available} onClick={()=>{if(!busy&&p.available)void command({type:'craftPharmacy',itemId,quantity});}}>{busy?'Aguarde…':`Fazer ${valid?number(quantity):'—'} ${quantity===1?'tentativa':'tentativas'}`}</button>
         </div>
