@@ -192,7 +192,7 @@ function facingFrames(part: ActorPart, preferred: number): { index: number; fram
 }
 
 // Numeric groups keep legacy looping poses; named skill groups are one-shots.
-export type ActorAction = number | 'idle' | 'attack' | 'attack1' | 'attack2' | 'attack3' | 'pickup' | 'cast' | 'skill' | 'hurt' | 'dead';
+export type ActorAction = number | 'idle' | 'attack' | 'attack1' | 'attack2' | 'attack3' | 'pickup' | 'comboTriple' | 'comboChain' | 'comboFinish' | 'comboCrush' | 'cast' | 'skill' | 'hurt' | 'dead';
 
 // roBrowserLegacy d88a3cd4, src/DB/Skills/SkillAction.js: the two regular
 // makeAttackSkillAction('ATTACK') chains for imported pre-renewal skills.
@@ -220,8 +220,26 @@ const FIXED_SKILL_ACTIONS = new Map<string, ActorAction>([
         .map(source => [source, 'pickup'] as const),
 ]);
 
+// SkillAction.js d88a3cd4 slice ranges; DBManager.getAttackSlice gates
+// these ranges to Monk-family unarmed sheets in the supported weapon model.
+const COMBO_SLICES = {
+    comboTriple: [5, 4], comboChain: [9, 4], comboFinish: [13, 2], comboCrush: [5, 8],
+} as const;
+const COMBO_SKILL_ACTIONS = new Map<string, keyof typeof COMBO_SLICES>([
+    ['MO_TRIPLEATTACK', 'comboTriple'], ['MO_CHAINCOMBO', 'comboChain'],
+    ['MO_COMBOFINISH', 'comboFinish'], ['CH_PALMSTRIKE', 'comboFinish'],
+    ['CH_TIGERFIST', 'comboChain'], ['CH_CHAINCRUSH', 'comboCrush'],
+    ['MO_EXTREMITYFIST', 'comboFinish'],
+]);
+function comboSlice(action: ActorAction): readonly [number, number] | undefined {
+    return typeof action === 'string' && Object.hasOwn(COMBO_SLICES, action)
+        ? COMBO_SLICES[action as keyof typeof COMBO_SLICES] : undefined;
+}
+
 export function getCombatActorAction(actorAction: 'attack' | 'skill' | 'none', skillSourceName?: string): ActorAction {
     if (actorAction === 'none') return 'idle';
+    const combo = COMBO_SKILL_ACTIONS.get(skillSourceName ?? '');
+    if (combo) return combo;
     if (actorAction === 'attack' || skillSourceName !== undefined && WEAPON_SKILL_ACTIONS.has(skillSourceName)) return 'attack';
     return FIXED_SKILL_ACTIONS.get(skillSourceName ?? '') ?? 'skill';
 }
@@ -234,7 +252,8 @@ function actorBodyAction(actor: DecodedActor, action: ActorAction, direction: nu
     const actions = actor.kind === 'character'
         ? { idle: 0, attack: getAttackAction(actor), attack1: 40, attack2: 80, attack3: 88, pickup: 24, cast: 96, skill: 96, hurt: 48, dead: 64 }
         : { idle: 0, attack: 16, attack1: 16, attack2: 16, attack3: 16, pickup: 0, cast: 0, skill: 0, hurt: 24, dead: 32 };
-    const base = typeof action === 'number' ? action : actions[action];
+    const base = typeof action === 'number' ? action
+        : comboSlice(action) ? actions.attack : actions[action as keyof typeof actions];
     const dir = Number.isFinite(direction) ? Math.max(0, Math.min(7, Math.trunc(direction))) : 0;
     // Keep the requested body direction whenever its ACT provides it. Optional
     // head and weapon layers independently choose a same-facing fallback.
@@ -261,14 +280,19 @@ function actorPlayback(actor: DecodedActor, action: ActorAction, selected: NonNu
     const attack = actor.kind === 'character' && action === 'attack' && !selected.fallbackAction;
     const job = identity?.job;
     const monkSlice = attack && ['monk', 'champion'].includes(job ?? '') && !type;
-    const frames = monkSlice ? Math.min(5, selected.bodyFrames.length) : selected.bodyFrames.length;
+    const requestedSlice = comboSlice(action);
+    const slice = actor.kind === 'character' && !selected.fallbackAction
+        && ['monk', 'champion'].includes(job ?? '') && !type && requestedSlice
+        && selected.bodyFrames.length >= requestedSlice[0] + requestedSlice[1] ? requestedSlice : undefined;
+    const startFrame = slice?.[0] ?? 0;
+    const frames = slice?.[1] ?? (monkSlice ? Math.min(5, selected.bodyFrames.length) : selected.bodyFrames.length);
     const divisor = attack && ['novice', 'high_novice', 'super_novice', 'baby_novice', 'baby_super_novice'].includes(job ?? '') && identity?.gender === 'male' ? 5.85
         : attack && ['assassin', 'assassin_cross', 'baby_assassin'].includes(job ?? '') && type === 'katar' ? 3 : 6;
     const looping = typeof action === 'number' || action === 'idle' || action === 'cast';
     // Short ACT sheets should use the whole server contact window, not freeze on the final frame.
     const delay = !looping && Number.isFinite(motionMs) && motionMs! > 0
         ? Math.max(1, motionMs! / (attack ? Math.min(divisor, frames) : frames)) : selected.delay;
-    return { frames, delay, duration: frames * delay };
+    return { frames, startFrame, delay, duration: frames * delay };
 }
 export function getActorPlaybackDuration(actor: DecodedActor, action: ActorAction, motionMs: number, direction = 0): number {
     const selected = actorBodyAction(actor, action, direction);
@@ -291,7 +315,7 @@ export function getActorPose(actor: DecodedActor, action: ActorAction, elapsed: 
     const elapsedFrame = Math.floor(Math.max(0, elapsed) / playbackDelay);
     const frameIndex = staticIdle || staticFallbackDeath ? 0 : looping
         ? elapsedFrame % playback.frames
-        : Math.min(elapsedFrame, playback.frames - 1);
+        : playback.startFrame + Math.min(elapsedFrame, playback.frames - 1);
     const bodyFrame = bodyFrames[frameIndex];
     if (!bodyFrame)
         return [];
