@@ -4,13 +4,14 @@ import { fixture } from './engine-fixture';
 import { beginBattle } from '../engine/combat';
 import { awardKill } from '../engine/encounters';
 import { BATTLE_HERO } from '../shared/battleSpatial';
+import { teleportAvailable } from '../engine/teleport';
 
 function setup() {
   const c = fixture();
   c.classes.blacksmith = { ...c.classes.novice, id: 'blacksmith', family: 'merchant', tier: 2,
     skills: ['bs_greed'], jobCap: 50 };
   c.skills.bs_greed = { id: 'bs_greed', sourceName: 'BS_GREED', name: 'Greed', description: '',
-    kind: 'buff', maxLevel: 1, spCost: [10], castTimeMs: [0], cooldownMs: 0, power: [0],
+    kind: 'buff', maxLevel: 1, spCost: [10], castTimeMs: [0], afterCastDelayMs: [1000], cooldownMs: 0, power: [0],
     aoeRadius: [2], manualUse: 'greed', implementation: 'supported' };
   const s = createInitialState(c, 0);
   s.job = 'blacksmith'; s.learnedSkills = { bs_greed: 1 }; s.status = 'hunting'; s.areaId = 'prontera';
@@ -39,6 +40,28 @@ describe('Hercules Greed', () => {
     expect(next.sp).toBe(40);
     expect(next.inventory.map(entry => entry.uid)).toContain('near');
     expect(next.pendingLoot?.map(row => row.entry.uid)).toEqual(['far', 'other-area', 'legacy-positionless']);
+  });
+
+  it('applies the one-second action clock to Greed and subsequent manual skills', () => {
+    const { s, c } = setup();
+    const first = applyCommand(s, c, { type: 'useSkill', skillId: 'bs_greed' }, 100);
+    expect(first.playerCanActAt).toBe(1100);
+    expect(() => applyCommand(first, c, { type: 'useSkill', skillId: 'bs_greed' }, 1099))
+      .toThrow(expect.objectContaining({ code: 'ACTION_DELAY' }));
+
+    c.classes.blacksmith.skills.push('al_teleport');
+    c.skills.al_teleport = { id: 'al_teleport', sourceName: 'AL_TELEPORT', herculesId: 26,
+      manualUse: 'teleport', implementation: 'supported', maxLevel: 2, spCost: [10, 9],
+      castTimeMs: [0, 0], power: [0, 0], cooldownMs: 0 } as any;
+    c.teleportBlockedMaps = [];
+    first.learnedSkills.al_teleport = 1;
+    first.learnedSkills.al_ruwach = 1;
+    expect(teleportAvailable(first, c, 'random', 1099)).toBe(false);
+    expect(teleportAvailable(first, c, 'random', 1100)).toBe(true);
+
+    const atBoundary = applyCommand(first, c, { type: 'useSkill', skillId: 'bs_greed' }, 1100);
+    expect(atBoundary.sp).toBe(30);
+    expect(atBoundary.playerCanActAt).toBe(2100);
   });
 
   it('saves the live field actor cell on drops that wait for backpack capacity', () => {
