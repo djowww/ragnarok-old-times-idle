@@ -71,6 +71,18 @@ describe('playable source catalog', () => {
         expect(Object.values(data.skills).find(skill => skill.sourceName === 'RG_SNATCHER')?.kind).toBe('passive');
         expect(Object.values(data.skills).find(skill => skill.sourceName === 'RG_STRIPSHIELD')?.statusEffect).toBe('SC_NOEQUIPSHIELD');
     });
+    it('exports Remove Trap with Hercules range, cost, and solo adaptation', () => {
+        const skill = data.skills.ht_removetrap;
+        expect(skill).toMatchObject({ sourceName: 'HT_REMOVETRAP', implementation: 'supported',
+            manualUse: 'removeTrap', maxLevel: 1, range: [2], spCost: [5], afterCastDelayMs: [0] });
+        expect(skill.unsupportedReason).toBeUndefined();
+        expect(manifest.skillSources.ht_removetrap).toMatchObject({
+            implementation: 'supported', adaptation: expect.stringContaining('Hercules range 2'),
+        });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
+        expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
+        expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
+    });
     it('exports Spring Trap with the pinned level range, Falcon requirement, and solo adaptation', () => {
         const skill = data.skills.ht_springtrap;
         expect(skill).toMatchObject({
@@ -81,9 +93,9 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_springtrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Ankle Snare'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 290, unsupported: 58 });
-        expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 25, unsupported: 3 });
-        expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 29, unsupported: 3 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
+        expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
+        expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
     it('exports Golpe das Juntas as an executable spear skill with its source adaptation', () => {
         const skill = Object.values(data.skills).find(candidate => candidate.sourceName === 'LK_JOINTBEAT')!;
@@ -95,7 +107,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 290, unsupported: 58 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 291, unsupported: 57 });
         expect(data.skills.al_holywater).toMatchObject({ sourceName: 'AL_HOLYWATER', implementation: 'supported', manualUse: 'holyWaterCraft',
             spCost: [10], castTimeMs: [1000], afterCastDelayMs: [500] });
         expect(manifest.skillSources.al_holywater.adaptation).toContain('GAT type 3 water');
@@ -135,7 +147,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 290, unsupported: 58 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 291, unsupported: 57 });
         expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 31, unsupported: 3 });
         expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 35, unsupported: 3 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
@@ -304,7 +316,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(955);
         expect(data.areas).toHaveLength(38);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 290, unsupported: 58 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
         expect(manifest.sources).toHaveLength(52);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',

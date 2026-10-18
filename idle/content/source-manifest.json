@@ -7787,10 +7787,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Remove Trap: manual solo use in the field; targets the nearest own Hunter trap within Hercules range 2 and costs 5 SP. Returns one Booby Trap only when the unit has not triggered; removing an Ankle Snare capture releases the monster and does not return the consumed trap item."
     },
     "ht_talkiebox": {
       "id": 125,
@@ -15167,8 +15167,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 290,
-    "unsupported": 58,
+    "supported": 291,
+    "unsupported": 57,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15282,13 +15282,13 @@
       },
       "hunter": {
         "sourceTree": 28,
-        "supported": 25,
-        "unsupported": 3
+        "supported": 26,
+        "unsupported": 2
       },
       "sniper": {
         "sourceTree": 32,
-        "supported": 29,
-        "unsupported": 3
+        "supported": 30,
+        "unsupported": 2
       },
       "bard": {
         "sourceTree": 28,
@@ -15362,13 +15362,13 @@
       },
       "rogue": {
         "sourceTree": 33,
-        "supported": 27,
-        "unsupported": 6
+        "supported": 28,
+        "unsupported": 5
       },
       "stalker": {
         "sourceTree": 37,
-        "supported": 31,
-        "unsupported": 6
+        "supported": 32,
+        "unsupported": 5
       }
     },
     "supportedSourceNames": [
@@ -15526,6 +15526,7 @@
       "HT_FREEZINGTRAP",
       "HT_BLASTMINE",
       "HT_CLAYMORETRAP",
+      "HT_REMOVETRAP",
       "HT_BEASTBANE",
       "HT_FALCON",
       "HT_STEELCROW",
@@ -15728,11 +15729,6 @@
         "skillId": "pf_soulburn",
         "sourceName": "PF_SOULBURN",
         "reason": "Requer SP do alvo; monstros não têm SP no catálogo."
-      },
-      {
-        "skillId": "ht_removetrap",
-        "sourceName": "HT_REMOVETRAP",
-        "reason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa."
       },
       {
         "skillId": "ht_talkiebox",
@@ -16848,6 +16844,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "15d9738b7799a58d5065bdb47c65f6fc48411909a518c4acd3bb17b5ca4143e1",
+  "catalogSha256": "67ac888f43ce98ba1f58ee0c808972c7ffb096d81e34bbeee5896407caeb14b1",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }
