@@ -81,7 +81,11 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 288, unsupported: 60 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 289, unsupported: 59 });
+        expect(data.skills.al_holywater).toMatchObject({ sourceName: 'AL_HOLYWATER', implementation: 'supported', manualUse: 'holyWaterCraft',
+            spCost: [10], castTimeMs: [1000], afterCastDelayMs: [500] });
+        expect(manifest.skillSources.al_holywater.adaptation).toContain('GAT type 3 water');
+        expect(manifest.holyWaterCraft).toMatchObject({ source: 'db/produce_db.txt', outputItemId: 523, inputItemId: 713, quantity: 1, chance: '100000 (guaranteed)' });
         expect(manifest.skillCoverage.byClass.professor).toMatchObject({ sourceTree: 49, supported: 45, unsupported: 4 });
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_MINDBREAKER');
         expect(manifest.skillCoverage.combatExpansion).toContain('PF_FOGWALL');
@@ -117,9 +121,9 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 288, unsupported: 60 });
-        expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 30, unsupported: 4 });
-        expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 34, unsupported: 4 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 289, unsupported: 59 });
+        expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 31, unsupported: 3 });
+        expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 35, unsupported: 3 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
     });
     it('exports Graça Lenta with its Hercules field, pulse, duration, and weapon requirements', () => {
@@ -286,7 +290,7 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(955);
         expect(data.areas).toHaveLength(38);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 288, unsupported: 60 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 289, unsupported: 59 });
         expect(manifest.sources).toHaveLength(52);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',

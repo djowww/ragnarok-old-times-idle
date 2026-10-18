@@ -1,4 +1,5 @@
 import {openArrowCraft,answerArrowCraft,cancelArrowCraft,reconcileArrowCraft} from './arrowCraft.js';
+import { startHolyWaterCast } from './holyWater.js';
 import {openWeaponRefine,answerWeaponRefine,cancelWeaponRefine,reconcileWeaponRefine} from './weaponRefine.js';
 import {useDetecting} from './falconDetect.js';
 import {canEquipFalcon,isFalconEquipped,reconcileFalcon,FALCON_RENTAL_ZENY} from './falcon.js';
@@ -174,6 +175,11 @@ export function executeCommand(
     }
     case 'useSkill': {
       if(c.skills[command.skillId]?.sourceName==='AC_MAKINGARROW'){openArrowCraft(s,c,now);break;}
+      if (c.skills[command.skillId]?.sourceName === 'AL_HOLYWATER') {
+        const skill = c.skills[command.skillId], level = s.learnedSkills[command.skillId] ?? 0;
+        startHolyWaterCast(s, c, skill, level, now, context);
+        break;
+      }
       if(c.skills[command.skillId]?.sourceName==='WS_WEAPONREFINE'){openWeaponRefine(s,c,now);break;}
       const skill = c.skills[command.skillId], level = skillUseLevel(s, c, command.skillId);
       if (skill?.sourceName === 'HT_DETECTING') {

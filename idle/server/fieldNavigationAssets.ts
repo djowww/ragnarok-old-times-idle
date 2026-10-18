@@ -20,7 +20,7 @@ export interface LoadedFieldNavigationGrids {
 }
 
 interface NavigationCacheRecord {
-    formatVersion: 2;
+    formatVersion: 3;
     map: string;
     width: number;
     height: number;
@@ -30,6 +30,8 @@ interface NavigationCacheRecord {
     walkable: string;
     wallSha256: string;
     wall: string;
+    waterSha256: string;
+    water: string;
 }
 
 function sha256(bytes: Uint8Array): string { return createHash('sha256').update(bytes).digest('hex'); }
@@ -81,23 +83,27 @@ async function readValidatedCache(cacheDir: string, map: string): Promise<FieldN
     catch { return null; }
     if (!value || typeof value !== 'object') return null;
     const record = value as Partial<NavigationCacheRecord>;
-    if (record.formatVersion !== 2 || record.map !== map || record.decoderRevision !== FIELD_NAVIGATION_DECODER_REVISION ||
+    if (record.formatVersion !== 3 || record.map !== map || record.decoderRevision !== FIELD_NAVIGATION_DECODER_REVISION ||
         !Number.isInteger(record.width) || !Number.isInteger(record.height) || record.width! <= 0 || record.height! <= 0 ||
         record.width! * record.height! > MAX_CELLS || !isSha(record.sourceSha256) || !isSha(record.maskSha256) ||
-        typeof record.walkable !== 'string' || typeof record.wall !== 'string' || !isSha(record.wallSha256)) return null;
+        typeof record.walkable !== 'string' || typeof record.wall !== 'string' || !isSha(record.wallSha256) ||
+        typeof record.water !== 'string' || !isSha(record.waterSha256)) return null;
     const cells = record.width! * record.height!, expectedLength = Math.ceil(cells / 8);
     const walkable = Buffer.from(record.walkable, 'base64');
     if (walkable.length !== expectedLength || walkable.toString('base64') !== record.walkable || sha256(walkable) !== record.maskSha256) return null;
     const wall = Buffer.from(record.wall, 'base64');
     if (wall.length !== expectedLength || wall.toString('base64') !== record.wall || sha256(wall) !== record.wallSha256) return null;
-    return { map, width: record.width!, height: record.height!, walkable, wall, sourceSha256: record.sourceSha256 };
+    const water = Buffer.from(record.water, 'base64');
+    if (water.length !== expectedLength || water.toString('base64') !== record.water || sha256(water) !== record.waterSha256) return null;
+    return { map, width: record.width!, height: record.height!, walkable, wall, water, sourceSha256: record.sourceSha256 };
 }
 
 async function writeCache(cacheDir: string, grid: FieldNavigationGrid): Promise<void> {
     await mkdir(cacheDir, { recursive: true, mode: 0o700 });
     if (!grid.wall) throw new Error('Decoded navigation wall mask is missing');
+    if (!grid.water || grid.water.byteLength !== grid.walkable.byteLength) throw new Error('Decoded navigation water mask is missing');
     const record: NavigationCacheRecord = {
-        formatVersion: 2,
+        formatVersion: 3,
         map: grid.map,
         width: grid.width,
         height: grid.height,
@@ -107,6 +113,8 @@ async function writeCache(cacheDir: string, grid: FieldNavigationGrid): Promise<
         walkable: Buffer.from(grid.walkable).toString('base64'),
         wallSha256: sha256(grid.wall),
         wall: Buffer.from(grid.wall).toString('base64'),
+        waterSha256: sha256(grid.water),
+        water: Buffer.from(grid.water).toString('base64'),
     };
     const destination = cachePath(cacheDir, grid.map);
     const temporary = join(cacheDir, `.${grid.map}.${randomUUID()}.tmp`);

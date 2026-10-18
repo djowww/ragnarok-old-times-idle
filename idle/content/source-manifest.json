@@ -3900,10 +3900,10 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Produção de Água Benta exige células de água e Frasco Vazio.",
+      "implementation": "supported",
       "ratioSource": "src/map/skill.c and src/map/status.c",
-      "unsupportedRequirements": []
+      "unsupportedRequirements": [],
+      "adaptation": "Aqua Benedicta: 1 s cast, 10 SP paid at completion, requires the caster on GAT type 3 water while field hunting, consumes one unprotected Empty Bottle and creates one Holy Water with guaranteed success. Water terrain is retained from the pinned Hercules map_gat2cell type."
     },
     "al_crucis": {
       "id": 32,
@@ -13982,6 +13982,19 @@
       "Inventory net weight is checked before consuming materials."
     ]
   },
+  "holyWaterCraft": {
+    "source": "db/produce_db.txt",
+    "recipe": "523,22,31,1,713,1",
+    "outputItemId": 523,
+    "inputItemId": 713,
+    "quantity": 1,
+    "chance": "100000 (guaranteed)",
+    "terrain": "Hercules map_gat2cell type 3 is walkable water; map.c:map_gat2cell.",
+    "adaptations": [
+      "Aqua Benedicta is available only during field hunting while standing on a water cell.",
+      "One cast consumes one unprotected Empty Bottle and produces one Holy Water; the source skill chance is guaranteed."
+    ]
+  },
   "weaponRefine": {
     "source": "db/pre-re/refine_db.conf; refine.c:218..228,517..557; skill.c:18100..18186; clif.c:7005..7042,13993..14011",
     "normalRates": [
@@ -15154,8 +15167,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 288,
-    "unsupported": 60,
+    "supported": 289,
+    "unsupported": 59,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15199,13 +15212,13 @@
       },
       "acolyte": {
         "sourceTree": 17,
-        "supported": 14,
-        "unsupported": 3
+        "supported": 15,
+        "unsupported": 2
       },
       "high_acolyte": {
         "sourceTree": 17,
-        "supported": 14,
-        "unsupported": 3
+        "supported": 15,
+        "unsupported": 2
       },
       "merchant": {
         "sourceTree": 15,
@@ -15299,23 +15312,23 @@
       },
       "priest": {
         "sourceTree": 36,
-        "supported": 31,
-        "unsupported": 5
+        "supported": 32,
+        "unsupported": 4
       },
       "high_priest": {
         "sourceTree": 40,
-        "supported": 34,
-        "unsupported": 6
+        "supported": 35,
+        "unsupported": 5
       },
       "monk": {
         "sourceTree": 34,
-        "supported": 30,
-        "unsupported": 4
+        "supported": 31,
+        "unsupported": 3
       },
       "champion": {
         "sourceTree": 38,
-        "supported": 34,
-        "unsupported": 4
+        "supported": 35,
+        "unsupported": 3
       },
       "blacksmith": {
         "sourceTree": 39,
@@ -15400,6 +15413,7 @@
       "AL_HEAL",
       "AL_INCAGI",
       "AL_DECAGI",
+      "AL_HOLYWATER",
       "AL_CRUCIS",
       "AL_ANGELUS",
       "AL_BLESSING",
@@ -15658,11 +15672,6 @@
         "skillId": "al_warp",
         "sourceName": "AL_WARP",
         "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
-      },
-      {
-        "skillId": "al_holywater",
-        "sourceName": "AL_HOLYWATER",
-        "reason": "Produção de Água Benta exige células de água e Frasco Vazio."
       },
       {
         "skillId": "mc_vending",
@@ -16843,6 +16852,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "46a1a5e0a5303f870a7faa9115a0479c2ed1822ad5f7ebaef66f189f872ea2c8",
+  "catalogSha256": "8f19a1443e13ab669f30fa0cac1888c8cf8cbdda8d74679b214eeb3228f11349",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

@@ -6,12 +6,14 @@ export interface FieldNavigationGrid {
     walkable: Uint8Array;
     /** Independent Hercules CELL_CHKWALL mask. Always present on decoded production grids. */
     wall?: Uint8Array;
+    /** GAT type 3 is walkable water in Hercules map_gat2cell. */
+    water?: Uint8Array;
     sourceSha256: string;
 }
 
 export interface GridPoint { x: number; y: number }
 
-export const FIELD_NAVIGATION_DECODER_REVISION = 'roBrowserLegacy:d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Altitude.js:hercules410b9738-cell-chkwall-v2';
+export const FIELD_NAVIGATION_DECODER_REVISION = 'roBrowserLegacy:d88a3cd4acde0582530e3fc1908532a92e9accea/src/Loaders/Altitude.js:hercules410b9738-cell-chkwall-water-v3';
 const MAX_CELLS = 1_000_000;
 const RAW_WALKABILITY = new Map<number, boolean>([
     [0, true], [1, false], [2, true], [3, true], [4, true], [5, false], [6, true],
@@ -58,6 +60,7 @@ export function decodeGat(map: string, bytes: Uint8Array, sourceSha256: string):
 
     const walkable = new Uint8Array(Math.ceil(cells / 8));
     const wall = new Uint8Array(walkable.byteLength);
+    const water = new Uint8Array(walkable.byteLength);
     for (let id = 0; id < cells; id++) {
         const rawType = view.getUint32(14 + id * 20 + 16, true);
         const isWalkable = RAW_WALKABILITY.get(rawType);
@@ -67,8 +70,9 @@ export function decodeGat(map: string, bytes: Uint8Array, sourceSha256: string):
         // Hercules's default zeroed cell treats extended types as wall. Actor
         // movement retains the existing roBrowser extended-type interpretation.
         if (rawType === 1 || rawType > 6) setBit(wall, id);
+        if (rawType === 3) setBit(water, id);
     }
-    return { map, width, height, walkable, wall, sourceSha256 };
+    return { map, width, height, walkable, wall, water, sourceSha256 };
 }
 
 /** Fail closed when a wall-sensitive consumer receives an old walkability-only grid. */
@@ -85,6 +89,14 @@ export function gridWall(grid: FieldNavigationGrid, p: GridPoint): boolean {
 export function gridWalkable(grid: FieldNavigationGrid, p: GridPoint): boolean {
     const id = cellAt(grid, p);
     return id !== null && isWalkableCell(grid, id);
+}
+
+/** Fail closed when source GAT water terrain was not retained. */
+export function gridWater(grid: FieldNavigationGrid, p: GridPoint): boolean {
+    if (!(grid.water instanceof Uint8Array) || grid.water.byteLength !== grid.walkable.byteLength)
+        throw new TypeError('Navigation terrain water mask is unavailable');
+    const id = cellAt(grid, p);
+    return id !== null && bitIsSet(grid.water, id);
 }
 
 /** Hercules map_getcellp's useful CELL_CHKPASS domain excludes the final row and column. */

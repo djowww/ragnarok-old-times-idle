@@ -124,6 +124,15 @@ manifest.metalCraft = {
     failure: 'All recipe materials are consumed before one RNG roll; failure grants no output. Star Crumb still consumes one RNG roll.',
     adaptations: ['Solo profile crafts one output per attempt.', 'Inventory net weight is checked before consuming materials.']
 };
+const holyWaterRows = buffers['db/produce_db.txt'].toString('utf8').split(/\r?\n/)
+    .map(line => line.split('//')[0].trim()).filter(line => /^523\s*,\s*22\s*,\s*31\s*,\s*1\s*,\s*713\s*,\s*1\s*$/.test(line));
+if (holyWaterRows.length !== 1) throw new Error('Pinned Holy Water recipe differs');
+manifest.holyWaterCraft = { source: 'db/produce_db.txt', recipe: holyWaterRows[0], outputItemId: 523,
+    inputItemId: 713, quantity: 1, chance: '100000 (guaranteed)',
+    terrain: 'Hercules map_gat2cell type 3 is walkable water; map.c:map_gat2cell.',
+    adaptations: ['Aqua Benedicta is available only during field hunting while standing on a water cell.',
+      'One cast consumes one unprotected Empty Bottle and produces one Holy Water; the source skill chance is guaranteed.']
+};
 const refineSource = parseConfig(buffers['db/pre-re/refine_db.conf'].toString('utf8'));
 const normalRefineRates = [1,2,3,4].map(level => {
     const rates = refineSource['WeaponLevel'+level]?.Rates;
@@ -416,12 +425,13 @@ activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
+activeSpecial.add('AL_HOLYWATER');
 activeSpecial.add('HT_DETECTING');
 activeSpecial.add('WS_WEAPONREFINE');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
-    AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', AL_HOLYWATER: 'Produção de Água Benta exige células de água e Frasco Vazio.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
+    AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
     MC_VENDING: 'Requer comércio com outros personagens.', ALL_BUYING_STORE: 'Requer comércio com outros personagens.', MC_CARTDECORATE: 'Decoração de carrinho exige objetos de carrinho.', MC_CHANGECART: 'Aparência do carrinho exige objetos de carrinho.',
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
     CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
@@ -447,6 +457,7 @@ function backslidingSourceMatchesSourceContract(source) {
         source.InterruptCast !== true && source.Unit === undefined && source.SplashRange === undefined;
 }
 const descriptions = {
+    AL_HOLYWATER: 'Aqua Benedicta. Conjura por 1 s sobre uma célula de água durante a caça; ao concluir, consome 10 SP e um Frasco Vazio para produzir Água Benta, sem chance de falha.',
     BS_DAGGER: 'Passiva: libera a forja de adagas. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
     BS_SWORD: 'Passiva: libera a forja de espadas de uma mão. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
     BS_TWOHANDSWORD: 'Passiva: libera a forja de espadas de duas mãos. Cada nível adiciona 5 pontos percentuais à chance de forja; receitas e materiais seguem Hercules pré-renovação.',
@@ -561,6 +572,7 @@ for (const name of skillNames) {
         herculesId: src.Id, sourceName: name, mechanic: name, implementation, ...(unsupportedReason && { unsupportedReason }),
         ...(name === 'MC_IDENTIFY' && { manualUse: 'inventory' }),
         ...(name === 'AL_TELEPORT' && { manualUse: 'teleport' }),
+        ...(name === 'AL_HOLYWATER' && { manualUse: 'holyWaterCraft' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'NV_TRICKDEAD' && { manualUse: 'toggle', toggle: true }),
@@ -1003,6 +1015,7 @@ manifest.spriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLeg
 manifest.monsterSpriteMappingSource = { url: 'https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Monsters/MonsterTable.js', license: 'GPL-3.0-or-later', sha256: rules.referenceHashes.monsterTable, verifiedAliases: Object.fromEntries([1032,1042,1047,1785].map(id => [id, rules.monsterAliases[id]])) };
 manifest.skillSources.pr_suffragium.adaptation = 'Self cast available to Priest and High Priest without party: costs 8 SP, is instant, lasts 30/20/10 s by level and reduces the next skill cast by 15/30/45 percent. Cast reduction is consumed at the next eligible cast start, including instant skills; normal attacks do not consume it. NoSave status clears on a new connection.';
 manifest.skillSources.al_teleport.adaptation = 'Manual field-hunting only: current learned-level SP cost for either menu choice; Random uses interior passable cells in the existing navigation component to keep AFK routes reachable. Level2 offers the sole Idle save-point Prontera. Town, sitting and challenge use are excluded; source noteleport flags gate both choices. Warp cancels encounter targeting/casts and owned ground groups, preserving population HP/IDs/respawns and ordinary progression. No AFK automatic teleport.';
+manifest.skillSources.al_holywater.adaptation = 'Aqua Benedicta: 1 s cast, 10 SP paid at completion, requires the caster on GAT type 3 water while field hunting, consumes one unprotected Empty Bottle and creates one Holy Water with guaranteed success. Water terrain is retained from the pinned Hercules map_gat2cell type.';
 manifest.mountedPecoEvidence = {
     mechanics: ['pc.c:695..700,8985..8988,9220..9227,9391..9398', 'status.c:1857..1861,2140..2148,2173..2174,5421..5441,5534..5599', 'battle.c:764..770,2145..2156', 'skill.c:7971..7973,17857..18012'],
     visuals: ['roBrowserLegacy d88a3cd4 DB/Jobs/JobNameTable.js:30,39,59,67', 'DB/Jobs/WeaponJobTable.js:50..59,130..140', 'DB/Jobs/WeaponAction.js:171..182,247..257', 'DB/Skills/SkillAction.js:137..143'],
