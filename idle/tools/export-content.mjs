@@ -8,6 +8,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { parseTeleportMapFlags } from './teleport-mapflags.mjs';
+import { parseWarpMapFlags } from './warp-mapflags.mjs';
 import { orderedConfigEntries, parseConfig, resolveInheritance } from './libconfig.mjs';
 import { staticDefenseElement } from './itemDefenseElement.mjs';
 import { staticWeaponElement } from './itemWeaponElement.mjs';
@@ -58,6 +59,23 @@ if (sha(teleportFlagBuffer) !== rules.sourceHashes[teleportFlagPath]) throw new 
 const teleportBlockedMaps = parseTeleportMapFlags(teleportFlagBuffer.toString('utf8'));
 if (!teleportBlockedMaps.length) throw new Error('Empty source noteleport list');
 manifest.sources.push({ path: teleportFlagPath, url: teleportFlagUrl, sha256: sha(teleportFlagBuffer) });
+const warpMapFlags = {};
+for (const flag of ['nowarp', 'nomemo', 'nowarpto']) {
+    const path = `npc/mapflag/${flag}.txt`;
+    const url = `https://raw.githubusercontent.com/HerculesWS/Hercules/${rules.commit}/${path}`;
+    const buffer = source ? await readFile(resolve(source, path)) : Buffer.from(await (await fetch(url)).arrayBuffer());
+    if (sha(buffer) !== rules.sourceHashes[path]) throw new Error('Pinned source hash mismatch: ' + path);
+    const maps = parseWarpMapFlags(buffer.toString('utf8'), flag);
+    if (!maps.length) throw new Error('Empty source ' + flag + ' list');
+    warpMapFlags[flag] = maps;
+    manifest.sources.push({ path, url, sha256: sha(buffer) });
+}
+manifest.warpPortal = {
+    behavior: 'A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.',
+    memoSlots: 'Levels 2, 3, and 4 unlock one, two, and three memo points. A new map memo moves that map to the newest slot.',
+    source: 'src/map/skill.c: castend_map AL_WARP; src/map/pc.c: pc_memo; npc/mapflag/nowarp.txt, nomemo.txt, nowarpto.txt',
+    mapFlags: 'nowarp prevents casting; nomemo and nowarpto prevent memo; nowarpto prevents a saved destination.'
+};
 if (!/function\s+script\s+repairmain/i.test(repairBuffer.toString('utf8')) || !/\.\@repairprice\s*=\s*5000/.test(repairBuffer.toString('utf8')))
     throw new Error('Pinned NPC repair service changed');
 manifest.npcRepair = { source: 'npc/merchants/refine.txt:1145..1229', pricePerEquipment: 5000, repairs: 'all broken equipment in one NPC transaction', discount: false };
@@ -316,6 +334,9 @@ manifest.findingOre={chain:findingOreChain,selection:'uniform-entry-then-strict-
     acquisition:'Existing floor loot, pickup, inventory capacity and pending-loot path; one extra item at most per eligible owned kill.'};
 const catalog = { version: rules.version, source: { commit: rules.commit, files: manifest.sources.map(s => s.path), hash: '' }, rates: rules.rates, monsters: {}, items: {}, classes: {}, skills: {}, areas: rules.areas, quests: [], challenges: [], exp: { base: [], job: {} }, elementModifiers: {}, sizeModifiers: {} };
 catalog.teleportBlockedMaps = teleportBlockedMaps;
+catalog.warpBlockedMaps = warpMapFlags.nowarp;
+catalog.warpMemoBlockedMaps = [...new Set([...warpMapFlags.nomemo, ...warpMapFlags.nowarpto])].sort();
+catalog.warpDestinationBlockedMaps = warpMapFlags.nowarpto;
 catalog.autospellChoices = Object.fromEntries(parsed['autospell_db.conf'].autospell_db.map(row =>
     [row.SkillId, Array.from({ length: 10 }, (_, i) => typeof row.SkillLevel === 'number'
         ? row.SkillLevel : row.SkillLevel?.['Lv' + (i + 1)] ?? 0)]));
@@ -388,6 +409,7 @@ for (const name of ['AS_RIGHT', 'AS_LEFT']) passiveSkills.add(name);
 for (const name of ['KN_RIDING', 'KN_CAVALIERMASTERY']) passiveSkills.add(name);
 const activeSpecial = new Set(['MG_SIGHT', 'MG_SAFETYWALL', 'MG_STONECURSE', 'MG_ENERGYCOAT', 'WZ_QUAGMIRE', 'HW_MAGICPOWER', 'TF_STEAL', 'RG_STEALCOIN', 'TF_HIDING', 'AS_CLOAKING', 'BS_HAMMERFALL', 'BA_FROSTJOKE', 'BA_PANGVOICE', 'DC_SCREAM', 'MO_CALLSPIRITS', 'MO_ABSORBSPIRITS', 'MO_BLADESTOP', 'CH_SOULCOLLECT', 'PR_KYRIE', 'PR_MAGNIFICAT', 'WS_CARTBOOST', 'SM_PROVOKE', 'AL_DECAGI', 'AL_CRUCIS', 'LK_AURABLADE', 'LK_JOINTBEAT', 'PR_LEXDIVINA', 'PR_LEXAETERNA', 'BS_WEAPONPERFECT', 'BS_MAXIMIZE', 'PR_ASPERSIO', 'RG_STRIPWEAPON', 'RG_STRIPARMOR', 'RG_STRIPHELM', 'PF_HPCONVERSION', 'RG_STRIPSHIELD', 'AS_ENCHANTPOISON', 'MC_IDENTIFY']);
 activeSpecial.add('DC_DONTFORGETME');
+activeSpecial.add('AL_WARP');
 const oneShotTraps = new Set(['HT_LANDMINE', 'HT_BLASTMINE', 'HT_CLAYMORETRAP', 'HT_FREEZINGTRAP']);
 const controlTraps = ['HT_SKIDTRAP', 'HT_ANKLESNARE', 'HT_SANDMAN', 'HT_FLASHER', 'HT_SHOCKWAVE'];
 for (const name of controlTraps) activeSpecial.add(name);
@@ -425,6 +447,7 @@ activeSpecial.add('ST_PRESERVE');
 activeSpecial.add('ST_CHASEWALK');
 for (const name of ['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE']) activeSpecial.add(name);
 activeSpecial.add('AL_TELEPORT');
+activeSpecial.add('AL_WARP');
 activeSpecial.add('AL_HOLYWATER');
 activeSpecial.add('HT_DETECTING');
 activeSpecial.add('HT_REMOVETRAP');
@@ -433,7 +456,7 @@ activeSpecial.add('WS_WEAPONREFINE');
 for (const name of ['WS_MELTDOWN', 'AM_POTIONPITCHER', 'AM_PHARMACY', 'CR_SLIMPITCHER']) activeSpecial.add(name);
 const unsupported = {
     NV_BASIC: 'Ações sociais do Aprendiz não existem na simulação de caça.', WE_BABY: 'Requer sistema de família e personagens vinculados.', WE_CALLPARENT: 'Requer sistema de família e personagens vinculados.', WE_CALLBABY: 'Requer sistema de família e personagens vinculados.',
-    AL_WARP: 'Portais para mapas e memorizações de coordenadas exigem navegação em mapa.', PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
+    PR_REDEMPTIO: 'Ressurreição de grupo exige outros personagens.',
     MC_VENDING: 'Requer comércio com outros personagens.', ALL_BUYING_STORE: 'Requer comércio com outros personagens.', MC_CARTDECORATE: 'Decoração de carrinho exige objetos de carrinho.', MC_CHANGECART: 'Aparência do carrinho exige objetos de carrinho.',
     RG_GRAFFITI: 'Requer inscrições em células do mapa.', RG_FLAGGRAFFITI: 'Requer bandeiras de guilda no mapa.', RG_CLEANER: 'Requer inscrições em células do mapa.', RG_GANGSTER: 'Requer aliados da mesma classe.',
     CR_DEVOTION: 'Requer outro personagem para transferir dano.', PR_BENEDICTIO: 'Requer dois Noviços e células de mapa.', HP_BASILICA: 'Requer área protegida e interação com vários personagens.', MO_KITRANSLATION: 'Requer outro personagem para transferir esferas.', PF_SOULBURN: 'Requer SP do alvo; monstros não têm SP no catálogo.',
@@ -578,6 +601,7 @@ for (const name of skillNames) {
         ...(name === 'AL_TELEPORT' && { manualUse: 'teleport' }),
         ...(name === 'AL_HOLYWATER' && { manualUse: 'holyWaterCraft' }),
         ...(name === 'HT_REMOVETRAP' && { manualUse: 'removeTrap' }),
+        ...(name === 'AL_WARP' && { manualUse: 'warpPortal' }),
         ...(name === 'HT_SPRINGTRAP' && { manualUse: 'springTrap' }),
         ...(name === 'SM_AUTOBERSERK' && { manualUse: 'toggle', toggle: true }),
         ...(name === 'CR_SHRINK' && { manualUse: 'toggle', toggle: true }),
@@ -639,7 +663,7 @@ for (const name of skillNames) {
         ...(rule?.requiredSlot && { requiredSlot: rule.requiredSlot }),
         ...(inheritedEffect && { effects: inheritedEffect }),
     };
-manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ...(name === 'HT_SPRINGTRAP' && { adaptation: 'Uso manual solo, requer Falcon equipado e desarma a armadilha própria ativa mais próxima dentro do alcance 4–8 do nível. Custa 10 SP; armadilha Ankle Snare que já prendeu um alvo não pode ser desarmada; unidade acionada some após 1,5 s e não devolve reagente.' }), ...(name === 'HT_POWER' && { adaptation: 'Bow combo after AC_DOUBLE for 2000 ms; two pre-renewal 50 + 8*STR weapon hits against Brute or Insect targets, consuming 12 SP and one Arrow.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k) && !(rule?.handledRequirements ?? []).includes(k)) };
+manifest.skillSources[skillId(name)] = { id: src.Id, name, sourceMaxLevel: src.MaxLevel, sourceRequirements: src.Requirements ?? {}, sourceDamageType: src.DamageType ?? {}, sourceUnit: src.Unit ?? {}, sourceHitCount: rawHits, sourceSplashRange: src.SplashRange ?? 0, implementation, ...(idleDamageMultiplierPct && { idleDamageMultiplierPct }), ...(unsupportedReason && { unsupportedReason }), ...(name === 'WZ_SIGHTBLASTER' && { adaptation: 'One volatile charge; its first source-radius contact damages eligible nearby targets and pushes each by three cells. Boss, monster NoKnockback and map NoKnockback prevent movement.' }), ...(name === 'AL_WARP' && { adaptation: 'One actor immediately enters a selected memo portal after the paid cast; server-validated positions are bounded by learned Warp Portal level and Hercules map flags.' }), ...(name === 'AL_RUWACH' && { adaptation: 'Self aura for 10 seconds; event-driven 20 ms pulses reveal the five Hercules concealment statuses in radius 2 and deal 145% Holy MATK only to each newly revealed enemy. AFK arms during approach and does not provoke before damage.' }), ...(name === 'LK_JOINTBEAT' && { adaptation: 'Selects one random body part before weapon damage; neck doubles only the additive skill ratio. A successful hit rolls 5 + 5*level percent to apply/refresh cumulative SC_JOINTBEAT flags for 30 s; waist, shoulder, wrist, knee and ankle feed ATK, DEF, attack-delay and movement consumers. Neck also attempts SC_BLOODING using its own source resistance and 10 s / 200-799 HP ticks. Bosses reject the body-part status.' }), ...(name === 'PF_FOGWALL' && { adaptation: 'Solo adaptation: places a fixed 5x3 ground field under the caster, with at most two groups and defense only while inside live cells. Volcano/Gale cells reject Fog; only cells overlapping Deluge last 40 seconds instead of 20. Geometry and SC_FOGWALL are NoSave. AFK places it when the target has normal range above 3 or a modeled NPC magic skill with range above 3; lowers ordinary ranged hit rate by 50 percentage points and quarters ranged normal-attack damage. Targeted NPC magic has a 75% cast-end failure roll and a 25% damage reduction on a hit. The Hercules blind-on-occupants ground-cell behavior is not simulated.' }), ...(['SA_VOLCANO', 'SA_DELUGE', 'SA_VIOLENTGALE'].includes(name) && { adaptation: 'Solo placement centered under the caster; fixed source 7x7 terrain-clipped cells, independent entry/exit and elemental-defense snapshots per actor. Original resource costs and remaining-time replacement; NoSave group and excess HP. Ground textures use a projected flat plane rather than the native 3D cone.' }), ...(name === 'PF_MINDBREAKER' && { adaptation: 'Single-target no-damage skill at range 9; source success chance 55 + 5 per level, 30 s duration, 12% per-level MATK increase and soft-MDEF scalar reduction. Bosses and undead targets are rejected; successful application ends Freeze, Stone and Sleep and cancels a modeled enemy cast. AFK only consumes SP after the existing target/range/resource gates. Its MATK increase applies to modeled NPC magic.' }), ...(name === 'HT_SPRINGTRAP' && { adaptation: 'Uso manual solo, requer Falcon equipado e desarma a armadilha própria ativa mais próxima dentro do alcance 4–8 do nível. Custa 10 SP; armadilha Ankle Snare que já prendeu um alvo não pode ser desarmada; unidade acionada some após 1,5 s e não devolve reagente.' }), ...(name === 'HT_POWER' && { adaptation: 'Bow combo after AC_DOUBLE for 2000 ms; two pre-renewal 50 + 8*STR weapon hits against Brute or Insect targets, consuming 12 SP and one Arrow.' }), ratioSource: magicRatios[name] || weaponRatios[name] ? 'src/map/battle.c:battle_calc_skillratio (pre-renewal branches)' : miscSkills.has(name) ? 'src/map/battle.c:battle_calc_misc_attack / battle_calc_weapon_attack' : 'src/map/skill.c and src/map/status.c', unsupportedRequirements: Object.keys(src.Requirements ?? {}).filter(k => !['SPCost', 'ZenyCost', 'Items', 'WeaponTypes', 'State', 'HPCost', 'HPRateCost', 'SpiritSphereCost'].includes(k) && !(rule?.handledRequirements ?? []).includes(k)) };
 }
 manifest.skillSources.ws_weaponrefine.adaptation = manifest.weaponRefine.adaptations.join(' ');
 manifest.skillSources.ws_meltdown.adaptation = 'Native self buff at the selected learned level; SkillData1 lifetime15–60s, original SP/cast clocks, physical-hit weapon/armor break chances100/70 per level on scale10000. MD_BOSS immunity; native strip Lv0 overlap, duration from RG_STRIP_*Lv1. One additional-effect phase per living hit target, excluding Cart Termination/Tomahawk/Reflect Shield. AFK skips all-boss battles. NoSave buff and captured level are process-local, cleared on caster new connection/logout; NoDeathReset survives defeat. Monster NoSave strips remain on the same live instance across caster reconnect/logout, disappear on process restart and never transfer to a respawn ID. Emperium rejects status before its draw; BG/Gravity Control systems are absent. Native generic equipment-break contributions are not produced by the current solo engine.';

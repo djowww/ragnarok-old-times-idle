@@ -73,6 +73,21 @@
       "sha256": "6776e7f67777c1c492dd8339db5153d425d75ac345a6cc7dbc032ed575afafe2"
     },
     {
+      "path": "npc/mapflag/nowarp.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/nowarp.txt",
+      "sha256": "fa3b4f839453504b987d843ef3f042f98cbb3ef6be1f11e4b93935b892657893"
+    },
+    {
+      "path": "npc/mapflag/nomemo.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/nomemo.txt",
+      "sha256": "e6eb9e5af746dcdff15bb12d626940594d847ab4828a60621c870eeb3b7f8c82"
+    },
+    {
+      "path": "npc/mapflag/nowarpto.txt",
+      "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/mapflag/nowarpto.txt",
+      "sha256": "50686c7621b390efc6244879c727da3df213e17a4599d092626abbd8cbea8855"
+    },
+    {
       "path": "npc/pre-re/mobs/fields/geffen.txt",
       "url": "https://raw.githubusercontent.com/HerculesWS/Hercules/410b9738c049ab1825d67b36b072d837c1d0b33a/npc/pre-re/mobs/fields/geffen.txt",
       "sha256": "dc89a7587dbf282eb3f464b5e5b682726e87a59b890731d6596bf41ed712dc63"
@@ -3760,8 +3775,8 @@
         1
       ],
       "sourceSplashRange": 0,
-      "implementation": "unsupported",
-      "unsupportedReason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa.",
+      "implementation": "supported",
+      "adaptation": "One actor immediately enters a selected memo portal after the paid cast; server-validated positions are bounded by learned Warp Portal level and Hercules map flags.",
       "ratioSource": "src/map/skill.c and src/map/status.c",
       "unsupportedRequirements": []
     },
@@ -13886,6 +13901,12 @@
     "source": "db/create_arrow_db.txt",
     "behavior": "One paid menu activation consumes one identified unequipped input and grants every listed output. Net inventory capacity is validated before consumption."
   },
+  "warpPortal": {
+    "behavior": "A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.",
+    "memoSlots": "Levels 2, 3, and 4 unlock one, two, and three memo points. A new map memo moves that map to the newest slot.",
+    "source": "src/map/skill.c: castend_map AL_WARP; src/map/pc.c: pc_memo; npc/mapflag/nowarp.txt, nomemo.txt, nowarpto.txt",
+    "mapFlags": "nowarp prevents casting; nomemo and nowarpto prevent memo; nowarpto prevents a saved destination."
+  },
   "npcRepair": {
     "source": "npc/merchants/refine.txt:1145..1229",
     "pricePerEquipment": 5000,
@@ -15167,8 +15188,8 @@
   "skillCoverage": {
     "classes": 40,
     "skills": 348,
-    "supported": 291,
-    "unsupported": 57,
+    "supported": 292,
+    "unsupported": 56,
     "byClass": {
       "novice": {
         "sourceTree": 3,
@@ -15212,13 +15233,13 @@
       },
       "acolyte": {
         "sourceTree": 17,
-        "supported": 15,
-        "unsupported": 2
+        "supported": 16,
+        "unsupported": 1
       },
       "high_acolyte": {
         "sourceTree": 17,
-        "supported": 15,
-        "unsupported": 2
+        "supported": 16,
+        "unsupported": 1
       },
       "merchant": {
         "sourceTree": 15,
@@ -15312,23 +15333,23 @@
       },
       "priest": {
         "sourceTree": 36,
-        "supported": 32,
-        "unsupported": 4
+        "supported": 33,
+        "unsupported": 3
       },
       "high_priest": {
         "sourceTree": 40,
-        "supported": 35,
-        "unsupported": 5
+        "supported": 36,
+        "unsupported": 4
       },
       "monk": {
         "sourceTree": 34,
-        "supported": 31,
-        "unsupported": 3
+        "supported": 32,
+        "unsupported": 2
       },
       "champion": {
         "sourceTree": 38,
-        "supported": 35,
-        "unsupported": 3
+        "supported": 36,
+        "unsupported": 2
       },
       "blacksmith": {
         "sourceTree": 39,
@@ -15410,6 +15431,7 @@
       "AL_RUWACH",
       "AL_PNEUMA",
       "AL_TELEPORT",
+      "AL_WARP",
       "AL_HEAL",
       "AL_INCAGI",
       "AL_DECAGI",
@@ -15669,11 +15691,6 @@
         "skillId": "nv_basic",
         "sourceName": "NV_BASIC",
         "reason": "Ações sociais do Aprendiz não existem na simulação de caça."
-      },
-      {
-        "skillId": "al_warp",
-        "sourceName": "AL_WARP",
-        "reason": "Portais para mapas e memorizações de coordenadas exigem navegação em mapa."
       },
       {
         "skillId": "mc_vending",
@@ -16622,7 +16639,7 @@
     "modifier": "JOBL_UPPER: floor(base * 1.25)",
     "sha256": "74d8626486cbfcf38d5eed1a49f76d3e8d400d6ee3ed47eb5c1c9bd9f3df0b26"
   },
-  "rulesSha256": "9cb8b985bde1d602fce224a5a4321443e2fc7d4320d4dc4962e69a30e058849f",
+  "rulesSha256": "291504a19bffd0303146b0670e019a849cc4bd55d7e4fc2e2d725d1228ecd022",
   "spriteMappingSource": {
     "url": "https://github.com/MrAntares/roBrowserLegacy/blob/d88a3cd4acde0582530e3fc1908532a92e9accea/src/DB/Jobs/JobNameTable.js",
     "license": "GPL-3.0-or-later",
@@ -16844,6 +16861,6 @@
     "statsFormula": "base - trunc(base * (4 * AGI + DEX) / 1000)",
     "shieldPolicy": "No RENEWAL_ASPD shield surcharge in pre-renewal"
   },
-  "catalogSha256": "67ac888f43ce98ba1f58ee0c808972c7ffb096d81e34bbeee5896407caeb14b1",
+  "catalogSha256": "553a6bda2c2bc7847f0a763f794175bc886d000b8ddda7a4fc094b21d9e337f0",
   "hashConvention": "Catalog.source.hash = SHA256 of compact catalog with source.hash empty. catalogSha256 hashes emitted file bytes."
 }

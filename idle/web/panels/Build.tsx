@@ -5,6 +5,7 @@ import { chasewalkCanStart } from '../../engine/chasewalk';
 import { providenceCanStart } from '../../engine/providence';
 import { suffragiumCanStart } from '../../engine/suffragium';
 import { teleportAvailable } from '../../engine/teleport';
+import { warpMemoAvailable, warpPortalAvailable } from '../../engine/warpPortal';
 import { number, type PanelProps } from "../components/common";
 import ClassicStatus from "../components/ClassicStatus";
 import SkillIcon from "../components/SkillIcon";
@@ -352,6 +353,20 @@ export default function Build({
                         onClick={() => void command({ type: 'teleport', destination: 'random' })}>Teleportar no mapa</button>
                       {level >= 2 && <button type="button" disabled={busy || !teleportAvailable(state, catalog, 'save', snapshot.serverTime)}
                         onClick={() => void command({ type: 'teleport', destination: 'save' })}>Voltar a Prontera</button>}
+                    </>}
+                    {skill.manualUse === 'warpPortal' && level >= 2 && <>
+                      <button type="button" disabled={busy || !warpMemoAvailable(state, catalog, snapshot.serverTime)}
+                        onClick={() => void command({ type: 'memoWarp' })}>Memorizar este mapa</button>
+                      {(['memo1', 'memo2', 'memo3'] as const).slice(0, Math.min(3, level - 1)).map((destination, index) => {
+                        const memo = state.warpMemos?.[index];
+                        if (!memo) return null;
+                        const area = catalog.areas.find(entry => entry.id === memo.areaId);
+                        return <button key={`${memo.areaId}-${index}`} type="button"
+                          disabled={busy || !warpPortalAvailable(state, catalog, destination, snapshot.serverTime)}
+                          onClick={() => void command({ type: 'warpPortal', destination })}>
+                          Portal para {area?.name ?? memo.map}
+                        </button>;
+                      })}
                     </>}
                     {skill.manualUse === 'inspect' && <button type="button"
                       disabled={busy || !senseCanInspect}

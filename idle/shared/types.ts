@@ -237,7 +237,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -320,6 +320,9 @@ export interface Challenge {
 export interface Catalog {
   /** Pinned Hercules noteleport map flags; absence disables manual Teleport. */
   teleportBlockedMaps?: string[];
+  warpBlockedMaps?: string[];
+  warpMemoBlockedMaps?: string[];
+  warpDestinationBlockedMaps?: string[];
   /** Public scene anchors derived from GAT dimensions; collision masks stay server-side. */
   sceneNavigation?: Record<string, { map: string; origin: { x: number; y: number } }>;
   version: string;
@@ -680,6 +683,7 @@ export interface WeaponRefineResult {
  menuId:string; outcome:'success'|'failed'|'cancelled'|'rejected'|'empty';
  uid?:string;itemId?:number;fromRefine?:number;toRefine?:number;reasonCode?:string;message?:string;
 }
+export interface WarpMemo { areaId: string; map: string; x: number; y: number }
 export interface GameState {
  arrowCraftMenu?: {id:string;openedAt:number;sceneKey:string;catalogHash:string;deaths:number;offered:{uid:string;itemId:number;signature:string}[]};
  weaponRefineMenu?:WeaponRefineMenu;
@@ -788,6 +792,8 @@ export interface GameState {
   /** Last server-facing direction, retained while a defensive posture stops walking. */
   playerFacing?: { x: number; y: number };
   areaId: string | null;
+  /** Hercules /memo points; coordinates are walkable GAT cell indices. */
+  warpMemos?: WarpMemo[];
   fieldHero?: {
     areaId: string;
     from: { x: number; y: number };
@@ -816,7 +822,7 @@ export interface GameState {
   /** Source actor canact; absent in old saves, never inferred from a basic swing. */
   playerCanActAt?: number;
   /** Own self-target skill cast; unlike Battle.cast this also works in Prontera. */
-  supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
+  supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string; warpDestination?: 'memo1' | 'memo2' | 'memo3';
     skillClockOwnership?: SkillClockOwnership;
     /** Ground casts retain the selected map position even when FreeCast moves. */
     position?: { x: number; y: number }; sceneKey?: string;
@@ -902,6 +908,8 @@ export type GameCommand =
   | { type: 'craftArrows'; menuId: string; uid: string }
   | { type: 'cancelArrowCraft'; menuId: string }
   | { type: 'teleport'; destination: 'random' | 'save' }
+  | { type: 'memoWarp' }
+  | { type: 'warpPortal'; destination: 'memo1' | 'memo2' | 'memo3' }
   | { type: "startHunt"; areaId: string }
   | { type: "setHuntFocus"; areaId: string; focus: HuntFocus }
   | { type: "stop" | "rest" | "sellLoot" | "rebirth" | "dismissOffline" | "repairAll" | "collectPendingLoot" }

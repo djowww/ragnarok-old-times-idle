@@ -79,9 +79,19 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_removetrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Hercules range 2'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 292, unsupported: 56 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
+    });
+    it('exports Warp Portal with pinned costs, bounded memos, and map restrictions', () => {
+        expect(data.skills.al_warp).toMatchObject({ sourceName: 'AL_WARP', implementation: 'supported',
+            manualUse: 'warpPortal', maxLevel: 4, spCost: [35, 32, 29, 26], castTimeMs: [1000, 1000, 1000, 1000],
+            itemCostByLevel: Array.from({ length: 4 }, () => [{ itemId: 717, quantity: 1 }]) });
+        expect(manifest.skillSources.al_warp).toMatchObject({ implementation: 'supported' });
+        expect(data.warpBlockedMaps).toContain('aldeg_cas01');
+        expect(data.warpMemoBlockedMaps).toContain('abbey01');
+        expect(data.warpDestinationBlockedMaps).toContain('aldeg_cas01');
+        expect(manifest.warpPortal).toMatchObject({ memoSlots: expect.stringContaining('one, two, and three') });
     });
     it('exports Spring Trap with the pinned level range, Falcon requirement, and solo adaptation', () => {
         const skill = data.skills.ht_springtrap;
@@ -93,7 +103,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_springtrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Ankle Snare'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 292, unsupported: 56 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
@@ -107,7 +117,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 291, unsupported: 57 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 292, unsupported: 56 });
         expect(data.skills.al_holywater).toMatchObject({ sourceName: 'AL_HOLYWATER', implementation: 'supported', manualUse: 'holyWaterCraft',
             spCost: [10], castTimeMs: [1000], afterCastDelayMs: [500] });
         expect(manifest.skillSources.al_holywater.adaptation).toContain('GAT type 3 water');
@@ -147,9 +157,9 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 291, unsupported: 57 });
-        expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 31, unsupported: 3 });
-        expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 35, unsupported: 3 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 292, unsupported: 56 });
+        expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 32, unsupported: 2 });
+        expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 36, unsupported: 2 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
     });
     it('exports Graça Lenta with its Hercules field, pulse, duration, and weapon requirements', () => {
@@ -316,11 +326,14 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(955);
         expect(data.areas).toHaveLength(38);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 291, unsupported: 57 });
-        expect(manifest.sources).toHaveLength(52);
+        expect(manifest.skillCoverage).toMatchObject({ supported: 292, unsupported: 56 });
+        expect(manifest.sources).toHaveLength(55);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',
         }));
+        expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nowarp.txt', sha256: 'fa3b4f839453504b987d843ef3f042f98cbb3ef6be1f11e4b93935b892657893' }));
+        expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nomemo.txt', sha256: 'e6eb9e5af746dcdff15bb12d626940594d847ab4828a60621c870eeb3b7f8c82' }));
+        expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/mapflag/nowarpto.txt', sha256: '50686c7621b390efc6244879c727da3df213e17a4599d092626abbd8cbea8855' }));
         expect(offensiveSpells).toHaveLength(29);
         for (const spell of offensiveSpells)
             expect(manifest.skillSources[spell.id as keyof typeof manifest.skillSources])
