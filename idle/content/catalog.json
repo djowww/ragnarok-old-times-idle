@@ -56,7 +56,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "8303ff88049b64219af47146b601e99987d5388cb8bd1e65d6ac92299223489a"
+    "hash": "1184c8194c02e6dd9d44266347fbb73fcf184a857c06bca2341e9d6b39657584"
   },
   "rates": {
     "baseExp": 4,
@@ -108706,9 +108706,9 @@
       "herculesId": 131,
       "sourceName": "HT_SPRINGTRAP",
       "mechanic": "HT_SPRINGTRAP",
-      "implementation": "unsupported",
-      "unsupportedReason": "Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
-      "description": "Spring Trap. Habilidade utilitária. Requer produção, objetos persistentes, parceiros ou edição de células do mapa.",
+      "implementation": "supported",
+      "manualUse": "springTrap",
+      "description": "Desarma uma armadilha própria ativa dentro do alcance do nível aprendido. Custa 10 SP e requer Falcão equipado; a armadilha acionada desaparece após 1,5 s sem devolver o reagente.",
       "iconResource": "data/texture/유저인터페이스/item/ht_springtrap.bmp",
       "spCost": [
         10,

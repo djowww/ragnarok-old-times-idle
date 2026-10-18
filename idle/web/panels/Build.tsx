@@ -280,7 +280,14 @@ export default function Build({
                     </button>}
                     {skill.manualUse === "converterCraft" && <button disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenConverters} onClick={onOpenConverters}>Produzir conversores</button>}
                     {skill.manualUse === "arrowCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenArrows} onClick={event => onOpenArrows?.(event.currentTarget)}>Criar flechas</button>}
-                    {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}
+                    {skill.manualUse === "holyWaterCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "hunting"} onClick={() => void command({ type: "useSkill", skillId: skill.id })}>Produzir Água Benta</button>}\n                    {skill.manualUse === "springTrap" && <button type="button"
+                      disabled={busy || unsupported || level === 0 || !falconEquipped || state.hp <= 0 ||
+                        (state.status !== 'hunting' && state.status !== 'challenge') ||
+                        !state.battle?.traps?.some(trap => trap.expiresAt > snapshot.serverTime && trap.triggeredAt === undefined) ||
+                        manualSilenced || !canPaySkillResources(state, catalog, skill, level, snapshot.serverTime)}
+                      onClick={() => void command({ type: "useSkill", skillId: skill.id })}>
+                      Spring Trap · {skillResourceCosts(state, catalog, skill, level, snapshot.serverTime)?.sp ?? 10} SP
+                    </button>}
                     {skill.manualUse === "pharmacyCraft" && <button type="button" disabled={busy || unsupported || level === 0 || state.status !== "town" || !onOpenPharmacy} onClick={event => onOpenPharmacy?.(event.currentTarget)}>Preparar poções</button>}
                     {skill.manualUse === "weaponCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenWeaponCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenWeaponCraft?.(event.currentTarget)}>Forjar armas</button>}
                     {skill.manualUse === "metalCraft" && <button type="button" disabled={busy || unsupported || level === 0 || !onOpenMetalCraft || state.hp <= 0 || state.status === "resting"} onClick={event => onOpenMetalCraft?.(event.currentTarget)}>Produzir metais</button>}
