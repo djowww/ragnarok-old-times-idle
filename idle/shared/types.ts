@@ -237,7 +237,7 @@ export interface Skill {
   prerequisitesByClass?: Record<string, { skillId: string; level: number }[]>;
   damageType?: "weapon" | "magic" | "misc" | "none";
   implementation?: "supported" | "unsupported";
-  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal";
+  manualUse?: "inventory" | "toggle" | "rest" | "mount" | "castCancel" | "converterCraft" | "pharmacyCraft" | "arrowCraft" | "weaponCraft" | "metalCraft" | "weaponRefine" | "weaponRepair" | "activate" | "inspect" | "teleport" | "holyWaterCraft" | "springTrap" | "removeTrap" | "warpPortal" | "greed";
   unsupportedReason?: string;
   itemCostByLevel?: { itemId: number; quantity: number }[][];
   requiredState?: string;
@@ -361,6 +361,8 @@ export interface LootOrigin {
   enemyId?: string;
   monsterId?: number;
   position?: { x: number; y: number };
+  /** World-field cell where a floor drop remains while awaiting pickup. */
+  fieldPosition?: { x: number; y: number };
   questId?: string;
   challengeId?: string;
 }

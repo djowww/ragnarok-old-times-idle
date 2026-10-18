@@ -59,7 +59,7 @@
       "conf/map/battle/skill.conf",
       "conf/map/battle/battle.conf"
     ],
-    "hash": "2e0246424609bea890e3f0b6d3a88c5b08eaa5c02abe9bb0ec3e8eb0ecad50a6"
+    "hash": "3dc006fa6aa92c0defa5c1d8d5872fd1248b83b29b0fa1f9d65a72bd6636afef"
   },
   "rates": {
     "baseExp": 4,
@@ -120062,9 +120062,9 @@
       "herculesId": 1013,
       "sourceName": "BS_GREED",
       "mechanic": "BS_GREED",
-      "implementation": "unsupported",
-      "unsupportedReason": "Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
-      "description": "Greed. Habilidade utilitária. Mecânica Hercules importada; a simulação atual ainda não executa este efeito.",
+      "implementation": "supported",
+      "manualUse": "greed",
+      "description": "Recolhe os itens pendentes no chão em até 2 células, se houver espaço na mochila. Custa 10 SP.",
       "iconResource": "data/texture/유저인터페이스/item/bs_greed.bmp",
       "spCost": [
         10
