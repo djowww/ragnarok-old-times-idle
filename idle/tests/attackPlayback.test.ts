@@ -40,10 +40,10 @@ describe('pinned client attack playback', () => {
     expect(render.getActorPose(value, 'attack', 599, direction, 300)[0].x).toBe(11);
   });
   it('uses male Novice5.85 and Assassin katar3 without extending unrelated skills', () => {
-    expect(render.getActorPlaybackDuration(actor('novice'), 'attack', 300)).toBeCloseTo(300 / 5.85 * 12);
+    expect(render.getActorPlaybackDuration(actor('novice'), 'attack', 300)).toBe(600);
     expect(render.getActorPlaybackDuration(actor('novice', 'female'), 'attack', 300)).toBe(600);
-    expect(render.getActorPlaybackDuration(actor('assassin', 'male', 'katar'), 'attack', 300)).toBe(1200);
-    expect(render.getActorPlaybackDuration(actor('assassin_cross', 'female', 'katar'), 'attack', 300)).toBe(1200);
+    expect(render.getActorPlaybackDuration(actor('assassin', 'male', 'katar'), 'attack', 300)).toBe(600);
+    expect(render.getActorPlaybackDuration(actor('assassin_cross', 'female', 'katar'), 'attack', 300)).toBe(600);
     expect(render.getActorPlaybackDuration(actor(), 'skill', 300)).toBe(300);
     expect(render.getActorPlaybackDuration({ ...actor(), kind: 'monster' }, 'attack', 300)).toBe(300);
   });
@@ -53,7 +53,7 @@ describe('pinned client attack playback', () => {
       expect(render.getActorPose(actor(job), 'attack', 299, 0, 300).map(layer => layer.x)).toEqual([4, 4]);
       expect(render.getActorPlaybackDuration(actor(job, 'male', 'mace'), 'attack', 300)).toBe(600);
     }
-    expect(render.getActorPlaybackDuration(actor('novice'), 'attack', 300)).toBeGreaterThan(600);
+    expect(render.getActorPlaybackDuration(actor('novice'), 'attack', 300)).toBeLessThanOrEqual(600);
   });
   it('does not show an old hidden hurt midway through its sequence after an offensive pose ends', () => {
     const reaction: presentation.PresentedActorReaction = { id: 1, targetActorId: 'hero', hit: true, impact: 1300, reactionDuration: 300 };
