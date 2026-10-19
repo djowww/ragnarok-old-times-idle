@@ -955,6 +955,7 @@ export type GameCommand =
   | { type: "equip"; uid: string; slot?: Slot }
   | { type: "favorite" | "refine"; uid: string }
   | { type: "identify"; uid: string; method?: "magnifier" | "skill" }
+  | { type: "identifyAll"; maxCost: number }
   | { type: "unequip"; slot: Slot }
   | { type: "socket"; uid: string; cardUid: string }
   | { type: "changeClass"; classId: string }

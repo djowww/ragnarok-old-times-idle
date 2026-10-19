@@ -16,6 +16,8 @@ import {
 import { isItemIdentified, MAGNIFIER_ITEM_ID } from "../../shared/loot";
 import { classSkills, inventoryLoad } from "../../engine/stats";
 import { classicBuffActive } from "../../engine/classicBuffs";
+import { bulkIdentificationQuote } from "../../shared/identification";
+import MenuIcon from "../components/MenuIcon";
 
 export default function Inventory({
   catalog,
@@ -24,6 +26,9 @@ export default function Inventory({
   command,
 }: PanelProps) {
   const { state } = snapshot;
+  const bulkQuote = bulkIdentificationQuote(state, catalog);
+  const bulkBlocked = busy || bulkQuote.count === 0 || state.zeny < bulkQuote.totalCost ||
+    classicBuffActive(state, catalog, "LK_BERSERK", snapshot.serverTime);
   const identifySkill = classSkills(catalog, state.job).map(id => catalog.skills[id]).find(skill => skill?.sourceName === "MC_IDENTIFY" && skill.implementation === "supported" && (state.learnedSkills[skill.id] ?? 0) > 0);
   const identifyCost = identifySkill?.spCost[(state.learnedSkills[identifySkill.id] ?? 1) - 1] ?? identifySkill?.spCost.at(-1) ?? 10;
   const [filter, setFilter] = useState("all");
@@ -115,6 +120,23 @@ export default function Inventory({
   return (
     <div className="inventory-layout">
       <div className="inventory-list">
+        <section className="inventory-identify-all" aria-label="Identificação de equipamentos">
+          <span className="inventory-identify-icon"><MenuIcon name="identify" size={24} /></span>
+          <div className="inventory-identify-copy">
+            <strong>Identificação</strong>
+            <p id="bulk-identify-description">{bulkQuote.count > 0
+              ? `${bulkQuote.count} ${bulkQuote.count === 1 ? "equipamento" : "equipamentos"} · ${number(bulkQuote.unitPrice)} zeny cada`
+              : "Todos os equipamentos estão identificados."}</p>
+            {bulkQuote.count > 0 && state.zeny < bulkQuote.totalCost &&
+              <small role="status">Saldo insuficiente para identificar tudo.</small>}
+          </div>
+          <button type="button" className="primary identify-all-button" disabled={bulkBlocked}
+            aria-describedby="bulk-identify-description"
+            aria-label={bulkQuote.count > 0 ? `Identificar tudo por ${number(bulkQuote.totalCost)} zeny` : "Identificar tudo"}
+            onClick={() => void command({ type: "identifyAll", maxCost: bulkQuote.totalCost })}>
+            <span>Identificar tudo</span><b>{number(bulkQuote.totalCost)} z</b>
+          </button>
+        </section>
         <div className="toolbar">
           <label className="search-field">
             <span className="sr-only">Buscar na mochila</span>

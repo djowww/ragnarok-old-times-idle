@@ -9,6 +9,7 @@ import "./classic-layout.css";
 import "./classic-status.css";
 import "./fullscreen.css";
 import "./scene-polish-hud.css";
+import "./styles/menu-polish.css";
 import "./portal/portal.css";
 
 createRoot(document.getElementById("root")!).render(
