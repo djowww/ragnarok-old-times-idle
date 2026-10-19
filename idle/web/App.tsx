@@ -4,7 +4,7 @@ import { playerStatusCues } from '../shared/playerStatusView';
 import { treatmentSources, statusTreatmentNeeded } from '../engine/playerStatuses';
 import { copiedSpell } from '../shared/copiedSkills';
 import { skillUseLevel } from '../shared/skillUseLevels';
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AccountView } from "../shared/portal-types";
 import { useAuth } from "./portal/AuthProvider";
 import { Link, navigate } from "./portal/router";
@@ -19,6 +19,7 @@ import RewardNotifications from "./components/RewardNotifications";
 import ShopScene from "./components/ShopScene";
 import SkillIcon from "./components/SkillIcon";
 import ClassicEquipment from "./components/ClassicEquipment";
+import MenuIcon from "./components/MenuIcon";
 import { resetWindowPositions, useDraggableWindow } from "./hooks/useDraggableWindow";
 import "./styles/draggable-windows.css";
 import QuestReward from "./components/QuestReward";
@@ -67,12 +68,12 @@ const windowTitles: Record<GameWindow, string> = {
   city: "Serviços de Prontera", blacksmith: "Ferreiro de Prontera", stylist: "Estilista de Prontera",
   arrows: "Criar Flechas", converters: "Conversores elementais", pharmacy: "Preparar poções", weaponRefine: "Refino de arma", weaponCraft: "Forja de armas", metalCraft: "Produção de metais", admin: "Administração",
 };
-const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string; file: string }> = [
-  { destination: "stats", label: "Atributos", file: "btn_status_off.bmp" },
-  { destination: "equipment", label: "Equipamento", file: "btn_equip_off.bmp" },
-  { destination: "inventory", label: "Mochila", file: "btn_items_off.bmp" },
-  { destination: "world", label: "Mapa", file: "btn_map_off.bmp" },
-  { destination: "skills", label: "Habilidades", file: "btn_skill_off.bmp" },
+const classicMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
+  { destination: "stats", label: "Atributos" },
+  { destination: "equipment", label: "Equipamento" },
+  { destination: "inventory", label: "Mochila" },
+  { destination: "world", label: "Mapa" },
+  { destination: "skills", label: "Habilidades" },
 ];
 const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
   { destination: "quests", label: "Missões" },
@@ -81,22 +82,6 @@ const quickMenu: ReadonlyArray<{ destination: GameWindow; label: string }> = [
   { destination: "challenges", label: "Desafios" },
   { destination: "admin", label: "Administração" },
 ];
-function ClassicMenuIcon({ file }: { file: string }) {
-  const [source, setSource] = useState<string>();
-  useEffect(() => {
-    let active = true;
-    setSource(undefined);
-    void getBitmapUrl(`data/texture/유저인터페이스/basic_interface/${file}`).then(value => {
-      if (active) setSource(value === FALLBACK_ICON ? undefined : value);
-    });
-    return () => { active = false; };
-  }, [file]);
-  // The classic resources are complete 30×20 buttons, with magenta keyed out
-  // by the bitmap decoder. Resizing them as 22px icons distorts their letters.
-  return source ? <img src={source} width={30} height={20} alt="" />
-    : <span className="ro-book-entry-mark" aria-hidden="true">◇</span>;
-}
-
 export function skillReadiness(skill: Skill, state: GameState, stats: DerivedStats, catalog: Catalog, now: number) {
   const level = skillUseLevel(state, catalog, skill.id);
   const index = Math.max(0, level - 1);
@@ -426,6 +411,38 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
   const huntTrigger = useRef<HTMLButtonElement | null>(null);
   const windowTrigger = useRef<HTMLElement | null>(null);
   const windowClose = useRef<HTMLButtonElement | null>(null);
+  useLayoutEffect(() => {
+    if (!bookOpen) return;
+    const placeMenu = () => {
+      const menu = document.getElementById("ro-book-content");
+      const trigger = bookTrigger.current;
+      if (!menu || !trigger || !menu.parentElement) return;
+      const anchor = trigger.getBoundingClientRect(), parent = menu.parentElement.getBoundingClientRect();
+      const gap = 8, margin = 12, naturalHeight = menu.scrollHeight + 2;
+      const below = window.innerHeight - anchor.bottom - gap - margin;
+      const above = anchor.top - gap - margin;
+      const opensAbove = below < Math.min(naturalHeight, 280) && above > below;
+      const height = Math.max(1, Math.min(naturalHeight, 440,
+        Math.max(120, opensAbove ? above : below), window.innerHeight - margin * 2));
+      menu.style.maxHeight = `${height}px`;
+      const x = Math.max(margin, Math.min(anchor.left, window.innerWidth - menu.offsetWidth - margin));
+      const y = Math.max(margin, Math.min(opensAbove ? anchor.top - height - gap : anchor.bottom + gap,
+        window.innerHeight - height - margin));
+      menu.style.left = `${x - parent.left}px`;
+      menu.style.top = `${y - parent.top}px`;
+    };
+    placeMenu();
+    let frame = 0;
+    const queue = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(placeMenu); };
+    window.addEventListener("resize", queue);
+    window.addEventListener("pointerup", queue);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", queue);
+      window.removeEventListener("pointerup", queue);
+    };
+  }, [bookOpen]);
+
   const [areaId, setAreaId] = useState("");
   const [potionEditor, setPotionEditor] = useState<"hp" | "sp" | null>(null);
   const [potionValue, setPotionValue] = useState(0);
@@ -668,12 +685,8 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                         onClick={event => state.status === "town"
                           ? openWindow("city", event.currentTarget)
                           : void game.command({ type: "stop" })}>
-                        <svg className="hud-city-gate" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                          <path className="hud-city-gate-wall" d="M3.5 20V8.8l3.4-2.4v3.2L12 5.8l5.1 3.8V6.4l3.4 2.4V20H3.5Z" />
-                          <path className="hud-city-gate-door" d="M8.8 20v-5a3.2 3.2 0 0 1 6.4 0v5" />
-                          <path className="hud-city-gate-detail" d="M3.8 11.4h4m8.4 0h4M5.1 15h2.7m8.4 0h2.7M6.9 6.6v3m10.2-3v3M2.7 20h18.6" />
-                          <path className="hud-city-gate-emblem" d="m12 6.8 1.1 1.4L12 9.7l-1.1-1.5L12 6.8Z" />
-                        </svg>
+                        <MenuIcon name="city" size={20} />
+                        <span className="hud-city-label">Cidade</span>
                       </button>
                       <span className={`hud-save-indicator ${game.sending ? "is-saving" : game.connected ? "is-saved" : "is-reconnecting"}`}
                         role="img" aria-label={saveStatus} title={saveStatus} tabIndex={0} data-no-drag>
@@ -785,7 +798,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                     <nav className="classic-basic-menu" aria-label="Livro do aventureiro">
                       <button ref={bookTrigger} type="button" className="book-trigger" aria-expanded={bookOpen}
                         aria-controls="ro-book-content" onClick={() => setBookOpen((value) => !value)}>
-                        <span className="adventure-book-icon" aria-hidden="true"><i /><i /></span>
+                        <MenuIcon name="book" size={22} />
                         <span>Livro do aventureiro</span>
                         {readyQuest && <span className="notification-count" aria-label="Recompensa de missão disponível">!</span>}
                         <span className="book-trigger-chevron" aria-hidden="true">{bookOpen ? "▴" : "▾"}</span>
@@ -793,7 +806,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                       {bookOpen && <div id="ro-book-content" className="ro-book-popover">
                         <div className="ro-book-section">
                           <span className="ro-book-section-title">Personagem</span>
-                          {classicMenu.map(({ destination, label, file }) => (
+                          {classicMenu.map(({ destination, label }) => (
                             <button type="button" key={destination}
                               className={`ro-book-entry ${label === "Mochila" && lootPulse ? "loot-pulse" : ""}`}
                               data-loot-destination={label === "Mochila" ? "inventory" : undefined}
@@ -801,7 +814,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                               title={label}
                               aria-pressed={activeWindow === destination}
                               onClick={(event) => openWindow(destination, bookTrigger.current ?? event.currentTarget)}>
-                              <ClassicMenuIcon file={file} />
+                              <MenuIcon name={destination} />
                               <span>{label}</span>
                             </button>
                           ))}
@@ -814,7 +827,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                               onClick={(event) => destination === "challenges"
                                 ? openChallenges("all", bookTrigger.current ?? event.currentTarget)
                                 : openWindow(destination, bookTrigger.current ?? event.currentTarget)}>
-                              <span className="ro-book-entry-mark" aria-hidden="true">◇</span>
+                              <MenuIcon name={destination} />
                               <span>{label}</span>
                               {destination === "quests" && readyQuest && <span className="notification-count" aria-label="Recompensa disponível">!</span>}
                             </button>
@@ -825,7 +838,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                               setJournalOpen((value) => !value); setBookOpen(false);
                               window.setTimeout(() => bookTrigger.current?.focus(), 0);
                             }}>
-                            <ClassicMenuIcon file="btn_dialog_off.bmp" />
+                            <MenuIcon name="journal" />
                             <span>Diário</span>
                           </button>
                           <button type="button" className="ro-book-entry"
@@ -834,14 +847,14 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                             setBookOpen(false);
                             window.setTimeout(() => bookTrigger.current?.focus(), 0);
                           }}>
-                            <span className="ro-book-entry-mark" aria-hidden="true">↺</span>
+                            <MenuIcon name="reset" />
                             <span>Restaurar HUD</span>
                           </button>
-                          <Link className="ro-book-entry" href="/painel">Painel da conta</Link>
-                          <button type="button" className="ro-book-entry" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}>Sair da conta</button>
+                          <Link className="ro-book-entry" href="/painel"><MenuIcon name="account" /><span>Painel da conta</span></Link>
+                          <button type="button" className="ro-book-entry" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}><MenuIcon name="logout" /><span>Sair da conta</span></button>
                           <a className="ro-book-entry ro-book-classic-link" href={getClassicClientPaths(window.location).entry}
                             target="_blank" rel="noreferrer" onClick={() => setBookOpen(false)}>
-                            <span className="ro-book-entry-mark" aria-hidden="true">↗</span>
+                            <MenuIcon name="classic" />
                             <span>RO clássico</span>
                           </a>
                         </div>

@@ -38,6 +38,7 @@ import type { SimulationContext } from './fieldNavigation.js';
 import { encounterDelay, focusMatches } from "../shared/hunt.js";
 import { merchantPrice, itemPurchasePrice } from "../shared/prices.js";
 import { isItemIdentified, MAGNIFIER_ITEM_ID, rarityBonusText, rarityNames } from "../shared/loot.js";
+import { bulkIdentificationQuote, unidentifiedEquipment } from "../shared/identification.js";
 import { battleHeroAt, stopHeroMovement } from "../shared/battleSpatial.js";
 import { classicBuffActive, toggleClassicBuff, clearClassicGrounds, classicGroundSceneKey } from "./classicBuffs.js";
 import { clearSageField, sageFieldSource } from './sageFields.js';
@@ -125,7 +126,7 @@ export function executeCommand(
   const trickDead = trickDeadActive(s, c, now);
   if (trickDead) {
     const cancelsPosture = command.type === 'rest' || command.type === 'startHunt';
-    const usesItem = command.type === 'identify' || command.type === 'consumeItem';
+    const usesItem = command.type === 'identify' || command.type === 'identifyAll' || command.type === 'consumeItem';
     const usesOtherSkill = command.type === 'useSkill' || command.type === 'cancelBuff' ||
       command.type === 'toggleBuff' && c.skills[command.skillId]?.sourceName !== 'NV_TRICKDEAD';
     requireRule(!cancelsPosture && !usesItem && !usesOtherSkill, 'TRICK_DEAD_ACTION_BLOCKED',
@@ -860,6 +861,20 @@ export function executeCommand(
       for (const entry of broken) delete entry.broken;
       event(s, now, 'repair', `${broken.length} equipamento(s) reparado(s) por ${price} zeny.`, undefined, undefined,
         { quantity: broken.length });
+      break;
+    }
+    case "identifyAll": {
+      requireRule(!classicBuffActive(s, c, 'LK_BERSERK', now), 'ITEM_STATUS_BLOCKED', 'Frenesi impede usar itens e habilidades.');
+      requireRule(Number.isSafeInteger(command.maxCost) && command.maxCost >= 0 &&
+        command.maxCost <= 2_147_483_647, 'INVALID_IDENTIFICATION', 'Orçamento de identificação inválido.');
+      const quote = bulkIdentificationQuote(s, c);
+      requireRule(quote.count > 0, 'NOTHING_TO_IDENTIFY', 'Todos os equipamentos da mochila já estão identificados.');
+      requireRule(quote.totalCost <= command.maxCost, 'IDENTIFICATION_QUOTE_CHANGED',
+        'O valor da identificação mudou com os novos itens. Confira o custo na mochila e tente novamente.');
+      spend(s, quote.totalCost);
+      for (const entry of unidentifiedEquipment(s, c)) entry.identified = true;
+      event(s, now, 'identify', `${quote.count} equipamento(s) identificado(s) por ${quote.totalCost} zeny.`,
+        undefined, undefined, { quantity: quote.count });
       break;
     }
     case "identify": {

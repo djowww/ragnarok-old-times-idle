@@ -1,0 +1,219 @@
+/* Shared game menus: RO blue palette, clear controls, no GPU blur layer. */
+.cockpit .menu-icon { display: block; flex: 0 0 auto; }
+.hero-panel .hero-identity .hud-city-access {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 67px;
+  height: 27px;
+  margin: -2px 0 -2px auto;
+  padding: 3px 7px;
+  border: 1px solid #28536b;
+  border-radius: 6px;
+  background: #315e77;
+  color: #fff;
+  box-shadow: inset 0 1px #ffffff24, 0 2px 4px #19334230;
+}
+.hero-panel .hero-identity .hud-city-access .hud-city-label {
+  overflow: visible;
+  color: inherit;
+  font: 600 10px/1 "Segoe UI", Tahoma, sans-serif;
+}
+.hero-panel .hero-identity .hud-city-access:hover:not(:disabled) {
+  background: #244b63;
+  border-color: #1a4058;
+  color: #fff;
+  box-shadow: 0 2px 5px #17334a38;
+}
+.hero-panel .hero-identity .hud-city-access:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  color: #fff;
+}
+.hero-panel .hero-identity .hud-city-access svg {
+  width: 20px;
+  height: 20px;
+  stroke: none;
+  fill: currentColor;
+}
+.cockpit .classic-basic-menu .book-trigger {
+  height: 36px;
+  padding: 6px 10px;
+  gap: 9px;
+  border: 1px solid #a3b5c3;
+  border-radius: 7px;
+  background: #edf3f7;
+  color: #294c63;
+  box-shadow: 0 1px 2px #17324912;
+  font: 600 11px/1.2 "Segoe UI", Tahoma, sans-serif;
+}
+.cockpit .classic-basic-menu .book-trigger:hover:not(:disabled),
+.cockpit .classic-basic-menu .book-trigger[aria-expanded="true"] {
+  border-color: #6b93ad;
+  background: #e0ebf2;
+}
+.cockpit .ro-book-popover {
+  width: min(328px, calc(100vw - 24px));
+  max-height: min(440px, calc(100dvh - 24px));
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #9bafbf;
+  border-radius: 12px;
+  background: #f5f8fb;
+  box-shadow: 0 12px 32px #10273755, 0 2px 6px #10273722;
+  scrollbar-width: thin;
+  scrollbar-color: #a1b5c5 transparent;
+}
+.cockpit .ro-book-section {
+  gap: 4px;
+  padding: 0 0 7px;
+}
+.cockpit .ro-book-section + .ro-book-section {
+  padding-top: 8px;
+  border-color: #d6e0e8;
+}
+.cockpit .ro-book-section-title {
+  padding: 2px 8px 6px;
+  color: #657d8d;
+  font: 600 10px/1.3 "Segoe UI", Tahoma, sans-serif;
+  letter-spacing: .04em;
+}
+.cockpit .classic-basic-menu .ro-book-entry {
+  min-height: 38px;
+  height: auto;
+  padding: 8px;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: #29485e;
+  font: 500 11px/1.3 "Segoe UI", Tahoma, sans-serif;
+  text-decoration: none;
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+.cockpit .classic-basic-menu .ro-book-entry:hover:not(:disabled),
+.cockpit .classic-basic-menu .ro-book-entry[aria-pressed="true"] {
+  border-color: #c1d3e0;
+  background: #e5eef5;
+  color: #1b4968;
+}
+.cockpit .classic-basic-menu .ro-book-entry:focus-visible,
+.cockpit .classic-basic-menu .book-trigger:focus-visible {
+  outline: 2px solid #39749d;
+  outline-offset: 1px;
+}
+.cockpit .ro-book-entry .menu-icon { color: #52768e; }
+.cockpit .ro-book-entry.ro-book-classic-link { grid-column: 1 / -1; }
+.cockpit .ro-window:not(.ro-window-stats):not(.ro-window-equipment) {
+  border: 1px solid #91a8ba;
+  border-radius: 11px;
+  background: #f6f8fb;
+  box-shadow: 0 14px 40px #11273555, 0 2px 7px #1127352e;
+  color: #2b4355;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+.cockpit .ro-window:not(.ro-window-stats):not(.ro-window-equipment) .ro-window-titlebar {
+  min-height: 40px;
+  padding: 7px 8px 7px 15px;
+  border-bottom: 1px solid #c4d2de;
+  background: #e6eef5;
+  box-shadow: inset 0 1px #ffffffa6;
+  color: #294a62;
+  font: 600 13px/1.3 "Segoe UI", Tahoma, sans-serif;
+  text-shadow: none;
+}
+.cockpit .ro-window:not(.ro-window-stats):not(.ro-window-equipment) .ro-window-close {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #4e697d;
+  box-shadow: none;
+  font: 400 23px/1 "Segoe UI", sans-serif;
+}
+.cockpit .ro-window:not(.ro-window-stats):not(.ro-window-equipment) .ro-window-close:hover:not(:disabled) {
+  background: #d4e1ed;
+  color: #203f58;
+}
+.cockpit .ro-window:not(.ro-window-stats):not(.ro-window-equipment) .ro-window-content {
+  background: #f7f9fb;
+  scrollbar-width: thin;
+  scrollbar-color: #a0b3c3 #edf2f6;
+}
+.cockpit .ro-window :is(button, a, input, select):focus-visible {
+  outline: 2px solid #39749d;
+  outline-offset: 2px;
+}
+.cockpit .ro-window .primary {
+  border-radius: 6px;
+  border-color: #28536f;
+  background: #315e7c;
+  color: #fff;
+  box-shadow: 0 1px 2px #102b4320;
+  text-shadow: none;
+}
+.cockpit .ro-window .primary:hover:not(:disabled) { background: #244b68; }
+.cockpit .ro-window .toolbar :is(input, select) {
+  min-height: 34px;
+  border: 1px solid #b1c2cf;
+  border-radius: 6px;
+  background: #fff;
+  color: #2b4355;
+}
+.inventory-identify-all {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 12px;
+  border: 1px solid #c7d8e5;
+  border-radius: 9px;
+  background: #eaf1f7;
+}
+.inventory-identify-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #d8e6f1;
+  color: #315e7c;
+}
+.inventory-identify-copy { min-width: 0; }
+.inventory-identify-copy strong { color: #294a62; font-size: 12px; }
+.inventory-identify-copy p { margin: 3px 0 0; color: #526d82; font-size: 11px; line-height: 1.4; }
+.inventory-identify-copy small { display: block; margin-top: 4px; color: #9d4936; font-size: 11px; }
+.cockpit .ro-window .identify-all-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 12px;
+  white-space: nowrap;
+  font: 600 11px/1.2 "Segoe UI", Tahoma, sans-serif;
+}
+.identify-all-button b { padding-left: 12px; border-left: 1px solid #ffffff40; color: inherit; font-size: 11px; }
+@media (max-width: 900px) {
+  .inventory-identify-all { grid-template-columns: 36px minmax(0, 1fr); }
+  .inventory-identify-all .identify-all-button { grid-column: 1 / -1; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cockpit .classic-basic-menu .ro-book-entry { transition: none; }
+}
+
+/* Keep the floating book independent from the resized draggable HUD. */
+.cockpit .hero-column[style*="position: fixed"] { overflow: visible; }
+.cockpit .hero-column[style*="position: fixed"] .ro-book-popover {
+  position: absolute;
+  width: min(328px, calc(100vw - 24px));
+  margin-top: 0;
+}

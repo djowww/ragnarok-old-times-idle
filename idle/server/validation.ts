@@ -34,6 +34,7 @@ const rules: Record<string, Record<string, Rule>> = {
   craftPharmacy: { itemId: oneOf(501,503,504,505,545,546,547,7135,7136,7137,7138,7139,12118,12119,12120,12121,605,606,970,7142,678), quantity: integer(1,1000) },
   craftConverter: { itemId: oneOf(12114,12115,12116,12117), quantity: integer(1,1000) },
   consumeItem: { uid: token },
+  identifyAll: { maxCost: integer(0, 2_147_483_647) },
   sell: { uid: token, quantity: integer(1, 9999) },
   equip: { uid: token, slot: value => value === undefined || ['weapon', 'armor', 'shield', 'head', 'garment', 'shoes', 'accessory'].some(slot => slot === value) }, favorite: { uid: token }, refine: { uid: token }, identify: { uid: token, method: value => value === undefined || value === 'magnifier' || value === 'skill' },
   unequip: { slot: oneOf('weapon', 'armor', 'shield', 'head', 'garment', 'shoes', 'accessory') },
