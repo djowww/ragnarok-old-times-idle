@@ -1907,6 +1907,7 @@ export default function Scene({ catalog, snapshot, busy, command, onMapStatusCha
       canvas.current!.dataset.nativeLastAckAt = String(nativeDiagnostics?.lastAckAt ?? '');
       canvas.current!.dataset.nativeLastAckAgeMs = String(nativeDiagnostics?.lastAckAgeMs ?? '');
       canvas.current!.dataset.nativeAckSequence = String(nativeDiagnostics?.ackSequence ?? '');
+      canvas.current!.dataset.nativeAckTimeoutMs = String(nativeDiagnostics?.ackTimeoutMs ?? '');
       canvas.current!.dataset.nativeAckActors = String(nativeDiagnostics?.ackActorCount ?? 0);
       canvas.current!.dataset.nativeReadyFrames = String(nativeDiagnostics?.readyFrames ?? 0);
       canvas.current!.dataset.nativePendingFrames = String(nativeDiagnostics?.pendingFrames ?? 0);

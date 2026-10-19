@@ -75,6 +75,25 @@ function callSceneNativeState(enemy: boolean, bridge: NativeActorsBridge, cue: a
 afterEach(() => vi.restoreAllMocks());
 
 describe('native action ownership recovery through Scene and NativeActorsBridge', () => {
+  it('keeps a warmed actor native between slow but continuing renderer heartbeats', () => {
+    const fixture = warmBridge();
+    fixture.setNow(1800); fixture.ack(2);
+    // The native map is still producing frames, at roughly 800 ms per frame.
+    expect(fixture.bridge.canPaintActionNatively(paint, 2400)).toBe(true);
+    expect(fixture.bridge.actionOwnershipRecoveryState(paint, 2400).ownershipLost).toBe(false);
+    expect(fixture.bridge.submit([paint], camera, 100, 100, 2400).has('hero')).toBe(true);
+    // A stopped renderer must still release ownership within a bounded delay.
+    expect(fixture.bridge.canPaintActionNatively(paint, 3400)).toBe(false);
+  });
+
+  it('returns to the normal failure deadline after renderer cadence recovers', () => {
+    const fixture = warmBridge();
+    fixture.setNow(1800); fixture.ack(2);
+    for (let i = 1; i <= 6; i++) { fixture.setNow(1800 + 50 * i); fixture.ack(2 + i); }
+    expect(fixture.bridge.canPaintActionNatively(paint, 2549)).toBe(true);
+    expect(fixture.bridge.canPaintActionNatively(paint, 2550)).toBe(false);
+  });
+
   it.each([['stale ACK', 1450, false], ['fresh ACK without actor ownership', 1100, true]] as const)(
     'keeps a previously warmed %s action pending for the %s Scene consumer',
     (_condition, time, dropOwnership) => {

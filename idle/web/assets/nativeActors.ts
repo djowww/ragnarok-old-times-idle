@@ -26,6 +26,8 @@ const MAX_PACKET_BYTES = 8 * 1024 * 1024;
 const MAX_WARMUP_UPLOADS = 16;
 const MAX_WARMUP_BYTES = 512 * 1024;
 const ACK_TIMEOUT = 450;
+const MAX_ACK_TIMEOUT = 1500;
+const ACK_CADENCE_SAMPLES = 6;
 
 type NativeLayer = { frame: string; x: number; y: number; width: number; height: number; angle: number; color: number[] };
 type NativePaint = { id: string; poseToken: string; world: WorldPoint; layers: NativeLayer[]; shadow?: NativeActorPaint["shadow"] };
@@ -60,6 +62,8 @@ export class NativeActorsBridge {
   private pendingFrames = new Map<string, number>();
   private renderedActors = new Set<string>();
   private lastAck = -Infinity;
+  private ackTimeoutMs = ACK_TIMEOUT;
+  private ackGaps: number[] = [];
   /** Historical diagnostic evidence survives the existing failure fallback reset. */
   private lastAcknowledgedAt: number | null = null;
   private lastAcknowledgedActorCount = 0;
@@ -96,7 +100,16 @@ export class NativeActorsBridge {
       !data.actors.every(id => typeof id === "string" && id.length <= 160) ||
       !data.frames.every(id => typeof id === "string" && /^f\d+$/.test(id))) return;
     this.lastSequence = Number(data.sequence);
-    this.lastAck = performance.now();
+    const acknowledgedAt = performance.now();
+    if (Number.isFinite(this.lastAck) && acknowledgedAt > this.lastAck) {
+      // Slow native frames still own their depth-tested sprite. A fixed lease
+      // must not expire between valid renderer heartbeats and duplicate it in Canvas.
+      this.ackGaps.push(Math.min(MAX_ACK_TIMEOUT, acknowledgedAt - this.lastAck));
+      if (this.ackGaps.length > ACK_CADENCE_SAMPLES) this.ackGaps.shift();
+      this.ackTimeoutMs = Math.min(MAX_ACK_TIMEOUT,
+        Math.max(ACK_TIMEOUT, Math.max(...this.ackGaps) * 1.5 + 100));
+    }
+    this.lastAck = acknowledgedAt;
     this.lastAcknowledgedAt = this.lastAck;
     const rendered = new Set(data.actors as string[]);
     this.lastAcknowledgedActorCount = rendered.size;
@@ -127,7 +140,7 @@ export class NativeActorsBridge {
   getDiagnostics(actorId?: string, now = performance.now()) {
     const pose = actorId ? this.drawnPoses.get(actorId) : undefined;
     return { ...this.diagnostics, supported: this.supported, failed: this.failed, errorReason: this.errorReason,
-      lastAckAt: this.lastAcknowledgedAt,
+      lastAckAt: this.lastAcknowledgedAt, ackTimeoutMs: this.ackTimeoutMs,
       lastAckAgeMs: this.lastAcknowledgedAt !== null && Number.isFinite(now) ? Math.max(0, now - this.lastAcknowledgedAt) : null,
       ackSequence: this.lastSequence >= 0 ? this.lastSequence : null, ackActorCount: this.lastAcknowledgedActorCount,
       readyFrames: this.readyFrames.size, pendingFrames: this.pendingFrames.size,
@@ -138,11 +151,11 @@ export class NativeActorsBridge {
   /** A first death frame may use native only with current ownership and its entire ACT ready. */
   canPaintActionNatively(paint: Pick<NativeActorPaint, 'id' | 'actor' | 'action' | 'direction'>, now: number): boolean {
     return !this.disposed && !this.failed && this.supported && !paint.actor.fallback &&
-      now - this.lastAck < ACK_TIMEOUT && this.renderedActors.has(paint.id) && this.areActionTexturesReady(paint,now);
+      now - this.lastAck < this.ackTimeoutMs && this.renderedActors.has(paint.id) && this.areActionTexturesReady(paint,now);
   }
   /** Snapshot only; callers apply the pure recovery predicate before choosing Canvas. */
   actionOwnershipRecoveryState(paint: Pick<NativeActorPaint, 'id' | 'actor' | 'action' | 'direction'>, now: number): ActionOwnershipRecoveryState {
-    const ownershipLost = now - this.lastAck >= ACK_TIMEOUT || !this.renderedActors.has(paint.id);
+    const ownershipLost = now - this.lastAck >= this.ackTimeoutMs || !this.renderedActors.has(paint.id);
     const eligible = !this.disposed && !this.failed && this.supported && !paint.actor.fallback && ownershipLost;
     const frames = eligible ? this.currentActionFrames(paint) : [];
     const actionTexturesWarm = frames.length > 0 && frames.every(frame => {
@@ -158,7 +171,7 @@ export class NativeActorsBridge {
   /** Canvas takes over immediately when native ownership/readiness is unavailable. */
   areActionTexturesReady(paint: Pick<NativeActorPaint, 'id' | 'actor' | 'action' | 'direction'>, now: number): boolean {
     if (this.disposed || this.failed || !this.supported || paint.actor.fallback ||
-      now - this.lastAck >= ACK_TIMEOUT || !this.renderedActors.has(paint.id)) return true;
+      now - this.lastAck >= this.ackTimeoutMs || !this.renderedActors.has(paint.id)) return true;
     return this.currentActionFrames(paint).every(frame => {
       const id = this.frameIds.get(frame);
       return id !== undefined && this.readyFrames.has(id);
@@ -265,7 +278,7 @@ export class NativeActorsBridge {
       actors.push({ id: paint.id, poseToken, world: paint.world, layers, ...(shadow ? { shadow } : {}) });
       layerCount += layers.length;
       if (!available) this.diagnostics.textureWaits++;
-      if (now - this.lastAck < ACK_TIMEOUT && this.renderedActors.has(paint.id)) native.add(paint.id);
+      if (now - this.lastAck < this.ackTimeoutMs && this.renderedActors.has(paint.id)) native.add(paint.id);
     }
     // Current poses have priority. Warm each referenced image once; eviction is
     // handled on demand so large actor collections cannot churn the native cache.
