@@ -356,7 +356,7 @@ describe('Guardian and Sacrifice combat flow', () => {
   });
 
   it('runs a private candidate canary from the exported catalog through paid shield, Guard, recoil, Sacrifice, and lethal self-cost', () => {
-    expect(Object.values(rawCatalog.skills).filter(candidate => candidate.implementation === 'supported')).toHaveLength(275);
+    expect(Object.values(rawCatalog.skills).filter(candidate => candidate.implementation === 'supported')).toHaveLength(298);
     expect(rawCatalog.skills.sa_magicrod.implementation).toBe('supported');
     expect(Object.keys(rawCatalog.skills)).toHaveLength(348);
     expect(Object.keys(rawCatalog.classes)).toHaveLength(40);

@@ -10,7 +10,7 @@ import { actorActionImpactAt, combatActionCueFromEvent, skillVisualEffectAt, ski
 import { hasSceneAction, trapCueAction } from '../web/assets/groundTraps';
 import { isTownScene } from '../shared/worldScene';
 import { isNpcStatusAction } from '../shared/playerStatusView';
-import { getCombatActorAction } from '../web/assets/renderer';
+import { getCombatActorAction, isWeaponAttackActorAction } from '../web/assets/renderer';
 
 const scene = readFileSync(new URL('../web/components/Scene.tsx', import.meta.url), 'utf8');
 const effectStart = scene.indexOf('    const previous = stateRef.current.state;');
@@ -42,7 +42,7 @@ function snapshotFixture(population: boolean) {
     projection: ref(null), encounterPose: ref(null), roaming: ref({ position: { x: .5, y: .5 } }),
     skillCueCastDuration, combatActionCueFromEvent, selectSceneEventBatch, shiftCorpsePresentation, alignFalconCues, isTownScene, isNpcStatusAction, sceneEventSkill, HERO_COMBAT_DIRECTION: 6, actorActionDuration: () => 300,
     presentLatestActorActions, retireInterruptedCastCues, retireTrickDeadPoses, hasSceneAction, trapCueAction, combatPopupText, SKILL_EFFECT_MS,
-    getCombatActorAction, actorActionImpactAt, skillVisualEffectAt,
+    getCombatActorAction, isWeaponAttackActorAction, actorActionImpactAt, skillVisualEffectAt,
   };
   return scope;
 }

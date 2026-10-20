@@ -1,6 +1,6 @@
 {
-  "beforeCatalogSha256": "44f7af7e8c38906b4716975cfb4af9377237e162472fcb6f7a94a0a7e9911a47",
-  "beforeManifestSha256": "4ecf3504bfb1e8a573c77cdf3d6a9031acccb3c85c896f61d9800a432b56b94b",
+  "beforeCatalogSha256": "373c73a569000edeab388b82a8517794a052f783dc3417e9b1a42216fac60554",
+  "beforeManifestSha256": "85254c3714d22faf118488d2f1c5b40101ba752fbe824cab2ace63e9db25bc2c",
   "skills": {
     "bs_findingore": {
       "before": {
@@ -1553,7 +1553,7 @@
       "afterHash": "f690bff51ab31cb31eff13c93c521bd61de688cd58a48b91bd0b0bf79bf97126"
     },
     "catalogSha256": {
-      "before": "44f7af7e8c38906b4716975cfb4af9377237e162472fcb6f7a94a0a7e9911a47",
+      "before": "373c73a569000edeab388b82a8517794a052f783dc3417e9b1a42216fac60554",
       "afterHash": "0cad6e5099dd96ed113162dc8d3f89d6a1378270df4b3b9ced5e7d31993d8e41"
     }
   },

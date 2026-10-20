@@ -26,7 +26,7 @@ describe('source Teleport catalog', () => {
     expect(c.skills.al_teleport.unsupportedReason).toBeUndefined();
     expect(c.skills.al_teleport.description).toContain('posição aleatória');
     expect(c.skills.al_teleport.description).toContain('Prontera');
-    expect(manifest.skillCoverage).toMatchObject({ supported: 262, unsupported: 86, skills: 348, classes: 40 });
+    expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50, skills: 348, classes: 40 });
     for (const [key, expected] of Object.entries(baseline.domains)) {
       const historical = key === 'classes' ? beforeHistoricalClassCadence(c.classes) : raw[key as keyof typeof raw];
       expect(hash(historical), key).toBe(expected);

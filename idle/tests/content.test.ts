@@ -23,7 +23,7 @@ describe('Hercules import', () => {
             targetType: 'enemy', damageType: 'magic', range: Array(5).fill(9),
             spCost: [80, 90, 100, 110, 120], cooldownMsByLevel: [10000, 10000, 10000, 10000, 15000] });
         expect(skill.unsupportedReason).toBeUndefined();
-        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50 });
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({ implementation: 'supported' });
     });
     it('enables executed Venom Dust and Spider Web with purchasable source reagents', () => {
@@ -89,7 +89,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_removetrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Hercules range 2'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
@@ -119,7 +119,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources.ht_springtrap).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('Ankle Snare'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
+        expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50 });
         expect(manifest.skillCoverage.byClass.hunter).toMatchObject({ supported: 26, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.sniper).toMatchObject({ supported: 30, unsupported: 2 });
     });
@@ -133,7 +133,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('SC_BLOODING'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 297, unsupported: 51 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 298, unsupported: 50 });
         expect(data.skills.al_holywater).toMatchObject({ sourceName: 'AL_HOLYWATER', implementation: 'supported', manualUse: 'holyWaterCraft',
             spCost: [10], castTimeMs: [1000], afterCastDelayMs: [500] });
         expect(manifest.skillSources.al_holywater.adaptation).toContain('GAT type 3 water');
@@ -173,7 +173,7 @@ describe('playable source catalog', () => {
         expect(manifest.skillSources[skill.id as keyof typeof manifest.skillSources]).toMatchObject({
             implementation: 'supported', adaptation: expect.stringContaining('one-cell offset'),
         });
-        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 297, unsupported: 51 });
+        expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 298, unsupported: 50 });
         expect(manifest.skillCoverage.byClass.monk).toMatchObject({ sourceTree: 34, supported: 32, unsupported: 2 });
         expect(manifest.skillCoverage.byClass.champion).toMatchObject({ sourceTree: 38, supported: 36, unsupported: 2 });
         expect(manifest.skillCoverage.combatExpansion).toContain('MO_BODYRELOCATION');
@@ -342,8 +342,8 @@ describe('generated source manifest', () => {
         expect(Object.keys(data.skills)).toHaveLength(348);
         expect(Object.keys(data.items)).toHaveLength(955);
         expect(data.areas).toHaveLength(38);
-        expect(manifest.skillCoverage).toMatchObject({ supported: 297, unsupported: 51 });
-        expect(manifest.sources).toHaveLength(55);
+        expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50 });
+        expect(manifest.sources).toHaveLength(56);
         expect(manifest.sources).toContainEqual(expect.objectContaining({
             path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1',
         }));

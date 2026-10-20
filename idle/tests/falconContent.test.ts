@@ -12,6 +12,6 @@ describe('pinned Falcon end-to-end content',()=>{
   expect((manifest as any).falconRules).toMatchObject({rentalZeny:2500,rentalDiscount:false,autoChance:'raw1000 <= effectiveLUK * 3',autoLevel:'min(learnedBlitz, 5, floor(JobLevel/10)+1)',delayBattleDamage:true,snapDodge:false,warpDelayFix:false,minimumDamageMask:6,detectSelfCentered:true});
  });
  it('reports full supported coverage while keeping unrelated trap and group skills pending',()=>{
-  expect(Object.values(catalog.skills).filter(s=>s.implementation==='supported')).toHaveLength(290);expect(Object.values(catalog.skills)).toHaveLength(348);expect(manifest.sources).toHaveLength(52);
+  expect(Object.values(catalog.skills).filter(s=>s.implementation==='supported')).toHaveLength(298);expect(Object.values(catalog.skills)).toHaveLength(348);expect(manifest.sources).toHaveLength(56);
  });
 });

@@ -1,5 +1,5 @@
 {
-  "beforeCatalogSha256": "0e878b8bc79ea80b5f53edfb02e5df3d7abc23a9fa089cf4a82c33e3cac4426f",
+  "beforeCatalogSha256": "c4e8d13a6792bfb7bd30872b24fc93913afe82122f4752237cb9ca9f5f3bb5b1",
   "catalogSkill": {
     "before": {
       "id": "asc_cdp",
@@ -1005,11 +1005,11 @@
   },
   "manifestDeadlyPoisonCraftAfterHash": "87467ffbd45fcfcf27a22b15e3775827df16747b2628268557d8906ce23ec98a",
   "manifestCatalogSha256": {
-    "before": "0e878b8bc79ea80b5f53edfb02e5df3d7abc23a9fa089cf4a82c33e3cac4426f",
+    "before": "c4e8d13a6792bfb7bd30872b24fc93913afe82122f4752237cb9ca9f5f3bb5b1",
     "afterHash": "ba6ebc79b71de0a27a26512c07cecbe2d883e9d7fa27b7c49812adaba685842e"
   },
   "manifestRulesSha256": {
-    "before": "291504a19bffd0303146b0670e019a849cc4bd55d7e4fc2e2d725d1228ecd022",
+    "before": "e4164b88587ee483b136e936082cbc2899625789792a2dcfb8adfa9ff277b843",
     "afterHash": "55137d3c35e615db79e3a94f2845a4d1015881a685e118c8ca6ee580adc12e89"
   },
   "manifestAdaptation": {

@@ -3194,10 +3194,10 @@
       "afterHash": "d05ee950a98b31e5c524a8bd390289ccd572dc677060926d83bf6be9add14232"
     },
     "catalogSha256": {
-      "before": "2e4b06f451963e88e17c6b8ea2f9f04549970ddb7a2622a0b9ab5751f04367fa",
+      "before": "a49166f0d5fde78a9ceb3340a90bb4e69bad2a7e08c434b288ceb600ce136842",
       "afterHash": "b10781f67a84b0b4671db4c5185a46f480dba4ab8281097ae1fc8214634b473f"
     }
   },
   "newManifestHash": "cfae72be6eb5ec86187019d40a8a2bae9ddea1ad513e856e0076184b420ef9e3",
-  "beforeCatalogSha256": "2e4b06f451963e88e17c6b8ea2f9f04549970ddb7a2622a0b9ab5751f04367fa"
+  "beforeCatalogSha256": "a49166f0d5fde78a9ceb3340a90bb4e69bad2a7e08c434b288ceb600ce136842"
 }

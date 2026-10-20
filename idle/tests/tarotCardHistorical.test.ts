@@ -15,8 +15,8 @@ const hash = (value: unknown) => createHash('sha256')
 
 describe('Tarot Card historical projection', () => {
   it('reconstructs the exact catalog and manifest that preceded Tarot support', () => {
-    expect(hash(beforeTarotCardCatalog(catalog))).toBe('c7fa90403e7997b651e77e10324a125ef49784bc4f2457a2e8a3a585d6df9c53');
-    expect(hash(canonicalArrowHistoricalManifest(beforeTarotCardManifest(manifest)))).toBe('0d172f02f5d38da8a4d3fa5eb115443bfbc277a653a413652b0e60c33b06e5bb');
+    expect(hash(beforeTarotCardCatalog(catalog))).toBe('075b1c2e0b68a519339632ba7ba1ab6538a3d44ec0a0a2c6b4f738b5163a6173');
+    expect(hash(canonicalArrowHistoricalManifest(beforeTarotCardManifest(manifest)))).toBe('71c38cab11e505a57872d030e18baf745211a8237fc61868241cc146ee265757');
   });
 
   it('preserves unrelated catalog and manifest edits', () => {

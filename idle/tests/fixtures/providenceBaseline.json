@@ -1,6 +1,6 @@
 {
   "catalog": {
-    "beforeFileSha256": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
+    "beforeFileSha256": "6fa238ac9abc0479c466810a6900703de6fc9d28a79fb7feafb4ebb208634115",
     "beforeSkill": {
       "id": "cr_providence",
       "name": "Resistant Souls",
@@ -123,7 +123,7 @@
     }
   },
   "rules": {
-    "beforeFileSha256": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+    "beforeFileSha256": "d7c09a0ab94c9f6569dcc59f614527b24dc8a11798b82ef78abdc5096c6c8ba7",
     "areas": {
       "geffen_dungeon": {
         "afterSha256": "ce18369e69ab34d0e4183bbfe1f4480f791ac34f0667eba488dd22c004892c71",
@@ -164,7 +164,7 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "1fa1117b119274dece174e7831731995a6c2acebfda0b115d5f6ac16a07b5515",
+    "beforeFileSha256": "9fdfcfc2f0cc0e4f75f9eb00ccd198afb95f3b03cffd3f942ba4c356153a4b1d",
     "beforeSkillSource": {
       "id": 256,
       "name": "CR_PROVIDENCE",
@@ -252,11 +252,11 @@
     ],
     "afterMapsSha256": "3a9043f63e98ef817e0185fc8519db01d3eabc69abce4efc78bd8d56219ab65b",
     "catalogSha256": {
-      "before": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303",
-      "after": "22e5efe12223f5c0b9524d7c18e7db0259ce19678a4e188028f65e299447afde"
+      "before": "6fa238ac9abc0479c466810a6900703de6fc9d28a79fb7feafb4ebb208634115",
+      "after": "0f8d12e45f0c7d84eee5ea71525881a9439b42468ed03a7fb910d2818a2a9f45"
     },
     "rulesSha256": {
-      "before": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+      "before": "d7c09a0ab94c9f6569dcc59f614527b24dc8a11798b82ef78abdc5096c6c8ba7",
       "after": "af0a686410dfc9bbfbd2e519499bc437a616f8a82ce49ef49427a0bbca136a44"
     }
   }

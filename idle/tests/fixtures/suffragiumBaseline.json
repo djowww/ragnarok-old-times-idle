@@ -88,7 +88,7 @@
     "afterSkillSha256": "3e9ee076540d9dd1e057db070be0ab38b35077412263624174b6fddc0d5d0e04",
     "beforeSourceHash": "241fecbc2567e1d36194bd11c187f89cfec009891caf2fb47e3a3083ff52d13b",
     "afterSourceHash": "d5ce387f89ba786faf2eafa636f41f8a33c111c82a9130f73e04b4526595ab14",
-    "beforeFileSha256": "1269241eb2cf94dda9c55ef387e2f97a0fe44cf6cc9dfa7577858164a040d870"
+    "beforeFileSha256": "16d41672120a68ff2b84907fa74171227d9159c7fd3765e0f0b717eb184af900"
   },
   "manifest": {
     "beforeSkillSource": {
@@ -137,9 +137,9 @@
     "afterCoverageSha256": "1be741abd0fe5a479a9d0be477eb19af60490c52e5bf1b3586692372b302d1ee",
     "beforeRulesSha256": "8d13bf290ac47d2f0c3ab3c95da156a5d45a5b94da5c49f916cb68cb5230425e",
     "afterRulesSha256": "757d727b9b8081601bb43e9874926ab05e19e671eeb172335dbc861f43e910b3",
-    "beforeCatalogSha256": "1269241eb2cf94dda9c55ef387e2f97a0fe44cf6cc9dfa7577858164a040d870",
+    "beforeCatalogSha256": "16d41672120a68ff2b84907fa74171227d9159c7fd3765e0f0b717eb184af900",
     "afterCatalogSha256": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
-    "beforeFileSha256": "716a82d2fdee084c312bcc58d55c9d23b3c3058ebd1b072e2391e65b1f4cde82",
+    "beforeFileSha256": "71c38cab11e505a57872d030e18baf745211a8237fc61868241cc146ee265757",
     "afterAdaptationEntry": "PR_SUFFRAGIUM uses its self-target pre-renewal status in solo hunting: 15% cast reduction per learned level for the next skill cast, source duration by level, and no party requirement; normal attacks do not consume it.",
     "afterAdaptationIndex": 39
   }

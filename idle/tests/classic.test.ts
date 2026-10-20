@@ -61,7 +61,7 @@ describe('pinned pre-renewal skill export', () => {
     expect(skill('AL_DECAGI').implementation).toBe('supported');
     expect(skill('AL_CRUCIS').implementation).toBe('supported');
     expect(skill('LK_AURABLADE').implementation).toBe('supported');
-    expect(skill('WZ_ICEWALL').implementation).toBe('unsupported');
+    expect(skill('WZ_ICEWALL').implementation).toBe('supported');
     expect(skill('HW_GANBANTEIN').damageType).toBe('none');
     expect(catalog.monsters[1038].boss).toBe(true);
     expect(catalog.monsters[1002].boss).toBe(false);

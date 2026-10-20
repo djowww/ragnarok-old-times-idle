@@ -36,8 +36,8 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
     const names = beforeMetalProductionSources(Object.values(beforeSoloAlchemySkills(candidate.skills)).filter(skill => skill.implementation === 'supported').map(skill => skill.sourceName!)).sort();
     expect(baseline.supportedSourceNames).toHaveLength(232);
     expect(baseline.supportedSourceNames.filter(name => !names.includes(name))).toEqual([]);
-    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AC_MAKINGARROW', 'AL_RUWACH', 'AL_TELEPORT', 'AS_LEFT', 'AS_RIGHT', 'BA_PANGVOICE', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_SIGHTBLASTER']);
-    expect(manifest.skillCoverage).toMatchObject({ supported: 288, unsupported: 60, classes: 40, skills: 348 });
+    expect(names.filter(name => !baseline.supportedSourceNames.includes(name)).sort()).toEqual(['AC_MAKINGARROW', 'AL_HOLYWATER', 'AL_RUWACH', 'AL_TELEPORT', 'AL_WARP', 'AM_CANNIBALIZE', 'ASC_CDP', 'AS_LEFT', 'AS_RIGHT', 'BA_PANGVOICE', 'BS_GREED', 'BS_REPAIRWEAPON', 'DC_DONTFORGETME', 'DC_WINKCHARM', 'HT_REMOVETRAP', 'HT_SPRINGTRAP', 'LK_JOINTBEAT', 'MO_BLADESTOP', 'MO_BODYRELOCATION', 'NV_TRICKDEAD', 'PF_FOGWALL', 'PF_MINDBREAKER', 'PF_SOULBURN', 'RG_CLOSECONFINE', 'RG_PLAGIARISM', 'SA_ADVANCEDBOOK', 'SA_DELUGE', 'SA_FLAMELAUNCHER', 'SA_FREECAST', 'SA_FROSTWEAPON', 'SA_LIGHTNINGLOADER', 'SA_MAGICROD', 'SA_SEISMICWEAPON', 'SA_VIOLENTGALE', 'SA_VOLCANO', 'ST_CHASEWALK', 'ST_PRESERVE', 'TF_BACKSLIDING', 'WZ_ESTIMATION', 'WZ_ICEWALL', 'WZ_SIGHTBLASTER']);
+    expect(manifest.skillCoverage).toMatchObject({ supported: 298, unsupported: 50, classes: 40, skills: 348 });
     expect(candidate.skills.nv_trickdead).toMatchObject({ implementation: 'supported', manualUse: 'toggle', toggle: true, spCost: [5], maxLevel: 1, statusDurationMs: [600000] });
     expect(candidate.skills.sa_freecast).toMatchObject({ implementation: 'supported', kind: 'passive', maxLevel: 10 });
     expect(candidate.skills.sa_freecast.manualUse).toBeUndefined();
@@ -48,7 +48,7 @@ describe('source-closed Trick Dead and Free Cast catalog', () => {
   });
   it('pins the PC cap macro and parameter inheritance without changing other source rows or content', () => {
     for (const source of baseline.sources) expect(manifest.sources).toContainEqual(source);
-    expect(manifest.sources).toHaveLength(29);
+    expect(manifest.sources).toHaveLength(48);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1' }));
     expect(candidate.source.commit).toBe(baseline.commit);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/pc.h', sha256: rules.sourceHashes['src/map/pc.h'] }));

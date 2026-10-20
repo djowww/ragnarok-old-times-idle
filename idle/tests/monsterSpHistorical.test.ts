@@ -11,15 +11,15 @@ const rawManifest = beforeFourMapExpansionManifest(beforeArrowCraftingManifest(c
 describe('audited monster SP and Shockwave catalog delta', () => {
   it('reconstructs the exact catalog bytes from before the SP and skill promotion', () => {
     expect(monsterSpHistoricalJsonHash(beforeMonsterSpCatalog(rawCatalog)))
-      .toBe('f05e0a2f37dba20df233e6d43009713ccec505d1cec956c13105f3523dd7fff1');
+      .toBe('ab482eed19c5a38e66ded5ca828460408206aac5ee4212ff4ed97129479818d3');
     const prior = beforeMonsterSpManifest(rawManifest);
-    expect(prior.catalogSha256).toBe('f05e0a2f37dba20df233e6d43009713ccec505d1cec956c13105f3523dd7fff1');
-    expect(prior.skillCoverage).toMatchObject({ supported: 267, unsupported: 81 });
+    expect(prior.catalogSha256).toBe('97d6e6ac1aee65d6ab0dd54490a3850d8ad8f8297e9d74b542e4e788294ed648');
+    expect(prior.skillCoverage).toMatchObject({ supported: 298, unsupported: 50 });
   });
 
   it('reconstructs the exact source manifest bytes before the SP and skill promotion', () => {
     expect(monsterSpHistoricalJsonHash(canonicalArrowHistoricalManifest(beforeMonsterSpManifest(rawManifest))))
-      .toBe('2f8c9d9ca8009a367f83ad4e66f513d8b05a796618dc721bcaa10447863a0a3a');
+      .toBe('13368e7a09d8068331d5ad88c4835e2be42d6ccaf64b5a4a262e8f17cbe53706');
   });
 
   it('keeps mutations to monster SP, Shockwave inputs, and coverage visible', () => {

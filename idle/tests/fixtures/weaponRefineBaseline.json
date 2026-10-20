@@ -272,8 +272,13 @@
         "db/pre-re/size_fix.txt",
         "db/pre-re/autospell_db.conf",
         "db/pre-re/unit_parameters_db.conf",
+        "db/create_arrow_db.txt",
         "npc/merchants/refine.txt",
         "npc/mapflag/noteleport.txt",
+        "npc/mapflag/noicewall.txt",
+        "npc/mapflag/nowarp.txt",
+        "npc/mapflag/nomemo.txt",
+        "npc/mapflag/nowarpto.txt",
         "npc/pre-re/mobs/fields/geffen.txt",
         "npc/pre-re/mobs/fields/payon.txt",
         "npc/pre-re/mobs/fields/prontera.txt",
@@ -284,6 +289,7 @@
         "npc/pre-re/mobs/dungeons/moc_pryd.txt",
         "npc/pre-re/mobs/dungeons/gef_dun.txt",
         "npc/pre-re/mobs/dungeons/glastheim.txt",
+        "npc/pre-re/mobs/dungeons/anthell.txt",
         "db/job_db2.txt",
         "db/pre-re/sc_config.conf",
         "src/map/battle.c",
@@ -299,6 +305,9 @@
         "npc/merchants/alchemist.txt",
         "npc/pre-re/merchants/shops.txt",
         "src/map/clif.c",
+        "db/pre-re/refine_db.conf",
+        "src/map/refine.c",
+        "src/map/clif.h",
         "db/pre-re/item_chain.conf",
         "src/map/itemdb.c",
         "src/map/script.c",
@@ -309,7 +318,7 @@
         "conf/map/battle/skill.conf",
         "conf/map/battle/battle.conf"
       ],
-      "hash": "7183f8098028b6d0886dc4d1b77388d6e610d7376cf3a6e6740c8b40a85cf706"
+      "hash": "2e897362f829d1b856297dd4d7807a00cd1ed7ff4c3b2c993a8adbcba89ac3fa"
     },
     "afterHash": "080917bd5a9868c30ad7548b9c74c7a4346c24c789934c103c29779c4ad3be58"
   },

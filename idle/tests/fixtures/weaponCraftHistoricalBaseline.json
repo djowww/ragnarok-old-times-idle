@@ -1,6 +1,6 @@
 {
   "catalog": {
-    "beforeJsonSha256": "5ee141f2e2b8c4feb967cdb7ef33a073cb0649aa855226c9900701582dd0c9de",
+    "beforeJsonSha256": "63826fe753222543007d10738b615552f31f6fd44e5462fa9047f24ae618a1ae",
     "afterJsonSha256": "8966602297a37a577c7d69c3e26d3021097c75ed65c1d25ee17660b71a218611",
     "source": {
       "before": {
@@ -1946,7 +1946,7 @@
     }
   },
   "manifest": {
-    "beforeJsonSha256": "82c735827bd6c054fe092ef7e4ee4b3a847793c7014bed0f5c6815e02e6b73e1",
+    "beforeJsonSha256": "9e7916bcc1b598c7c15c84d404b1aeb6c6deb364b3e73ebc1aed44eccc78e758",
     "afterJsonSha256": "aee096299dc73c20612e8975bbcd01769d2aa3eeac007f3ab19bb6bbcd2b2578",
     "addedInertItems": {
       "1123": "669bc057f59c4b98d99411a8f41c10da40fb3e6af85910713d917a814675e122",

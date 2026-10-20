@@ -91,17 +91,17 @@ describe('source-closed manual Sense catalog', () => {
     const excludedPacketSkills = Object.entries(otherSkills).filter(([, skill]) => sagePacketSkillSources.has(skill.sourceName as string));
     expect(excludedPacketSkills.map(([, skill]) => skill.sourceName).sort()).toEqual([...sagePacketSkillSources].sort());
     const sourceClosedSkills = Object.fromEntries(Object.entries(otherSkills).filter(([, skill]) => !sagePacketSkillSources.has(skill.sourceName as string)));
-    expect(digest(sourceClosedSkills)).toBe('0f484dcbd22e865195342964976dd94717049f903e1358d20e3a8051221d48ee');
+    expect(digest(sourceClosedSkills)).toBe('04c882d3d3778b57c79a609d94b650c6168b9b15bc0c0684c4d20af8860129cb');
     expect(catalog.skills.sense).toMatchObject({ id: 'sense', sourceName: 'WZ_ESTIMATION', mechanic: 'WZ_ESTIMATION',
       herculesId: 93, maxLevel: 1, spCost: [10], range: [9], targetType: 'enemy', damageType: 'none',
       power: [0], cooldownMs: 0, castTimeMs: [0], afterCastDelayMs: [0] });
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 262, unsupported: 86 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 298, unsupported: 50 });
     expect(manifest.skillSources.sense).toMatchObject({ id: 93, name: 'WZ_ESTIMATION', implementation: 'supported',
       sourceRequirements: { SPCost: 10 }, sourceDamageType: { NoDamage: true } });
   });
   it('pins the real monster-info packet and source sense_type default without changing other content', () => {
     for (const row of baseline.sources) expect(manifest.sources).toContainEqual(row);
-    expect(manifest.sources).toHaveLength(29);
+    expect(manifest.sources).toHaveLength(47);
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'npc/merchants/refine.txt', sha256: '3b0cf6c2b711115780acfd7d8c41ad1bd2a2f6582baec44a605cf889b747eac1' }));
     expect(manifest.sources).toContainEqual(expect.objectContaining({ path: 'src/map/clif.c',
       sha256: 'ae5fd1e746c1fa4075882762ef8b7ebb24e4022ec776f0a15da7d94464707a42' }));

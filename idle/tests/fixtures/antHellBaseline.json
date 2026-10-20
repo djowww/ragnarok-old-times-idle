@@ -1,7 +1,7 @@
 {
   "baseCommit": "f3cc0d8a86c8c5cb682b07f4c103996db67ef662",
   "catalog": {
-    "beforeFileSha256": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
+    "beforeFileSha256": "24d3c3cedcd125f4b7be8c1e2acaaf7b7638910887909b80b24822898a734427",
     "beforeSource": {
       "commit": "410b9738c049ab1825d67b36b072d837c1d0b33a",
       "files": [
@@ -82,7 +82,7 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "baa25de0e636b275e40e4f75584130aea2b04e13c10fb942ff9a797982b229a0",
+    "beforeFileSha256": "eef76acea07f79da741f7d835094e6e1454110bfa6cf5c2936607b7beb558344",
     "addedSources": [
       {
         "path": "npc/pre-re/mobs/dungeons/anthell.txt",
@@ -2287,7 +2287,7 @@
         "afterHash": "9e8e3f7398a2d35814e5b6d52ea0e54d43ff92c88a27bcf1ef488c53d31736d3"
       },
       "catalogSha256": {
-        "before": "d5e21f6086cbee8755466252a3fdc4c8c9c0cf4dcfe6467847ec867a3bc2f2f9",
+        "before": "24d3c3cedcd125f4b7be8c1e2acaaf7b7638910887909b80b24822898a734427",
         "afterHash": "235bef97707eac9042389ecf6febd4f0864ff5b292e29c54e6faef723a04c436"
       }
     }

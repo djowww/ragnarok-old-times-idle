@@ -1,3 +1,6 @@
+# Testes leem fontes como texto e comparam com "\n"; mantenha o checkout em LF
+# em qualquer sistema para não quebrar fixtures por CRLF.
+* text=auto eol=lf
 *.sh text eol=lf
 idle/content/*.json text eol=lf
 idle/tools/*.mjs text eol=lf

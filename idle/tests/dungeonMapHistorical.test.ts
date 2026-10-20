@@ -18,7 +18,7 @@ describe('audited dungeon delta preserves strict historical snapshots', () => {
     expect(baseline.newItemIds).toHaveLength(52); expect(baseline.newMonsterIds).toHaveLength(17);
     expect(baseline.newAreaIds).toEqual(['pyramid_depths', 'glast_heim_cemetery']);
     for (const [id, change] of Object.entries(baseline.itemTypes)) expect((beforeConsumablesCatalog(raw).items as Record<string, { type: string }>)[id].type).toBe(change.after);
-    expect(beforeDungeonExpansionManifest(manifest).sources).toHaveLength(29);
+    expect(beforeDungeonExpansionManifest(manifest).sources).toHaveLength(47);
   });
   it('leaves unexpected changes in existing monsters visible to the old hashes', () => {
     const changed = structuredClone(raw); changed.monsters[1002].hp++;

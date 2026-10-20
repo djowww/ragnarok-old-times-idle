@@ -1,6 +1,6 @@
 {
-  "beforeCatalogSha256": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
-  "beforeManifestSha256": "b8c96320ae0a981125fa956cf81cfba0e30f7242049cfefbf35f8842c223ff85",
+  "beforeCatalogSha256": "11d465236abbb70091833a7af2e192887e0a779ac522d4c6da16dc2722ff57ea",
+  "beforeManifestSha256": "13368e7a09d8068331d5ad88c4835e2be42d6ccaf64b5a4a262e8f17cbe53706",
   "catalogSkill": {
     "before": {
       "id": "pa_gospel",
@@ -304,7 +304,7 @@
     "afterHash": "c6e48f8c8044b74efb2a28f91ebeb24a4931656bed3a393f733f39bba0d9f921"
   },
   "manifestCatalogSha256": {
-    "before": "cd37b56bf48a8d5638175094ed3034a9fdf22fd3b9dbf8b230f252531e09fb20",
+    "before": "11d465236abbb70091833a7af2e192887e0a779ac522d4c6da16dc2722ff57ea",
     "after": "7aacc491ca706094805bf171a743120e234cea57a1fb19b58cec6efe71c127ad"
   }
 }

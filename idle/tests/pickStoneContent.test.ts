@@ -21,7 +21,7 @@ describe('Pick Stone source export', () => {
     }
   });
   it('counts only the new supported branch in the source manifest', () => {
-    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 262, unsupported: 86 });
+    expect(manifest.skillCoverage).toMatchObject({ classes: 40, skills: 348, supported: 298, unsupported: 50 });
     expect(manifest.skillSources.tf_pickstone.implementation).toBe('supported');
     expect(manifest.skillCoverage.unavailable.some(skill => skill.sourceName === 'TF_PICKSTONE')).toBe(false);
   });

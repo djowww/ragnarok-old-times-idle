@@ -1,6 +1,6 @@
 {
   "catalog": {
-    "beforeFileSha256": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
+    "beforeFileSha256": "506fe066498cf53494496977eacbf88e08aa54ef0fd4dba5a86ce0c7b4616e06",
     "areas": {
       "geffen_dungeon_f1": {
         "afterSha256": "1f993c5a99e05f0862fb8dc7cc7d7b14204978b7554d16562dd7fdab207c4e30"
@@ -45,10 +45,10 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "fbb6426c08df107cb639c7c97d9c67cced119907b83fa32990c38d3139cf35a5",
+    "beforeFileSha256": "9fdfcfc2f0cc0e4f75f9eb00ccd198afb95f3b03cffd3f942ba4c356153a4b1d",
     "catalogSha256": {
-      "before": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
-      "after": "71af5ca0700ff98e26f82d85042edc45895c6806293952572624b27bbbd66303"
+      "before": "506fe066498cf53494496977eacbf88e08aa54ef0fd4dba5a86ce0c7b4616e06",
+      "after": "6fa238ac9abc0479c466810a6900703de6fc9d28a79fb7feafb4ebb208634115"
     }
   }
 }

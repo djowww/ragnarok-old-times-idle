@@ -1,7 +1,7 @@
 {
   "catalog": {
-    "beforeFileSha256": "1d42623745796d1a3d6970d1f915e16c289a5f135b334a8719605b4bbe11ed0f",
-    "afterFileSha256": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f",
+    "beforeFileSha256": "c3617737daf4c85b743edf4316fc1f0aa851a04f69d95b2452b4ba6e5e144364",
+    "afterFileSha256": "506fe066498cf53494496977eacbf88e08aa54ef0fd4dba5a86ce0c7b4616e06",
     "addedItems": {
       "535": "0f826011e004d3742a130ab180ecfc5898183c3a967f3d7e639574b6b56ddb63",
       "609": "e818796b835a655ec5fc08316f30450f28d5f8f4ad166bb00e597cb6e02602af",
@@ -63,8 +63,8 @@
     }
   },
   "rules": {
-    "beforeFileSha256": "3121673981ce51480b025342402f6cda574505f3d80bee88b87e0c47f2aa742a",
-    "afterFileSha256": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b",
+    "beforeFileSha256": "267aab6bb6e55c65c63bf74cc0d44cf57eb245b0c7ab7aba606bbd0c6f3c60ea",
+    "afterFileSha256": "d7c09a0ab94c9f6569dcc59f614527b24dc8a11798b82ef78abdc5096c6c8ba7",
     "addedAreas": {
       "payon_cave_third": "54b5f386dcc6b7d2f7c015e1f165ee03ac6b96eb473d6f8c6a2817956e4383aa",
       "byalan_third": "9e224c61c2112b6917a0884f6189aab406ab861ab1c8ff2645e86962bff7c43d",
@@ -73,8 +73,8 @@
     }
   },
   "manifest": {
-    "beforeFileSha256": "1ee98fccb68be289becfc61e926a347600f0e2cbbfcfbde302820f9b168fbc5c",
-    "afterFileSha256": "fbb6426c08df107cb639c7c97d9c67cced119907b83fa32990c38d3139cf35a5",
+    "beforeFileSha256": "8b1907b8e236bd87eb40435e7f3d360773b58a8bece9774d9894756b88dc3cda",
+    "afterFileSha256": "9fdfcfc2f0cc0e4f75f9eb00ccd198afb95f3b03cffd3f942ba4c356153a4b1d",
     "addedInertDrops": {
       "2264": "ddf612d4e57593f65b7ddeee3b4a2a37100e7300b65f9558371aac1d0783e519",
       "609": "8519b7efe967aa90a0f35adaa9116adedcb0a232d67539d9d910ee7e220a9c56",
@@ -121,12 +121,12 @@
       "pay_dun02"
     ],
     "catalogSha256": {
-      "before": "1d42623745796d1a3d6970d1f915e16c289a5f135b334a8719605b4bbe11ed0f",
-      "after": "96308ab66f8f41470e3dbaa2d04c6ac6d3e9cf9079d490b79173a44b1a5f026f"
+      "before": "c3617737daf4c85b743edf4316fc1f0aa851a04f69d95b2452b4ba6e5e144364",
+      "after": "506fe066498cf53494496977eacbf88e08aa54ef0fd4dba5a86ce0c7b4616e06"
     },
     "rulesSha256": {
-      "before": "3121673981ce51480b025342402f6cda574505f3d80bee88b87e0c47f2aa742a",
-      "after": "0d02d24ff3dd7bb1f3488c753eb1c5bc1f6cb4c385499a511c1625f44a0e9a8b"
+      "before": "267aab6bb6e55c65c63bf74cc0d44cf57eb245b0c7ab7aba606bbd0c6f3c60ea",
+      "after": "d7c09a0ab94c9f6569dcc59f614527b24dc8a11798b82ef78abdc5096c6c8ba7"
     },
     "inertDropsAfterHash": "8243385aeef19178695f2f3182b12f5f6cf9808497955fd407b37e240d6a6023",
     "behaviorAfterHashes": {

@@ -145,7 +145,7 @@
       ]
     },
     "afterSkillSha256": "92f84ae1352ea914110df55b55ee47609032c28c5aba70e1662727fcf74ce6ad",
-    "beforeSourceHash": "dafbed2ae560270a1ee785e139d1848180876d2ad9bcc07f71cfdd164207852d",
+    "beforeSourceHash": "2e897362f829d1b856297dd4d7807a00cd1ed7ff4c3b2c993a8adbcba89ac3fa",
     "afterSourceSha256": "8990d447c12a0db517b419d4c58f1100f6455a9174a9f8231935b6ba0301d748",
     "addedSourcePaths": [
       "npc/mapflag/nowarp.txt",
@@ -252,8 +252,8 @@
     },
     "afterSkillCoverageSha256": "46702ab5c714247e730c6e3cc00da42c4e1218287bef9a09f78937d7e43e7967",
     "beforeCatalogSha256": "67ac888f43ce98ba1f58ee0c808972c7ffb096d81e34bbeee5896407caeb14b1",
-    "afterCatalogSha256": "553a6bda2c2bc7847f0a763f794175bc886d000b8ddda7a4fc094b21d9e337f0",
-    "beforeRulesSha256": "9cb8b985bde1d602fce224a5a4321443e2fc7d4320d4dc4962e69a30e058849f",
+    "afterCatalogSha256": "97d6e6ac1aee65d6ab0dd54490a3850d8ad8f8297e9d74b542e4e788294ed648",
+    "beforeRulesSha256": "e4164b88587ee483b136e936082cbc2899625789792a2dcfb8adfa9ff277b843",
     "afterRulesSha256": "291504a19bffd0303146b0670e019a849cc4bd55d7e4fc2e2d725d1228ecd022",
     "warpPortal": {
       "behavior": "A solo traveler stays at the origin while the source cast is running and enters the selected destination only when the cast completes successfully; memo points store a walkable cell on one of the configured hunt maps.",

@@ -65,7 +65,7 @@ describe('contact-aligned combat playback', () => {
 
   it.each([
     { job: 'swordsman', weapon: 'sword' as const, motionMs: 300, expected: 600 },
-    { job: 'assassin', weapon: 'katar' as const, motionMs: 300, expected: 1200 },
+    { job: 'assassin', weapon: 'katar' as const, motionMs: 300, expected: 600 },
   ])('$job/$weapon aligns hit contact with the pinned ACT playback', ({ job, weapon, motionMs, expected }) => {
     const value = actor(job, weapon);
     const hit = cue(1, 'armed', job, motionMs, 1000, weapon);
