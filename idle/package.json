@@ -1,6 +1,6 @@
 {
   "name": "ragnarok-old-times-idle",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.25.0",
@@ -17,7 +17,7 @@
     "@fastify/cookie": "11.1.2",
     "@fastify/static": "10.1.5",
     "@phosphor-icons/react": "2.1.10",
-    "fastify": "5.12.5",
+    "fastify": "5.12.6",
     "mysql2": "3.24.5",
     "react": "19.3.0",
     "react-dom": "19.3.0"

@@ -18,6 +18,7 @@ PERSONAL_PATH = re.compile(r'(?:[A-Z]:[\\/](?:Users|Documents and Settings)[\\/]
 POLICY_PATH = 'tools/publication-policy.json'
 PUBLIC_POLICY = json.loads(Path(__file__).with_name('publication-policy.json').read_text())
 PUBLIC_GAME_URL = PUBLIC_POLICY['publicGameUrl']
+PREVIOUS_PUBLIC_URLS = tuple(PUBLIC_POLICY.get('previousPublicGameUrls', ()))
 PUBLIC_DOCUMENTATION = frozenset(PUBLIC_POLICY['allowedDocumentationPaths'])
 
 
@@ -55,7 +56,7 @@ def text_reasons(text, public_urls=()):
             break
 
 
-def check_file(path, data):
+def check_file(path, data, historical=False):
     reason = path_reason(path)
     if reason:
         yield 0, reason
@@ -65,7 +66,11 @@ def check_file(path, data):
         text = data.decode('utf-8')
     except UnicodeDecodeError:
         return
-    public_urls = (PUBLIC_GAME_URL,) if path in PUBLIC_DOCUMENTATION or path == POLICY_PATH else ()
+    public_urls = ()
+    if path in PUBLIC_DOCUMENTATION or path == POLICY_PATH:
+        public_urls = (PUBLIC_GAME_URL,)
+        if historical or path == POLICY_PATH:
+            public_urls += PREVIOUS_PUBLIC_URLS
     yield from text_reasons(text, public_urls)
 
 
@@ -108,7 +113,7 @@ def main():
                   for path in filter(None, paths))
     findings = []
     for path, data in inputs:
-        findings.extend((path, line, reason) for line, reason in check_file(path, data))
+        findings.extend((path, line, reason) for line, reason in check_file(path, data, historical=args.history))
     for path, line, reason in findings:
         print('BLOQUEADO ' + json.dumps(path, ensure_ascii=True) + ':' + str(line) + ' - ' + reason)
     if findings:

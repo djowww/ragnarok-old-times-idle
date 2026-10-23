@@ -119,7 +119,7 @@ Depois que o serviço de assets estiver pronto, reinicie o Idle para carregar as
 docker compose restart idle-game
 ```
 
-O portal pode iniciar sem recursos locais, mas a aventura depende dos arquivos GAT dos 29 mapas ou de seu cache validado. Se esse carregamento falhar, o jogo fica indisponível e o progresso permanece preservado. Mapas, sprites, ícones e música também dependem do cliente local. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
+O portal pode iniciar sem recursos locais, mas a aventura depende dos arquivos GAT dos mapas do catálogo ou de seu cache validado. Se esse carregamento falhar, o jogo fica indisponível e o progresso permanece preservado. Mapas, sprites, ícones e música também dependem do cliente local. As faixas começam desligadas e são servidas localmente; não são copiadas para a imagem Docker nem para o Git.
 
 A associação entre mapas e músicas é gerada de `data/mp3nametable.txt` do cliente, incluindo fields, dungeons e interiores. Para atualizar os metadados ao trocar de cliente, execute `node idle/tools/export-map-bgm.mjs --asset-origin http://localhost:8080`. A tabela gerada registra o hash da fonte e não contém áudio.
 

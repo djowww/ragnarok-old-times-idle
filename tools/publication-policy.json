@@ -1,7 +1,10 @@
 {
-  "publicGameUrl": "https://187.77.238.51:8443/",
+  "publicGameUrl": "https://15.204.210.74:8443/",
   "allowedDocumentationPaths": [
     "README.md",
     "README.en.md"
+  ],
+  "previousPublicGameUrls": [
+    "https://187.77.238.51:8443/"
   ]
 }

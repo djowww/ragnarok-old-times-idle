@@ -1,65 +1,54 @@
-![Ragnarok Old Times Idle](docs/assets/banner.svg)
+![RagIDLE — Ragnarok Old Times Idle](docs/assets/banner.svg)
 
-# Ragnarok Old Times Idle
+# RagIDLE · v1.0
 
-**A browser idle RPG inspired by classic Ragnarok Online.** Explore Rune-Midgard, develop your class and prepare your character to keep hunting between sessions.
+**Classic Ragnarok, at your own pace.** A browser idle RPG with automatic hunting, character progression and equipment management.
 
-### [Play the test version →](https://187.77.238.51:8443/)
+This is the **original RagIDLE project**, developed separately from Ragnarok Restart.
 
-[Alchemy (PT-BR)](docs/ALCHEMY.md) · [Português](README.md) · [Getting started](#start-your-adventure) · [Setup guide](docs/SETUP.md) · [Contributing](CONTRIBUTING.md)
+[**Play the public preview →**][preview] · [**Windows downloads →**](https://github.com/djowww/ragnarok-old-times-idle/releases/latest) · [Português](README.md)
 
-[![Publication safety](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml/badge.svg?branch=main)](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml) [![License: GPL v3+](https://img.shields.io/badge/license-GPL_v3%2B-315d70)](LICENSE)
+## Play
 
-## Start your adventure
+Create an account, select your saved character and choose a hunting area. Your character finds monsters, walks to targets and fights automatically. Configure skill priority, attributes and equipment to progress. Enable music in game.
 
-1. Open the test portal and create an account or sign in.
-2. Select your character and a hunting area. Your character finds existing monsters, walks to them and fights automatically.
-3. Arrange skills, allocate stats and improve equipment to progress.
+The preview requires no server installation. It is a test environment; availability and progress may change. Preview accounts were reset for this release.
 
-The hosted test opens in your browser; players do not need Docker or a local server. Enable music inside the game to hear the map's soundtrack.
+## Included
 
-## Explore, progress and prepare
+- 38 hunting areas, including fields and dungeons, with map collision and respawns.
+- 40 classes in the progression trees, Base/Job levels, attributes and rebirth.
+- Server-authoritative combat, skill casting, cooldowns and automatic rotations.
+- 348 imported skills: **298 marked supported, 50 unavailable**.
+- Inventory, cards, rarity, identification, bulk identification and refinement.
+- 81 boss/mini-boss challenges and 8 progression quests in the catalog.
+- Up to 12 hours of offline progress, a combat journal and global chat.
+- Prontera shop, blacksmith, stylist and a city HUD shortcut.
+- Movable windows, minimap, accounts, character selection and ranking.
+- Key-protected administration with action auditing.
 
-- Fields and dungeons with monsters, mini-bosses and MVP challenges.
-- Classic class progression, rebirth and attributes.
-- Equipment, cards, identification, rarity tiers and refining.
-- AFK hunting with movement, individual respawns and up to 12 hours of offline progress.
-- Automatic skill priorities, casting, range and cooldowns resolved by the server.
-- A classic-inspired movable HUD, inventory, combat diary and chat; shops, refining and styling in Prontera.
+Counts are taken from the [versioned catalog](idle/content/catalog.json). Supported status does not imply complete reproduction or manual verification of every original Ragnarok effect.
 
-See the [Weapon Refinement guide](docs/WEAPON_REFINEMENT.md) for the paid skill menu, native chances and destruction risk (Portuguese).
+## Still to come
 
-See the [Falcon companion guide](docs/FALCON.md) for rental, automatic attacks and Detect (Portuguese).
+Unavailable skills and missing partner/guild/map-object mechanics; PvP/WoE; parties, guilds and player trading; broader NPC quest chains; further animation, navigation, performance and balance work.
 
-## Project status
+See the [roadmap](docs/ROADMAP.md) and [skill coverage](docs/SKILL_COVERAGE.md). v1.0 is the first organized public release, not a claim that every Ragnarok system is complete.
 
-This is an independent fan project under active development.
+## Windows
 
-| Content in the current source | Count |
-| --- | ---: |
-| Hunting areas | 38 |
-| Classes in the progression trees | 40 |
-| Skills imported from Hercules | 348 |
-| Implemented skills | 298 |
+Download a ZIP from [Releases](https://github.com/djowww/ragnarok-old-times-idle/releases/latest):
 
-Unavailable mechanics are identified in the game. Idle progression adapts some rules and rewards; full reproduction of every original system and effect is still in progress. See the [catalog](idle/content/) and [source manifest](idle/content/source-manifest.json).
+- **Windows Preview:** extract and run `Jogar-Preview.cmd` to open the hosted game.
+- **Windows Local:** extract and run `Iniciar-RagIDLE.cmd`. Requires Docker Desktop using Linux containers and legally obtained compatible client assets. Opens `http://localhost:3339/`.
+- `Parar-RagIDLE.cmd` stops only the local RagIDLE installation and preserves its database.
 
+The local package contains source and a launcher; it is not a standalone native Windows executable. See the [Windows guide](docs/WINDOWS.md), [setup](docs/SETUP.md), [development](docs/DEVELOPMENT.md), [changelog](CHANGELOG.md) and [contribution guide](CONTRIBUTING.md).
 
-### Inventory consumables
+## License
 
-Use regular and condensed potions, Anodyne, Aloevera and elemental resistance potions from the inventory. Manual and automatic recovery share the same calculation. See [alchemy effects and current limits](docs/ALCHEMY.md).
+Independent fan project, not affiliated with or endorsed by Gravity Co., Ltd. Code: **GPL v3 or later**. See [LICENSE](LICENSE) and [third-party notices](idle/THIRD_PARTY_NOTICES.md).
 
-## Development and hosting
+Original client maps, sprites, effects, icons and music are not included in the repository or Windows packages. Operators must supply client resources they are entitled to use.
 
-Built with **TypeScript, React, Fastify and MariaDB**, using Docker Compose. The Idle engine has separate progression; the classic client uses Hercules and roBrowserLegacy.
-
-- [Setup and hosting](docs/SETUP.md) — installation, client assets, services and troubleshooting (Portuguese).
-- [Development](docs/DEVELOPMENT.md) — architecture, commands, tests and content export (Portuguese).
-- [Contributing](CONTRIBUTING.md) — bug reports and focused changes (Portuguese).
-- [Issues](https://github.com/djowww/ragnarok-old-times-idle/issues) — known problems and suggestions.
-
-## License and attribution
-
-Not affiliated with or endorsed by Gravity Co., Ltd. Source code is licensed under **GPL v3 or later**. See [LICENSE](LICENSE) and [third-party notices](idle/THIRD_PARTY_NOTICES.md).
-
-Original Ragnarok maps, sprites, effects, icons and music are not included in this repository. Operators must provide client resources they are authorized to use; the code license does not grant rights to those assets.
+[preview]: https://15.204.210.74:8443/
