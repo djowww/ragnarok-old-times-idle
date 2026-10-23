@@ -14,6 +14,9 @@ jobs:
           fetch-depth: 0
       - name: Verificar arquivos públicos
         run: |
+          python3 -m pip install -r tools/requirements-tests.txt
+          python3 tools/test_release_workflow.py
+          python3 tools/test_release.py
           python3 tools/test_publication_guard.py
           python3 tools/check-publication.py --history
       - name: Verificar credenciais com valores ocultos
