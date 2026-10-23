@@ -26,10 +26,20 @@ jobs:
           cache-dependency-path: idle/pnpm-lock.yaml
       - name: Validate public sources
         run: |
+          python3 -m pip install -r tools/requirements-tests.txt
+          python3 tools/test_release_workflow.py
           python3 tools/test_publication_guard.py
           python3 tools/check-publication.py
           python3 tools/check-publication.py --history
           python3 tools/test_release.py
+      - name: Scan release history for secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --output "$RUNNER_TEMP/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --log-opts=--all --redact=100 --no-banner
       - name: Install, typecheck, build and test
         working-directory: idle
         run: |
@@ -46,6 +56,7 @@ jobs:
         run: ./tools/test-windows-launcher.ps1
   publish:
     needs: [verify, windows]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write

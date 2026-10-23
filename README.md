@@ -4,8 +4,6 @@
 
 **Ragnarok clássico no seu ritmo.** Um RPG idle de navegador: escolha a caça, prepare sua estratégia e acompanhe seu personagem explorando Rune-Midgard.
 
-**Este é o RagIDLE original, o primeiro projeto. É desenvolvido separadamente do Ragnarok Restart.**
-
 [**Jogar a preview pública →**][preview] · [**Baixar para Windows →**](https://github.com/djowww/ragnarok-old-times-idle/releases/latest) · [Instalação](docs/SETUP.md) · [Roadmap](docs/ROADMAP.md) · [English](README.en.md)
 
 [![Release](https://img.shields.io/github/v/release/djowww/ragnarok-old-times-idle)](https://github.com/djowww/ragnarok-old-times-idle/releases/latest)

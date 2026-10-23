@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build deterministic Windows kits exclusively from tracked public sources."""
 import hashlib
+import io
 import json
 from pathlib import Path, PurePosixPath
 import re
@@ -26,9 +27,33 @@ def allowed_path(name):
         return False
     return name in ROOT_FILES or (len(p.parts) > 1 and p.parts[0] in SOURCE_DIRS)
 
-def tracked_paths(root):
-    raw = subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z'])
-    return sorted(p for p in raw.decode().split('\0') if p and allowed_path(p))
+def committed_sources(root, source):
+    """Read regular blobs from one commit, never the index or working tree."""
+    raw = subprocess.check_output(['git', '-C', str(root), 'ls-tree', '-rz', source])
+    blobs = []
+    for entry in raw.split(b'\0'):
+        if not entry:
+            continue
+        metadata, name = entry.split(b'\t', 1)
+        mode, kind, oid = metadata.split()
+        name = name.decode('utf-8')
+        if not allowed_path(name):
+            continue
+        if mode not in (b'100644', b'100755') or kind != b'blob':
+            raise ValueError('Release sources must be regular files (no symlinks): ' + name)
+        blobs.append((name, oid))
+    data = subprocess.check_output(['git', '-C', str(root), 'cat-file', '--batch'],
+                                   input=b''.join(oid + b'\n' for _, oid in blobs))
+    stream = io.BytesIO(data)
+    files = {}
+    for name, oid in blobs:
+        actual_oid, kind, size = stream.readline().split()
+        if actual_oid != oid or kind != b'blob':
+            raise ValueError('Unexpected Git object for release source: ' + name)
+        files[name] = stream.read(int(size))
+        if len(files[name]) != int(size) or stream.read(1) != b'\n':
+            raise ValueError('Incomplete Git blob for release source: ' + name)
+    return files
 
 def write_zip(path, entries):
     with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
@@ -45,18 +70,18 @@ def write_zip(path, entries):
 
 def build(root, output):
     root, output = Path(root).resolve(), Path(output).resolve()
-    version = (root / 'VERSION').read_text().strip()
+    source = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
+    local = committed_sources(root, source)
+    version = local['VERSION'].decode('utf-8').strip()
     if not re.fullmatch(r'\d+\.\d+\.\d+', version):
         raise ValueError('Invalid release version')
-    if json.loads((root / 'idle/package.json').read_text())['version'] != version:
+    if json.loads(local['idle/package.json'])['version'] != version:
         raise ValueError('Package and release versions differ')
-    source = subprocess.check_output(['git', '-C', str(root), 'rev-parse', 'HEAD'], text=True).strip()
-    readme = (root / 'README.md').read_text()
+    readme = local['README.md'].decode('utf-8')
     match = re.search(r'^\[preview\]:\s*(https://\S+)\s*$', readme, flags=re.M)
     if not match:
         raise ValueError('Preview reference missing')
     url = match.group(1)
-    local = {p: (root / p).read_bytes() for p in tracked_paths(root)}
     for required in ['compose.yaml', '.env.example', 'windows/Start-Local.ps1', 'Iniciar-RagIDLE.cmd']:
         if required not in local:
             raise ValueError('Required public file missing: ' + required)
