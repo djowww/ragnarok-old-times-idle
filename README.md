@@ -1,68 +1,84 @@
-![Ragnarok Old Times Idle — Rune-Midgard no seu ritmo](docs/assets/banner.svg)
+![RagIDLE — Ragnarok Old Times Idle](docs/assets/banner.svg)
 
-# Ragnarok Old Times Idle
+# RagIDLE · v1.0
 
-**Um RPG idle no navegador inspirado no Ragnarok Online clássico.** Explore Rune-Midgard, evolua sua classe e prepare seu personagem para continuar caçando entre uma sessão e outra.
+**Ragnarok clássico no seu ritmo.** Um RPG idle de navegador: escolha a caça, prepare sua estratégia e acompanhe seu personagem explorando Rune-Midgard.
 
-### [Jogar a versão de testes →](https://187.77.238.51:8443/)
+**Este é o RagIDLE original, o primeiro projeto. É desenvolvido separadamente do Ragnarok Restart.**
 
-[Como jogar](#comece-sua-aventura) · [Recursos](#o-que-você-vai-encontrar) · [Instalação](docs/SETUP.md) · [Contribuir](CONTRIBUTING.md) · [Alquimia](docs/ALCHEMY.md) · [Falcão](docs/FALCON.md) · [Refino de Arma](docs/WEAPON_REFINEMENT.md) · [English](README.en.md)
+[**Jogar a preview pública →**][preview] · [**Baixar para Windows →**](https://github.com/djowww/ragnarok-old-times-idle/releases/latest) · [Instalação](docs/SETUP.md) · [Roadmap](docs/ROADMAP.md) · [English](README.en.md)
 
-[![Publicação segura](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml/badge.svg?branch=main)](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml) [![Licença: GPL v3+](https://img.shields.io/badge/licen%C3%A7a-GPL_v3%2B-315d70)](LICENSE) [![Status: em desenvolvimento](https://img.shields.io/badge/status-em_desenvolvimento-b59b5b)](#estado-do-projeto)
+[![Release](https://img.shields.io/github/v/release/djowww/ragnarok-old-times-idle)](https://github.com/djowww/ragnarok-old-times-idle/releases/latest)
+[![Publicação segura](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml/badge.svg?branch=main)](https://github.com/djowww/ragnarok-old-times-idle/actions/workflows/publication-safety.yml)
+[![GPL v3+](https://img.shields.io/badge/license-GPL_v3%2B-315d70)](LICENSE)
 
-## Comece sua aventura
+## Entre e jogue
 
-1. **Entre no portal** pelo link de testes e crie sua conta, ou faça login.
-2. **Escolha seu personagem e uma área de caça.** Ele procura os monstros do mapa, caminha até o alvo e combate automaticamente.
-3. **Prepare sua estratégia.** Organize habilidades, distribua atributos e melhore seus equipamentos para avançar.
+1. Abra a **preview pública**, crie sua conta e escolha seu personagem.
+2. Selecione um campo ou dungeon. O personagem procura alvos, caminha até eles e combate automaticamente.
+3. Organize habilidades, distribua atributos e melhore equipamentos para avançar.
 
-A versão hospedada abre diretamente no navegador. Você não precisa instalar Docker nem configurar o servidor para participar dos testes. Ative a música dentro do jogo para ouvir a trilha do mapa.
+A preview roda no navegador, sem instalar o servidor. A música começa desligada: ative-a no jogo. Este é um ambiente de testes; progresso e disponibilidade podem mudar entre versões. As contas da preview foram reiniciadas para esta publicação.
 
-## O que você vai encontrar
+## O que existe na v1.0
 
-| Explore | Evolua | Prepare-se |
-| --- | --- | --- |
-| Campos e dungeons, monstros, mini-chefes e MVPs | Classes clássicas, renascimento e atributos | Equipamentos, cartas, identificação, raridades e refino |
-| Caça AFK com movimentação e respawn no mapa | Progresso salvo e resumo de até 12 horas offline | Prioridade automática de habilidades, conjuração e recargas |
+| Sistema | Disponível |
+| --- | --- |
+| Mundo | 38 áreas de caça: campos e dungeons; colisão, monstros no mapa e respawn |
+| Progressão | 40 classes nas árvores de evolução, níveis Base/Job, atributos e renascimento |
+| Combate | Caça AFK, alcance, conjuração, recargas e prioridade automática de habilidades |
+| Habilidades | 348 importadas do Hercules; 298 com suporte declarado e 50 indisponíveis |
+| Equipamentos | Mochila, cartas, raridades, identificação individual/em lote e refino |
+| Desafios | 81 desafios de mini-chefes/MVPs no catálogo |
+| Jornada | 8 missões de progressão e resumo de até 12 horas offline |
+| Prontera | Loja de poções, ferreiro, estilista e acesso pela HUD |
+| Interface | Janelas reposicionáveis, minimapa, diário de combate e chat global |
+| Contas | Cadastro, login, seleção do personagem salvo, painel e ranking |
+| Administração | Concessão de Base/Job, classe, zeny e itens; acesso por chave e registro de ações |
 
-- **Interface clássica:** HUD inspirada no RO, janelas reposicionáveis, inventário e diário com chat.
-- **Vida em Prontera:** loja, ferreiro, estilista e retorno à cidade pela HUD.
-- **Armas elementais:** propriedades originais de 30 armas afetam ataques básicos e habilidades de propriedade da arma. Encantamentos temporários têm prioridade; efeitos secundários indisponíveis são sinalizados na mochila.
-- **Combate no servidor:** alcance, colisão do mapa, recursos e recompensas resolvidos pela simulação autoritativa.
+As quantidades vêm do [catálogo versionado](idle/content/catalog.json). “Suporte declarado” descreve o estado da implementação; não significa reprodução integral ou validação manual de cada efeito do Ragnarok original.
 
-## Estado do projeto
+## O que ainda falta
 
-A versão de testes está em desenvolvimento e recebe melhorias frequentes.
+- Completar as **50 habilidades indisponíveis**, incluindo efeitos que dependem de parceiros, guildas, comércio e objetos/células de mapa.
+- Desenvolver PvP/WoE, grupos, guildas e comércio entre jogadores.
+- Ampliar quests de NPCs, eventos e conteúdo de longo prazo.
+- Refinar animações, navegação, desempenho e balanceamento em mais classes, armas e dispositivos.
+- Oferecer distribuição totalmente independente dos recursos de cliente fornecidos pelo operador.
 
-| Conteúdo disponível no código atual | Quantidade |
-| --- | ---: |
-| Áreas de caça | 38 |
-| Classes nas árvores de progressão | 40 |
-| Habilidades importadas do Hercules | 348 |
-| Habilidades implementadas | 298 |
+Veja o [roadmap](docs/ROADMAP.md) e a [lista nominal de habilidades indisponíveis](docs/SKILL_COVERAGE.md). A v1.0 é a primeira publicação organizada do projeto; o desenvolvimento continua.
 
-Habilidades que dependem de sistemas ainda ausentes aparecem como indisponíveis. O idle adapta algumas regras e recompensas; a reprodução integral de todos os sistemas e efeitos do RO ainda não está concluída.
+## Windows: escolha como testar
 
-As regras e suas fontes estão registradas no [catálogo](idle/content/) e no [manifesto do Hercules](idle/content/source-manifest.json).
+| Download | Como funciona |
+| --- | --- |
+| **Windows Preview** | Extraia e abra `Jogar-Preview.cmd`. Abre a versão online no navegador; não instala servidor. |
+| **Windows Local** | Extraia e abra `Iniciar-RagIDLE.cmd`. Usa Docker Desktop e abre `http://localhost:3339/`. Requer os recursos de um cliente compatível. |
 
+O pacote local inclui código-fonte e inicializador, não um executável nativo autossuficiente. Na primeira execução, ele gera credenciais locais e prepara os serviços. `Parar-RagIDLE.cmd` encerra apenas essa instalação, preservando os dados.
 
-### Consumíveis na mochila
-
-Poções comuns e compactas, Anodyne, Aloevera e resistências elementais podem ser usados pela mochila. A cura automática utiliza o mesmo cálculo do consumo manual. Veja os [efeitos e limites da alquimia](docs/ALCHEMY.md).
+[Guia Windows e requisitos →](docs/WINDOWS.md)
 
 ## Para desenvolver ou hospedar
 
-O projeto combina **TypeScript, React, Fastify e MariaDB**, com execução via Docker Compose. O motor Idle tem progresso próprio, e o cliente clássico usa Hercules e roBrowserLegacy.
+**TypeScript · React · Fastify · MariaDB · Docker Compose**
 
-| Guia | Conteúdo |
+O motor Idle possui progresso próprio e usa o Hercules como referência de regras/dados. O cliente clássico é integrado com roBrowserLegacy.
+
+| Guia | Assunto |
 | --- | --- |
-| [Instalação e execução](docs/SETUP.md) | Requisitos, cliente local, serviços, HTTPS e diagnóstico |
-| [Desenvolvimento](docs/DEVELOPMENT.md) | Estrutura do código, comandos, testes e exportação do catálogo |
-| [Como contribuir](CONTRIBUTING.md) | Relatar bugs e preparar uma contribuição |
-| [Issues](https://github.com/djowww/ragnarok-old-times-idle/issues) | Problemas conhecidos e sugestões |
+| [Instalação](docs/SETUP.md) | Recursos de cliente, serviços, localhost e hospedagem |
+| [Desenvolvimento](docs/DEVELOPMENT.md) | Estrutura, comandos, testes e exportação |
+| [Alquimia](docs/ALCHEMY.md) · [Falcão](docs/FALCON.md) · [Refino](docs/WEAPON_REFINEMENT.md) | Mecânicas e limites |
+| [Contribuir](CONTRIBUTING.md) · [Segurança](SECURITY.md) | Bugs, melhorias e divulgação responsável |
+| [Changelog](CHANGELOG.md) | Histórico de publicações |
+
+Para relatar um bug, abra uma [issue](https://github.com/djowww/ragnarok-old-times-idle/issues) com os passos, classe/arma, mapa e uma captura. Não anexe senhas, bancos ou arquivos de cliente.
 
 ## Licença e créditos
 
-Projeto de fã independente, sem afiliação ou endosso da Gravity Co., Ltd. O código é distribuído sob **GPL v3 ou posterior**; consulte a [licença](LICENSE) e os [créditos de terceiros](idle/THIRD_PARTY_NOTICES.md).
+Projeto de fã independente, sem afiliação ou endosso da Gravity Co., Ltd. Código sob **GPL v3 ou posterior**: [licença](LICENSE) e [créditos de terceiros](idle/THIRD_PARTY_NOTICES.md).
 
-Mapas, sprites, efeitos, ícones e música originais não são distribuídos neste repositório. Esses materiais pertencem a seus respectivos titulares e devem ser fornecidos pelo operador a partir de um cliente que esteja autorizado a usar.
+Mapas, sprites, efeitos, ícones e músicas originais não são distribuídos no repositório ou nos pacotes Windows. O operador deve fornecer recursos de um cliente que tenha direito de usar.
+
+[preview]: https://15.204.210.74:8443/

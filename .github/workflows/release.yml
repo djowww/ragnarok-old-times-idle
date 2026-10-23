@@ -1,0 +1,80 @@
+name: Release
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: public-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: idle/pnpm-lock.yaml
+      - name: Validate public sources
+        run: |
+          python3 tools/test_publication_guard.py
+          python3 tools/check-publication.py
+          python3 tools/check-publication.py --history
+          python3 tools/test_release.py
+      - name: Install, typecheck, build and test
+        working-directory: idle
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm typecheck
+          pnpm build
+          pnpm exec vitest run --maxWorkers=2 --testTimeout=120000
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Validate Windows launchers
+        shell: powershell
+        run: ./tools/test-windows-launcher.ps1
+  publish:
+    needs: [verify, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Build public packages
+        run: |
+          python3 tools/build-release.py
+          cd .artifacts
+          sha256sum --check SHA256SUMS.txt
+      - name: Publish immutable version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '\r\n' < VERSION)"
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release already exists; leaving it unchanged."
+            exit 0
+          fi
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "Tag exists without a release; review it before publishing."
+            exit 1
+          fi
+          gh release create "$tag" .artifacts/*.zip .artifacts/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" --title "RagIDLE $tag — Primeira release pública" \
+            --notes-file CHANGELOG.md --latest

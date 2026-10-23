@@ -53,6 +53,15 @@ class PublicationGuardTests(unittest.TestCase):
         self.assertEqual(list(guard.check_file('idle/server/schema.sql', b'CREATE TABLE demo (id INT);')), [])
         self.assertEqual(list(guard.check_file('.env.example', b'PUBLIC_ORIGIN=http://localhost')), [])
 
+    def test_retired_preview_url_is_history_only(self):
+        from unittest.mock import patch
+        retired = 'https://' + '.'.join(['9'] * 4) + ':8443/'
+        with patch.object(guard, 'PREVIOUS_PUBLIC_URLS', (retired,), create=True):
+            self.assertTrue(list(guard.check_file('README.md', retired.encode())))
+            self.assertEqual(list(guard.check_file('README.md', retired.encode(), historical=True)), [])
+            self.assertTrue(list(guard.check_file('notes.md', retired.encode(), historical=True)))
+            self.assertEqual(list(guard.check_file('tools/publication-policy.json', retired.encode())), [])
+
     def test_history_checks_files_removed_before_head(self):
         original = Path.cwd()
         with tempfile.TemporaryDirectory() as directory:
