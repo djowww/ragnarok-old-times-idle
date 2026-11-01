@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { duration, ItemIcon, number, type PanelProps } from "./common";
+import { useDraggableWindow } from "../hooks/useDraggableWindow";
 
 interface OfflineProps extends PanelProps {
   error: string | null;
@@ -17,7 +18,12 @@ export default function Offline({
   sending,
   retry,
 }: OfflineProps) {
+  const movable = useDraggableWindow<HTMLDialogElement>("offline-summary", "resumo da aventura offline");
   const dialog = useRef<HTMLDialogElement>(null);
+  const dialogRef = useCallback((element: HTMLDialogElement | null) => {
+    dialog.current = element;
+    movable.ref(element);
+  }, [movable.ref]);
   const summary = snapshot.offlineSummary;
   useEffect(() => {
     const element = dialog.current;
@@ -28,7 +34,8 @@ export default function Offline({
   if (!summary) return null;
   return (
     <dialog
-      ref={dialog}
+      ref={dialogRef}
+      style={movable.style}
       className="offline-dialog"
       aria-labelledby="offline-title"
       onCancel={(e) => {
@@ -36,7 +43,7 @@ export default function Offline({
         if (!busy) void command({ type: "dismissOffline" });
       }}
     >
-      <div className="panel-heading">
+      <div {...movable.handleProps} className="ro-drag-handle panel-heading">
         <h2 id="offline-title">Bem-vindo de volta, {snapshot.state.name}</h2>
         <span>{duration(summary.elapsedMs)}</span>
       </div>
@@ -82,8 +89,8 @@ export default function Offline({
                 const item = catalog.items[Number(id)];
                 return item ? (
                   <div key={id}>
-                    <ItemIcon item={item} />
-                    <span>{item.name}</span>
+                    {item.type === "equipment" ? <span className="offline-unidentified-icon" aria-hidden="true">?</span> : <ItemIcon item={item} />}
+                    <span>{item.type === "equipment" ? "Equipamento não identificado" : item.name}</span>
                     <b>×{number(count)}</b>
                   </div>
                 ) : null;

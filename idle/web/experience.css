@@ -1,6 +1,6 @@
 /* The original client images are served from the user's local GRF. */
 :root {
-  --ro-map-height: clamp(490px, 54vw, 650px);
+  --ro-map-height: clamp(420px, min(54vw, calc(100dvh - 200px)), 650px);
   --ro-window-ink: #2f4854;
   --ro-window-edge: #617e8c;
   --ro-window-paper: #f0eee2;
@@ -29,6 +29,24 @@ body {
   background: linear-gradient(90deg, #17333b2e, #47606127 48%, #17333b2e);
 }
 
+.classic-mode-link {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #c4c89e68;
+  border-radius: 4px;
+  background: #132e3545;
+  color: #e4dfc8;
+  font: 10px Tahoma, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.classic-mode-link:hover {
+  border-color: #d4c78e;
+  background: #223f45a3;
+  color: #fff5d6;
+}
+
 .world-status {
   margin: 8px 0 7px;
   padding: 7px 10px;
@@ -39,7 +57,7 @@ body {
 }
 
 .cockpit {
-  --ro-map-height: clamp(490px, 54vw, 650px);
+  --ro-map-height: clamp(420px, min(54vw, calc(100dvh - 200px)), 650px);
   gap: 0;
 }
 
@@ -52,6 +70,30 @@ body {
 .cockpit .scene-panel > .panel-heading {
   min-height: 31px;
   border-bottom-color: #6a8895;
+}
+
+.scene-heading-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(6px, 1vw, 13px);
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.scene-rates {
+  color: #dfe9d8;
+  font: 9px Tahoma, sans-serif;
+}
+
+.scene-heading-tools .audio-controls {
+  flex: 0 0 auto;
+}
+
+.scene-heading-tools .audio-toggle {
+  min-height: 22px;
+  padding: 3px 8px;
+  font-size: 9px;
 }
 
 .classic-map-stage .scene {
@@ -692,7 +734,7 @@ body {
 
 @media (max-width: 960px) {
   .cockpit {
-    --ro-map-height: clamp(430px, 58vw, 560px);
+    --ro-map-height: clamp(420px, min(58vw, calc(100dvh - 190px)), 560px);
   }
 
   .ro-window-layer {
@@ -744,7 +786,7 @@ body {
   }
 
   .cockpit {
-    --ro-map-height: clamp(340px, 72vh, 470px);
+    --ro-map-height: clamp(340px, min(72dvh, calc(100dvh - 300px)), 470px);
     gap: 7px;
   }
 
@@ -866,6 +908,12 @@ body {
   }
 }
 
+@media (max-width: 760px) {
+  .classic-mode-link {
+    display: none;
+  }
+}
+
 @media (max-width: 420px) {
   .classic-basic-menu .ro-menu-button img {
     width: 24px;
@@ -909,6 +957,52 @@ body {
 .hero-panel .hero-identity span {
   flex: 0 1 auto;
   white-space: nowrap;
+}
+
+/* Keep the classic window frame, without the BMP's unused sample meter tracks. */
+.cockpit .hero-panel {
+  background-color: #dbe5e6;
+  background-image: linear-gradient(180deg, #e8eeee 0%, #dbe5e6 100%);
+}
+
+.hero-panel .hero-identity {
+  min-height: 22px;
+  padding: 3px 10px 4px;
+  border-bottom: 1px solid #8da3aa;
+  background: linear-gradient(#e5edef, #b8c9ce);
+}
+
+.header-levels .zeny {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  color: #d6dedc;
+  font: 11px Tahoma, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.header-levels .zeny i {
+  display: grid;
+  flex: 0 0 21px;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #788483;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #f1f2ed 0, #c7cdca 48%, #8d9795 100%);
+  box-shadow: inset 0 1px #fff, inset 0 -2px #77817f, 0 0 0 1px #293f48;
+  color: #596360;
+  font: 700 12px Georgia, serif;
+  font-style: normal;
+  text-shadow: 0 1px #f8f9f4;
+}
+
+.header-levels .zeny b {
+  color: #f0eee3;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
 .classic-minimap {
@@ -1120,6 +1214,34 @@ body {
   background: linear-gradient(135deg, #f3f0e5f2, #e6e8dff2);
   box-shadow: 0 8px 24px #102d3245, inset 0 1px #ffffffd9;
   color: #344e4c;
+}
+
+.classic-map-stage > .hunt-explorer {
+  position: absolute;
+  z-index: 6;
+  right: 12px;
+  bottom: 64px;
+  width: min(330px, calc(100% - 24px));
+  max-height: min(390px, calc(var(--ro-map-height) - 212px));
+  margin: 0;
+  border-color: #879e9bdb;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f1efdfef, #dce5dff2);
+  box-shadow: 0 4px 14px #091e2675, inset 0 1px #fff;
+}
+
+.classic-map-stage > .hunt-explorer .hunt-launcher {
+  grid-template-columns: 42px minmax(0, 1fr) 24px;
+}
+
+.classic-map-stage > .hunt-explorer .hunt-launcher-action {
+  display: none;
+}
+
+.classic-map-stage > .hunt-explorer .hunt-explorer-content {
+  max-height: min(320px, calc(var(--ro-map-height) - 278px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .hunt-launcher {
@@ -1421,6 +1543,19 @@ body {
 }
 
 @media (max-width: 640px) {
+  .scene-heading-tools {
+    gap: 6px;
+  }
+
+  .scene-rates {
+    display: none;
+  }
+
+  .classic-map-stage > .hunt-explorer {
+    right: 8px;
+    width: min(300px, calc(100% - 16px));
+  }
+
   .classic-minimap {
     width: 108px;
   }
@@ -1479,4 +1614,156 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .hunt-explorer-content { animation: none; }
+}
+
+/* The return summary now uses the compact steel-blue window skin from the client HUD. */
+.offline-dialog {
+  box-sizing: border-box;
+  max-height: min(82dvh, 620px);
+  overflow: hidden;
+  border: 1px solid #637d8e;
+  border-radius: 2px;
+  background: #e8ece8;
+  box-shadow: 1px 3px 18px #071e2db3, inset 1px 1px #fff;
+}
+
+.offline-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.offline-dialog .panel-heading {
+  flex: 0 0 auto;
+  min-height: 31px;
+  padding: 5px 9px;
+  border-bottom: 1px solid #7e99a7;
+  background: linear-gradient(#dfeaed, #aebfc6);
+  box-shadow: inset 0 1px #fff;
+  color: #354951;
+  text-shadow: 0 1px #fff9;
+}
+
+.offline-dialog .panel-heading h2 {
+  color: #354951;
+  font: 700 12px/1.2 Tahoma, "Segoe UI", sans-serif;
+}
+
+.offline-dialog .panel-heading > span {
+  color: #496574;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.offline-body {
+  min-height: 0;
+  padding: 10px 12px 12px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #8198a0 #dce3df;
+}
+
+.offline-body > p:first-child {
+  margin: 0 0 9px;
+  color: #596c62;
+  font: italic 13px/1.3 Georgia, serif;
+}
+
+.offline-totals {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 0 0 9px;
+  border-bottom-color: #c5cbbf;
+  margin-bottom: 9px;
+}
+
+.offline-totals > div {
+  min-width: 0;
+  padding: 6px 7px;
+  border: 1px solid #bdc9c7;
+  border-radius: 2px;
+  background: linear-gradient(#f0f2ed, #dce4e0);
+}
+
+.offline-totals dt {
+  margin-bottom: 2px;
+  color: #65766f;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.offline-totals dd {
+  color: #405b4a;
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.offline-body h3 {
+  margin: 0 0 5px;
+  color: #425b62;
+  font-size: 11px;
+}
+
+.offline-items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 10px;
+  max-height: 82px;
+  padding-right: 3px;
+}
+
+.offline-items > div {
+  min-width: 0;
+  min-height: 22px;
+  gap: 6px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.offline-items .item-icon {
+  width: 19px;
+  height: 19px;
+  min-width: 19px;
+}
+
+.offline-items .item-icon img {
+  max-width: 18px;
+  max-height: 18px;
+}
+
+.offline-body .note {
+  margin: 9px 0;
+  color: #68776d;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.offline-dialog .primary.full {
+  min-height: 34px;
+  border-radius: 2px;
+  box-shadow: inset 0 1px #ffffff99, 0 1px 2px #21394238;
+}
+
+@media (max-width: 640px) {
+  .header-levels .zeny i {
+    display: grid;
+  }
+
+  .offline-dialog {
+    width: min(480px, calc(100vw - 20px));
+    max-height: 84dvh;
+  }
+
+  .offline-body {
+    padding: 9px;
+  }
+
+  .offline-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .offline-items {
+    max-height: 76px;
+  }
 }

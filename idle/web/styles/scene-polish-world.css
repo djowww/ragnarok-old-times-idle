@@ -1,0 +1,57 @@
+.scene-ground-loot-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scene-ground-loot-hit {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  box-sizing: border-box;
+  visibility: hidden;
+  pointer-events: auto;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  outline: none;
+}
+
+.scene-ground-loot-hit:focus-visible {
+  border-color: #ffe4a5;
+  box-shadow: 0 0 0 1px #263931cc;
+  background: #ffe8ad18;
+}
+
+.scene-ground-loot-tooltip {
+  position: absolute;
+  left: calc(50% + var(--loot-tooltip-shift, 0px));
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 5px 8px;
+  border: 1px solid #6b8190;
+  border-radius: 2px;
+  box-shadow: 1px 2px 3px #17272c66;
+  background: #f6f6eb;
+  color: #27343b;
+  font: 11px/1.35 Tahoma, Arial, sans-serif;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.scene-ground-loot-hit:hover .scene-ground-loot-tooltip,
+.scene-ground-loot-hit:focus .scene-ground-loot-tooltip {
+  visibility: visible;
+}
+
+.scene.map-not-ready .scene-ground-loot-layer {
+  visibility: hidden;
+}

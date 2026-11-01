@@ -2,6 +2,90 @@ import { describe, expect, it } from 'vitest';
 import { decodeSPR } from '../web/assets/sprite';
 import { decodeACT } from '../web/assets/action';
 import { decodeBMP } from '../web/assets/items';
+import { ConnectedMapMovement, type MapProjection } from '../web/assets/mapProjection';
+
+describe('connected map movement', () => {
+    const camera = (mask: number[]): MapProjection => ({ map: 'fixture', modelView: [], projection: [],
+        focus: [0.5, 0, 0.5], ground: { x: 0, y: 0, size: 3, heights: Array(9).fill(0), walkable: mask }, viewport: { width: 100, height: 100 } });
+    it('never jumps across a blocked cell to a disconnected endpoint', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera([1, 0, 1, 0, 0, 0, 0, 0, 0]);
+        expect(movement.project(map, 'hero', 'segment', [0.5, 0, 0.5], [2.5, 0, 0.5], .49).world).toEqual([0.5, 0, 0.5]);
+        expect(movement.project(map, 'hero', 'segment', [0.5, 0, 0.5], [2.5, 0, 0.5], 1).world).toEqual([0.5, 0, 0.5]);
+    });
+    it('takes a connected detour and reaches the requested endpoint', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera([1, 0, 1, 1, 1, 1, 0, 0, 0]);
+        const pose = movement.project(map, 'hero', 'segment', [.5, 0, .5], [2.5, 0, .5], .5);
+        expect(pose.world).toEqual([1.5, 0, 1.5]);
+        expect(pose.tangent).toEqual([2.5, 0, 1.5]);
+        expect(movement.project(map, 'hero', 'segment', [.5, 0, .5], [2.5, 0, .5], 1).world).toEqual([2.5, 0, .5]);
+    });
+    it('does not cut diagonal corners and holds its previous connected position on a new segment', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera([1, 0, 0, 0, 1, 0, 0, 0, 0]);
+        movement.project(map, 'hero', 'first', [.5, 0, .5], [1.5, 0, 1.5], 1);
+        expect(movement.project(map, 'hero', 'second', [1.5, 0, 1.5], [1.5, 0, 1.5], 1).world).toEqual([.5, 0, .5]);
+    });
+    it('uses ordinary interpolation when the map has no walkability mask', () => {
+        const map = camera([]); delete map.ground!.walkable;
+        expect(new ConnectedMapMovement().project(map, 'hero', 'segment', [.5, 0, .5], [2.5, 0, .5], .5).world).toEqual([1.5, 0, .5]);
+    });
+    it('walks a straight diagonal through an open grid', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera(Array(9).fill(1));
+        expect(movement.project(map, 'hero', 'diagonal', [.5, 0, .5], [2.5, 0, 2.5], .25).world).toEqual([1, 0, 1]);
+        expect(movement.project(map, 'hero', 'diagonal', [.5, 0, .5], [2.5, 0, 2.5], .75).world).toEqual([2, 0, 2]);
+    });
+    it('does not reverse a fractional starting position toward its cell center', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera(Array(9).fill(1));
+        expect(movement.project(map, 'hero', 'fractional', [1, 0, 1], [2, 0, 2], 0).world).toEqual([1, 0, 1]);
+        const next = movement.project(map, 'hero', 'fractional', [1, 0, 1], [2, 0, 2], .1).world;
+        expect(next[0]).toBeGreaterThan(1);
+        expect(next[2]).toBeGreaterThan(1);
+        expect(movement.project(map, 'hero', 'fractional', [1, 0, 1], [2, 0, 2], 1).world).toEqual([2, 0, 2]);
+    });
+    it('holds its rendered detour position when a zero-duration stop replaces movement', () => {
+        const movement = new ConnectedMapMovement();
+        const map = camera([1, 0, 1, 1, 1, 1, 0, 0, 0]);
+        const last = movement.project(map, 'hero', 'walk', [.5, 0, .5], [2.5, 0, .5], .75).world;
+        expect(last).toEqual([2.5, 0, 1.5]);
+        expect(movement.project(map, 'hero', 'stop', [2, 0, .5], [2, 0, .5], 1).world).toEqual(last);
+        expect(movement.project(map, 'hero', 'stop', [2, 0, .5], [2, 0, .5], 1).world).toEqual(last);
+    });
+    it.each([true, false])('resumes an already arrived route continuously with GAT=%s', (withGat) => {
+        const movement = new ConnectedMapMovement(), map = camera(Array(9).fill(1));
+        if (!withGat) delete map.ground!.walkable;
+        const from: [number, number, number] = [.5, 0, .5], to: [number, number, number] = [2.5, 0, .5];
+        movement.project(map, 'hero', 'strike', from, from, 1);
+        const sample = (now: number) => movement.project(map, 'hero', 'resume', from, to, 2.46, { now, maxSpeed: .01 }).world;
+        expect(sample(2939)).toEqual(from);
+        expect(sample(2955)[0]).toBeCloseTo(.66);
+        expect(sample(3955)[0]).toBeCloseTo(1.66); // Hidden-tab delta is capped at 100 ms.
+        expect(sample(4055)).toEqual(to);
+        expect(sample(4155)).toEqual(to);
+    });
+    it('keeps a budgeted route inside its connected component', () => {
+        const movement = new ConnectedMapMovement(), map = camera([1, 0, 1, 0, 0, 0, 0, 0, 0]);
+        for (const now of [0, 100, 200, 300]) expect(movement.project(map, 'hero', 'resume',
+            [.5, 0, .5], [2.5, 0, .5], 1, { now, maxSpeed: .01 }).world).toEqual([.5, 0, .5]);
+    });
+    it('starts a budgeted retarget from the last shown position and freezes stationary replacements', () => {
+        const movement = new ConnectedMapMovement(), map = camera(Array(9).fill(1));
+        movement.project(map, 'hero', 'first', [.5, 0, .5], [2.5, 0, .5], 1, { now: 0, maxSpeed: .01 });
+        const last = movement.project(map, 'hero', 'first', [.5, 0, .5], [2.5, 0, .5], 1, { now: 50, maxSpeed: .01 }).world;
+        expect(last).toEqual([1, 0, .5]);
+        expect(movement.project(map, 'hero', 'second', [2.5, 0, .5], [2.5, 0, 2.5], 1,
+            { now: 60, maxSpeed: .01 }).world).toEqual(last);
+        const next = movement.project(map, 'hero', 'second', [2.5, 0, .5], [2.5, 0, 2.5], 1,
+            { now: 110, maxSpeed: .01 }).world;
+        expect(Math.hypot(next[0] - last[0], next[2] - last[2])).toBeLessThanOrEqual(.500001);
+        expect(next).not.toEqual(last);
+        expect(movement.project(map, 'hero', 'stop', [2.5, 0, 2.5], [2.5, 0, 2.5], 1,
+            { now: 120, maxSpeed: .01 }).world).toEqual(next);
+    });
+});
 // Independent binary fixtures written from the SPR/ACT/BMP format layouts.
 function binary(size: number, setup: (v: DataView, b: Uint8Array) => void) { const b = new Uint8Array(size); setup(new DataView(b.buffer), b); return b.buffer; }
 describe('sprite assets', () => {
@@ -31,6 +115,12 @@ describe('sprite assets', () => {
 });
 // Removing ACT anchors or applying RGBA layer indexes to palette frames breaks head alignment.
 describe('actor composition', () => {
+    it('uses weapon swings for Bash and no cast pose for effect ticks', async () => {
+        const { getCombatActorAction } = await import('../web/assets/renderer');
+        expect(getCombatActorAction('skill', 'SM_BASH')).toBe('attack');
+        expect(getCombatActorAction('skill', 'MG_FIREBOLT')).toBe('skill');
+        expect(getCombatActorAction('none')).toBe('idle');
+    });
     it('aligns head/body anchors and resolves RGBA layer indices', async () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const image = { width: 2, height: 1, rgba: new Uint8ClampedArray(8), type: 0 as const };
@@ -45,7 +135,7 @@ describe('actor composition', () => {
         const { getActorPose } = await import('../web/assets/renderer');
         const images = [0, 1].map(n => ({ width: 1, height: 1, type: 0, rgba: new Uint8ClampedArray([n, 0, 0, 255]) }));
         const layers = images.map((_, index) => ({ x: 0, y: 0, index, mirror: false, color: [255, 255, 255, 255], scaleX: 1, scaleY: 1, rotation: 0, type: 0, width: 0, height: 0 }));
-        const actor: any = { fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
+        const actor: any = { kind: 'monster', fallback: false, body: { sprite: { indexedCount: 2, frames: images }, action: { actions: [{ delayMs: 100, frames: layers.map(layer => ({ layers: [layer], anchors: [] })) }] } } };
         expect(getActorPose(actor, 'attack', 100)[0].image.rgba[0]).toBe(1);
         expect(getActorPose(actor, 'dead', 200)[0].image.rgba[0]).toBe(0);
     });

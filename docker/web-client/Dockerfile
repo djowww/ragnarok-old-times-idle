@@ -14,9 +14,11 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/MrAntares/roBr
     && git checkout "${ROBROWSER_REF}" \
     && npm install --no-audit --no-fund
 
-# Keep the upstream revision and its attribution; adapt only its idle viewer.
+# Keep the upstream revision and its attribution; adapt its idle viewer and character creation.
 COPY mapviewer-idle.patch /tmp/mapviewer-idle.patch
+COPY character-palette.patch /tmp/character-palette.patch
 RUN git apply /tmp/mapviewer-idle.patch \
+    && git apply /tmp/character-palette.patch \
     && npm run build:pwa \
     && cp dist/Web/index.html /tmp/robrowser-pwa-index.html \
     && npm run build:mapviewer \

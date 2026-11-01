@@ -18,7 +18,7 @@ describe('command boundary', () => {
   });
   it('rejects malformed rotations, thresholds, and stat names', () => {
     expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'a'] } })).toThrow();
-    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd'] } })).toThrow();
+    expect(() => parseCommandRequest({ requestId, command: { type: 'setRotation', skillIds: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'] } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'setPotions', hpThreshold: 101, spThreshold: 30 } })).toThrow();
     expect(() => parseCommandRequest({ requestId, command: { type: 'allocate', stat: 'power', amount: 1 } })).toThrow();
   });

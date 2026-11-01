@@ -1,0 +1,285 @@
+/* WinStats V0 from roBrowserLegacy d88a3cd; pixels come from the local GRF. */
+.ro-window-layer:has(.ro-window-stats) {
+  padding: 12px 14px 12px 306px;
+  justify-content: flex-start;
+}
+
+.ro-window-layer .ro-window-stats {
+  /* A saved drag position may carry the previous panel's 338px width. */
+  width: 280px !important;
+  min-width: 280px;
+  max-width: 280px;
+  height: auto;
+  flex: 0 0 280px;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ro-window-stats .ro-window-titlebar {
+  position: relative;
+  width: 280px;
+  height: 17px;
+  min-height: 17px;
+  flex: 0 0 17px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background: #fff var(--classic-status-titlebar, none) repeat-x;
+  box-shadow: none;
+  color: #000;
+  font: bold 11px/17px Arial, sans-serif;
+  text-shadow: 1px 1px white;
+}
+
+.ro-window-stats .ro-window-titlebar h2 {
+  position: relative;
+  margin: 0;
+  padding-left: 15px;
+  overflow: visible;
+  font: inherit;
+}
+
+.ro-window-stats .ro-window-titlebar h2::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  background: var(--classic-status-base, none) no-repeat;
+}
+
+.ro-window-stats .ro-window-close,
+.ro-window-stats .classic-status-mini {
+  position: absolute;
+  top: 3px;
+  width: 11px;
+  height: 11px;
+  min-width: 0;
+  min-height: 11px;
+  flex: 0 0 11px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #000;
+  box-shadow: none;
+  text-shadow: none;
+  font: 11px/11px Arial, sans-serif;
+}
+
+.ro-window-stats .ro-window-close {
+  right: 3px;
+  background: var(--classic-status-close, none) no-repeat;
+  font-size: var(--classic-status-close-text, 11px);
+}
+
+.ro-window-stats .ro-window-close:hover:not(:disabled) {
+  border: 0;
+  background: var(--classic-status-closeHover, var(--classic-status-close, none)) no-repeat;
+}
+
+.ro-window-stats .classic-status-mini {
+  right: 18px;
+  background: var(--classic-status-mini, none) no-repeat;
+}
+
+.ro-window-stats .classic-status-mini:hover:not(:disabled) {
+  border: 0;
+  background: var(--classic-status-miniHover, var(--classic-status-mini, none)) no-repeat;
+}
+
+.ro-window-stats .ro-window-close:active:not(:disabled),
+.ro-window-stats .classic-status-mini:active:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+}
+
+.ro-window-stats .ro-window-content {
+  width: 280px;
+  height: 103px;
+  flex: 0 0 103px;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  container-type: normal;
+}
+
+.ro-window-stats:has(.classic-status[hidden]) .ro-window-content {
+  height: 0;
+  flex-basis: 0;
+}
+
+.ro-window-stats .build-layout-stats {
+  display: block;
+}
+
+.build-layout .classic-status {
+  position: relative;
+  width: 280px;
+  height: 103px;
+  min-width: 280px;
+  margin: 0;
+  padding: 0;
+  background: #fff var(--classic-status-panel, none) no-repeat;
+  color: #000;
+  font: 12px/1.2 Arial, "Liberation Sans", Arimo, sans-serif;
+  font-size-adjust: 0.5186;
+  font-variant-numeric: normal;
+  letter-spacing: 0;
+}
+
+.classic-status.has-art {
+  background-color: transparent;
+}
+
+.classic-status-row {
+  position: absolute;
+  left: 0;
+  width: 112px;
+  height: 16px;
+}
+
+.classic-status-row > .classic-status-label {
+  position: absolute;
+  left: 23px;
+}
+
+.classic-status-base {
+  position: absolute;
+  left: 53px;
+  font: inherit;
+}
+
+.classic-status-bonus {
+  position: absolute;
+  left: 70px;
+  white-space: nowrap;
+}
+
+.classic-status-cost {
+  position: absolute;
+  left: 96px;
+  width: 12px;
+  text-align: right;
+}
+
+.classic-status .classic-status-up {
+  position: absolute;
+  top: 0;
+  left: 89px;
+  width: 11px;
+  height: 11px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--classic-status-arrow, none) no-repeat;
+  color: #333;
+  box-shadow: none;
+  font: 11px/11px Arial, sans-serif;
+}
+
+.classic-status .classic-status-up:hover:not(:disabled) {
+  border: 0;
+  background: var(--classic-status-arrow, none) no-repeat;
+}
+
+.classic-status .classic-status-up:active:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  background: var(--classic-status-arrowPressed, var(--classic-status-arrow, none)) no-repeat;
+}
+
+.classic-status .classic-status-up:disabled {
+  background: var(--classic-status-arrow, none) no-repeat;
+  opacity: 0.5;
+}
+
+.ro-window-stats .ro-window-close:focus-visible,
+.ro-window-stats .classic-status-mini:focus-visible,
+.classic-status .classic-status-up:focus-visible {
+  outline: 1px solid #4768a0;
+  outline-offset: 1px;
+}
+
+.classic-status-combat {
+  margin: 0;
+  padding: 0;
+}
+
+.classic-status-combat > div {
+  position: absolute;
+  height: 16px;
+}
+
+.classic-status-column1,
+.classic-status-points,
+.classic-status-clan {
+  left: 118px;
+  right: 87px;
+}
+
+.classic-status-column2 {
+  left: 200px;
+  right: 5px;
+}
+
+.classic-status-combat dt {
+  position: absolute;
+  left: 0;
+  color: #253e64;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.classic-status-combat dd {
+  position: absolute;
+  right: 0;
+  margin: 0;
+  font: inherit;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.classic-status-points {
+  top: 70px;
+  right: 5px;
+}
+
+.classic-status-clan {
+  top: 86px;
+  right: 5px;
+}
+
+.classic-status-row > .classic-status-label {
+  color: #253e64;
+  font-weight: bold;
+}
+
+/* Keep semantic labels available without drawing them over the bitmap labels. */
+.classic-status.has-art .classic-status-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .ro-window-layer:has(.ro-window-stats) {
+    padding: 12px;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -4,10 +4,16 @@ import {
   Empty,
   ItemIcon,
   itemName,
+  itemRarityBonus,
+  itemRarityClass,
+  itemRarityLabel,
   number,
   slots,
   type PanelProps,
 } from "../components/common";
+import { isItemIdentified, MAGNIFIER_ITEM_ID } from "../../shared/loot";
+import { classSkills } from "../../engine/stats";
+import { classicBuffActive } from "../../engine/classicBuffs";
 
 export default function Inventory({
   catalog,
@@ -16,6 +22,8 @@ export default function Inventory({
   command,
 }: PanelProps) {
   const { state } = snapshot;
+  const identifySkill = classSkills(catalog, state.job).map(id => catalog.skills[id]).find(skill => skill?.sourceName === "MC_IDENTIFY" && skill.implementation === "supported" && (state.learnedSkills[skill.id] ?? 0) > 0);
+  const identifyCost = identifySkill?.spCost[(state.learnedSkills[identifySkill.id] ?? 1) - 1] ?? identifySkill?.spCost.at(-1) ?? 10;
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
@@ -28,13 +36,17 @@ export default function Inventory({
       item &&
       (filter === "all" ||
         (filter === "favorite" ? e.favorite : item.type === filter)) &&
-      item.name
+      itemName(item, e)
         .toLocaleLowerCase("pt-BR")
         .includes(search.toLocaleLowerCase("pt-BR"))
     );
   });
   const entry = state.inventory.find((e) => e.uid === selected) ?? visible[0];
   const item = entry ? catalog.items[entry.itemId] : null;
+  const identified = item?.type !== "equipment" || isItemIdentified(entry);
+  const magnifiers = state.inventory.reduce(
+    (total, e) => total + (e.itemId === MAGNIFIER_ITEM_ID ? e.quantity : 0), 0,
+  );
   const protectedItem = entry
     ? equipped.has(entry.uid) ||
       entry.favorite ||
@@ -57,6 +69,9 @@ export default function Inventory({
   );
   const equipAllowed =
     item?.type === "equipment" &&
+    item.equipSupported !== false &&
+    item.slot &&
+    identified &&
     state.baseLevel >= item.minLevel &&
     (!item.allowedClasses.length || item.allowedClasses.includes(state.job)) &&
     (!item.weaponType ||
@@ -113,7 +128,7 @@ export default function Inventory({
             const i = catalog.items[e.itemId];
             return (
               <button
-                className={`item-cell ${entry?.uid === e.uid ? "selected" : ""} ${equipped.has(e.uid) ? "equipped" : ""}`}
+                className={`item-cell ${i.type === "equipment" ? itemRarityClass(e) : ""} ${entry?.uid === e.uid ? "selected" : ""} ${equipped.has(e.uid) ? "equipped" : ""}`}
                 key={e.uid}
                 onClick={() => select(e)}
                 aria-pressed={entry?.uid === e.uid}
@@ -121,6 +136,9 @@ export default function Inventory({
               >
                 <ItemIcon item={i} />
                 <span className="item-cell-name">{itemName(i, e)}</span>
+                {i.type === "equipment" && (
+                  <span className="item-rarity-label">{itemRarityLabel(e)}</span>
+                )}
                 <span className="item-cell-meta">
                   {equipped.has(e.uid)
                     ? "Equipado"
@@ -177,23 +195,60 @@ export default function Inventory({
       <aside className="item-detail">
         {entry && item ? (
           <>
-            <div className="item-detail-title">
+            <div className={`item-detail-title ${item.type === "equipment" ? itemRarityClass(entry) : ""}`}>
               <ItemIcon item={item} />
               <div>
                 <h3>{itemName(item, entry)}</h3>
+                {item.type === "equipment" && (
+                  <span className="item-rarity-label">{itemRarityLabel(entry)}</span>
+                )}
                 <span className="muted">
                   {item.slot ? slots[item.slot] : typeNames[item.type]} ·{" "}
                   {number(entry.quantity)} un.
                 </span>
               </div>
             </div>
-            <ItemFacts item={item} catalog={catalog} />
-            {item.unsupportedEffect && (
+            {identified ? (
+              <>
+                <ItemFacts item={item} catalog={catalog} />
+                {item.id === MAGNIFIER_ITEM_ID && (
+                  <p className="note">Selecione um equipamento não identificado na mochila e use Identificar. Cada equipamento consome uma Lupa.</p>
+                )}
+                {item.type === "equipment" && itemRarityBonus(entry) && (
+                  <p className="item-rarity-bonus">
+                    Bônus de raridade: <b>{itemRarityBonus(entry)}</b> enquanto equipado.
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="item-identification">
+                <p className="note">Use uma Lupa para revelar o equipamento, sua raridade e seu bônus. Identifique antes de equipar, refinar ou inserir cartas.</p>
+                <button
+                  className="primary"
+                  disabled={busy || magnifiers < 1}
+                  onClick={() => void command({ type: "identify", uid: entry.uid })}
+                >
+                  Identificar · 1 Lupa
+                </button>
+                {identifySkill && (
+                  <button disabled={busy || state.hp <= 0 || state.sp < identifyCost || ["TF_HIDING", "MO_STEELBODY", "LK_BERSERK"].some(source => classicBuffActive(state, catalog, source, state.lastSimulatedAt))} onClick={() => void command({ type: "identify", uid: entry.uid, method: "skill" })}>
+                    Identificar por habilidade · {identifyCost} SP
+                  </button>
+                )}
+                <p className="note">Lupas na mochila: {number(magnifiers)}{magnifiers < 1 ? ". Compre uma na loja da cidade." : "."}</p>
+              </div>
+            )}
+            {identified && item.unsupportedEffect && (
               <p className="note" role="note">
                 O efeito original deste item ainda não é aplicado no modo idle. Ele pode ser guardado ou vendido.
               </p>
             )}
-            {!!entry.cards.length && (
+            {identified && item.type === "equipment" && item.equipSupported === false && (
+              <p className="note" role="note">
+                A posição ou o tipo deste equipamento ainda não está disponível no modo idle. Você pode guardar ou vender o item identificado.
+              </p>
+            )}
+            {identified && !!entry.cards.length && (
               <p className="socketed">
                 Cartas:{" "}
                 {entry.cards.map((id) => catalog.items[id]?.name).join(", ")}
@@ -221,7 +276,7 @@ export default function Inventory({
                 </button>
               )}
             </div>
-            {item.type === "equipment" && !equipAllowed && (
+            {item.type === "equipment" && identified && item.equipSupported !== false && !equipAllowed && (
               <p className="note">
                 Requer Base {item.minLevel}
                 {item.allowedClasses.length
@@ -235,6 +290,9 @@ export default function Inventory({
               </p>
             )}
             {item.type === "equipment" &&
+              identified &&
+              item.equipSupported !== false &&
+              item.slot &&
               item.refinable !== false &&
               item.slot !== "accessory" && (
                 <div className="detail-section">
@@ -268,7 +326,7 @@ export default function Inventory({
                   )}
                 </div>
               )}
-            {item.type === "equipment" && item.slots > 0 && (
+            {item.type === "equipment" && identified && item.equipSupported !== false && item.slot && item.slots > 0 && (
               <div className="detail-section">
                 <h4>
                   Cartas · {entry.cards.length} / {item.slots}

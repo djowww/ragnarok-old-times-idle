@@ -64,10 +64,17 @@ db_query() {
 tables="$(db_query 'SHOW TABLES')"
 login_table="$(db_query "SHOW TABLES LIKE 'login'")"
 loginlog_table="$(db_query "SHOW TABLES LIKE 'loginlog'")"
+idle_only=true
+while IFS= read -r table; do
+  [[ -z "$table" ]] && continue
+  if [[ "$table" != "idle_profiles" && "$table" != "idle_commands" && "$table" != "idle_chat_messages" ]]; then
+    idle_only=false
+  fi
+done <<< "$tables"
 
 if [[ -n "$login_table" && -n "$loginlog_table" ]]; then
   echo "Hercules SQL schemas already exist; leaving the database unchanged."
-elif [[ -z "$tables" ]]; then
+elif [[ -z "$tables" || "$idle_only" == true ]]; then
   echo "Initializing Hercules SQL schemas in database '${DB_NAME}'."
   mariadb "${db_args[@]}" "${DB_NAME}" < /opt/hercules/sql-files/main.sql
   mariadb "${db_args[@]}" "${DB_NAME}" < /opt/hercules/sql-files/logs.sql

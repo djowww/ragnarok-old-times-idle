@@ -693,6 +693,9 @@ button.full {
   height: 100%;
   pointer-events: none;
 }
+.scene.map-not-ready > canvas {
+  visibility: hidden;
+}
 .scene-location {
   position: absolute;
   z-index: 2;
@@ -2025,6 +2028,54 @@ button.full {
   max-width: 730px;
   margin: 7px 0 20px;
 }
+.challenge-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+.challenge-filters {
+  display: flex;
+  gap: 6px;
+}
+.challenge-filters button,
+.challenge-pagination button {
+  border: 1px solid #b8c1ac;
+  border-radius: 3px;
+  background: #eeeee5;
+  color: #59644d;
+  padding: 6px 10px;
+  font: 700 10px Georgia, serif;
+  cursor: pointer;
+}
+.challenge-filters button.selected {
+  border-color: #76896e;
+  background: #dce5d3;
+  box-shadow: inset 0 0 0 1px #dce5d3;
+}
+.challenge-search input {
+  width: min(220px, 36vw);
+  border: 1px solid #b8c1ac;
+  border-radius: 3px;
+  background: #fffdf5;
+  color: #435044;
+  padding: 7px 9px;
+  font: 11px Georgia, serif;
+}
+.challenge-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+  color: #737b68;
+  font-size: 10px;
+}
+.challenge-pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 .challenge-list {
   display: flex;
   flex-direction: column;
@@ -2451,6 +2502,14 @@ button.full {
   }
 }
 @media (max-width: 760px) {
+  .challenge-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .challenge-search input {
+    width: 100%;
+    box-sizing: border-box;
+  }
   .game-shell {
     padding: 0 12px;
   }

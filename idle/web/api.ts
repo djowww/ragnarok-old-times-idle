@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { GameplayConnection } from './gameplayConnection';
 import type {
   ApiError,
   Catalog,
@@ -52,6 +53,8 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export function useGame() {
+  const connection = useRef<GameplayConnection | null>(null);
+  if (!connection.current) connection.current = new GameplayConnection();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [snapshot, setSnapshot] = useState<GameSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -89,7 +92,7 @@ export function useGame() {
         catalogRef.current = value;
         if (alive.current) setCatalog(value);
       }
-      const value = await request<GameSnapshot>("/api/session", {});
+      const value = await connection.current!.snapshot((path, body) => request<GameSnapshot>(path, body));
       accept(value);
       if (alive.current) {
         setConnected(true);
@@ -138,6 +141,7 @@ export function useGame() {
         return true;
       } catch (err) {
         const failure = err as ApiFailure;
+        if (failure.uncertain) connection.current!.disconnect();
         if (failure.snapshot) accept(failure.snapshot);
         failedCommand.current = failure.uncertain ? receipt : null;
         if (alive.current) {
@@ -177,7 +181,13 @@ export function useGame() {
     const poll = async () => {
       if (disposed) return;
       if (!document.hidden) await refresh();
-      if (!disposed) timer = window.setTimeout(poll, 850);
+      if (!disposed) {
+        const status = lastSnapshot.current?.state.status;
+        const delay = !document.hidden && (status === "hunting" || status === "challenge")
+          ? 250
+          : 850;
+        timer = window.setTimeout(poll, delay);
+      }
     };
     void poll();
     const focus = () => {

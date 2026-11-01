@@ -1,4 +1,7 @@
 char_configuration: {
+  pincode: {
+    enabled: false
+  }
   inter: {
     userid: "s1"
     passwd: "p1"

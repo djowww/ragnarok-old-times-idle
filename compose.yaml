@@ -9,6 +9,8 @@ services:
       DB_NAME: ${DB_NAME:?Defina DB_NAME em .env}
       DB_USER: ${DB_USER:?Defina DB_USER em .env}
       DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD em .env}
+      RAGIDLE_ADMIN_TOKEN: ${RAGIDLE_ADMIN_TOKEN:-}
+      RAGIDLE_TRUSTED_PROXY_ADDRESSES: ${RAGIDLE_TRUSTED_PROXY_ADDRESSES:-}
       ASSET_ORIGIN: http://asset-service:8080
     depends_on:
       database:

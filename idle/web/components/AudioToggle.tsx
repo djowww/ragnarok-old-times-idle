@@ -99,7 +99,8 @@ export default function AudioToggle({ map }: { map: string }) {
     void start(element);
   };
   return (
-    <div className="audio-controls">
+    <div className="audio-controls" data-bgm-map={map} data-bgm-track={track}
+      data-bgm-src={audio.current?.currentSrc || undefined}>
       <button
         className="audio-toggle"
         disabled={!track}

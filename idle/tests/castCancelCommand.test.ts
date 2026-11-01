@@ -1,0 +1,30 @@
+import { describe, it, expect } from 'vitest';
+import { executeCommand } from '../engine/commands';
+import { advanceState, applyCommand } from '../engine';
+import { ownCast } from './cast-control-fixture';
+import { parseCommandRequest } from '../server/validation';
+describe('manual Cast Cancel', () => {
+    it.each([1, 2, 3, 4, 5])('cancels own cast at level %s paying normal2 plus raw extra', level => { const { s, c } = ownCast(); s.learnedSkills.sa_castcancel = level; executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel', expectedCastActionId: 'own-bolt' } as any, 100); expect(s.battle!.cast).toBeUndefined(); expect(s.sp).toBe(98 - [22, 17, 12, 7, 2][level - 1]); expect(s.battle!.playerNextAttackAt).toBe(777); expect(s.battle!.playerActionReadyAt).toBe(100); expect(s.events.find(e => e.kind === 'cast-interrupted')).toMatchObject({ sourceActorId: s.id, actionId: 'own-bolt', actorAction: 'none' }); });
+    it('saturates extra drain without rejecting SP2 start', () => { const { s, c } = ownCast(); s.sp = 2; executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel' }, 100); expect(s.sp).toBe(0); expect(s.battle!.cast).toBeUndefined(); });
+    it('normal reduction does not reduce raw extra', () => { const { s, c } = ownCast(); c.items[2301].effects.spCostReductionPct = 50; executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel' }, 100); expect(s.sp).toBe(77); });
+    it.each(['stale', 'ended', 'no-cast', 'unlearned', 'class', 'unsupported', 'dead', 'sp', 'silence', 'steel', 'fraction'] as const)('rejects %s without mutation', bad => { const { s, c } = ownCast(); if (bad === 'ended')
+        s.battle!.cast!.endsAt = 100; if (bad === 'no-cast')
+        delete s.battle!.cast; if (bad === 'unlearned')
+        delete s.learnedSkills.sa_castcancel; if (bad === 'class')
+        s.job = 'novice'; if (bad === 'unsupported')
+        c.skills.sa_castcancel.implementation = 'unsupported'; if (bad === 'dead')
+        s.hp = 0; if (bad === 'sp')
+        s.sp = 1; if (bad === 'fraction')
+        s.learnedSkills.sa_castcancel = 1.5; if (bad === 'silence')
+        s.playerStatuses = { SC_SILENCE: { startsAt: 0, expiresAt: 1000, level: 1, sourceDurationMs: 1000 } }; if (bad === 'steel') {
+        c.skills.block = { ...c.skills.sa_castcancel, id: 'block', sourceName: 'MO_STEELBODY' };
+        s.buffs.block = { expiresAt: 1000, effects: {} };
+    } const before = structuredClone(s); expect(() => executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel', expectedCastActionId: bad === 'stale' ? 'old' : 'own-bolt' } as any, 100)).toThrow(); expect(s).toEqual(before); });
+    it('preserves independent resources and delayed casts without enemy', () => { const { s, c } = ownCast(); s.battle!.enemies = []; s.combatEffects = { memorizeCharges: 4, spiritSpheres: 3 }; s.battle!.delayedSkills = [{ skillId: 'fire_bolt', level: 1, targetId: 'other', position: { x: 0, y: 0 }, endsAt: 2000, effect: 'doublecast' }]; const inventory = structuredClone(s.inventory); executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel' }, 100); expect(s.combatEffects).toMatchObject({ memorizeCharges: 4, spiritSpheres: 3 }); expect(s.battle!.delayedSkills).toHaveLength(1); expect(s.inventory).toEqual(inventory); });
+    it('pause shifts cast ownership once and manual cancel cannot resurrect saved cast', () => { const { s, c } = ownCast(); s.status = 'paused'; s.pausedStatus = 'challenge'; s.pausedAt = 0; const resumed = applyCommand(JSON.parse(JSON.stringify(s)), c, { type: 'setPotions', hpThreshold: 0, spThreshold: 0 }, 10000); expect(resumed.battle!.cast!.clockOwnership!.actionReadyAt).toBe(11500); executeCommand(resumed, c, { type: 'useSkill', skillId: 'sa_castcancel', expectedCastActionId: 'own-bolt' }, 10100); expect(resumed.battle!.playerActionReadyAt).toBe(10100); const saved = advanceState(JSON.parse(JSON.stringify(resumed)), c, 11250); expect(saved.events.some(e => e.kind === 'damage' && e.skillId === 'fire_bolt')).toBe(false); });
+    it('releases only cast-owned movement while preserving independent later locks', () => { const { s, c } = ownCast(); s.fieldHero = { areaId: s.areaId!, from: { x: 0, y: 0 }, position: { x: 0, y: 0 }, startedAt: 0, arrivedAt: 0, routeIndex: 0, moveBlockedUntil: 1500 }; s.battle!.cast!.clockOwnership!.moveBlockedUntil = 1500; s.battle!.cast!.clockOwnership!.previousMoveBlockedUntil = 0; s.battle!.playerActionReadyAt = 3000; executeCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel' }, 100); expect(s.fieldHero.moveBlockedUntil).toBe(100); expect(s.battle!.playerActionReadyAt).toBe(3000); });
+    it('never uses manual cancel from rotation', () => { const { s, c } = ownCast(); s.rotation = ['sa_castcancel']; const end = advanceState(s, c, 500); expect(end.battle?.cast?.actionId).toBe('own-bolt'); expect(end.sp).toBe(100); });
+    it('learns Cast Cancel by studying Advanced Book2 with normal points, then cancels', () => { const { s, c } = ownCast(); s.battle = null; s.status = 'town'; s.learnedSkills = {}; s.skillPoints = 5; let learned = applyCommand(s, c, { type: 'learnSkill', skillId: 'sa_advancedbook' }, 0); learned = applyCommand(learned, c, { type: 'learnSkill', skillId: 'sa_advancedbook' }, 0); learned = applyCommand(learned, c, { type: 'learnSkill', skillId: 'sa_castcancel' }, 0); expect(learned.learnedSkills.sa_castcancel).toBe(1); expect(learned.skillPoints).toBe(2); });
+    it('rejects a stale click after the engine settles the original deadline', () => { const { s, c } = ownCast(); expect(() => applyCommand(s, c, { type: 'useSkill', skillId: 'sa_castcancel', expectedCastActionId: 'own-bolt' }, 1250)).toThrow(); expect(s.battle!.cast!.actionId).toBe('own-bolt'); });
+    it('validates optional expected action id at HTTP boundary', () => { expect(parseCommandRequest({ requestId: 'request-1', command: { type: 'useSkill', skillId: 'sa_castcancel', expectedCastActionId: 'own-bolt' } }).command).toMatchObject({ expectedCastActionId: 'own-bolt' }); });
+});
