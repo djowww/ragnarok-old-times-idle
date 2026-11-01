@@ -10,13 +10,13 @@ import { MemoryAccountStore } from './portal-fixture.js';
 
 const cleanups: (() => Promise<unknown>)[] = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0).reverse()) await cleanup(); });
-async function setup(assetOrigin?: string) {
+async function setup(assetOrigin?: string, allowedOrigins?: string[]) {
   const webRoot = await mkdtemp(join(tmpdir(), 'idle-hosting-'));
   cleanups.push(() => rm(webRoot, { recursive: true, force: true }));
   const html = '<!doctype html><html><body><div id="root">Portal fixture</div></body></html>';
   await writeFile(join(webRoot, 'index.html'), html);
   const accounts = new MemoryAccountStore();
-  const app = await buildApp({ catalog: catalogJSON as unknown as Catalog, accounts, profiles: accounts.profiles, now: () => 1000, webRoot, assetOrigin });
+  const app = await buildApp({ catalog: catalogJSON as unknown as Catalog, accounts, profiles: accounts.profiles, now: () => 1000, webRoot, assetOrigin, allowedOrigins });
   cleanups.push(() => app.close());
   return { app, html };
 }
@@ -51,6 +51,15 @@ describe('portal hosting', () => {
     expect(session.statusCode).toBe(200);
     expect(anonymous.statusCode).toBe(401);
     for (const response of [registered, me, session, anonymous]) expect(response.headers['cache-control']).toBe('no-store');
+  });
+  it('accepts configured public origins and uses secure session cookies behind HTTPS', async () => {
+    const publicOrigin = 'https://tibia74.tech:8443';
+    const { app } = await setup(undefined, [publicOrigin]);
+    const accepted = await app.inject({ method: 'POST', url: '/api/auth/register', headers: { origin: publicOrigin, 'sec-fetch-site': 'same-origin' }, payload: { username: 'publicuser', characterName: 'Public User', gender: 'male', password: 'public-user-password', confirmation: 'public-user-password' } });
+    expect(accepted.statusCode).toBe(201);
+    expect(String(accepted.headers['set-cookie'])).toContain('Secure');
+    const rejected = await app.inject({ method: 'POST', url: '/api/auth/register', headers: { origin: 'https://evil.example', 'sec-fetch-site': 'cross-site' }, payload: { username: 'intruder', characterName: 'Intruder', gender: 'male', password: 'intruder-password', confirmation: 'intruder-password' } });
+    expect(rejected.statusCode).toBe(403);
   });
   it('keeps an upstream missing client bitmap as JSON 404', async () => {
     const upstream = createServer((_request, response) => { response.writeHead(404); response.end('missing'); });
