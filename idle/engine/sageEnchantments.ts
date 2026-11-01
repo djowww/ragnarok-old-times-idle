@@ -8,6 +8,7 @@ import { cancelClassicBuff } from './classicBuffs.js';
 import { elementalEnchantReplacements } from './enchantPoison.js';
 import { activePlayerStatus } from './playerStatuses.js';
 import { startOwnCast, clearOwnCast } from './ownCast.js';
+import { resolveOwnSkillAction } from './skillActionClock.js';
 
 const SAGE_ENCHANTS = {
   SA_FLAMELAUNCHER: { element: 'fire', reagentId: 990 },
@@ -44,7 +45,7 @@ export function sageEnchantCanStart(s: GameState, c: Catalog, skill: Skill, leve
   return Object.hasOwn(SAGE_ENCHANTS, source) && c.skills[skill.id]?.implementation === 'supported' &&
     skill.manualUse === 'activate' && Number.isSafeInteger(level) && level > 0 && level <= 5 && level <= skill.maxLevel &&
     s.learnedSkills[skill.id] === level && classSkills(c, s.job).includes(skill.id) &&
-    ['town', 'hunting', 'challenge'].includes(s.status) && !s.supportCast && !s.battle?.cast && s.hp > 0 &&
+    ['town', 'hunting', 'challenge'].includes(s.status) && !s.supportCast && !s.battle?.cast && (s.playerCanActAt ?? 0) <= at && s.hp > 0 &&
     load.weight * 10 < load.maxWeight * 9 &&
     !activePlayerStatus(s, 'SC_SILENCE', at) &&
     !!weaponEntry(s, c) && compatible(s, c, source, at) && canPaySkillResources(s, c, skill, level, at);
@@ -87,6 +88,7 @@ export function resolveSageEnchantCast(s: GameState, c: Catalog, at: number): bo
   const cast = s.supportCast;
   if (!cast || cast.endsAt > at) return false;
   delete s.supportCast;
+  return resolveOwnSkillAction(s, c, cast, at, () => {
   const skill = c.skills[cast.skillId];
   const source = skill?.sourceName as keyof typeof SAGE_ENCHANTS;
   const spec = SAGE_ENCHANTS[source];
@@ -130,4 +132,5 @@ export function resolveSageEnchantCast(s: GameState, c: Catalog, at: number): bo
   });
   if (!payment.paid) return fail('Recursos insuficientes ao concluir o encantamento.');
   return payment.result;
+  });
 }

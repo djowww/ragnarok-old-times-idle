@@ -377,6 +377,7 @@ describe('authoritative field navigation runtime', () => {
       { ...grid(24, 24, [[4, 3]]), map: 'prt_fild08' }]]));
     const state = createInitialState(catalog, 0);
     state.job = 'sage'; state.baseLevel = 50; state.jobLevel = 50; state.stats.dex = 30; state.sp = 300;
+    state.rotation = []; // Route test observes the manual cast without automatic First Aid at its source deadline.
     state.status = 'hunting'; state.areaId = navigationArea.areaId;
     const enchant = catalog.skills.flame_enchant!;
     const freeCast = Object.values(catalog.skills).find(entry => entry.sourceName === 'SA_FREECAST')!;

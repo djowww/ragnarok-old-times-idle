@@ -129,8 +129,9 @@ describe('Sage combat integration',()=>{
     s.learnedSkills[memorize.id]=1; s.rotation=[memorize.id]; s.battle!.playerNextAttackAt=99999;
     const buff=advanceState(s,c,1000); expect(effects(buff).memorizeCharges).toBe(5);
     const bolt=skill('MG_FIREBOLT'); bolt.castTimeMs=[1000]; bolt.ignoresDex=true;
-    buff.learnedSkills[bolt.id]=1; buff.rotation=[bolt.id]; buff.battle!.playerActionReadyAt=1000; buff.battle!.playerNextSkillAt=1000;
-    const start=advanceState(buff,c,1250);
+    const readyAt=buff.playerCanActAt!;
+    buff.learnedSkills[bolt.id]=1; buff.rotation=[bolt.id]; buff.battle!.playerActionReadyAt=readyAt; buff.battle!.playerNextSkillAt=readyAt;
+    const start=advanceState(buff,c,Math.ceil(readyAt/250)*250);
     expect(start.battle!.cast!.endsAt-start.battle!.cast!.startedAt).toBe(500);
     expect(effects(start).memorizeCharges).toBe(4);
   });

@@ -455,6 +455,7 @@ export interface SenseInspectionResult {
   elementLevel: number;
   elementRates: SenseElementRates;
 }
+export interface SkillClockOwnership { readyAt: number; previousReadyAt?: number }
 export interface Battle {
   monsterId: number;
   hp: number;
@@ -484,6 +485,7 @@ export interface Battle {
     position?: { x: number; y: number };
     actionId?: string;
     afterCastDelayMs?: number;
+    skillClockOwnership?: SkillClockOwnership;
     clockOwnership?: { actionReadyAt?: number; previousActionReadyAt?: number; nextSkillAt?: number; previousNextSkillAt?: number; moveBlockedUntil?: number; previousMoveBlockedUntil?: number };
   };
   groundEffects?: {
@@ -755,8 +757,11 @@ export interface GameState {
     respawns: Array<{ slot: number; at: number }>;
   };
   battle: Battle | null;
+  /** Source actor canact; absent in old saves, never inferred from a basic swing. */
+  playerCanActAt?: number;
   /** Own self-target skill cast; unlike Battle.cast this also works in Prontera. */
   supportCast?: { skillId: string; level: number; startedAt: number; endsAt: number; actionId: string;
+    skillClockOwnership?: SkillClockOwnership;
     /** Ground casts retain the selected map position even when FreeCast moves. */
     position?: { x: number; y: number }; sceneKey?: string;
     battleClockOwnership?: { actionReadyAt?: number; nextSkillAt?: number; nextAttackAt?: number;

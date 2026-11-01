@@ -45,21 +45,22 @@ describe('Pick Stone real inventory rotation', () => {
     expect(start.battle?.cast).toMatchObject({ skillId: 'tf_pickstone', startedAt: 1000, endsAt: 1500 });
     expect(count(start)).toBe(0); expect(start.sp).toBe(50);
     const end = advanceState(start, c, 1500);
-    expect(count(end)).toBe(1); expect(end.sp).toBe(47); expect(end.rngState).toBe(before.rngState);
-    expect(end.buffs.tf_pickstone).toBeUndefined(); expect(end.totals).toEqual({ ...before.totals, elapsedMs: 1500 });
-    expect(end.battle?.enemies?.[0]).toMatchObject({ hp: 2000, hostile: false });
+    // Native zero postdelay lets Throw consume the newly produced Stone at the same timestamp.
+    expect(count(end)).toBe(0); expect(end.sp).toBe(45);
+    expect(end.buffs.tf_pickstone).toBeUndefined(); expect(end.totals.elapsedMs).toBe(1500);
+    expect(end.zeny).toBe(before.zeny); expect(end.baseExp).toBe(before.baseExp); expect(end.jobExp).toBe(before.jobExp);
     expect(end.events.filter(e => e.kind === 'skill' && e.skillId === 'tf_pickstone')).toEqual([
       expect.objectContaining({ at: 1500, text: 'Pedra coletada', amount: 1, itemId: 7049, quantity: 1,
         target: 'player', sourceActorId: s.id, targetActorId: s.id, skillLevel: 1, actorAction: 'skill',
         actionId: start.battle?.cast?.actionId, actionStartedAt: 1500 }),
     ]);
-    const thrown = advanceState(end, c, Math.ceil(end.battle!.playerActionReadyAt! / 250) * 250);
-    expect(count(thrown)).toBe(0); expect(thrown.sp).toBe(45);
-    expect(thrown.events.some(e => e.kind === 'damage' && e.skillId === 'tf_throwstone')).toBe(true);
-    const nextCast = advanceState(thrown, c, Math.ceil(thrown.battle!.playerActionReadyAt! / 250) * 250);
+    expect(end.events.some(e => e.kind === 'damage' && e.skillId === 'tf_throwstone' && e.at === 1500)).toBe(true);
+    const nextCast = advanceState(end, c, Math.ceil(end.playerCanActAt! / 250) * 250);
     expect(nextCast.battle?.cast?.skillId).toBe('tf_pickstone');
     const refill = advanceState(nextCast, c, Math.ceil(nextCast.battle!.cast!.endsAt / 250) * 250);
-    expect(count(refill)).toBe(1); expect(refill.sp).toBe(42);
+    expect(count(refill)).toBe(0); expect(refill.sp).toBe(40);
+    expect(refill.events.filter(e => e.kind === 'skill' && e.skillId === 'tf_pickstone')).toHaveLength(2);
+    expect(refill.events.filter(e => e.kind === 'damage' && e.skillId === 'tf_throwstone')).toHaveLength(2);
   });
   it('uses normal DEX casting reduction and needs only Pick Stone SP, with no reservation for Throw', () => {
     const { c, s } = setup(false, 3, 75), start = advanceState(s, c, 1000);
@@ -79,7 +80,7 @@ describe('Pick Stone real inventory rotation', () => {
     if (invalid === 'missing-item') delete c.items[7049];
     if (invalid === 'capacity') c.items[7049].weight = inventoryLoad(start, c).maxWeight + 1;
     const savedSp = start.sp, end = advanceState(start, c, 1500);
-    expect(end.sp).toBe(savedSp); expect(count(end)).toBe(invalid === 'stone' ? 1 : 0);
+    expect(end.sp).toBe(savedSp - (invalid === 'stone' ? 2 : 0)); expect(count(end)).toBe(0);
     expect(end.events.some(e => e.kind === 'skill' && e.skillId === 'tf_pickstone')).toBe(false);
   });
   it.each(['dead-target', 'removed-target'] as const)('completes self production after %s', invalid => {
@@ -103,7 +104,8 @@ describe('Pick Stone real inventory rotation', () => {
     Object.assign(c.monsters[1002], { attack: [20, 20], stats: { str: 0, agi: 0, vit: 0, int: 0, dex: 1000, luk: 0 } });
     Object.assign(start.battle!.enemies![0], { hostile: true, enemyNextAttackAt: 1250 });
     const end = advanceState(start, c, 1500);
-    expect(end.hp).toBeLessThan(start.hp); expect(count(end)).toBe(1); expect(end.sp).toBe(47);
+    expect(end.hp).toBeLessThan(start.hp); expect(count(end)).toBe(0); expect(end.sp).toBe(45);
+    expect(end.events.filter(e => e.kind === 'skill' && e.skillId === 'tf_pickstone')).toHaveLength(1);
     expect(end.events.some(e => e.kind === 'cast-interrupted' && e.skillId === 'tf_pickstone')).toBe(false);
   });
   it('retains saved progress and produces the same unique event through JSON and smaller advances', () => {
@@ -114,7 +116,9 @@ describe('Pick Stone real inventory rotation', () => {
     for (let at = 1100; at <= 1500; at += 100) steps = advanceState(steps, c, at);
     expect({ inventory: steps.inventory, sp: steps.sp, events: steps.events, totals: steps.totals })
       .toEqual({ inventory: one.inventory, sp: one.sp, events: one.events, totals: one.totals });
-    expect(count(one)).toBe(1); expect(one.inventory.find(i => i.itemId === 909)).toMatchObject({ quantity: 7, favorite: true });
+    expect(count(one)).toBe(0); expect(one.sp).toBe(45);
+    expect(one.events.filter(e => e.kind === 'skill' && e.skillId === 'tf_pickstone')).toHaveLength(1);
+    expect(one.inventory.find(i => i.itemId === 909)).toMatchObject({ quantity: 7, favorite: true });
   });
   it.each(['only-pick', 'weight', 'sp', 'existing-stone'] as const)('skips collection for %s', invalid => {
     const { c, s } = setup();

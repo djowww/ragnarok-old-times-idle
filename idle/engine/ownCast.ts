@@ -3,6 +3,7 @@ import { classicCastTime } from './classic.js';
 import { derivedStats, learnedFreeCastLevel } from './stats.js';
 import { event } from './state.js';
 import { battleHeroAt, stopHeroMovement } from '../shared/battleSpatial.js';
+import { beginSkillAction, cancelSkillAction } from './skillActionClock.js';
 
 /** Common clocks for a validated self-target cast; payment belongs to its handler. */
 export function startOwnCast(s: GameState, c: Catalog, skill: Skill, level: number, at: number, resolvedCastTimeMs?: number): void {
@@ -15,14 +16,16 @@ export function startOwnCast(s: GameState, c: Catalog, skill: Skill, level: numb
   const afterCastDelay = Math.max(0, Math.floor(delay *
     (1 - Math.min(100, stats.effects.afterCastReductionPct ?? 0) / 100)));
   const actionReadyAt = at + castMs + Math.max(motion, afterCastDelay);
+  const sourceClock = beginSkillAction(s, at, castMs, motion);
   s.supportCast = { skillId: skill.id, level, startedAt: at, endsAt: at + castMs, actionId,
+    skillClockOwnership: sourceClock,
     ...(battle && { battleClockOwnership: {
       actionReadyAt: battle.playerActionReadyAt, nextSkillAt: battle.playerNextSkillAt,
-      nextAttackAt: battle.playerNextAttackAt, ownedActionReadyAt: actionReadyAt, ownedNextSkillAt: actionReadyAt,
+      nextAttackAt: battle.playerNextAttackAt, ownedActionReadyAt: actionReadyAt, ownedNextSkillAt: sourceClock.readyAt,
       battleIdentity: { startedAt: battle.startedAt, attemptId: battle.attemptId,
         challengeId: battle.challengeId, areaId: s.areaId },
     } }) };
-  if (battle) { battle.playerActionReadyAt = actionReadyAt; battle.playerNextSkillAt = actionReadyAt; }
+  if (battle) { battle.playerActionReadyAt = actionReadyAt; battle.playerNextSkillAt = sourceClock.readyAt; }
   if (!learnedFreeCastLevel(s, c) && s.status === 'hunting' && s.fieldHero?.areaId === s.areaId) {
     stopHeroMovement(s.fieldHero, battleHeroAt(s, at), at); s.fieldHero.phase = 'fighting';
   }
@@ -34,6 +37,7 @@ export function clearOwnCast(s: GameState, c: Catalog, at: number, reason: strin
   const cast = s.supportCast;
   if (!cast) return false;
   delete s.supportCast;
+  cancelSkillAction(s, cast.skillClockOwnership, at);
   const identity = cast.battleClockOwnership?.battleIdentity;
   const matches = !!identity && !!s.battle && identity.startedAt === s.battle.startedAt &&
     identity.attemptId === s.battle.attemptId && identity.challengeId === s.battle.challengeId && identity.areaId === s.areaId;

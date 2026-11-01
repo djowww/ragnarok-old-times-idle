@@ -9,6 +9,7 @@ import { event, random, requireRule } from './state.js';
 import { classicCastTime } from './classic.js';
 import { currentPlayerCast } from './playerCast.js';
 import { cancelSageEnchantCast } from './sageEnchantments.js';
+import { cancelSkillAction } from './skillActionClock.js';
 export type CastSubject = {
     kind: 'player' | 'monster';
     actorId: string;
@@ -50,6 +51,7 @@ export function cancelActorCast(s: GameState, c: Catalog, subject: CastSubject, 
             return;
         const ownership = cast.clockOwnership;
         delete b.cast;
+        cancelSkillAction(s, cast.skillClockOwnership, at);
         if (ownership) {
             if (b.playerActionReadyAt === ownership.actionReadyAt)
                 b.playerActionReadyAt = Math.max(at, ownership.previousActionReadyAt ?? at);

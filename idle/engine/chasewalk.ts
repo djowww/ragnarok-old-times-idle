@@ -6,6 +6,7 @@ import { activePlayerStatus } from './playerStatuses.js';
 import { canPaySkillResources, paySkillResources } from './skillResources.js';
 import { event, random } from './state.js';
 import { startOwnCast } from './ownCast.js';
+import { resolveOwnSkillAction } from './skillActionClock.js';
 
 export const CHASEWALK_STRENGTH_ID = 'chasewalk_strength';
 export function chasewalkCanStart(s: GameState, c: Catalog, skill: Skill, level: number, at: number): boolean {
@@ -13,7 +14,7 @@ export function chasewalkCanStart(s: GameState, c: Catalog, skill: Skill, level:
   return skill.sourceName === 'ST_CHASEWALK' && skill.implementation === 'supported' &&
     Number.isSafeInteger(level) && level > 0 && level <= 5 && s.learnedSkills[skill.id] === level &&
     classSkills(c, s.job).includes(skill.id) && ['town', 'hunting', 'challenge'].includes(s.status) && s.hp > 0 &&
-    !s.supportCast && !s.battle?.cast && !activePlayerStatus(s, 'SC_SILENCE', at) &&
+    !s.supportCast && !s.battle?.cast && (s.playerCanActAt ?? 0) <= at && !activePlayerStatus(s, 'SC_SILENCE', at) &&
     !['MO_STEELBODY', 'LK_BERSERK', 'TF_HIDING', 'AS_CLOAKING', 'KN_AUTOCOUNTER', 'NV_TRICKDEAD']
       .some(source => classicBuffActive(s, c, source, at)) &&
     (active || load.weight * 10 < load.maxWeight * 9 && canPaySkillResources(s, c, skill, level, at));
@@ -30,6 +31,7 @@ export function resolveChasewalkCast(s: GameState, c: Catalog, at: number): bool
   const cast = s.supportCast;
   if (!cast || cast.endsAt > at || c.skills[cast.skillId]?.sourceName !== 'ST_CHASEWALK') return false;
   delete s.supportCast;
+  return resolveOwnSkillAction(s, c, cast, at, () => {
   const skill = c.skills[cast.skillId];
   if (s.hp <= 0 || skill.implementation !== 'supported') return false;
   const active = classicBuffActive(s, c, 'ST_CHASEWALK', at);
@@ -50,6 +52,7 @@ export function resolveChasewalkCast(s: GameState, c: Catalog, at: number): bool
   event(s, at, active ? 'status-end' : 'status-start', active ? 'Furtividade desativada.' : 'Furtividade ativa.',
     undefined, 'player', { skillId: skill.id, skillLevel: cast.level, statusName: 'SC_CHASEWALK' });
   return true;
+  });
 }
 export function tickChasewalk(s: GameState, c: Catalog, at: number): void {
   const id = Object.keys(s.buffs).find(id => c.skills[id]?.sourceName === 'ST_CHASEWALK');
