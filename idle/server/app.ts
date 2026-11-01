@@ -12,14 +12,14 @@ import { callerRepository, registerGameRoutes, resolveGameRepository } from './g
 import type { PortalQueries } from './portal/types.js';
 import { loadNews } from './portal/news.js';
 import { registerPortalRoutes } from './portal/routes.js';
-export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; }
-export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, assetOrigin = 'http://asset-service:8080', webRoot }: AppOptions) {
+export interface AppOptions { catalog: Catalog; accounts: AccountStore; profiles: GameProfiles; now: () => number; portal?: PortalQueries; chatRepository?: ChatRepository; assetOrigin?: string; webRoot?: string; publicOrigin?: string; allowedOrigins?: readonly string[]; }
+export async function buildApp({ catalog, accounts, profiles, portal, chatRepository, now, publicOrigin, allowedOrigins: configuredOrigins = [], assetOrigin = 'http://asset-service:8080', webRoot }: AppOptions) {
   const app = Fastify({ bodyLimit: 16384, logger: false });
-  const allowedOrigins = [...LOCAL_ORIGINS, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])];
+  const allowedMutationOrigins = [...new Set([...LOCAL_ORIGINS, ...configuredOrigins, ...(publicOrigin ? [new URL(publicOrigin).origin] : [])])];
   app.addHook('onRequest', async (request, reply) => {
     if (!request.url.startsWith('/api/')) return;
     reply.header('Cache-Control', 'no-store');
-    if (request.method === 'POST') assertAllowedMutation({ origin: request.headers.origin, secFetchSite: request.headers['sec-fetch-site'] as string | undefined, contentType: request.headers['content-type'] }, allowedOrigins);
+    if (request.method === 'POST') assertAllowedMutation({ origin: request.headers.origin, secFetchSite: request.headers['sec-fetch-site'] as string | undefined, contentType: request.headers['content-type'] }, allowedMutationOrigins);
   });
   app.setErrorHandler(async (error, request, reply) => {
     if (error instanceof PortalError) return reply.code(error.statusCode).send({ error: { code: error.code, message: error.message, ...(error.fields ? { fields: error.fields } : {}) } });
@@ -33,7 +33,8 @@ export async function buildApp({ catalog, accounts, profiles, portal, chatReposi
     }
     return reply.code(503).send({ error: { code: 'SERVICE_UNAVAILABLE', message: 'O servidor está indisponível. Tente novamente.' } });
   });
-  const auth = createAuthService({ accounts, catalog, now, secureCookie: publicOrigin ? new URL(publicOrigin).protocol === 'https:' : false });
+  const secureCookie = (publicOrigin ? new URL(publicOrigin).protocol === 'https:' : false) || configuredOrigins.some(origin => new URL(origin).protocol === 'https:');
+  const auth = createAuthService({ accounts, catalog, now, secureCookie });
   await registerAuthRoutes(app, auth);
   if (portal) await registerPortalRoutes(app, { queries: portal, catalog, now, news: await loadNews() });
   await registerGameRoutes(app, { auth, profiles, catalog, now });

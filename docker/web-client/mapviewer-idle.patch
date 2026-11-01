@@ -51,7 +51,7 @@ index 4e3faeb..6281733 100644
 +	} catch {
 +		return;
 +	}
-+	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin) || event.origin !== parentOrigin) return;
++	if ((parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) || event.origin !== parentOrigin) return;
 +	const data = event.data;
 +	if (!data || typeof data !== 'object' || data.map !== idleSceneName) return;
 +	if (IdleActors.receive(data, parentOrigin, idleSceneName, idleSceneBaseSpot, Renderer.getContext())) return;
@@ -97,7 +97,7 @@ index 4e3faeb..6281733 100644
 +	} catch {
 +		return;
 +	}
-+	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
 +	idleSceneCameraTick = tick;
 +	window.parent.postMessage({
 +		type: 'ragidle-map-camera', map: idleSceneName,
@@ -131,7 +131,7 @@ index 4e3faeb..6281733 100644
 +	} catch {
 +		return;
 +	}
-+	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
 +	window.parent.postMessage({
 +		type: 'ragidle-map-progress', map: idleSceneName,
 +		progress: Math.max(0, Math.min(99, progress))
@@ -159,7 +159,7 @@ index 4e3faeb..6281733 100644
 +	} catch {
 +		return;
 +	}
-+	if (!/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
++	if (parentOrigin !== window.location.origin && !/^http:\/\/(localhost|127\.0\.0\.1):(3339|5173)$/.test(parentOrigin)) return;
 +	window.parent.postMessage({ type, map: idleSceneName }, parentOrigin);
 +}
 +

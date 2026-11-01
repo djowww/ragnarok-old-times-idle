@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { readMapProjection, type MapProjection, type WorldPoint } from "../assets/mapProjection";
 import { NativeActorsBridge } from "../assets/nativeActors";
+import { getClassicClientPaths } from "../public-client-routing";
 export type { MapProjection } from "../assets/mapProjection";
 
 const localMaps = new Set([
@@ -42,7 +43,7 @@ export default function OriginalMap({
   const [attempt, setAttempt] = useState(0);
   const allowed = localMaps.has(map);
   const [status, setStatus] = useState<MapStatus>({ map, phase: allowed ? "loading" : "error" });
-  const origin = `${window.location.protocol}//${window.location.hostname}:3338`;
+  const { origin, mapViewer } = getClassicClientPaths(window.location);
   const phase = status.map === map ? status.phase : allowed ? "loading" : "error";
   const resetActors = (connect = false) => {
     actorBridge.current?.dispose();
@@ -146,7 +147,7 @@ export default function OriginalMap({
         <iframe
           key={`${map}:${attempt}`}
           ref={frame}
-          src={`${origin}/applications/pwa/map-idle.html?attempt=${attempt}#${map}.rsw`}
+          src={`${mapViewer}?attempt=${attempt}#${map}.rsw`}
           title={`Cenário original de ${map}`}
           tabIndex={-1}
           onLoad={() => resetActors(true)}

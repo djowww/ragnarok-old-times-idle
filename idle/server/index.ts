@@ -17,7 +17,8 @@ const repository = new GameRepository(pool, () => createInitialState(catalog, Da
 await repository.read();
 const profiles = new SqlGameProfiles(pool);
 const accounts = new SqlAccountStore(pool);
-const app = await buildApp({ catalog, accounts, profiles, portal: new SqlPortalQueries(pool), chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build') });
+const allowedOrigins = process.env.RAGIDLE_ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean);
+const app = await buildApp({ catalog, accounts, profiles, portal: new SqlPortalQueries(pool), chatRepository: new MysqlChatRepository(pool), now: Date.now, publicOrigin: process.env.PUBLIC_ORIGIN, allowedOrigins, assetOrigin: process.env.ASSET_ORIGIN, webRoot: resolve('public-build') });
 const scheduler = createScheduler({ profiles, catalog, now: Date.now, reportError: profileId => { console.error(`Não foi possível salvar o progresso idle (${profileId}).`); } });
 scheduler.start();
 app.addHook('onClose', async () => { await scheduler.stop(); await pool.end(); });

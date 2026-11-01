@@ -5,6 +5,7 @@ import { Link, navigate } from "./portal/router";
 import type { Catalog, DerivedStats, GameState, Skill } from "../shared/types";
 import { isTownScene } from "../shared/worldScene";
 import { useGame } from "./api";
+import { getClassicClientPaths } from "./public-client-routing";
 import Scene from "./components/Scene";
 import CharacterSelect from "./components/CharacterSelect";
 import ChatJournal from "./components/ChatJournal";
@@ -778,7 +779,7 @@ export default function App({ identity, onAuthRequired }: { identity: AccountVie
                           </button>
                           <Link className="ro-book-entry" href="/painel">Painel da conta</Link>
                           <button type="button" className="ro-book-entry" onClick={() => { void auth.logout().catch(() => {}); navigate('/'); }}>Sair da conta</button>
-                          <a className="ro-book-entry ro-book-classic-link" href="http://localhost:3338/"
+                          <a className="ro-book-entry ro-book-classic-link" href={getClassicClientPaths(window.location).entry}
                             target="_blank" rel="noreferrer" onClick={() => setBookOpen(false)}>
                             <span className="ro-book-entry-mark" aria-hidden="true">↗</span>
                             <span>RO clássico</span>

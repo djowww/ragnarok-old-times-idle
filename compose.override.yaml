@@ -1,0 +1,6 @@
+services:
+  idle-game:
+    image: ragidle-idle-game
+    build:
+      context: C:/Users/Usuário/.codex/worktrees/idle-portal/RagIDLE/idle
+      dockerfile: C:/Users/Usuário/.codex/worktrees/idle-portal/RagIDLE/docker/idle-game/Dockerfile
